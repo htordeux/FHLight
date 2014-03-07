@@ -297,9 +297,9 @@ local InterruptTable = {
 	spellTable =
 	{
 	-- TRINKETS -- jps.useTrinket(0) est "Trinket0Slot" est slotId  13 -- "jps.useTrinket(1) est "Trinket1Slot" est slotId  14
-		{ jps.useTrinket(1), jps.UseCDs and jps.useTrinketBool(1) and playerIsStun , "player" },
+	{ jps.useTrinket(1), jps.UseCDs and jps.useTrinketBool(1) and playerIsStun , "player" },
 	-- playerAggro
-	{"nested", jps.hp("player") < 0.55 and playerAggro ,
+	{ "nested", jps.hp("player") < 0.55 and playerAggro ,
 		{
 			-- "Suppression de la douleur" 33206 "Pain Suppression"
 			{ 33206, playerIsStun , "player" , "Stun_Pain_Player" },
@@ -323,7 +323,7 @@ local InterruptTable = {
 	-- "Power Word: Shield" 17 -- Ame affaiblie 6788 -- TIMER SHIELD
 	{ 17, (type(ShieldTarget) == "string") , ShieldTarget , "Timer_ShieldTarget" },
 
-	{"nested", jps.PvP and LowestImportantUnitHpct > 0.85 ,
+	{ "nested", jps.PvP and LowestImportantUnitHpct > 0.85 ,
 		{
 			-- DISPEL	
 			{ "nested", jps.Interrupts , parseDispel },
@@ -444,3 +444,6 @@ jps.registerRotation("PRIEST","DISCIPLINE", priestDiscPvE, "Disc Priest PVE 5.4"
 -- "Power Word: Shield" -- Mot de pouvoir : Bouclier 
 -- "Weakened Soul" -- "Ame affaiblie"
 
+-------------------------
+-- ROTATION STATIC
+-------------------------

@@ -297,9 +297,9 @@ local InterruptTable = {
 	spellTable =
 	{
 	-- TRINKETS -- jps.useTrinket(0) est "Trinket0Slot" est slotId  13 -- "jps.useTrinket(1) est "Trinket1Slot" est slotId  14
-		{ jps.useTrinket(1), jps.UseCDs and jps.useTrinketBool(1) and playerIsStun , "player" },
+	{ jps.useTrinket(1), jps.UseCDs and jps.useTrinketBool(1) and playerIsStun , "player" },
 	-- playerAggro
-	{"nested", jps.hp("player") < 0.55 and playerAggro ,
+	{ "nested", jps.hp("player") < 0.55 and playerAggro ,
 		{
 			-- "Suppression de la douleur" 33206 "Pain Suppression"
 			{ 33206, playerIsStun , "player" , "Stun_Pain_Player" },
@@ -323,7 +323,7 @@ local InterruptTable = {
 	-- "Power Word: Shield" 17 -- Ame affaiblie 6788 -- TIMER SHIELD
 	{ 17, (type(ShieldTarget) == "string") , ShieldTarget , "Timer_ShieldTarget" },
 
-	{"nested", jps.PvP and LowestImportantUnitHpct > 0.85 ,
+	{ "nested", jps.PvP and LowestImportantUnitHpct > 0.85 ,
 		{
 			-- DISPEL	
 			{ "nested", jps.Interrupts , parseDispel },
@@ -447,21 +447,3 @@ jps.registerRotation("PRIEST","DISCIPLINE", priestDiscPvP, "Disc Priest PVP 5.4"
 -------------------------
 -- ROTATION STATIC
 -------------------------
-
-jps.registerRotation("PRIEST","DISCIPLINE",function()
-	
-	spellTable =
-	{
-	-- ParseManaTable
-		{ 17, '(jps.checkTimer("Shield") == 0) and not jps.buff(17,LowestImportantUnit) and not jps.debuff(6788,LowestImportantUnit) | LowestImportantUnit' },
-		{ 33076, 'not jps.buffTracker(33076) | LowestImportantUnit ' },
-
-	-- Damage
-		{ 585, 'jps.FaceTarget and jps.canDPS("target") and jps.castEverySeconds(585, 2) | rangedTarget' },
-		{ 47540, 'jps.FaceTarget and jps.canDPS("target")' },
-	}
-
-	local spell,target = parseMyStaticSpellTable(spellTable)
-	return spell,target
-	
-end, "Disc Priest PVP Static 5.4", false , true)

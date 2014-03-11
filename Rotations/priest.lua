@@ -38,6 +38,7 @@ priest.Spell.archangel = 81700;
 priest.Spell.evangelism = 81662;
 priest.Spell.hymnOfHope = 64901;
 priest.Spell.innerFocus = 89485;
+priest.Spell.innerFocusImmune = 96267
 priest.Spell.jadeSerpentPotion = 105702;
 priest.Spell.manaPotion = 76098;
 priest.Spell.mindbender = 123040;
@@ -81,10 +82,10 @@ priest.Spell["DivineAegis"] =  tostring(select(1,GetSpellInfo(47753))) -- Egide 
 priest.Spell["DispelMagic"] =  tostring(select(1,GetSpellInfo(528))) -- Dispel Magic 528
 
 --local InterruptTable = {
---	{priest.Spell.flashHeal, 0.75,  jps.buff(priest.Spell.surgeOfLight) or jps.buff(priest.Spell.spiritShellBuild)},
---	{priest.Spell.greaterHeal, 0.95, jps.buff(priest.Spell.spiritShellBuild) },
---	{priest.Spell.heal, 1 , jps.buff(priest.Spell.spiritShellBuild) },
---	{priest.Spell.prayerOfHealing, 0.95, jps.buff(priest.Spell.spiritShellBuild) }
+--	{priest.Spell.flashHeal, 0.75, jps.buffId(priest.Spell.spiritShellBuild) or jps.buffId(priest.Spell.innerFocus) },
+--	{priest.Spell.greaterHeal, 0.95, jps.buffId(priest.Spell.spiritShellBuild) },
+--	{priest.Spell.heal, 1 , jps.buffId(priest.Spell.spiritShellBuild) },
+--	{priest.Spell.prayerOfHealing, 0.95, jps.buffId(priest.Spell.spiritShellBuild) or jps.MultiTarget}
 --}
 
 priest.ShouldInterruptCasting = function ( InterruptTable, AvgHealthLoss, CountInRaid ) 
@@ -102,11 +103,10 @@ priest.ShouldInterruptCasting = function ( InterruptTable, AvgHealthLoss, CountI
 			if getaverage_heal(spellName) > TargetHealth then
 				SpellStopCasting()
 				DEFAULT_CHAT_FRAME:AddMessage("STOPCASTING OverHeal"..spellName.." , unit "..jps.LastTarget.. " has enough hp!",0, 0.5, 0.8)
-			elseif jps.IsCastingSpell(priest.Spell.heal,"player") and TargetHpct < 0.55 and jps.CastTimeLeft(player) > 0.5 and jps.mana() > 0.20 then
+			elseif healSpellTable[1] == priest.Spell.heal and TargetHpct < 0.55 and jps.CastTimeLeft(player) > 0.5 and jps.mana() > 0.20 then
 				SpellStopCasting()
 				DEFAULT_CHAT_FRAME:AddMessage("STOPCASTING "..spellName.." important unit goes critical",0, 0.5, 0.8)
-				write()
-			elseif jps.IsCastingSpell(priest.Spell.prayerOfHealing,"player") and AvgHealthLoss >= breakpoint then
+			elseif healSpellTable[1] == priest.Spell.prayerOfHealing and AvgHealthLoss >= breakpoint then
 				SpellStopCasting()
 				DEFAULT_CHAT_FRAME:AddMessage("STOPCASTING avgHP"..spellName.." , raid has enough hp!",0, 0.5, 0.8)
 			end

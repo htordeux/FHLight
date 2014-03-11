@@ -41,7 +41,7 @@ local priestDiscPvP = function()
 ----------------------------
 
 	local ShieldTarget = nil
-	local ShieldTargetHealth = 1
+	local ShieldTargetHealth = 100
 	for _,unit in ipairs(FriendUnit) do
 		if priest.unitForShield(unit) then
 			local unitHP = jps.hp(unit)
@@ -53,7 +53,7 @@ local priestDiscPvP = function()
 	end
 
 	local MendingTarget = nil
-	local MendingTargetHealth = 1
+	local MendingTargetHealth = 100
 	for _,unit in ipairs(FriendUnit) do
 		if priest.unitForMending(unit) then
 			local unitHP = jps.hp(unit)
@@ -65,7 +65,7 @@ local priestDiscPvP = function()
 	end
 	
 	local BindingHealTarget = nil
-	local BindingHealTargetHealth = 1
+	local BindingHealTargetHealth = 100
 	for _,unit in ipairs(FriendUnit) do
 		if priest.unitForBinding(unit) then
 			local unitHP = jps.hp(unit)
@@ -120,10 +120,10 @@ local priestDiscPvP = function()
 ----------------------------------------------------------
 
 local InterruptTable = {
-	{priest.Spell.flashHeal, 0.75,  jps.buff(priest.Spell.surgeOfLight) or jps.buff(109964)},
-	{priest.Spell.greaterHeal, 0.95, jps.buff(109964) },
-	{priest.Spell.heal, 1 , jps.buff(109964) },
-	{priest.Spell.prayerOfHealing, 0.95, jps.buff(109964) or jps.MultiTarget}
+	{priest.Spell.flashHeal, 0.75, jps.buffId(priest.Spell.spiritShellBuild) or jps.buffId(priest.Spell.innerFocus) },
+	{priest.Spell.greaterHeal, 0.95, jps.buffId(priest.Spell.spiritShellBuild) },
+	{priest.Spell.heal, 1 , jps.buffId(priest.Spell.spiritShellBuild) },
+	{priest.Spell.prayerOfHealing, 0.95, jps.buffId(priest.Spell.spiritShellBuild) or jps.MultiTarget}
 }
 
 -- Avoid interrupt Channeling
@@ -259,13 +259,13 @@ local InterruptTable = {
 		-- "Châtiment" 585
 		{ 585, jps.FaceTarget and canDPS(rangedTarget) and jps.castEverySeconds(585,2) , rangedTarget , "|cFFFF0000Mana_Chatiment_"..rangedTarget },
 	}
-	
+
 	parseShell = {
 	--TANK not Buff Spirit Shell 114908
 		{ 2061, jps.buff(114255) , LowestImportantUnit , "Carapace_SoinsRapides_Waves_"..LowestImportantUnit },
 		{ 596, jps.MultiTarget and jps.canHeal(ShellTarget) , ShellTarget , "Carapace_Shell_Target_" },
 		{ 596, (jps.LastCast~=priest.Spell["PrayerOfHealing"]) and jps.canHeal(ShellTarget) , ShellTarget , "Carapace_Shell_Target_" },
-		{ 2061, jps.PvP and (not jps.buffId(114908,LowestImportantUnit)) , LowestImportantUnit , "Carapace_NoBuff_SoinsRapides_"..LowestImportantUnit },
+		{ 2061, jps.PvP and not jps.buffId(114908,LowestImportantUnit) , LowestImportantUnit , "Carapace_NoBuff_SoinsRapides_"..LowestImportantUnit },
 		{ 2060, not jps.buffId(114908,LowestImportantUnit) , LowestImportantUnit , "Carapace_NoBuff_SoinsSup_"..LowestImportantUnit },		
 	--TANK Buff Spirit Shell 114908
 		{ 2061, jps.PvP and jps.buffId(114908,LowestImportantUnit) and (UnitGetTotalAbsorbs(LowestImportantUnit) <= priest.AvgAmountFlashHeal) , LowestImportantUnit , "Carapace_Buff_SoinsRapides_"..LowestImportantUnit },
@@ -274,15 +274,15 @@ local InterruptTable = {
 	}
 	
 	parsePlayerShell = {
-		-- "Soins rapides" 2061 -- "Sursis" 59889 "Borrowed"
+		-- "Soins rapides" 2061 "Borrowed" 59889 -- After casting Power Word: Shield reducing the cast time or channel time of your next Priest spell within 6 sec by 15%.
 		{ 2061, jps.buff(59889,"player") , LowestImportantUnit ,"Def_Flash_"..LowestImportantUnit },
 		-- "Pénitence" 47540 Weakened Soul 6788
 		{ 47540, jps.debuff(6788,LowestImportantUnit) , LowestImportantUnit , "Def_Penance_"..LowestImportantUnit },
 		-- "Clairvoyance divine" 109175 gives buff "Divine Insight" 123266 10 sec
 		{ 17, not jps.buff(17,LowestImportantUnit) and not jps.debuff(6788,LowestImportantUnit) , LowestImportantUnit , "Def_Shield_"..LowestImportantUnit },
 		{ 17, not jps.buff(17,LowestImportantUnit) and jps.buffId(123266,LowestImportantUnit) , LowestImportantUnit , "Def_DivineShield_" },
-		-- "Soins rapides" 2061 -- "Sursis" 59889 "Borrowed"
-		{ 2061, jps.PvP and not jps.buffId(114908,LowestImportantUnit) , LowestImportantUnit ,"Def_Flash_"..LowestImportantUnit },
+		-- "Soins rapides" 2061
+		{ 2061, not jps.buffId(114908,LowestImportantUnit) , LowestImportantUnit ,"Def_Flash_"..LowestImportantUnit },
 	}
 
 ------------------------
@@ -323,20 +323,22 @@ local InterruptTable = {
 	-- "Power Word: Shield" 17 -- Ame affaiblie 6788 -- TIMER SHIELD
 	{ 17, (type(ShieldTarget) == "string") , ShieldTarget , "Timer_ShieldTarget" },
 
-	{ "nested", jps.PvP and LowestImportantUnitHpct > 0.85 ,
+	-- DAMAGE
+	{ "nested", jps.FaceTarget and canDPS(rangedTarget) and LowestImportantUnitHpct > 0.75 ,
 		{
-			-- DISPEL	
-			{ "nested", jps.Interrupts , parseDispel },
 			-- "Mot de l'ombre : Mort" 32379 -- FARMING OR PVP -- NOT PVE
 			{ 32379, type(DeathEnemyTarget) == "string" , DeathEnemyTarget , "|cFFFF0000Death_MultiUnit_" },
 			{ 32379, priest.canShadowWordDeath(rangedTarget) , rangedTarget , "|cFFFF0000Death_Health_"..rangedTarget },
-			-- "Flammes sacrées" 14914
-			{ 14914, canDPS(rangedTarget) , rangedTarget , "|cFFFF0000Flammes_"..rangedTarget }, 
+			-- "Flammes sacrées" 14914  -- "Evangélisme" 81661
+			{ 14914, true , rangedTarget , "|cFFFF0000Flammes_"..rangedTarget },
+			-- "Mot de pouvoir : Réconfort" -- "Power Word: Solace" 129250 -- REGEN MANA
+			{ 129250, true , rangedTarget, "|cFFFF0000Solace_"..rangedTarget },
 		},
 	},
 
 	-- "Inner Focus" 89485 "Focalisation intérieure" --  96267 Immune to Silence, Interrupt and Dispel effects 5 seconds remaining
 	{ 89485, jps.Defensive and not jps.buffId(89485,"player") , "player" , "Def_Focus" },
+	
 	-- "Carapace" 109964 Player "Penance" 47540 cd == 0 to remove weakened soul with Divine Insight
 	{ 109964, jps.Defensive and jps.buffId(89485,"player") , "player" },
 	-- "Carapace spirituelle" spell & buff "player" 109964 buff target 114908
@@ -356,9 +358,8 @@ local InterruptTable = {
 	{ 47540, (LowestImportantUnitHealth > priest.AvgAmountFlashHeal) , LowestImportantUnit },
 	-- "Prière de guérison" 33076 -- "Priere de guerison" buff 4P pvp aug. 50% soins
 	{ 33076, (type(MendingTarget) == "string") , MendingTarget , "MendingTarget" },
-	
 	-- "Divine Star" Holy 110744 Shadow 122121
-	{ 110744, LowestImportantUnitHpct < 0.55 and jps.hp("player") < 0.55, LowestImportantUnit , "Health_DivineStar_"..LowestImportantUnit },
+	{ 110744, CountInRange > 2 and jps.hp("player") < 0.55, LowestImportantUnit , "Health_DivineStar_"..LowestImportantUnit },
 	-- "Cascade" 121135
 	{ 121135, CountInRange > 2 and AvgHealthLoss < 0.95 , LowestImportantUnit ,  "Cascade_"..LowestImportantUnit },
 

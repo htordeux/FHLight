@@ -139,8 +139,6 @@ local parseMultitarget = {
 }
 
 local parseControl = {
-	-- TRINKETS -- jps.useTrinket(0) est "Trinket0Slot" est slotId  13 -- "jps.useTrinket(1) est "Trinket1Slot" est slotId  14
-	{ jps.useTrinket(1), jps.UseCDs and jps.useTrinketBool(1) and playerIsStun , "player" },
 	-- "Gardien de peur" 6346 -- FARMING OR PVP -- NOT PVE
 	{ 6346, not jps.buff(6346,"player") , "player" },
 	-- "Psychic Scream" "Cri psychique" 8122 -- FARMING OR PVP -- NOT PVE -- debuff same ID 8122
@@ -151,7 +149,7 @@ local parseControl = {
 	-- "Void Tendrils" 108920 -- debuff "Void Tendril's Grasp" 114404
 	{ 108920, playerAggro and priest.canFear(rangedTarget) and not jps.LoseControl(rangedTarget) , rangedTarget },
 	-- "Psychic Horror" 64044 "Horreur psychique"
-	{ 64044, playerAggro and priest.canFear(rangedTarget) and not jps.LoseControl(rangedTarget) and (Orbs < 3), rangedTarget , "Psychic Horror_"..rangedTarget },
+	{ 64044, playerAggro and priest.canFear(rangedTarget) and not jps.LoseControl(rangedTarget) and (Orbs < 3) , rangedTarget , "Psychic Horror_"..rangedTarget },
 	-- "Silence" 15487
 	{ 15487, jps.IsCasting(rangedTarget) and not jps.LoseControl(rangedTarget,{"Silence" }) , rangedTarget , "Silence_"..rangedTarget },
 	{ 15487, type(SilenceEnemyTarget) == "string" , SilenceEnemyTarget , "Silence_MultiUnit" },
@@ -169,7 +167,7 @@ local parseAggro = {
 	-- "Pierre de soins" 5512
 	{ {"macro","/use item:5512"}, select(1,IsUsableItem(5512))==1 and jps.itemCooldown(5512)==0 , "player" },
 	-- "Prière du désespoir" 19236
-	{ 19236, select(2,GetSpellBookItemInfo(priest.Spell["Desesperate"]))~=nil , "player" },
+	{ 19236, select(2,GetSpellBookItemInfo(Desesperate))~=nil , "player" },
 	-- "Oubli" 586 -- PVE 
 	{ 586, not jps.PvP and UnitThreatSituation("player") == 3 , "player" },
 	-- "Oubli" 586 -- Fantasme 108942 -- vous dissipez tous les effets affectant le déplacement sur vous-même et votre vitesse de déplacement ne peut être réduite pendant 5 s
@@ -182,8 +180,6 @@ local parseAggro = {
 		
 local parseMoving = 
 {
--- DAMAGE
-
 	-- "Mind Blast" 8092 Stack shadow orbs -- buff 81292 "Glyph of Mind Spike"
 	{ 8092, (jps.buffStacks(81292) == 2) , rangedTarget , "Blast" },
 	-- "Shadow Word: Pain" 589 Keep SW:P up with duration
@@ -192,34 +188,14 @@ local parseMoving =
 	{ 589, (not jps.myDebuff(589,rangedTarget)) and (jps.CurrentCast ~= swPain or jps.LastCast ~= swPain) , rangedTarget },
 	-- "Shadow Word: Pain" 589
 	{ 589, type(PainEnemyTarget) == "string" , PainEnemyTarget , "Pain_MultiUnit_" },
-	-- "Mindbender" "Torve-esprit" 123040 -- "Ombrefiel" 34433 "Shadowfiend"
-	{ 34433, priest.canShadowfiend(rangedTarget) , rangedTarget },
-	{ 123040, priest.canShadowfiend(rangedTarget) , rangedTarget },
-
--- HEAL
-	-- "Power Word: Shield" 17	
-	{ 17, (playerhealthpct < 0.75) and not jps.debuff(6788,"player") and not jps.buff(17,"player") , "player" }, -- Shield
-	-- "Vampiric Embrace" 15286
-	{ 15286, playerhealthpct < 0.75 , "player" },
-	-- "Divine Star" Holy 110744 Shadow 122121
-	{ 122121, (playerhealthpct < 0.75) , rangedTarget , "DivineStar_" },
-	-- "Prière du désespoir" 19236
-	{ 19236, UnitAffectingCombat("player")==1 and select(2,GetSpellBookItemInfo(Desesperate))~=nil and (playerhealthpct < 0.50) , "player" },
-	-- "Inner Fire" 588 Keep Inner Fire up 
-	{ 588, not jps.buff(588,"player") and not jps.buff(73413,"player"), "player" }, -- "Volonté intérieure" 73413
-	-- "Fear Ward" "Gardien de peur" 6346 -- FARMING OR PVP -- NOT PVE
-	{ 6346, jps.PvP and not jps.buff(6346,"player") , "player" },
-	-- "Prayer of Mending" "Prière de guérison" 33076 
-	{ 33076, (playerhealthpct < 0.75) and not jps.buff(33076,"player") , "player" },
-	-- "Renew" 139 Self heal when critical 
-	{ 139, (playerhealthpct < 0.75) and not jps.buff(139,"player"), "player" },
-	-- "Don des naaru" 59544 -- YOU CAN'T DO IT YOU ARE IN SHAPESHIFT FORM
 }
 
 local spellTable = {
 
 	-- "Shadowform" 15473
 	{ 15473, not jps.buff(15473) , "player" },
+	-- TRINKETS -- jps.useTrinket(0) est "Trinket0Slot" est slotId  13 -- "jps.useTrinket(1) est "Trinket1Slot" est slotId  14
+	{ jps.useTrinket(1), jps.UseCDs and jps.useTrinketBool(1) and playerIsStun , "player" },
 	-- "Dispersion" 47585
 	{ 47585, (UnitPower ("player",0)/UnitPowerMax ("player",0) < 0.50) and jps.myDebuff(589,rangedTarget) and jps.myDebuff(34914,rangedTarget) , "player" , "Dispersion_Mana" },
 	{ "nested", jps.hp("player") < 0.55 , parseAggro },
@@ -238,6 +214,23 @@ local spellTable = {
 	
 	-- MOVING
 	{ 15473, jps.Moving , parseMoving },
+	
+	-- "Mindbender" "Torve-esprit" 123040 -- "Ombrefiel" 34433 "Shadowfiend"
+	{ 34433, priest.canShadowfiend(rangedTarget) , rangedTarget },
+	{ 123040, priest.canShadowfiend(rangedTarget) , rangedTarget },
+	
+	-- MULTITARGET
+	{ "nested", jps.MultiTarget , parseMultitarget },
+	
+	-- HEAL
+	-- "Vampiric Embrace" 15286
+	{ 15286, playerhealthpct < 0.75 , "player" },
+	-- "Power Word: Shield" 17	
+	{ 17, (playerhealthpct < 0.75) and not jps.debuff(6788,"player") and not jps.buff(17,"player") , "player" }, -- Shield
+	-- "Renew" 139 Self heal when critical 
+	{ 139, (playerhealthpct < 0.75) and not jps.buff(139,"player"), "player" },
+	-- "Prayer of Mending" "Prière de guérison" 33076 
+	{ 33076, (playerhealthpct < 0.75) and not jps.buff(33076,"player") , "player" },
 
 	-- "Mind Blast" 8092 Stack shadow orbs -- buff 81292 "Glyph of Mind Spike"
 	{ 8092, true , rangedTarget },
@@ -248,10 +241,6 @@ local spellTable = {
 	-- "Shadow Word: Pain" 589 Keep SW:P up with duration
 	{ 589, jps.myDebuff(589,rangedTarget) and painDuration < 2.5 and (jps.CurrentCast ~= swPain or jps.LastCast ~= swPain) , rangedTarget },
 
-
-	-- MULTITARGET
-	{ "nested", jps.MultiTarget , parseMultitarget },
-
 	-- "Power Infusion" "Infusion de puissance" 10060
 	{ 10060, UnitAffectingCombat("player")==1 and (UnitPower ("player",0)/UnitPowerMax ("player",0) > 0.20) , "player" },
 
@@ -261,31 +250,14 @@ local spellTable = {
 	{ 34914, not jps.myDebuff(34914,rangedTarget) and (jps.CurrentCast ~= vampTouch or jps.LastCast ~= vampTouch) , rangedTarget },
 	-- "Shadow Word: Pain" 589
 	{ 589, type(PainEnemyTarget) == "string" , PainEnemyTarget , "Pain_MultiUnit_" },
-	
-	-- "Mindbender" "Torve-esprit" 123040 -- "Ombrefiel" 34433 "Shadowfiend"
-	{ 34433, priest.canShadowfiend(rangedTarget) , rangedTarget },
-	{ 123040, priest.canShadowfiend(rangedTarget) , rangedTarget },
+
 	-- "Divine Star" Holy 110744 Shadow 122121
 	{ 122121, true , rangedTarget , "DivineStar_" },
 	-- "Cascade" Holy 121135 Shadow 127632
 	{ 127632, true , rangedTarget , "Cascade_"  },
 
--- HEAL
-	-- "Power Word: Shield" 17	
-	{ 17, (playerhealthpct < 0.75) and not jps.debuff(6788,"player") and not jps.buff(17,"player") , "player" }, -- Shield
-	-- "Vampiric Embrace" 15286
-	{ 15286, playerhealthpct < 0.75 , "player" },
-	-- "Prière du désespoir" 19236
-	{ 19236, UnitAffectingCombat("player")==1 and select(2,GetSpellBookItemInfo(Desesperate))~=nil and (playerhealthpct < 0.50) , "player" },
 	-- "Inner Fire" 588 Keep Inner Fire up 
 	{ 588, not jps.buff(588,"player") and not jps.buff(73413,"player"), "player" }, -- "Volonté intérieure" 73413
-	-- "Fear Ward" "Gardien de peur" 6346 -- FARMING OR PVP -- NOT PVE
-	{ 6346, jps.PvP and not jps.buff(6346,"player") , "player" },
-	-- "Prayer of Mending" "Prière de guérison" 33076 
-	{ 33076, (playerhealthpct < 0.75) and not jps.buff(33076,"player") , "player" },
-	-- "Renew" 139 Self heal when critical 
-	{ 139, (playerhealthpct < 0.75) and not jps.buff(139,"player"), "player" },
-	-- "Don des naaru" 59544 -- YOU CAN'T DO IT YOU ARE IN SHAPESHIFT FORM
 	-- "Mind Flay" 15407
 	{ 15407, true , rangedTarget },
 }

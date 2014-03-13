@@ -317,7 +317,7 @@ end)
 --- COMBAT_LOG_EVENT_UNFILTERED Handler
 jps.listener.registerEvent("COMBAT_LOG_EVENT_UNFILTERED", function(timeStamp, event, ...)
 	if jps.Enabled and UnitAffectingCombat("player") == 1 and combatLogEventTable[event] then
-		LOG.debug("CombatLogEventUntfiltered: %s", event)
+		--LOG.debug("CombatLogEventUntfiltered: %s", event)
 		if enableUnfilteredProfiling and enableProfiling then startProfileMemory("COMBAT_LOG_EVENT_UNFILTERED::"..event) end
 		for _,fn in pairs(combatLogEventTable[event]) do
 			local status, error = pcall(fn, timeStamp, event, ...)

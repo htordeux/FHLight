@@ -175,7 +175,7 @@ local InterruptTable = {
 		{ 17, not jps.buff(17,LowestImportantUnit) and not jps.debuff(6788,LowestImportantUnit) , LowestImportantUnit , "Emergency_Shield_"..LowestImportantUnit },
 		-- "Pénitence" 47540
 		{ 47540, true , LowestImportantUnit , "Emergency_Penance_"..LowestImportantUnit },
-		-- "Clairvoyance divine" 109175 gives buff "Divine Insight" 123266
+		-- "Shield" 17 "Clairvoyance divine" 109175 gives buff "Divine Insight" 123266
 		{ 17, not jps.buff(17,LowestImportantUnit) and jps.buffId(123266,LowestImportantUnit) , LowestImportantUnit , "Emergency_DivineShield_"..LowestImportantUnit  },
 		-- "Soins rapides" 2061 -- "Sursis" 59889 "Borrowed"
 		{ 2061, (LowestImportantUnitHpct < 0.35) and jps.buff(59889,"player") , LowestImportantUnit , "Emergency_SoinsRapides_Borrowed_"..LowestImportantUnit },
@@ -294,8 +294,7 @@ local InterruptTable = {
 -- SpellStopCasting()
 		--{ {"macro","/stopcasting"},  spellstop == tostring(select(1,GetSpellInfo(2050))) and jps.CastTimeLeft("player") > 0.5 and (LowestImportantUnitHpct < 0.75) , "player" , "Macro_StopCasting" },
 
-	spellTable =
-	{
+	spellTable = {
 	-- TRINKETS -- jps.useTrinket(0) est "Trinket0Slot" est slotId  13 -- "jps.useTrinket(1) est "Trinket1Slot" est slotId  14
 	{ jps.useTrinket(1), jps.UseCDs and jps.useTrinketBool(1) and playerIsStun , "player" },
 	-- playerAggro

@@ -501,7 +501,10 @@ end)
 local sendTime = 0
 local GetTime = GetTime
 jps.listener.registerEvent("UNIT_SPELLCAST_SENT", function(unitID,spellname,_,spelltarget,_)
-	if unitID == "player" then sendTime = GetTime() end
+	if unitID == "player" then 
+		sendTime = GetTime() 
+		if spellname == tostring(select(1,GetSpellInfo(17))) then jps.createTimer("Shield", 12 ) end
+	end
 end)
 
 local descriptorTable = { L["Strikes"] , L["Roots"] , L["Transforms"] , L["Forces"] , L["Seduces"] }
@@ -547,12 +550,9 @@ end)
 
 -- UNIT_SPELLCAST_SUCCEEDED
 jps.listener.registerEvent("UNIT_SPELLCAST_SUCCEEDED", function(unitID,spellname,_,_,spellID)
-	if (unitID == "player") and spellID then
-		if spellID == 17 and jps.checkTimer("Shield") == 0 then jps.createTimer("Shield", 12 ) end
-		if jps.FaceTarget then
-			if jps.checkTimer("FacingBug") > 0 then
-				TurnLeftStop()
-			end
+	if (unitID == "player") and jps.FaceTarget then
+		if jps.checkTimer("FacingBug") > 0 then
+			TurnLeftStop()
 		end
 	end
 	
@@ -582,10 +582,10 @@ jps.listener.registerEvent("LOSS_OF_CONTROL_ADDED", function ()
     local locType, _, text, _, _, _, duration = C_LossOfControl.GetEventInfo(i)
     print("CONTROL:", locType,"/",text,"/",duration)
     if text and duration then
-    	if locType == "SCHOOL_INTERRUPT" and jps.checkTimer("Player_Interrupt") == 0 then jps.createTimer("Player_Interrupt", duration ) end
+    	if locType == "SCHOOL_INTERRUPT" then jps.createTimer("Player_Interrupt", duration ) end
     	if duration >= 2 then
 			for _, stuntype in ipairs(stunTypeTable) do
-				if locType == stuntype and jps.checkTimer("Player_Stun") == 0 then 
+				if locType == stuntype then 
 					jps.createTimer("Player_Stun", duration )
 				break end
 			end
@@ -689,11 +689,13 @@ jps.registerOnUpdate(UpdateIntervalRaidStatus)
 -- eventtable[15] -- amount if suffix is SPELL_DAMAGE or SPELL_HEAL
 -- eventtable[12] -- amount if suffix is SWING_DAMAGE
 
---jps.registerCombatLogEventUnfiltered("SPELL_CAST_SUCCESS", function(...)
---	local sourceGUID = select(4,...)
---	local spellID =  select(12,...)
---	if sourceGUID == UnitGUID("player") and spellID == 17 then jps.createTimer("Shield", 12 ) end
---end)
+jps.listener.registerCombatLogEventUnfiltered("SPELL_CAST_SUCCESS", function(...)
+	local sourceGUID = select(4,...)
+	local spellID =  select(12,...)
+	if sourceGUID == UnitGUID("player") then
+		if spellID == 123258 then jps.createTimer("ShieldTimer", 12 ) end -- 123258 "Power Word: Shield"
+	end
+end)
 
 ------------------------------
 -- SPELLTABLE 
@@ -791,7 +793,7 @@ jps.listener.registerEvent("COMBAT_LOG_EVENT_UNFILTERED", function(...)
 				if damage == nil then damage = 0 end
 				if damage > 0 then dmgTTD = damage end
 			end
-			--if dmgTTD > 0 and destGUID == UnitGUID("player") and jps.checkTimer( "Player_Aggro" ) == 0 then jps.createTimer("Player_Aggro", 2) end
+			if dmgTTD > 0 and destGUID == UnitGUID("player") then jps.createTimer("Player_Aggro", 2) end
 			
 			if canHeal(destName) then
 				if EnemyTable[sourceGUID] == nil then EnemyTable[sourceGUID] = {} end

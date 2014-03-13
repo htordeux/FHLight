@@ -26,9 +26,9 @@ function jps_Test()
 --	end
 
 	print("Aggro:",jps.checkTimer("Player_Stun"),"Interrupt:",jps.checkTimer("Player_Interrupt"))
-	print("Aggro:",jps.FriendAggro("player"),"Dmg:",jps.checkTimer("Player_Dmg"))
+	print("Shield:",jps.checkTimer("Shield"),jps.checkTimer("ShieldTimer"))
+	print("Aggro:",jps.FriendAggro("player"),"Dmg:",jps.checkTimer("Player_Aggro"))
 	print("LoseControl:",jps.LoseControl("player"))
-	--print("canDPS:",canDPS("target"),"FaceTarget",jps.FaceTarget)
 	
 --	local masteryValue = math.ceil(GetMastery())/100
 --	local bonusHealing = math.ceil(GetSpellBonusHealing())

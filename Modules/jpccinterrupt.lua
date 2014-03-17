@@ -38,7 +38,7 @@ local GetTime = GetTime
 
 function jps.StunEvents(duration) -- ONLY FOR PLAYER
 	if duration == nil then duration = 0 end
-	if jps.checkTimer("Player_Stun") > duration then return true end
+	if jps.checkTimer("PlayerStun") > duration then return true end
 	return false
 end
 

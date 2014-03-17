@@ -206,7 +206,7 @@ priest.unitForShield = function (unit)
 	if unit == nil then return false end
 	if jps.buff(17,unit) then return false end
 	if jps.debuff(6788,unit) then return false end
-	if jps.checkTimer("Shield") > 0 then return false end
+	if jps.checkTimer("ShieldTimer") > 0 then return false end
 	return true
 end
 
@@ -234,6 +234,18 @@ priest.unitForLeap = function (unit) -- {"CC", "Snare", "Root", "Silence", "Immu
 	if not jps.LoseControl(unit) then return false end
 	return true
 end
+
+-------------------
+-- EVENT FUNCTIONS
+-------------------
+
+jps.listener.registerCombatLogEventUnfiltered("SPELL_CAST_SUCCESS", function(...)
+	local sourceGUID = select(4,...)
+	local spellID =  select(12,...)
+	if sourceGUID == UnitGUID("player") then
+		if spellID == 123258 then jps.createTimer("ShieldTimer", 12 ) end -- 123258 "Power Word: Shield"
+	end
+end)
 
 -------------------
 -- FIREHACK FUNCTIONS

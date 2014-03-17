@@ -24,10 +24,10 @@ local priestDiscPvE = function()
 -- LOWESTIMPORTANTUNIT
 ----------------------------
 
-	local timerShield = jps.checkTimer("Shield")
+	local timerShield = jps.checkTimer("ShieldTimer")
 	local playerAggro = jps.FriendAggro("player")
 	local playerIsStun = jps.StunEvents(2) -- return true/false ONLY FOR PLAYER
-	local playerIsInterrupt = jps.checkTimer("Player_Interrupt")
+	local playerIsInterrupt = jps.checkTimer("PlayerInterrupt")
 
 	local LowestImportantUnit = jps.LowestImportantUnit()
 	local LowestImportantUnitHealth = jps.hpInc(LowestImportantUnit,"abs") -- UnitHealthMax(unit) - UnitHealth(unit)

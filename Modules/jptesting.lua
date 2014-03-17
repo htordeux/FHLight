@@ -25,9 +25,9 @@ function jps_Test()
 --		print("name: ",name,"group: ",group)
 --	end
 
-	print("Aggro:",jps.checkTimer("Player_Stun"),"Interrupt:",jps.checkTimer("Player_Interrupt"))
+	print("Aggro:",jps.checkTimer("PlayerStun"),"Interrupt:",jps.checkTimer("PlayerInterrupt"))
 	print("Shield:",jps.checkTimer("Shield"),jps.checkTimer("ShieldTimer"))
-	print("Aggro:",jps.FriendAggro("player"),"Dmg:",jps.checkTimer("Player_Aggro"))
+	print("Aggro:",jps.FriendAggro("player"),"Dmg:",jps.checkTimer("PlayerAggro"))
 	print("LoseControl:",jps.LoseControl("player"))
 	
 --	local masteryValue = math.ceil(GetMastery())/100

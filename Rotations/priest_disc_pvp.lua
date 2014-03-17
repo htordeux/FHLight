@@ -24,10 +24,10 @@ local priestDiscPvP = function()
 -- LOWESTIMPORTANTUNIT
 ----------------------------
 
-	local timerShield = jps.checkTimer("Shield")
+	local timerShield = jps.checkTimer("ShieldTimer")
 	local playerAggro = jps.FriendAggro("player")
 	local playerIsStun = jps.StunEvents(2) -- return true/false ONLY FOR PLAYER
-	local playerIsInterrupt = jps.checkTimer("Player_Interrupt")
+	local playerIsInterrupt = jps.checkTimer("PlayerInterrupt")
 
 	local LowestImportantUnit = jps.LowestImportantUnit()
 	local LowestImportantUnitHealth = jps.hp(LowestImportantUnit,"abs") -- UnitHealthMax(unit) - UnitHealth(unit)
@@ -447,3 +447,21 @@ jps.registerRotation("PRIEST","DISCIPLINE", priestDiscPvP, "Disc Priest PVP 5.4"
 -------------------------
 -- ROTATION STATIC
 -------------------------
+
+jps.registerRotation("PRIEST","DISCIPLINE",function()
+	
+	spellTable =
+	{
+	-- ParseManaTable
+		{ 17, '(jps.checkTimer("Shield") == 0) and not jps.buff(17,LowestImportantUnit) and not jps.debuff(6788,LowestImportantUnit) | LowestImportantUnit' },
+		{ 33076, 'not jps.buffTracker(33076) | LowestImportantUnit ' },
+
+	-- Damage
+		{ 585, 'jps.FaceTarget and jps.canDPS("target") | rangedTarget' },
+		{ 47540, 'jps.FaceTarget and jps.canDPS("target")' },
+	}
+
+	local spell,target = parseMyStaticSpellTable(spellTable)
+	return spell,target
+	
+end, "Disc Priest PVP Static 5.4", false , true)

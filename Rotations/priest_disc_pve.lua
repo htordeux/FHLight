@@ -398,6 +398,29 @@ end
 
 jps.registerRotation("PRIEST","DISCIPLINE", priestDiscPvE, "Disc Priest PVE 5.4", true , false)
 
+-------------------------
+-- ROTATION STATIC
+-------------------------
+
+jps.registerRotation("PRIEST","DISCIPLINE",function()
+	
+	spellTable =
+	{
+	-- ParseManaTable
+		{ 17, '(jps.checkTimer("ShieldTimer") == 0) and not jps.buff(17,LowestImportantUnit) and not jps.debuff(6788,LowestImportantUnit) | LowestImportantUnit' },
+		{ 33076, 'not jps.buffTracker(33076) | LowestImportantUnit ' },
+
+	-- Damage
+		{ 585, 'jps.FaceTarget and jps.canDPS("target") | rangedTarget' },
+		{ 47540, 'jps.FaceTarget and jps.canDPS("target")' },
+	}
+
+	local spell,target = parseMyStaticSpellTable(spellTable)
+	return spell,target
+	
+end, "Disc Priest PVP Static 5.4", true , false)
+
+
 -- "Divine Insight" 109175 Penance, gives 100% chance your next Power Word: Shield will both ignore and not cause the Weakened Soul effect. Gives buff "Divine Insight" 123266
 -- Divine Star belong to schools that are not used by any of the class's other spells. 
 -- When these spells are instant cast, this means that it is not possible for that spell to be locked down.
@@ -443,7 +466,3 @@ jps.registerRotation("PRIEST","DISCIPLINE", priestDiscPvE, "Disc Priest PVE 5.4"
 -- "Holy Word: Serenity" -- Mot sacré : Sérénité SpellID 88684
 -- "Power Word: Shield" -- Mot de pouvoir : Bouclier 
 -- "Weakened Soul" -- "Ame affaiblie"
-
--------------------------
--- ROTATION STATIC
--------------------------

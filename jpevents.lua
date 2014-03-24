@@ -580,7 +580,7 @@ local stunTypeTable = {"STUN_MECHANIC", "STUN", "FEAR", "CHARM", "CONFUSE", "ROO
 jps.listener.registerEvent("LOSS_OF_CONTROL_ADDED", function ()
 	local i = C_LossOfControl.GetNumEvents()
     local locType, _, text, _, _, _, duration = C_LossOfControl.GetEventInfo(i)
-    print("CONTROL:", locType,"/",text,"/",duration)
+    --print("CONTROL:", locType,"/",text,"/",duration)
     if text and duration then
     	if locType == "SCHOOL_INTERRUPT" then jps.createTimer("PlayerInterrupt", duration ) end
     	if duration >= 2 then

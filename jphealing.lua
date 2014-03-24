@@ -204,7 +204,7 @@ jps.avgRaidHP = function()
 	return avgHP
 end
 
-local myTanks = { "player", "focus", "target" , "targettarget" , "mouseover" }
+local myTanks = { "player","focus","target","targettarget","mouseover" }
 jps.LowestImportantUnit = function()
 	local LowestImportantUnit = "player"
 	if jps.Defensive then 

@@ -118,7 +118,6 @@ rotationDropdownHolder:EnableMouse(true)
 rotationDropdownHolder:SetMovable(true)
 rotationDropdownHolder:RegisterForDrag("LeftButton")
 rotationDropdownHolder:SetScript("OnDragStart", function(self) self:StartMoving() end)
-rotationDropdownHolder:SetScript("OnDragStart", function(self) self:StartMoving() end)
 rotationDropdownHolder:SetScript("OnDragStop", function(self) self:StopMovingOrSizing() end)
 
 --function setDropdownScale()

@@ -142,17 +142,6 @@ priest.tableForFlash = function ( Lowest )
 	return Table
 end
 
---------------------------------
--- FUNCTIONS RAIDSTATUS
---------------------------------
-
-priest.SpiritShell = function (unit) -- Applied to FriendUnit
-	if unit == nil then return false end
-	if not jps.FriendAggro(unit) then return false end
-	if jps.hp(unit) < 0.95 then return false end
-	return true
-end
-
 ------------------------------------
 -- FUNCTIONS ENEMY UNIT
 ------------------------------------
@@ -204,8 +193,10 @@ end
 
 priest.unitForShield = function (unit)
 	if unit == nil then return false end
+	if not jps.FriendAggro(unit) then return false end
 	if jps.buff(17,unit) then return false end
-	if jps.debuff(6788,unit) then return false end
+	-- "Clairvoyance divine" 109175 gives buff "Divine Insight" 123266 10 sec
+	if jps.debuff(6788,unit) and not jps.buffId(123266,unit) then return false end
 	if jps.checkTimer("ShieldTimer") > 0 then return false end
 	return true
 end
@@ -228,7 +219,6 @@ priest.unitForBinding = function (unit)
 end
 
 priest.unitForLeap = function (unit) -- {"CC", "Snare", "Root", "Silence", "Immune", "ImmuneSpell", "Disarm"}
-	if not jps.Interrupts then return false end
 	if unit == nil then return false end
 	if (UnitIsUnit(unit,"player")==1) then return false end
 	if not jps.LoseControl(unit) then return false end

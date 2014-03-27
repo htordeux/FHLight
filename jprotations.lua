@@ -233,6 +233,6 @@ If you supplied your rotation with a config table, you can access it's values wi
 ]]--
 
 function jps.getRotationValue(key)
-    if not rotationTable[getCurrentKey()][activeRotation] or rotationTable[getCurrentKey()][activeRotation].config then  return nil end
+    if not rotationTable[getCurrentKey()][activeRotation] or rotationTable[getCurrentKey()][activeRotation].config then return nil end
     return rotationTable[getCurrentKey()][activeRotation].config[key]
 end

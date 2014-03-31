@@ -175,7 +175,7 @@ priest.canShadowfiend = function (rangedTarget)
 	if not jps.canDPS(rangedTarget) then return false end
 	if UnitGetTotalAbsorbs(rangedTarget) > 0 then return false end
 	local isBoss = (UnitLevel(rangedTarget) == -1) or (UnitClassification(rangedTarget) == "elite")
-	local isEnemy = jps.canDPS(rangedTarget) and jps.TimeToDie(rangedTarget) > 12
+	local isEnemy = jps.canDPS(rangedTarget) and jps.TimeToDie(rangedTarget) > 12 and jps.hp(rangedTarget) > 0.5
 	if isEnemy or isBoss then return true end
 	return false
 end

@@ -92,7 +92,7 @@ local function parseMultiUnitTable( spellTable )
 	if message == nil then message = "" end
 	local sirenTable = {}
 
-	for _, unit in pairs(targets) do
+	for _, unit in ipairs(targets) do
 		local unitTable = {}
 		table.insert( unitTable, 1, spell )
 		table.insert( unitTable, 2, unitFunction(unit) )

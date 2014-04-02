@@ -63,7 +63,7 @@ function jps.LoseControl(unit, controlTable)
 				break end
 			end
 		end
-		if targetControlled == true and timeControlled > 0 then return targetControlled end
+		if targetControlled == true and timeControlled > 0 then return true end
 		i = i + 1
 		auraname, _, _, _, debufftype, duration, expTime, _, _, _, spellId = UnitAura(unit, i, "HARMFUL")
 	end

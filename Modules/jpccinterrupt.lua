@@ -36,6 +36,18 @@ local GetTime = GetTime
 -- name, rank, icon, count, dispelType, duration, expires, caster, isStealable, shouldConsolidate, spellID, canApplyAura, isBossDebuff, value1, value2, value3 = UnitDebuff("unit", index [, "filter"]) or UnitDebuff("unit", "name" [, "rank" [, "filter"]])
 -- name, rank, icon, count, dispelType, duration, expires, caster, isStealable, shouldConsolidate, spellID, canApplyAura, isBossDebuff, value1, value2, value3 = UnitAura("unit", index [, "filter"]) or UnitAura("unit", "name" [, "rank" [, "filter"]])
 
+-- Table of controls Spellnames by index
+local DebuffToDispel = {}
+for spellID,control in pairs(jps.SpellControl) do
+	DebuffToDispel[toSpellName(spellID)] = control
+end
+
+printDebuffToDispel = function()
+	for i, j in pairs(DebuffToDispel) do
+		print(i,"/",j)
+	end
+end
+
 function jps.StunEvents(duration) -- ONLY FOR PLAYER
 	if duration == nil then duration = 0 end
 	if jps.checkTimer("PlayerStun") > duration then return true end
@@ -45,6 +57,32 @@ end
 -- Check if unit loosed control
 -- unit = http://www.wowwiki.com/UnitId
 -- { "CC" , "Snare" , "Root" , "Silence" , "Immune", "ImmuneSpell", "Disarm" }
+
+--function jps.LoseControl(unit, controlTable)
+--	local targetControlled = false
+--	local timeControlled = 0
+--	if controlTable == nil then controlTable = {"CC" , "Snare" , "Root" , "Silence" } end
+--	-- Check debuffs
+--	local auraname, duration, expTime, spellId
+--	local i = 1
+--	auraname, _, _, _, debufftype, duration, expTime, _, _, _, spellId = UnitAura(unit, i, "HARMFUL")
+--	while auraname do
+--		local Priority = jps.SpellControl[spellId]
+--		if Priority then
+--			for _,control in ipairs(controlTable) do
+--				if Priority == control then
+--					targetControlled = true
+--					if expTime ~= nil then timeControlled = expTime - GetTime() end
+--				break end
+--			end
+--		end
+--		if targetControlled == true and timeControlled > 0 then return true end
+--		i = i + 1
+--		auraname, _, _, _, debufftype, duration, expTime, _, _, _, spellId = UnitAura(unit, i, "HARMFUL")
+--	end
+--	return targetControlled
+--end
+
 function jps.LoseControl(unit, controlTable)
 	local targetControlled = false
 	local timeControlled = 0
@@ -54,9 +92,9 @@ function jps.LoseControl(unit, controlTable)
 	local i = 1
 	auraname, _, _, _, debufftype, duration, expTime, _, _, _, spellId = UnitAura(unit, i, "HARMFUL")
 	while auraname do
-		local Priority = jps.SpellControl[spellId]
+		local Priority = DebuffToDispel[auraname] -- return nil or "CC", "Snare" ...
 		if Priority then
-			for _,control in ipairs(controlTable) do
+			for _,control in ipairs(controlTable) do -- {"CC" , "Snare" , "Root" , "Silence" }
 				if Priority == control then
 					targetControlled = true
 					if expTime ~= nil then timeControlled = expTime - GetTime() end
@@ -73,14 +111,6 @@ end
 --------------------------
 -- DISPEL FUNCTIONS TABLE
 --------------------------
-
--- Table of controls Spellnames by index
-local DebuffToDispel = {}
-for spellID,control in pairs(jps.SpellControl) do
-	if control == "CC" then 
-		DebuffToDispel[toSpellName(spellID)] = spellID
-	end
-end
 
 local polySpellIds = {
 	[51514] = "Hex" ,
@@ -99,7 +129,7 @@ function jps.IsCastingPoly(unit)
 	local delay, spellname = jps.CastTimeLeft(unit)
 
 	for spellID,spell in pairs(polySpellIds) do
-		if UnitIsUnit(unit.."target", "player") == 1 and spellname == toSpellName(spellID) and delay > 0 then
+		if jps.UnitIsUnit(unit.."target", "player") and spellname == toSpellName(spellID) and delay > 0 then
 			if delay - (latencyWorld * 2) < 0 then return true end
 		end
 	end 
@@ -110,7 +140,7 @@ end
 function jps.IsCastingControl(unit)
 	if not canDPS(unit) then return false end
 	local delay, spellname = jps.CastTimeLeft(unit)
-	if DebuffToDispel[spellname] and delay > 0 then
+	if DebuffToDispel[spellname] == "CC" and delay > 0 then
 		return true 
 	end 
 	return false
@@ -149,37 +179,22 @@ jps.DispelFriendly = function (unit)
 	return false
 end
 
-printDebuffToDispel = function()
-	for i, j in pairs(DebuffToDispel) do
-		print(i,"/",j)
-	end
-end
-
 ------------------------------------
 -- OFFENSIVE DISPEL
 ------------------------------------
--- Avenging Wrath 31884 Dispel type	n/a
--- Sacrifice 7812 Type de dissipation	Magie
--- Archangel 109147 Type de dissipation	Magie
--- Frost Armor 110694 Type de dissipation	Magie
--- Power Word: Shield 17 Type de dissipation	Magie
--- Fear Ward 6346 Type de dissipation	Magie
--- Hand of Protection 1022  Dispel type	Magic
--- Incanter's Ward 1463 Dispel type	Magic
--- Predatory Swiftness 69369 Dispel type	Magic
--- Ice Barrier 11426 Dispel type	Magic
 
+-- Avenging Wrath 31884 Dispel type	n/a
 local BuffToDispel = 
 {	
-	toSpellName(7812),
-	toSpellName(109147) ,
-	toSpellName(110694),
-	toSpellName(17),
-	toSpellName(6346),
-	toSpellName(1022),
-	toSpellName(1463),
-	toSpellName(69369),
-	toSpellName(11426)
+	toSpellName(7812), -- Sacrifice 7812 Type de dissipation	Magie
+	toSpellName(109147), -- Archangel 109147 Type de dissipation	Magie
+	toSpellName(110694), -- Frost Armor 110694 Type de dissipation	Magie
+	toSpellName(17), -- Power Word: Shield 17 Type de dissipation	Magie
+	toSpellName(6346), -- Fear Ward 6346 Type de dissipation	Magie
+	toSpellName(1022), -- Hand of Protection 1022  Dispel type	Magic
+	toSpellName(1463), -- Incanter's Ward 1463 Dispel type	Magic
+	toSpellName(69369), -- Predatory Swiftness 69369 Dispel type	Magic
+	toSpellName(11426) -- Ice Barrier 11426 Dispel type	Magic
 }
 
 -- "Lifebloom" When Lifebloom expires or is dispelled, the target is instantly healed

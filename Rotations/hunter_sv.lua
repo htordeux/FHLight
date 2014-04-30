@@ -157,7 +157,7 @@ local _, _, _, _, petIsPassive, _, _ = GetPetActionInfo(10) -- Slot 10 is Passiv
 		{ "Glaive Toss", 			"onCD"}, -- Tier 6 talent
 		-- AoE
 		{ "Multi-Shot", 			jps.MultiTarget },
-		{ "steady shot", 			jps.MultiTarget and not IsSpellKnown(77767) }, -- Cobra Shot (77767), in MoP learned at level 81, so we use Steady Shot until then
+		{ "steady shot", 			jps.MultiTarget and not jps.IsSpellKnown(77767) }, -- Cobra Shot (77767), in MoP learned at level 81, so we use Steady Shot until then
 		{ "cobra shot", 			jps.MultiTarget },
 		-- Single target
 		{ "kill shot", 				"onCD" }, -- Target below 20%
@@ -166,7 +166,7 @@ local _, _, _, _, petIsPassive, _, _ = GetPetActionInfo(10) -- Slot 10 is Passiv
 		{ "black arrow", 			not jps.myDebuff("black arrow") and not jps.MultiTarget },
 		{ "cobra shot", 			jps.myDebuffDuration("serpent sting") < 6 },
 		{ "arcane shot", 			focus >= 70 and not jps.buff("lock and load") and not jps.MultiTarget },
-		{ "steady shot", 			"onCD" and not IsSpellKnown(77767) }, -- Cobra Shot (77767), in MoP learned at level 81, so we use Steady Shot until then
+		{ "steady shot", 			"onCD" and not jps.IsSpellKnown(77767) }, -- Cobra Shot (77767), in MoP learned at level 81, so we use Steady Shot until then
 		{ "cobra shot", 			"onCD"},
 	}
 

@@ -179,8 +179,9 @@ function jps.detectSpec()
 	jps.Count = 1
 	jps.Tooltip = ""
 	jps.ToggleRotationName = {"No Rotations"}
-	jps.initializedRotation = false
 	rotationDropdownHolder:Hide()
+	
+	jps.initializedRotation = false
 
 	jps.Race = UnitRace("player")
 	jps.Class = UnitClass("player")

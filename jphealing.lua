@@ -18,6 +18,7 @@ local MAX_RAID_MEMBERS = MAX_RAID_MEMBERS
 local L = MyLocalizationTable
 local canHeal = jps.canHeal
 local canDPS = jps.canDPS
+local UnitGroupRolesAssigned = UnitGroupRolesAssigned
 local pairs = pairs
 
 ----------------------
@@ -30,6 +31,7 @@ local pairs = pairs
 -- name, rank, subgroup, level, class, fileName, zone, online, isDead, role, isML, combatRole = GetRaidRosterInfo(raidIndex)
 -- raidIndex of raid member between 1 and MAX_RAID_MEMBERS (40). If you specify an index that is out of bounds, the function returns nil
 
+local RaidStatusRole = {}
 local RaidStatus = {}
 local unitHpct = function(unit,inrange) if inrange then return jps.hp(unit) end end
 local unitHealth = function(unit,inrange) if inrange then return jps.hp(unit,"abs") end end
@@ -51,8 +53,7 @@ jps.UpdateRaidStatus = function ()
 		npe = GetNumSubgroupMembers()
 	end
 
-	table.wipe(RaidStatus)
-	--jps.removeTable(RaidStatus)
+	table.wipe(RaidStatus) --jps.removeTable(RaidStatus)
 	
 	for i=nps,npe do
 		if i==0 then
@@ -67,9 +68,19 @@ jps.UpdateRaidStatus = function ()
 		RaidStatus[unit]["health"] = unitHpct(unit,inrange)
 		RaidStatus[unit]["inrange"] = inrange
 	end
+
+-- Role in Raid 
+-- local role = UnitGroupRolesAssigned(unit) -- works only for friendly unit in raid
+	table.wipe(RaidStatusRole)
+	for unit,_ in pairs(RaidStatus) do
+		if RaidStatusRole[unit] == nil then RaidStatusRole[unit] = {} end
+		RaidStatusRole[unit]["role"] = UnitGroupRolesAssigned(unit)
+		RaidStatusRole[unit]["class"] = select(2,UnitClass(unit))
+	end
+
 end
 
--- Assume the unit is INRANGE
+-- Unit is INRANGE
 jps.UpdateRaidUnit = function (unit,inrange)
 	if RaidStatus[unit] == nil then RaidStatus[unit] = {} end
 	RaidStatus[unit]["hpct"] = unitHpct(unit,inrange)
@@ -81,6 +92,17 @@ jps.UnitInRaid = function(unit)
 	if RaidStatus[unit] ~= nil then return true end
 	return false
 end
+
+----------------------
+-- CLASS SPEC RAIDROSTER
+----------------------
+
+-- "DAMAGER" , "HEALER" , "TANK" , "NONE"
+jps.RoleInRaid = function (unit)
+	if RaidStatus[unit] ~= nil then return RaidStatusRole[unit]["role"] end
+	return "NONE"
+end
+
 ----------------------
 -- UPDATE RAIDTARGET
 ----------------------
@@ -234,27 +256,18 @@ end
 -- FIND the Unit Layout of an UNITNAME in RAID -- Bob raid7
 -- UnitInRaid Layout position for raid members: integer ascending from 0 (which is the first member of the first group)
 -- UnitInRaid Returns a number if the unit is in your raid group, nil otherwise
-
+-- local raidname = string.sub(unit,1,4) -- return raid
+-- local raidIndex = tonumber(string.sub(unit,5)) -- raid1..40 return returns 1 for raid1, 13 for raid13
 -- FIND THE SUBGROUP OF AN UNIT
 -- partypet1 to partypet4 -- party1 to party4 -- raid1 to raid40 -- raidpet1 to raidpet40 -- arena1 to arena5 - A member of the opposing team in an Arena match
 -- Pet return nil with UnitInRaid -- UnitInRaid("unit") returns 0 for raid1, 12 for raid13
-jps.FindSubGroupUnitInRaid = function(unit) -- raid..n
-	local subgroup = 1 
-	if not IsInRaid() and IsInGroup() then return 1 end
-	local raidname = string.sub(unit,1,4) -- return raid
-	local raidIndex = tonumber(string.sub(unit,5)) -- raid1..40 return returns 1 for raid1, 13 for raid13 
-
-	if type(raidIndex) == "number" and raidname == "raid" then subgroup = math.ceil(raidIndex/5) end
-	-- math.floor(0.5) > 0 math.ceil(0.5) > 1 Renvoie le nombre entier au-dessus et au-dessous d'une valeur donnée.
-return subgroup
-end
-
 jps.FindSubGroupUnit = function(unit) -- UnitNAME or raidn
 	local subgroup = 1 
 	if not IsInRaid() and IsInGroup() then return subgroup end
 	if IsInRaid() then
 		if UnitInRaid(unit) ~= nil then
 			subgroup = math.ceil(UnitInRaid(unit)/5)
+			-- math.floor(0.5) > 0 math.ceil(0.5) > 1 Renvoie le nombre entier au-dessus et au-dessous d'une valeur donnée.
 		end
 	end
 	return subgroup
@@ -427,10 +440,13 @@ end
 -----------------------
 
 function jps.LookupRaid ()
-
 -- RaidStatus
 	for unit,index in pairs(RaidStatus) do 
 		print("|cffa335ee",unit,"Hpct: ",index.hpct,"Health: ",index.health,"Range: ",index.inrange) -- color violet 
+	end
+-- RaidClass
+	for unit,index in pairs(RaidStatusRole) do 
+		print("|cffe5cc80",unit,"Role: ",index.role,"Class: ",index.class) -- color beige(artifact)
 	end
 end
 

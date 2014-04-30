@@ -13,21 +13,15 @@
 -----------------------
 -- FUNCTION TEST 
 -----------------------
-local canDPS = jps.canDPS
+
 function jps_Test()
 
 	jps.LookupEnemy()
 
---	for i=1,MAX_RAID_MEMBERS do
---		if GetRaidRosterInfo(i) == nil then break end
---		local group = select(3,GetRaidRosterInfo(i)) -- if index is out of bounds, the function returns nil
---		local name = select(1,GetRaidRosterInfo(i))
---		print("name: ",name,"group: ",group)
---	end
-
-	print("Aggro:",jps.checkTimer("PlayerStun"),"Interrupt:",jps.checkTimer("PlayerInterrupt"))
-	print("Shield:",jps.checkTimer("Shield"),jps.checkTimer("ShieldTimer"))
-	print("Aggro:",jps.FriendAggro("player"),"Dmg:",jps.checkTimer("PlayerAggro"))
+	print("Stun:",jps.checkTimer("PlayerStun"))
+	print("Interrupt:",jps.checkTimer("PlayerInterrupt"))
+	print("Shield:",jps.checkTimer("ShieldTimer"))
+	print("Aggro:",jps.FriendAggro("player"))
 	print("LoseControl:",jps.LoseControl("player"))
 	
 --	local masteryValue = math.ceil(GetMastery())/100
@@ -44,6 +38,9 @@ function jps_RaidTest()
 
 	local target, dupe, dupecount = jps.LowestTarget()
 	print("target: ",target,"count", dupecount,"Table: ", unpack(dupe))
+	
+	local unitrole = jps.RoleClass("target")
+	print("role: ",unitrole)
 
 end
 

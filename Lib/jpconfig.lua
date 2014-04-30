@@ -361,15 +361,13 @@ UIDropDownMenu_JustifyText(DropDownRotationGUI, "LEFT")
 ---------------------------
 -- Custom Event Handlers which are called after a Setting checkbox is clicked
 -- key = name of checkbox, value = function to call
-	
+
 --function jps.addSettingsFrame()
---	
 --	jps.onClickSettingEvents = {
 --		["timetodie frame visible"] = jps.TimeToDieToggle,
 --		["rotation dropdown visible"] = jps.DropdownRotationTogle,
 --		["show jps window"] = jps.mainIconToggle,
 --		["show slider update"] = jps.sliderUpdateToggle,
-----		["show jpshistory"] = jps.jphistoryToggle
 --	}
 --	
 --	jpsSettingsFrame = CreateFrame("Frame", "jpsSettingsFrame", jpsConfigFrame)

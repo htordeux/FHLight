@@ -18,6 +18,7 @@ local UnitManaMax = UnitManaMax
 
 function jps.UnitIsUnit(unit1,unit2)
 	if unit2 == nil then unit2 = "player" end
+	if unit1 == nil then return false end
 	if UnitGUID(unit1) == UnitGUID(unit2) then return true end
 	return false
 end
@@ -169,7 +170,7 @@ end
 ----------------------
 
 local LowestTarget = jps.LowestTarget -- include canDPS
-
+-- local rangedTarget, EnemyUnit, TargetCount = jps.LowestTarget()
 jps.findMeRangedTarget = function()
 	local rangedTarget = "target"
 	if canDPS("target") then
@@ -189,10 +190,35 @@ jps.findMeRangedTarget = function()
 	elseif canDPS("boss4") then
 		rangedTarget = "boss3"
 	else
-		local LowestEnemy, _ = LowestTarget()
+		local LowestEnemy,_,_ = LowestTarget()
 		rangedTarget = LowestEnemy
 	end
 	return rangedTarget
+end
+
+--------------------------------
+-- Find CLASS ROLE ENEMY TARGET
+--------------------------------
+-- local role = UnitGroupRolesAssigned(unit) -- "DAMAGER" , "HEALER" , "TANK" , "NONE"
+-- local classDisplayName, class, classID = UnitClass(unit)
+-- local id, name, _, icon = GetSpecializationInfoForClassID(classID, i)
+-- local role = GetSpecializationRoleByID(id)
+-- local _, classTag = GetClassInfoByID(classID)
+-- local numTabs = GetNumSpecializationsForClassID(classID)
+
+function jps.RoleClass(unit)
+	local role = "NONE"
+	if not jps.UnitExists(unit) then return unitrole end
+	local _, class, classID = UnitClass(unit)
+	local numTabs = GetNumSpecializationsForClassID(classID)
+
+	for i=1,4 do
+		if i <= numTabs then
+			local id = GetSpecializationInfoForClassID(classID, i) 
+			role = GetSpecializationRoleByID(id)
+		end
+	end
+	return role
 end
 
 -------------------------

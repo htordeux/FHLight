@@ -309,7 +309,7 @@ local InterruptTable = {
 			-- "Oubli" 586 -- PVE 
 			{ 586, not jps.PvP and UnitThreatSituation("player") == 3 , "player" },
 			-- "Oubli" 586 -- Fantasme 108942 -- vous dissipez tous les effets affectant le déplacement sur vous-même et votre vitesse de déplacement ne peut être réduite pendant 5 s
-			{ 586, IsSpellKnown(108942) , "player" , "Aggro_Oubli_" },
+			{ 586, jps.IsSpellKnown(108942) , "player" , "Aggro_Oubli_" },
 		},
 	},
 

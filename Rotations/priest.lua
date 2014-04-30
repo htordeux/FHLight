@@ -9,8 +9,7 @@ if not priest then priest = {} end
 
 -- average amount of healing  = (1+MP)*(1+CP)*(B+c*SP) -- MP is the mastery percentage, CP is the crit percentage, SP is our spellpower 
 -- Flash Heal: Heals a friendly target for 12619 to 14664 (+ 131.4% of Spell power).
--- average amount of Flash Heal  = (1+0,25)*(1+0.9)*(14664+(1.314*28000))
--- Greater Heal : heals a single target for 21022 to 24430 (+ 219% of Spell power)
+-- Greater Heal : heals a single target for 21022 to 24430 (+ 219% of Spell power).
 -- Heal : heals your target for 9848 to 11443 (+ 102.4% of Spell power).
 local masteryValue = math.ceil(GetMastery())/100
 local bonusHealing = math.ceil(GetSpellBonusHealing())
@@ -149,14 +148,10 @@ local BerserkerRage = tostring(select(1,GetSpellInfo(18499)))
 priest.canFear = function (rangedTarget)
 	if not jps.canDPS(rangedTarget) then return false end
 	local canFear = false
+	if jps.buff(BerserkerRage,rangedTarget) then return false end
 	if jps.canDPS(rangedTarget) then
-		if jps.buff(BerserkerRage,rangedTarget) then return false
-		elseif (CheckInteractDistance(rangedTarget,3) == 1) then canFear = true 
-		end
-	end
-	
-	local knownTypes = {[0]="player", [1]="world object", [3]="NPC", [4]="pet", [5]="vehicle"}
-	if jps.canDPS(rangedTarget) then
+		if (CheckInteractDistance(rangedTarget,3) == 1) then canFear = true end
+		local knownTypes = {[0]="player", [1]="world object", [3]="NPC", [4]="pet", [5]="vehicle"}
 		local rangedTargetGuid = UnitGUID(rangedTarget)
 		if FireHack and rangedTargetGuid ~= nil then
 			local rangedTargetObject = GetObjectFromGUID(rangedTargetGuid)
@@ -175,7 +170,7 @@ priest.canShadowfiend = function (rangedTarget)
 	if not jps.canDPS(rangedTarget) then return false end
 	if UnitGetTotalAbsorbs(rangedTarget) > 0 then return false end
 	local isBoss = (UnitLevel(rangedTarget) == -1) or (UnitClassification(rangedTarget) == "elite")
-	local isEnemy = jps.canDPS(rangedTarget) and jps.TimeToDie(rangedTarget) > 12 and jps.hp(rangedTarget) > 0.5
+	local isEnemy = jps.TimeToDie(rangedTarget) > 12 and jps.hp(rangedTarget) > 0.5
 	if isEnemy or isBoss then return true end
 	return false
 end
@@ -196,7 +191,7 @@ priest.unitForShield = function (unit)
 	if not jps.FriendAggro(unit) then return false end
 	if jps.buff(17,unit) then return false end
 	-- "Clairvoyance divine" 109175 gives buff "Divine Insight" 123266 10 sec
-	if jps.debuff(6788,unit) and not jps.buffId(123266,unit) then return false end
+	if jps.debuff(6788,unit) and not jps.buffId(123266,"player") then return false end
 	if jps.checkTimer("ShieldTimer") > 0 then return false end
 	return true
 end
@@ -211,7 +206,7 @@ end
 
 priest.unitForBinding = function (unit)
 	if unit == nil then return false end
-	if (UnitIsUnit(unit,"player")==1) then return false end
+	if jps.UnitIsUnit(unit,"player") then return false end
 	if (jps.LastCast == priest.Spell["BindingHeal"]) then return false end
 	if (jps.hp("player","abs") < priest.AvgAmountFlashHeal) then return false end
 	if (jps.hp(unit,"abs") < priest.AvgAmountFlashHeal) then return false end
@@ -220,7 +215,7 @@ end
 
 priest.unitForLeap = function (unit) -- {"CC", "Snare", "Root", "Silence", "Immune", "ImmuneSpell", "Disarm"}
 	if unit == nil then return false end
-	if (UnitIsUnit(unit,"player")==1) then return false end
+	if jps.UnitIsUnit(unit,"player") then return false end
 	if not jps.LoseControl(unit) then return false end
 	return true
 end
@@ -233,7 +228,7 @@ jps.listener.registerCombatLogEventUnfiltered("SPELL_CAST_SUCCESS", function(...
 	local sourceGUID = select(4,...)
 	local spellID =  select(12,...)
 	if sourceGUID == UnitGUID("player") then
-		if spellID == 123258 then jps.createTimer("ShieldTimer", 12 ) end -- 123258 "Power Word: Shield"
+		if spellID == 123258 and jps.checkTimer("ShieldTimer") == 0 then jps.createTimer("ShieldTimer", 12 ) end -- 123258 "Power Word: Shield"
 	end
 end)
 

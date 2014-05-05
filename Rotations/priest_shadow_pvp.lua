@@ -4,8 +4,6 @@ local canDPS = jps.canDPS
 jps.registerRotation("PRIEST","SHADOW",function()
 
 local CountInRange, AvgHealthLoss, FriendUnit = jps.CountInRaidStatus(0.90)
-local LowestEnemy, EnemyUnit = jps.LowestTarget()
-
 local playerhealth =  jps.hp("player","abs") -- UnitHealthMax("player") - UnitHealth("player")
 local playerhealthpct = jps.hp("player")
 	
@@ -20,8 +18,8 @@ local painDuration = jps.myDebuffDuration(589)
 local plagueDuration = jps.myDebuffDuration(2944)
 local vtDuration = jps.myDebuffDuration(34914)
 local Orbs = UnitPower("player",13)
-local vampTouch = tostring(select(1,GetSpellInfo(34914)))
-local swPain = tostring(select(1,GetSpellInfo(589)))
+local VampTouch = tostring(select(1,GetSpellInfo(34914)))
+local ShadowPain = tostring(select(1,GetSpellInfo(589)))
 	
 ---------------------
 -- TIMER
@@ -35,7 +33,7 @@ local playerControlled = jps.LoseControl("player",{"CC"})
 -- TARGET ENEMY
 ----------------------
 
-local rangedTarget = jps.findMeRangedTarget()
+local rangedTarget,EnemyUnit = jps.LowestTarget()
 if canDPS("target") then rangedTarget = "target" end
 if canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
 -- if PlayerObject:GetMovementFlags () ==  0x400 then print("STUNNED") end
@@ -183,9 +181,9 @@ local parseMoving =
 	-- "Mind Blast" 8092 Stack shadow orbs -- buff 81292 "Glyph of Mind Spike"
 	{ 8092, (jps.buffStacks(81292) == 2) , rangedTarget , "Blast" },
 	-- "Shadow Word: Pain" 589 Keep SW:P up with duration
-	{ 589, jps.myDebuff(589,rangedTarget) and painDuration < 2.5 and (jps.CurrentCast ~= swPain or jps.LastCast ~= swPain) , rangedTarget },
+	{ 589, jps.myDebuff(589,rangedTarget) and painDuration < 2.5 and (jps.CurrentCast ~= ShadowPain or jps.LastCast ~= ShadowPain) , rangedTarget },
 	-- "Shadow Word: Pain" 589 Keep up
-	{ 589, (not jps.myDebuff(589,rangedTarget)) and (jps.CurrentCast ~= swPain or jps.LastCast ~= swPain) , rangedTarget },
+	{ 589, (not jps.myDebuff(589,rangedTarget)) and (jps.CurrentCast ~= ShadowPain or jps.LastCast ~= ShadowPain) , rangedTarget },
 	-- "Shadow Word: Pain" 589
 	{ 589, type(PainEnemyTarget) == "string" , PainEnemyTarget , "Pain_MultiUnit_" },
 }
@@ -237,17 +235,17 @@ local spellTable = {
 	-- "Mind Flay" 15407
 	{ 15407, jps.debuff(2944,rangedTarget) , rangedTarget , "MINDFLAYORBS" },
 	-- "Vampiric Touch" 34914 Keep VT up with duration
-	{ 34914, jps.myDebuff(34914,rangedTarget) and vtDuration < 2.5 and (jps.CurrentCast ~= vampTouch or jps.LastCast ~= vampTouch) , rangedTarget },
+	{ 34914, jps.myDebuff(34914,rangedTarget) and vtDuration < 2.5 and (jps.CurrentCast ~= VampTouch or jps.LastCast ~= VampTouch) , rangedTarget },
 	-- "Shadow Word: Pain" 589 Keep SW:P up with duration
-	{ 589, jps.myDebuff(589,rangedTarget) and painDuration < 2.5 and (jps.CurrentCast ~= swPain or jps.LastCast ~= swPain) , rangedTarget },
+	{ 589, jps.myDebuff(589,rangedTarget) and painDuration < 2.5 and (jps.CurrentCast ~= ShadowPain or jps.LastCast ~= ShadowPain) , rangedTarget },
 
 	-- "Power Infusion" "Infusion de puissance" 10060
 	{ 10060, UnitAffectingCombat("player")==1 and (UnitPower ("player",0)/UnitPowerMax ("player",0) > 0.20) , "player" },
 
 	-- "Shadow Word: Pain" 589
-	{ 589, not jps.myDebuff(589,rangedTarget) and (jps.CurrentCast ~= swPain or jps.LastCast ~= swPain) , rangedTarget },
+	{ 589, not jps.myDebuff(589,rangedTarget) and (jps.CurrentCast ~= ShadowPain or jps.LastCast ~= ShadowPain) , rangedTarget },
 	-- "Vampiric Touch" 34914 
-	{ 34914, not jps.myDebuff(34914,rangedTarget) and (jps.CurrentCast ~= vampTouch or jps.LastCast ~= vampTouch) , rangedTarget },
+	{ 34914, not jps.myDebuff(34914,rangedTarget) and (jps.CurrentCast ~= VampTouch or jps.LastCast ~= VampTouch) , rangedTarget },
 	-- "Shadow Word: Pain" 589
 	{ 589, type(PainEnemyTarget) == "string" , PainEnemyTarget , "Pain_MultiUnit_" },
 

@@ -41,6 +41,8 @@ function jps_RaidTest()
 	
 	local unitrole = jps.RoleClass("target")
 	print("role: ",unitrole)
+	
+	print("unitisunit: ",jps.UnitIsUnit("target","player"))
 
 end
 

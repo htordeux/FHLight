@@ -17,15 +17,14 @@ jphealing.lua
 
 Modules\jpglobal.lua
 Modules\jpauras.lua
+Modules\jpraid.lua
 Modules\jpcasting.lua
 Modules\jpccinterrupt.lua
-Modules\jpdispel.lua
-modules\jpdots.lua
+Modules\jpdots.lua
 Modules\jpitems.lua
-Modules\jpraid.lua
 Modules\jpspellbook.lua
-Modules\jptesting.lua
 Modules\jptimetodie.lua
+Modules\jptesting.lua
 
 Lib\jpgui.lua
 Lib\jpconfig.lua

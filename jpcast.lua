@@ -160,7 +160,6 @@ end
 -- UnitInRange(unit) -- returns FALSE if out of range or if the unit is invalid. TRUE if in range
 -- information is ONLY AVAILABLE FOR MEMBERS OF THE PLAYER'S GROUP
 -- when not in a party/raid, the new version of UnitInRange returns FALSE for "player" and "pet". The old function returned true.
--- jps.IsSpellKnown(spell) can be use below lvl 90
 function jps.canHeal(unit)
 	if not jps.UnitExists(unit) then return false end
 	if GetUnitName("player") == GetUnitName(unit) then return true end
@@ -175,19 +174,18 @@ function jps.canHeal(unit)
 	return true
 end
 
--- INVALID IF THE NAMED PLAYER IS NOT A PART OF YOUR PARTY OR RAID -- NEED .."TARGET"
--- JPS.CANDPS IS WORKING ONLY FOR PARTYn..TARGET AND RAIDn..TARGET NOT FOR UNITNAME..TARGET
+-- WORKING ONLY FOR PARTYn..TARGET AND RAIDn..TARGET NOT FOR UNITNAME..TARGET
 -- CHECK IF WE CAN DAMAGE A UNIT
 local iceblock = tostring(select(1,GetSpellInfo(45438))) -- ice block mage
 local divineshield = tostring(select(1,GetSpellInfo(642))) -- divine shield paladin
 function jps.canDPS(unit)
 	if not jps.UnitExists(unit) then return false end
-	-- if UnitIsEnemy("player",unit)~=1 then return false end 
+	-- if UnitIsEnemy("player",unit)~=1 then return false end
 	-- WARNING a unit is hostile to you or not Returns either 1 ot nil -- Raider's Training returns nil with UnitIsEnemy
 	if jps.buff(divineshield,unit) then return false end
 	if jps.buff(iceblock,unit) then return false end
 	if UnitCanAttack("player", unit)~=1 then return false end-- UnitCanAttack(attacker, attacked) return 1 if the attacker can attack the attacked, nil otherwise.
-	if jps.PlayerIsBlacklisted(unit) then return false end -- WARNING Blacklist is updated only when "UNIT_HEALTH_FREQUENT" fire 
+	if jps.PlayerIsBlacklisted(unit) then return false end
 	if not jps.IsSpellInRange(jps.HarmSpell,unit) then return false end
 	return true
 end

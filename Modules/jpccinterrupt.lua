@@ -184,6 +184,7 @@ end
 ------------------------------------
 
 -- Avenging Wrath 31884 Dispel type	n/a
+-- Divine Shield and Ice Block need Mass Dispel
 local BuffToDispel = 
 {	
 	toSpellName(7812), -- Sacrifice 7812 Type de dissipation	Magie

@@ -510,18 +510,18 @@ end)
 local descriptorTable = { L["Strikes"] , L["Roots"] , L["Transforms"] , L["Forces"] , L["Seduces"] }
 jps.listener.registerEvent("UNIT_SPELLCAST_START", function(unitID,spellname,_,_,spellID)
 		if unitID == "player" then
-			jps.Casting = true
 			jps.CurrentCast = spellname
 			jps.Latency = GetTime() - sendTime
+			--jps.Casting = true
 			--print("SPELLCAST_START: ",unitID,"spellname: ",spellname,"",jps.Casting)
 		end
 end)
 
 jps.listener.registerEvent("UNIT_SPELLCAST_CHANNEL_START", function(unitID,spellname,_,_,spellID)
 		if unitID == "player" and spellID ~= nil then
-			jps.Casting = true
 			jps.CurrentCast = spellname
 			jps.Latency = GetTime() - sendTime
+			--jps.Casting = true
 			--print("CHANNEL_START: ",unitID,"spellname:",spellname,"",jps.Casting)
 		end
 end)

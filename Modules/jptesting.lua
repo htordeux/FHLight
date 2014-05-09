@@ -39,10 +39,8 @@ function jps_RaidTest()
 	local target, dupe, dupecount = jps.LowestTarget()
 	print("target: ",target,"count", dupecount,"Table: ", unpack(dupe))
 	
-	local unitrole = jps.RoleClass("target")
-	print("role: ",unitrole)
-	
-	print("unitisunit: ",jps.UnitIsUnit("target","player"))
+	local CountInRange, AvgHealthLoss, FriendUnit = jps.CountInRaidStatus(100)
+	write("CountInRange: ",CountInRange,"AvgHealthLoss", AvgHealthLoss,"Table: ", unpack(FriendUnit))
 
 end
 

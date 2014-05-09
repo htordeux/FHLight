@@ -66,48 +66,6 @@ end
 -- PARSE DYNAMIC
 -------------------------
 
---[[ -- MultiTable
-function jps.IsCastingPoly( unit )
-	if ... then return false end
-	return true
-end
-parseMultiUnitTable( { "shadow word: death", jps.IsCastingPoly, {"arena1","arena2","arena3"} } )
-
-the code is equivalent to:
-
-parseSpellTable(
- {
-	 { "shadow word: death", jps.IsCastingPoly("arena1") , "arena1" },
-	 { "shadow word: death", jps.IsCastingPoly("arena2") , "arena2" },
-	 { "shadow word: death", jps.IsCastingPoly("arena3") , "arena3" },
- }
-)
---]]
-
-local function parseMultiUnitTable( spellTable )
-	local spell = spellTable[1]
-	local unitFunction = spellTable[2]
-	local targets = spellTable[3]
-	local message = spellTable[4]
-	if message == nil then message = "" end
-	local sirenTable = {}
-
-	for _, unit in ipairs(targets) do
-		local unitTable = {}
-		table.insert( unitTable, 1, spell )
-		table.insert( unitTable, 2, unitFunction(unit) )
-		table.insert( unitTable, 3, unit )
-		table.insert( unitTable, 4, message..unit )
-		table.insert( sirenTable, unitTable )
-	end
-
-	return parseSpellTable(sirenTable)
-end
-
-------------------------
--- PARSE
-------------------------
-
 -- rawset() and table.insert can still be used to directly modify a read-only table
 
 --local readOnly = function(t)
@@ -159,8 +117,8 @@ parseSpellTable = function( hydraTable )
 --	proxy = setmetatable(hydraTable, proxy) -- sets proxy to be spellTable's metatable
 
 --	myListOfObjects = {}  
---	setmetatable(myListOfObjects, { __mode = 'v' }) --myListOfObjects is now weak  
---	myListOfObjects = setmetatable({}, {__mode = 'v' }) --creation of a weak table
+--	setmetatable(myListOfObjects, { __mode = 'v' }) -- myListOfObjects is now weak  
+--	myListOfObjects = setmetatable({}, {__mode = 'v' }) -- creation of a weak table
 
 	for i, spellTable in ipairs( hydraTable ) do
 
@@ -181,10 +139,6 @@ parseSpellTable = function( hydraTable )
 				spell,target = parseSpellTable(target)
 			end
 
-		-- MULTITARGET -- { spell , function_unit , table_unit }
-		elseif type(conditions) == "function" and type(target) == "table" then
-			spell,target = parseMultiUnitTable(spellTable)
-			
 		-- DEFAULT {spell[[, condition[, target]]}
 		end
 

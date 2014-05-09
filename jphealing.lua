@@ -377,8 +377,24 @@ end
 -- DISPEL FUNCTIONS RAID STATUS
 ---------------------------------
 
+local function toSpellName(id) return tostring(select(1,GetSpellInfo(id))) end
+
+-- Don't Dispel if unit is affected by some debuffs
+local DebuffNotDispel = {
+	toSpellName(31117), 	-- "Unstable Affliction"
+	toSpellName(34914), 	-- "Vampiric Touch"
+	}
+-- Don't dispel if friend is affected by "Unstable Affliction" or "Vampiric Touch" or "Lifebloom"
+local NotDispelFriendly = function(unit)
+	for _,debuff in ipairs(DebuffNotDispel) do
+		if jps.debuff(debuff,unit) then return true end
+	end
+	return false
+end
+
 jps.canDispel = function (unit,dispelTable) -- {"Magic", "Poison", "Disease", "Curse"}
 	if not canHeal(unit) then return false end
+	if NotDispelFriendly(unit) then return false end
 	if dispelTable == nil then dispelTable = {"Magic"} end
 	local auraName, icon, count, debuffType, expirationTime, castBy
 	local i = 1

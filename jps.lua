@@ -47,7 +47,6 @@ jps.IconSpell = nil
 jps.Target = nil
 jps.Casting = false
 jps.ThisCast = nil
-jps.NextCast = nil
 jps.Moving = false
 jps.HarmSpell = nil
 jps.IconSpell = nil
@@ -327,6 +326,7 @@ hooksecurefunc("UseAction", function(...)
 			local name = select(1,GetSpellInfo(id))
 			if jps.NextSpell[#jps.NextSpell] ~= name and not jps.shouldSpellBeIgnored(name) then
 				table.insert(jps.NextSpell, name)
+				jps.NextSpell = jps.removeDuplicate(jps.NextSpell)
 				if jps.Combat then 
 					write("Set",name,"for next cast.")
 				end

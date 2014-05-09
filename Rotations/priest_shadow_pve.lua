@@ -156,7 +156,6 @@ local parseDispel = {
 	-- OFFENSIVE Dispel -- "Dissipation de la magie" 528
 	{ 528, (jps.LastCast ~= priest.Spell["DispelMagic"]) and jps.DispelOffensive(rangedTarget) , rangedTarget , "|cff1eff00dispelOffensive_"..rangedTarget },
 	-- "Leap of Faith" 73325 -- "Saut de foi"
-	{ 73325 , priest.unitForLeap , FriendUnit , "|cff1eff00LeapLoseControl_MultiUnit_" },
 	-- "Dispel" "Purifier" 527 -- UNAVAILABLE IN SHADOW FORM 15473
 }
 

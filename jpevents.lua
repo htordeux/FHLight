@@ -339,7 +339,7 @@ local collectGarbage = function()
 end
 
 -- TimeToDie Update
---jps.registerOnUpdate(updateTimeToDie)
+jps.registerOnUpdate(updateTimeToDie)
 
 -- Combat
 jps.registerOnUpdate(function()

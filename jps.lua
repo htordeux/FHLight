@@ -360,7 +360,7 @@ function jps.Cycle()
 	end
 
 	-- STOP Combat
-	if (IsMounted() == 1) or UnitIsDeadOrGhost("player")==1 or jps.buff(L["Drink"],"player") then return end
+	if (IsMounted() == 1 and jps.getConfigVal("dismount in combat") == 0) or UnitIsDeadOrGhost("player")==1 or jps.buff(L["Drink"],"player") then return end
 	
 	-- Movement
 	jps.Moving = select(1,GetUnitSpeed("player")) > 0 
@@ -396,38 +396,38 @@ end
 -- FUNCTIONQUEUE
 -----------------------
 
---function jps.addTofunctionQueue(fn,queueName) 
---	if not jps.functionQueues[queueName] then
---		jps.functionQueues[queueName] = {}
---	end
---	if not jps.functionQueues[queueName][fn] then
---		jps.functionQueues[queueName][fn] = fn
---	end
---end
---
---function jps.deleteFunctionFromQueue(fn, queueName)
---	if jps.functionQueues[queueName] ~= nil then
---		if jps.functionQueues[queueName][fn] ~= nil then
---			jps.functionQueues[queueName][fn] = nil
---		end
---	end
---end
---
---function jps.runFunctionQueue(queueName)
---	local noErrors = true
---	if jps.functionQueues[queueName] then
---		for _,fn in pairs(jps.functionQueues[queueName]) do
---			local status, error = pcall(fn)
---			if not status then
---				noError = false
---
---			end
---			jps.functionQueues[queueName][fn] = nil
---		end
---		if noErrors then
---			jps.functionQueues[queueName] = nil
---			return true
---		end
---	end	
---	return false
---end
+function jps.addTofunctionQueue(fn,queueName) 
+	if not jps.functionQueues[queueName] then
+		jps.functionQueues[queueName] = {}
+	end
+	if not jps.functionQueues[queueName][fn] then
+		jps.functionQueues[queueName][fn] = fn
+	end
+end
+
+function jps.deleteFunctionFromQueue(fn, queueName)
+	if jps.functionQueues[queueName] ~= nil then
+		if jps.functionQueues[queueName][fn] ~= nil then
+			jps.functionQueues[queueName][fn] = nil
+		end
+	end
+end
+
+function jps.runFunctionQueue(queueName)
+	local noErrors = true
+	if jps.functionQueues[queueName] then
+		for _,fn in pairs(jps.functionQueues[queueName]) do
+			local status, error = pcall(fn)
+			if not status then
+				noError = false
+
+			end
+			jps.functionQueues[queueName][fn] = nil
+		end
+		if noErrors then
+			jps.functionQueues[queueName] = nil
+			return true
+		end
+	end	
+	return false
+end

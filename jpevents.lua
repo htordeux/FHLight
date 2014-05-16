@@ -36,7 +36,7 @@ local GetTime = GetTime
 -- RaisStatus
 local canHeal = jps.canHeal
 local UpdateRaidUnit = jps.UpdateRaidUnit
-local UpdateRaidStatus = jps.UpdateRaidStatus
+local pairs = pairs
 
 --------------------------
 -- (UN)REGISTER FUNCTIONS 
@@ -363,7 +363,7 @@ end)
 jps.listener.registerEvent("PLAYER_ENTERING_WORLD", function()
 	jps.detectSpec()
 	reset_healtable()
-	UpdateRaidStatus()
+	jps.UpdateRaidStatus()
 end)
 
 -- INSPECT_READY
@@ -372,7 +372,6 @@ jps.listener.registerEvent("INSPECT_READY", function()
 	if jps_variablesLoaded and not jps.Configged then 
 		jps.createConfigFrame()
 		jps.createMinimap()
-		--jps.runFunctionQueue("gui_loaded")
 	end
 end)
 
@@ -402,10 +401,7 @@ jps.listener.registerEvent("PLAYER_REGEN_DISABLED", function()
 	jps.Combat = true
 	jps.gui_toggleCombat(true)
 	jps.combatStart = GetTime()
-	UpdateRaidStatus()
---	if jps.getConfigVal("timetodie frame visible") == 1 then
---		JPSEXTInfoFrame:Show()
---	end
+	jps.UpdateRaidStatus()
 end)
 
 -- LOOT_OPENED
@@ -432,10 +428,7 @@ local leaveCombat = function()
 	jps.timedCasting = {}
 	jps.HealerBlacklist = {} 
 	jps.NextSpell = {}
-	UpdateRaidStatus()
---	if jps.getConfigVal("timetodie frame visible") == 1 then
---		JPSEXTInfoFrame:Hide()
---	end
+	jps.UpdateRaidStatus()
 	collectgarbage()
 end
 
@@ -608,7 +601,7 @@ end)
 -- "UNIT_HEALTH_FREQUENT" Same event as UNIT_HEALTH, but not throttled as aggressively by the client
 -- "UNIT_HEALTH_PREDICTION" arg1 unitId receiving the incoming heal
 
--- local RaidStatusCoroutine = coroutine.create ( UpdateRaidStatus )
+-- local RaidStatusCoroutine = coroutine.create ( jps.UpdateRaidStatus )
 -- Immediately after a coroutine is created, the code is “suspended” until you instruct Lua to resume it with coroutine.resume. 
 -- coroutine.resume(RaidStatusCoroutine)
 -- the coroutine is run until it reaches one of two things:
@@ -631,8 +624,8 @@ end)
 
 -- Group/Raid Update
 -- RAID_ROSTER_UPDATE's pre-MoP functionality was moved to the new event GROUP_ROSTER_UPDATE
-jps.listener.registerEvent("GROUP_ROSTER_UPDATE", UpdateRaidStatus)
-jps.listener.registerEvent("ARENA_TEAM_ROSTER_UPDATE", UpdateRaidStatus)
+jps.listener.registerEvent("GROUP_ROSTER_UPDATE", jps.UpdateRaidStatus)
+jps.listener.registerEvent("ARENA_TEAM_ROSTER_UPDATE", jps.UpdateRaidStatus)
 
 -----------------------
 -- UPDATE ENEMY TABLE
@@ -689,14 +682,6 @@ jps.registerOnUpdate(UpdateIntervalRaidStatus)
 -- eventtable[10] == destFlags
 -- eventtable[15] -- amount if suffix is SPELL_DAMAGE or SPELL_HEAL
 -- eventtable[12] -- amount if suffix is SWING_DAMAGE
-
---jps.listener.registerCombatLogEventUnfiltered("SPELL_CAST_SUCCESS", function(...)
---	local sourceGUID = select(4,...)
---	local spellID =  select(12,...)
---	if sourceGUID == UnitGUID("player") then
---		if spellID == 123258 then jps.createTimer("ShieldTimer", 12 ) end -- 123258 "Power Word: Shield"
---	end
---end)
 
 ------------------------------
 -- SPELLTABLE 

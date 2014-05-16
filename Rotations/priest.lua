@@ -224,11 +224,14 @@ end
 -- EVENT FUNCTIONS
 -------------------
 
+-- "Shield" 17 "Clairvoyance divine" 109175 gives buff "Divine Insight" 123266 gives buff "Shield" 123258 
 jps.listener.registerCombatLogEventUnfiltered("SPELL_CAST_SUCCESS", function(...)
 	local sourceGUID = select(4,...)
 	local spellID =  select(12,...)
 	if sourceGUID == UnitGUID("player") then
-		if spellID == 123258 and jps.checkTimer("ShieldTimer") == 0 then jps.createTimer("ShieldTimer", 12 ) end -- 123258 "Power Word: Shield"
+		if spellID == 123258 or spellID == 17 then 
+			if jps.checkTimer("ShieldTimer") == 0 then jps.createTimer("ShieldTimer", 12 ) end
+		end
 	end
 end)
 

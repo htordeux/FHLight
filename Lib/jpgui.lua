@@ -30,11 +30,6 @@ jpsIcon:SetScript("OnDragStart", jpsIcon.StartMoving)
 jpsIcon:SetScript("OnDragStop", jpsIcon.StopMovingOrSizing)
 jpsIcon:SetPoint("CENTER")
 
---function setIconScale()
---	jpsIcon:SetScale(jps.getConfigVal("jpsIconSize"))
---end
---jps.addTofunctionQueue(setIconScale,"settingsLoaded") 
-
 jpsIcon.texture = jpsIcon:CreateTexture("ARTWORK") -- create the spell icon texture
 jpsIcon.texture:SetPoint('TOPRIGHT', jpsIcon, -2, -2) -- inset it by 2px or pt or w/e the game uses
 jpsIcon.texture:SetPoint('BOTTOMLEFT', jpsIcon, 2, 2)

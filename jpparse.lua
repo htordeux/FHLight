@@ -148,11 +148,3 @@ parseSpellTable = function( hydraTable )
 		end
 	end
 end
-
--------------------------
--- MULTIPLE ROTATIONS
--------------------------
-
---function hideDropdown()
---	rotationDropdownHolder:Hide()
---end

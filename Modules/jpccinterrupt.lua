@@ -129,7 +129,7 @@ function jps.IsCastingPoly(unit)
 	local delay, spellname = jps.CastTimeLeft(unit)
 
 	for spellID,spell in pairs(polySpellIds) do
-		if jps.UnitIsUnit(unit.."target", "player") and spellname == toSpellName(spellID) and delay > 0 then
+		if jps.UnitIsUnit(unit.."target","player") and spellname == toSpellName(spellID) and delay > 0 then
 			if delay - (latencyWorld * 2) < 0 then return true end
 		end
 	end 

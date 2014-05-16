@@ -36,10 +36,10 @@ local button_moving = false
 local function onClick(self, button)
 	if button == 'RightButton' then
 		if not button_moving then
-			rotationDropdownHolder:Show() -- jpsIcon:Show()
+			rotationDropdownHolder:Show()
 			button_moving = true
 		else
-			rotationDropdownHolder:Hide() -- jpsIcon:Hide()
+			rotationDropdownHolder:Hide()
 			button_moving = false
     	end
 	else

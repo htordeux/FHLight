@@ -65,7 +65,7 @@ jps.UpdateRaidStatus = function ()
 		if RaidStatus[unit] == nil then RaidStatus[unit] = {} end
 		local inrange = canHeal(unit)
 		RaidStatus[unit]["hpct"] = unitHpct(unit,inrange)
-		RaidStatus[unit]["health"] = unitHpct(unit,inrange)
+		RaidStatus[unit]["health"] = unitHealth(unit,inrange)
 		RaidStatus[unit]["inrange"] = inrange
 	end
 
@@ -84,7 +84,7 @@ end
 jps.UpdateRaidUnit = function (unit,inrange)
 	if RaidStatus[unit] == nil then RaidStatus[unit] = {} end
 	RaidStatus[unit]["hpct"] = unitHpct(unit,inrange)
-	RaidStatus[unit]["health"] = unitHpct(unit,inrange)
+	RaidStatus[unit]["health"] = unitHealth(unit,inrange)
 	RaidStatus[unit]["inrange"] = inrange
 end
 

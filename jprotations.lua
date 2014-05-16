@@ -209,10 +209,8 @@ function jps.activeRotation(rotationTable)
         if countRotations > 1 then -- and jps.getConfigVal("rotation dropdown visible") == 1
 			UIDropDownMenu_SetText(DropDownRotationGUI, jps.ToggleRotationName[activeRotation])
             rotationDropdownHolder:Show()
-            --jps.deleteFunctionFromQueue(hideDropdown,"gui_loaded")
         else  
             rotationDropdownHolder:Hide()
-            --jps.addTofunctionQueue(hideDropdown,"gui_loaded")
         end
     end
 

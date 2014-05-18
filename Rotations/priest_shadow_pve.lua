@@ -69,13 +69,6 @@ for _,unit in ipairs(EnemyUnit) do
 	break end
 end
 
-local swapFriend = nil
-for _,unit in ipairs(FriendUnit) do 
-	if jps.hp(unit) > 0.90 and not jps.FriendAggro(unit) and UnitIsUnit(unit,"player")~=1 then 
-		swapFriend = unit
-	break end
-end
-
 -- if jps.debuffDuration(114404,"target") > 18 and jps.UnitExists("target") then MoveBackwardStart() end
 -- if jps.debuffDuration(114404,"target") < 18 and jps.debuff(114404,"target") and jps.UnitExists("target") then MoveBackwardStop() end
 
@@ -171,7 +164,6 @@ local parseAggro = {
 	-- "Dispersion" 47585
 	{ 47585, playerAggro and (playerhealthpct < 0.35) , "player" , "Aggro_Dispersion_" },
 	-- "Void Shift" 108968
-	--{ 108968,  type(swapFriend) == "string" and jps.hp("player") < 0.35 and jps.UseCDs , swapFriend , "Emergency_VoidShift_" },
 }
 		
 local parseMoving = 

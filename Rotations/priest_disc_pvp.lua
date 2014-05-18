@@ -1,29 +1,39 @@
 -- jps.Interrupts for Dispel
+-- jps.MultiTarget for "Carapace spirituelle" when casting POH
+-- jps.Defensive changes the LowestImportantUnit to table = { "player","focus","target","targettarget","mouseover" }
+-- jps.FaceTarget to DPSing
 
 local L = MyLocalizationTable
-
 local spellTable = {}
-local parseDispel = {}
-local parseControl = {}
-local parseShell = {}
 local parseEmergency = {}
-local parsePOH = {}
 local parseMoving = {}
-local parseMana = {}
-local parseDamage = {}
+local parseShell = {}
 local parsePlayerShell = {}
+local parseControl = {}
+local parseDispel = {}
 
 local UnitIsUnit = UnitIsUnit
 local canDPS = jps.canDPS
+local UnitGroupRolesAssigned = UnitGroupRolesAssigned
+local ipairs = ipairs
+
+local iceblock = tostring(select(1,GetSpellInfo(45438))) -- ice block mage
+local divineshield = tostring(select(1,GetSpellInfo(642))) -- divine shield paladin
+
+----------------------------
+-- ROTATION
+----------------------------
 
 local priestDiscPvP = function()
 
-	local CountInRange, AvgHealthLoss, FriendUnit = jps.CountInRaidStatus(0.95)
-
+	local spell = nil
+	local target = nil
 ----------------------------
 -- LOWESTIMPORTANTUNIT
 ----------------------------
 
+	local CountInRange, AvgHealthLoss, FriendUnit = jps.CountInRaidStatus(1)
+	
 	local timerShield = jps.checkTimer("ShieldTimer")
 	local playerAggro = jps.FriendAggro("player")
 	local playerIsStun = jps.StunEvents(2) -- return true/false ONLY FOR PLAYER
@@ -34,10 +44,9 @@ local priestDiscPvP = function()
 	local LowestImportantUnitHpct = jps.hp(LowestImportantUnit) -- UnitHealth(unit) / UnitHealthMax(unit)
 	local POHTarget, groupToHeal, groupTableToHeal = jps.FindSubGroupTarget(0.70) -- Target to heal with POH in RAID with AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
 	local ShellTarget = jps.FindSubGroupAura(114908,LowestImportantUnit) -- buff target Spirit Shell 114908 need SPELLID
-	local DispelTarget = jps.FindMeDispelTarget( {"Magic"} ) -- {"Magic", "Poison", "Disease", "Curse"}
 	
 ----------------------------
--- FUNCTIONS FRIEND UNIT
+-- LOCAL FUNCTIONS FRIENDS
 ----------------------------
 
 	local ShieldTarget = nil
@@ -53,7 +62,7 @@ local priestDiscPvP = function()
 	end
 
 	local MendingTarget = nil
-	local MendingTargetHealth = 100
+	local MendingTargetHealth = 1
 	for _,unit in ipairs(FriendUnit) do
 		if priest.unitForMending(unit) then
 			local unitHP = jps.hp(unit)
@@ -65,7 +74,7 @@ local priestDiscPvP = function()
 	end
 	
 	local BindingHealTarget = nil
-	local BindingHealTargetHealth = 100
+	local BindingHealTargetHealth = 1
 	for _,unit in ipairs(FriendUnit) do
 		if priest.unitForBinding(unit) then
 			local unitHP = jps.hp(unit)
@@ -77,9 +86,30 @@ local priestDiscPvP = function()
 	end
 
 	local DispelFriendlyTarget = nil
+	local DispelFriendlyTargetHealth = 1
 	for _,unit in ipairs(FriendUnit) do 
-		if jps.DispelFriendly(unit) then 
-			DispelFriendlyTarget = unit
+		if jps.DispelFriendly(unit) then
+			local unitHP = jps.hp(unit)
+			if unitHP < DispelFriendlyTargetHealth then
+				DispelFriendlyTarget = unit
+				DispelFriendlyTargetHealth = unitHP
+			end
+		end
+	end
+
+	local DispelTarget = jps.FindMeDispelTarget( {"Magic"} ) -- {"Magic", "Poison", "Disease", "Curse"}
+	local DispelTargetRole = nil
+	for _,unit in ipairs(FriendUnit) do 
+		local role = UnitGroupRolesAssigned(unit)
+		if role == "HEALER" and jps.canDispel(unit,{"Magic"}) then
+			DispelTargetRole = unit
+		end
+	end
+	
+	local LeapFriend = nil
+	for _,unit in ipairs(FriendUnit) do
+		if priest.unitForLeap(unit) then 
+			LeapFriend = unit
 		break end
 	end
 
@@ -87,10 +117,28 @@ local priestDiscPvP = function()
 -- ENEMY TARGET
 ---------------------
 
-	local rangedTarget, EnemyUnit, TargetCount = jps.LowestTarget()
-	if canDPS("target") then rangedTarget = "target" end
-	if canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
+	local rangedTarget, EnemyUnit, TargetCount = jps.LowestTarget() -- returns "target" by default
 	
+	if jps.UnitExists("mouseover") and not jps.UnitExists("focus") then
+		if jps.UnitIsUnit("mouseovertarget","player") then
+			jps.Macro("/focus mouseover")
+		end
+	end
+	if not canDPS("focus") then jps.Macro("/clearfocus") end
+	
+	if canDPS("target") then rangedTarget =  "target"
+	elseif canDPS("focustarget") then rangedTarget = "focustarget"
+	elseif canDPS("targettarget") then rangedTarget = "targettarget"
+	elseif canDPS("mouseover") and jps.RoleClass("mouseover") == "HEALER" then rangedTarget = "mouseover"
+	elseif canDPS("mouseover") then rangedTarget = "mouseover"
+	end
+
+	if not jps.canHeal("target") and canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
+
+------------------------
+-- LOCAL FUNCTIONS ENEMY
+------------------------
+
 	local DeathEnemyTarget = nil
 	for _,unit in ipairs(EnemyUnit) do 
 		if priest.canShadowWordDeath(unit) then 
@@ -100,7 +148,7 @@ local priestDiscPvP = function()
 	
 	local FearEnemyTarget = nil
 	for _,unit in ipairs(EnemyUnit) do 
-		if jps.IsCastingControl(unit) and priest.canFear(unit) then
+		if priest.canFear(unit) and not jps.LoseControl(unit) then 
 			FearEnemyTarget = unit
 		break end
 	end
@@ -123,7 +171,7 @@ local InterruptTable = {
 	{priest.Spell.flashHeal, 0.75, jps.buffId(priest.Spell.spiritShellBuild) or jps.buffId(priest.Spell.innerFocus) },
 	{priest.Spell.greaterHeal, 0.95, jps.buffId(priest.Spell.spiritShellBuild) },
 	{priest.Spell.heal, 1 , jps.buffId(priest.Spell.spiritShellBuild) },
-	{priest.Spell.prayerOfHealing, 0.95, jps.buffId(priest.Spell.spiritShellBuild) or jps.MultiTarget}
+	{priest.Spell.prayerOfHealing, 0.95, jps.buffId(priest.Spell.spiritShellBuild) or jps.buffId(priest.Spell.innerFocus) or jps.MultiTarget}
 }
 
 -- Avoid interrupt Channeling
@@ -135,153 +183,87 @@ local InterruptTable = {
 -- LOCAL TABLES
 ------------------------
 
-	parseDispel = {
-		-- "Mass Dispel" 32375 "Dissipation de masse"
-		-- "Leap of Faith" 73325 -- "Saut de foi"
-		-- OFFENSIVE Dispel -- "Dissipation de la magie" 528
-		{ 528, (jps.LastCast ~= priest.Spell["DispelMagic"]) and jps.DispelOffensive(rangedTarget) , rangedTarget , "|cff1eff00dispelOffensive_"..rangedTarget },
-		-- "Dispel" "Purifier" 527
-		{ 527, type(DispelFriendlyTarget) == "string" , DispelFriendlyTarget , "|cff1eff00dispelFriendly_MultiUnit_" },
-		{ 527, type(DispelTarget) == "string" , DispelTarget , "|cff1eff00dispelMagic_MultiUnit_" },
-	}
-	
-	parseDamage = {
-		-- "Flammes sacrées" 14914  -- "Evangélisme" 81661
-		{ 14914, canDPS(rangedTarget) , rangedTarget , "|cFFFF0000Flammes_"..rangedTarget },
-		-- "Mot de pouvoir : Réconfort" -- "Power Word: Solace" 129250 -- REGEN MANA
-		{ 129250, canDPS(rangedTarget) , rangedTarget, "|cFFFF0000Solace_"..rangedTarget },
-		-- "Mot de l'ombre : Mort" 32379 -- FARMING OR PVP -- NOT PVE
-		{ 32379, type(DeathEnemyTarget) == "string" , DeathEnemyTarget , "|cFFFF0000Death_MultiUnit_" },
-		-- "Pénitence" 47540 
-		{ 47540, jps.FaceTarget and canDPS(rangedTarget) , rangedTarget,"|cFFFF0000Penance_"..rangedTarget }, -- jps.glyphInfo(119866) and (Glyphe de Penance)
-		-- "Mot de l'ombre: Douleur" 589 -- FARMING OR PVP -- NOT PVE -- Only if 1 enemy 
-		{ 589, jps.FaceTarget and TargetCount == 1 and canDPS(rangedTarget) and jps.myDebuffDuration(589,rangedTarget) == 0 , rangedTarget , "|cFFFF0000Douleur_"..rangedTarget },
-	}
-		
-	parseControl = {
-		-- "Gardien de peur" 6346 -- FARMING OR PVP -- NOT PVE
-		{ 6346, not jps.buff(6346,"player") , "player" },
-		-- "Psychic Scream" "Cri psychique" 8122 -- FARMING OR PVP -- NOT PVE -- debuff same ID 8122
-		{ 8122, priest.canFear(rangedTarget) and not jps.LoseControl(rangedTarget) , rangedTarget },
-		-- "Psyfiend" 108921 Démon psychique
-		{ 108921, playerAggro and priest.canFear(rangedTarget) and not jps.LoseControl(rangedTarget) , rangedTarget },
-		-- "Void Tendrils" 108920 -- debuff "Void Tendril's Grasp" 114404
-		{ 108920, playerAggro and priest.canFear(rangedTarget) and not jps.LoseControl(rangedTarget) , rangedTarget },
-	}
-
 	parseEmergency = {
-		-- "Shield" 17
-		{ 17, not jps.buff(17,LowestImportantUnit) and not jps.debuff(6788,LowestImportantUnit) , LowestImportantUnit , "Emergency_Shield_"..LowestImportantUnit },
-		-- "Pénitence" 47540
-		{ 47540, true , LowestImportantUnit , "Emergency_Penance_"..LowestImportantUnit },
-		-- "Shield" 17 "Clairvoyance divine" 109175 gives buff "Divine Insight" 123266
-		{ 17, not jps.buff(17,LowestImportantUnit) and jps.buffId(123266,LowestImportantUnit) , LowestImportantUnit , "Emergency_DivineShield_"..LowestImportantUnit  },
-		-- "Soins rapides" 2061 -- "Sursis" 59889 "Borrowed"
-		{ 2061, (LowestImportantUnitHpct < 0.35) and jps.buff(59889,"player") , LowestImportantUnit , "Emergency_SoinsRapides_Borrowed_"..LowestImportantUnit },
-		-- "Soins supérieurs" 2060 "Focalisation intérieure" 96267 Immune to Silence, Interrupt and Dispel effects 5 seconds remaining
-		{ 2060, jps.buffId(96267) and (jps.buffDuration(96267,"player") > 2.5) and (LowestImportantUnitHpct > 0.35), LowestImportantUnit , "Emergency_SoinsSup_Immune "..LowestImportantUnit },
-		-- "Prière de guérison" 33076 -- buff 4P pvp aug. 50% soins -- "Holy Spark" 131567 "Etincelle sacrée"
-		{ 33076, priest.unitForMending(LowestImportantUnit) and not jps.buff(131567,LowestImportantUnit) , LowestImportantUnit , "Emergency_Mending_"..LowestImportantUnit },
-		-- "Soins de lien"
-		{ 32546 , type(BindingHealTarget) == "string" , BindingHealTarget , "Emergency_Lien_" },
 		-- "Soins rapides" 2061
 		{ 2061, (LowestImportantUnitHpct < 0.35) , LowestImportantUnit , "Emergency_SoinsRapides_35%_"..LowestImportantUnit },
+		-- "Soins de lien"
+		{ 32546 , type(BindingHealTarget) == "string" , BindingHealTarget , "Emergency_Lien_" },
 		-- "Don des naaru"
 		{ 59544, select(2,GetSpellBookItemInfo(priest.Spell["NaaruGift"]))~=nil , LowestImportantUnit , "Emergency_Naaru_"..LowestImportantUnit },
 		-- "Renew"
 		{ 139, not jps.buff(139,LowestImportantUnit) , LowestImportantUnit , "Emergency_Renew_"..LowestImportantUnit },
+		-- "Prière de guérison" 33076 -- buff 4P pvp aug. 50% soins -- "Holy Spark" 131567 "Etincelle sacrée"
+		{ 33076, (type(MendingTarget) == "string") , MendingTarget , "Emergency_MendingTarget" },
 		-- "Soins supérieurs" 2060 
 		{ 2060, not playerAggro and (LowestImportantUnitHpct > 0.35) , LowestImportantUnit , "Emergency_SoinsSup_"..LowestImportantUnit },
-		-- "Soins" in case low mana
-		{ 2050, jps.mana("player") < 0.20 , LowestImportantUnit, "Emergency_Soins_"..LowestImportantUnit },
-	}
-
-	parsePOH = {
-		-- "Divine Star" Holy 110744 Shadow 122121
-		{ 110744, true , LowestImportantUnit , "POH_DivineStar_"..LowestImportantUnit },
-		-- "Cascade" Holy 121135 Shadow 127632
-		{ 121135, true , LowestImportantUnit , "POH_Cascade_"..LowestImportantUnit },
-		{ 109964, jps.MultiTarget , POHTarget },
-		{'nested' , jps.LastCast == priest.Spell["PrayerOfHealing"] , 
-			{
-				{ 33076, not jps.buffTracker(33076) , LowestImportantUnit , "POH_Tracker_Mending_"..LowestImportantUnit },
-				{ 17, (type(ShieldTarget) == "string") , ShieldTarget , "POH_ShieldTarget" },
-				{ 32546 , type(BindingHealTarget) == "string" , BindingHealTarget , "POH_Lien_MultiUnit_" },
-			},
-		},
-		{ 596, jps.canHeal(POHTarget) , POHTarget , "POH_" },
 	}
 
 	parseMoving = {
-		-- "Shield" 17
+		-- "Shield" 17 Player
 		{ 17, playerAggro and not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Move_Shield_Player" },
 		{ 17, playerAggro and not jps.buff(17,"player") and jps.buffId(123266,"player") , "player" , "Move_DivineShield_Player" },
-		-- "Pénitence" 47540 
-		{ 47540, jps.glyphInfo(119866) and (LowestImportantUnitHealth > priest.AvgAmountFlashHeal) , LowestImportantUnit, "Move_Penance_"..LowestImportantUnit },
-		-- "Clairvoyance divine" 109175 gives buff "Divine Insight" 123266
-		{ 17, not jps.buff(17,LowestImportantUnit) and not jps.debuff(6788,LowestImportantUnit) and LowestImportantUnitHpct < 0.55 , LowestImportantUnit , "Move_Shield_"..LowestImportantUnit },
-		{ 17, not jps.buff(17,LowestImportantUnit) and jps.buffId(123266,LowestImportantUnit) and LowestImportantUnitHpct < 0.55 , LowestImportantUnit , "Move_DivineShield_"..LowestImportantUnit },
+		-- "Pénitence" 47540 -- jps.glyphInfo(119866)
+		{ 47540, LowestImportantUnitHealth > priest.AvgAmountGreatHeal , LowestImportantUnit, "Move_Penance_"..LowestImportantUnit },
 		-- "Torve-esprit" 123040 -- "Ombrefiel" 34433 "Shadowfiend"
 		{ 34433, jps.mana("player") < 0.75 and priest.canShadowfiend(rangedTarget) , rangedTarget },
 		{ 123040, jps.mana("player") < 0.75 and priest.canShadowfiend(rangedTarget) , rangedTarget },
 		-- "Don des naaru" 59544
 		{ 59544, (select(2,GetSpellBookItemInfo(priest.Spell["NaaruGift"]))~=nil) and (LowestImportantUnitHealth > priest.AvgAmountFlashHeal) , LowestImportantUnit , "Move_Naaru_"..LowestImportantUnit },
 		-- "Rénovation" 139 -- debuff "Ame affaiblie" 6788 -- "Prière de guérison" 33076  on CD
-		{ 139, not jps.buff(139,LowestImportantUnit) and (LowestImportantUnitHealth > priest.AvgAmountFlashHeal) and jps.debuff(6788,LowestImportantUnit) and (jps.cooldown(33076) > 0) , LowestImportantUnit , "Move_Renew_"..LowestImportantUnit },
+		{ 139, not jps.buff(139,LowestImportantUnit) and (LowestImportantUnitHealth > priest.AvgAmountFlashHeal) , LowestImportantUnit , "Move_Renew_"..LowestImportantUnit },
+		-- "Prière de guérison" 33076 -- buff 4P pvp aug. 50% soins -- "Holy Spark" 131567 "Etincelle sacrée"
+		{ 33076, (type(MendingTarget) == "string") , MendingTarget , "Move_MendingTarget" },
 		-- "Feu intérieur" 588 -- "Volonté intérieure" 73413
 		{ 588, not jps.buff(588,"player") and not jps.buff(73413,"player") , "player", "Move_InnerFire" },
-		-- Damage
-		{ "nested", jps.Interrupts , parseDispel },
-		{ "nested", jps.PvP , parseDamage },
-	}
-	
-	parseMana = {
-		-- "Don des naaru" 59544
-		{ 59544, (select(2,GetSpellBookItemInfo(priest.Spell["NaaruGift"]))~=nil) and (LowestImportantUnitHealth > priest.AvgAmountFlashHeal) , LowestImportantUnit , "Mana_Naaru_"..LowestImportantUnit },
-		-- "Rénovation" 139 -- debuff "Ame affaiblie" 6788 -- "Prière de guérison" 33076  on CD
-		{ 139, not jps.buff(139,LowestImportantUnit) and (LowestImportantUnitHealth > priest.AvgAmountFlashHeal) and jps.debuff(6788,LowestImportantUnit) and (jps.cooldown(33076) > 0) , LowestImportantUnit , "Mana_Renew_"..LowestImportantUnit },
-		-- "Soins de lien" 32546 -- Glyph of Binding Heal 
-		{ 32546 , playerAggro and type(BindingHealTarget) == "string" , BindingHealTarget , "Mana_Lien_MultiUnit_" },
-		-- "Soins supérieurs" 2060
-		{'nested' , not playerAggro and (LowestImportantUnitHealth > priest.AvgAmountFlashHeal), -- priest.AvgAmountGreatHeal
-			{
-				{ 2060, jps.buff(59889,"player") , LowestImportantUnit, "Mana_SoinsSup_Borrowed_"..LowestImportantUnit  }, -- "Sursis" 59889 "Borrowed"
-				{ 2060, jps.buffId(89485,"player") , LowestImportantUnit, "Mana_SoinsSup_Foca_"..LowestImportantUnit  }, -- "Focalisation intérieure" 89485
-				{ 2060, true , LowestImportantUnit, "Mana_SoinsSup_"..LowestImportantUnit  },
-			},
-		},
-		-- "Soins" 2050
-		--{ 2050, LowestImportantUnitHealth > 0 , LowestImportantUnit , "Mana_Soins_"..LowestImportantUnit },
-		-- Damage
-		{ "nested", jps.Interrupts , parseDispel },
-		{ "nested", jps.PvP , parseDamage },
-		-- "Châtiment" 585
-		{ 585, jps.FaceTarget and canDPS(rangedTarget) and jps.castEverySeconds(585,2) , rangedTarget , "|cFFFF0000Mana_Chatiment_"..rangedTarget },
 	}
 
 	parseShell = {
 	--TANK not Buff Spirit Shell 114908
-		{ 2061, jps.buff(114255) , LowestImportantUnit , "Carapace_SoinsRapides_Waves_"..LowestImportantUnit },
+		{ 2061, jps.buff(114255,"player") , LowestImportantUnit , "Carapace_SoinsRapides_Waves_"..LowestImportantUnit },
 		{ 596, jps.MultiTarget and jps.canHeal(ShellTarget) , ShellTarget , "Carapace_Shell_Target_" },
 		{ 596, (jps.LastCast~=priest.Spell["PrayerOfHealing"]) and jps.canHeal(ShellTarget) , ShellTarget , "Carapace_Shell_Target_" },
-		{ 2061, jps.PvP and not jps.buffId(114908,LowestImportantUnit) , LowestImportantUnit , "Carapace_NoBuff_SoinsRapides_"..LowestImportantUnit },
+		{ 2061, not jps.buffId(114908,LowestImportantUnit) , LowestImportantUnit , "Carapace_NoBuff_SoinsRapides_"..LowestImportantUnit },
 		{ 2060, not jps.buffId(114908,LowestImportantUnit) , LowestImportantUnit , "Carapace_NoBuff_SoinsSup_"..LowestImportantUnit },		
 	--TANK Buff Spirit Shell 114908
-		{ 2061, jps.PvP and jps.buffId(114908,LowestImportantUnit) and (UnitGetTotalAbsorbs(LowestImportantUnit) <= priest.AvgAmountFlashHeal) , LowestImportantUnit , "Carapace_Buff_SoinsRapides_"..LowestImportantUnit },
+		{ 2061, jps.buffId(114908,LowestImportantUnit) and (UnitGetTotalAbsorbs(LowestImportantUnit) <= priest.AvgAmountFlashHeal) , LowestImportantUnit , "Carapace_Buff_SoinsRapides_"..LowestImportantUnit },
 		{ 2060, jps.buffId(114908,LowestImportantUnit) and (UnitGetTotalAbsorbs(LowestImportantUnit) <= priest.AvgAmountFlashHeal) , LowestImportantUnit , "Carapace_Buff_SoinsSup_"..LowestImportantUnit },
-		--{ 2050, jps.buffId(114908,LowestImportantUnit) and (UnitGetTotalAbsorbs(LowestImportantUnit) > priest.AvgAmountFlashHeal) , LowestImportantUnit , "Carapace_Buff_Soins_"..LowestImportantUnit },
+		{ 2050, jps.buffId(114908,LowestImportantUnit) and (UnitGetTotalAbsorbs(LowestImportantUnit) > priest.AvgAmountFlashHeal) , LowestImportantUnit , "Carapace_Buff_Soins_"..LowestImportantUnit },
 	}
 	
 	parsePlayerShell = {
+		-- "Pénitence" 47540 "Penance" 47540 remove Weakened Soul 6788 with Divine Insight
+		{ 47540, true , LowestImportantUnit , "Def_Penance_"..LowestImportantUnit },
 		-- "Soins rapides" 2061 "Borrowed" 59889 -- After casting Power Word: Shield reducing the cast time or channel time of your next Priest spell within 6 sec by 15%.
 		{ 2061, jps.buff(59889,"player") , LowestImportantUnit ,"Def_Flash_"..LowestImportantUnit },
-		-- "Pénitence" 47540 Weakened Soul 6788
-		{ 47540, jps.debuff(6788,LowestImportantUnit) , LowestImportantUnit , "Def_Penance_"..LowestImportantUnit },
 		-- "Clairvoyance divine" 109175 gives buff "Divine Insight" 123266 10 sec
 		{ 17, not jps.buff(17,LowestImportantUnit) and not jps.debuff(6788,LowestImportantUnit) , LowestImportantUnit , "Def_Shield_"..LowestImportantUnit },
-		{ 17, not jps.buff(17,LowestImportantUnit) and jps.buffId(123266,LowestImportantUnit) , LowestImportantUnit , "Def_DivineShield_" },
+		{ 17, not jps.buff(17,LowestImportantUnit) and jps.buffId(123266,"player") , LowestImportantUnit , "Def_DivineShield_"..LowestImportantUnit },
 		-- "Soins rapides" 2061
 		{ 2061, not jps.buffId(114908,LowestImportantUnit) , LowestImportantUnit ,"Def_Flash_"..LowestImportantUnit },
+	}
+	
+	parseControl = {
+		-- "Gardien de peur" 6346 -- FARMING OR PVP -- NOT PVE
+		{ 6346, not jps.buff(6346,"player") , "player" },
+		-- "Psychic Scream" "Cri psychique" 8122 -- FARMING OR PVP -- NOT PVE -- debuff same ID 8122
+		{ 8122, priest.canFear(rangedTarget) and not jps.LoseControl(rangedTarget) , rangedTarget },
+		{ 8122, type(FearEnemyTarget) == "string" , FearEnemyTarget , "Fear_MultiUnit_" },
+		-- "Psyfiend" 108921 Démon psychique
+		{ 108921, playerAggro and priest.canFear(rangedTarget) and not jps.LoseControl(rangedTarget) , rangedTarget },
+		-- "Void Tendrils" 108920 -- debuff "Void Tendril's Grasp" 114404
+		{ 108920, playerAggro and priest.canFear(rangedTarget) and not jps.LoseControl(rangedTarget) , rangedTarget },
+
+	}
+	
+	parseDispel = {
+		-- "Leap of Faith" 73325 -- "Saut de foi"
+		{ 73325 , type(LeapFriend) == "string" , LeapFriend , "|cff1eff00Leap_MultiUnit_" },
+		-- OFFENSIVE Dispel -- "Dissipation de la magie" 528
+		{ 528, jps.castEverySeconds(528,2) and jps.DispelOffensive(rangedTarget) , rangedTarget , "|cff1eff00DispelOffensive_"..rangedTarget },
+		-- "Dispel" "Purifier" 527
+		{ 527, type(DispelTargetRole) == "string" , DispelTargetRole , "|cff1eff00DispelTargetRole_MultiUnit_" },
+		{ 527, type(DispelFriendlyTarget) == "string" , DispelFriendlyTarget , "|cff1eff00DispelFriendlyTarget_MultiUnit_" },
+		{ 527, jps.Interrupts and type(DispelTarget) == "string" , DispelTarget , "|cff1eff00DispelTarget_MultiUnit_" },
 	}
 
 ------------------------
@@ -294,102 +276,145 @@ local InterruptTable = {
 		--{ {"macro","/stopcasting"},  spellstop == tostring(select(1,GetSpellInfo(2050))) and jps.CastTimeLeft("player") > 0.5 and (LowestImportantUnitHpct < 0.75) , "player" , "Macro_StopCasting" },
 
 	spellTable = {
+		
 	-- TRINKETS -- jps.useTrinket(0) est "Trinket0Slot" est slotId  13 -- "jps.useTrinket(1) est "Trinket1Slot" est slotId  14
 	{ jps.useTrinket(1), jps.UseCDs and jps.useTrinketBool(1) and playerIsStun , "player" },
-	-- playerAggro
-	{ "nested", jps.hp("player") < 0.55 and playerAggro ,
+	-- "Soins rapides" 2061 "From Darkness, Comes Light" 109186 gives buff -- "Vague de Lumière" 114255 "Surge of Light"
+	{ 2061, jps.buff(114255) and (LowestImportantUnitHealth > priest.AvgAmountFlashHeal) , LowestImportantUnit , "SoinsRapides_Light_"..LowestImportantUnit },
+	{ 2061, jps.buff(114255) and (jps.buffDuration(114255) < 4) , LowestImportantUnit , "SoinsRapides_Light_"..LowestImportantUnit },
+	-- "Suppression de la douleur" 33206 "Pain Suppression"
+	{ 33206, LowestImportantUnitHpct < 0.35 , LowestImportantUnit , "Emergency_Pain_"..LowestImportantUnit },
+	-- "Void Shift" 108968
+	{ 108968, UnitIsUnit(LowestImportantUnit,"player")~=1 and LowestImportantUnitHpct < 0.35 and jps.hp("player") > 0.85 and jps.UseCDs , LowestImportantUnit , "Emergency_VoidShift_"..LowestImportantUnit },
+
+	{ "nested", jps.hp("player") < 0.75 ,
 		{
-			-- "Suppression de la douleur" 33206 "Pain Suppression"
-			{ 33206, playerIsStun , "player" , "Stun_Pain_Player" },
 			-- "Pierre de soins" 5512
-			{ {"macro","/use item:5512"}, select(1,IsUsableItem(5512))==1 and jps.itemCooldown(5512)==0 , "player" },
+			{ {"macro","/use item:5512"}, select(1,IsUsableItem(5512))==1 and jps.itemCooldown(5512)==0 , "player" , "PIERRE de SOINS"},
 			-- "Prière du désespoir" 19236
-			{ 19236, select(2,GetSpellBookItemInfo(priest.Spell["Desesperate"]))~=nil , "player" },
-			-- "Oubli" 586 -- PVE 
-			{ 586, not jps.PvP and UnitThreatSituation("player") == 3 , "player" },
+			{ 19236, select(2,GetSpellBookItemInfo(priest.Spell["Desesperate"]))~=nil , "player" , "DESESPERATE" },
 			-- "Oubli" 586 -- Fantasme 108942 -- vous dissipez tous les effets affectant le déplacement sur vous-même et votre vitesse de déplacement ne peut être réduite pendant 5 s
-			{ 586, jps.IsSpellKnown(108942) , "player" , "Aggro_Oubli_" },
+			-- "Oubli" 586 -- Glyphe d'ouble 55684 -- Votre technique Oubli réduit à présent tous les dégâts subis de 10%.
+			{ 586, playerAggro and jps.IsSpellKnown(108942) , "player" , "Aggro_Oubli_" },
+			{ 586, playerAggro and jps.glyphInfo(55684) , "player" , "Aggro_Oubli_" },
+			-- "Divine Star" Holy 110744 Shadow 122121
+			{ 110744, playerAggro and playerIsInterrupt > 0 , "player" , "Interrupt_DivineStar_" },
+		},
+	},
+	-- "Inner Focus" 89485 "Focalisation intérieure" --  96267 Immune to Silence, Interrupt and Dispel effects 5 seconds remaining
+	{ 89485, playerAggro and not jps.buffId(89485,"player") , "player" , "Focus_Aggro" },
+	{ 89485, jps.Defensive and not jps.buffId(89485,"player") , "player" , "Focus_Defensive" },
+	
+	-- CONTROL -- "Psychic Scream" "Cri psychique" 8122 -- FARMING OR PVP -- NOT PVE -- debuff same ID 8122
+	{ "nested", true , parseControl },
+
+	{ "nested", LowestImportantUnitHpct < 0.55 ,
+		{
+			-- "Shield" 17 "Clairvoyance divine" 109175 gives buff "Divine Insight" 123266 gives buff "Shield" 123258
+			{ 17, not jps.buff(17,LowestImportantUnit) and not jps.debuff(6788,LowestImportantUnit) , LowestImportantUnit , "Emergency_Shield_"..LowestImportantUnit },
+			{ 17, not jps.buff(17,LowestImportantUnit) and jps.buffId(123266,"player") , LowestImportantUnit , "Emergency_DivineShield_"..LowestImportantUnit  },
+			-- "Pénitence" 47540
+			{ 47540, true , LowestImportantUnit , "Emergency_Penance_"..LowestImportantUnit },
 		},
 	},
 
-	-- "Divine Star" Holy 110744 Shadow 122121
-	{ 110744, playerIsInterrupt > 0 , "player" , "Interrupt_DivineStar_" },
-	-- "Void Shift" 108968
-	{ 108968, UnitIsUnit(LowestImportantUnit,"player")~=1 and LowestImportantUnitHpct < 0.35 and jps.hp("player") > 0.85 and jps.UseCDs , LowestImportantUnit , "Emergency_VoidShift_"..LowestImportantUnit },	
-	-- "Suppression de la douleur" 33206 "Pain Suppression"
-	{ 33206, LowestImportantUnitHpct < 0.35 , LowestImportantUnit , "Emergency_Pain_"..LowestImportantUnit },
-	-- "Power Word: Shield" 17 -- Ame affaiblie 6788 -- TIMER SHIELD
+	-- DISPEL	
+	{ "nested", LowestImportantUnitHpct > 0.55 , parseDispel },
+
+	-- "Carapace" 109964 Player -- WARNING if jps.Defensive LowestImportantUnit = { "player","focus","target","targettarget","mouseover" }
+	{ 109964, jps.Defensive , "player" },
+	{ "nested", jps.buffId(109964) and jps.Defensive , parsePlayerShell },
+	-- "Carapace spirituelle" spell & buff "player" 109964 buff target 114908
+	{ "nested", jps.buffId(109964) , parseShell },
+	
+	-- "Focalisation intérieure" 96267 Immune to Silence, Interrupt and Dispel effects 5 seconds remaining
+	{ "nested", not jps.Moving and jps.buffId(96267) , 
+		{
+			-- "Soins supérieurs" 2060 "Focalisation intérieure" 96267 Immune to Silence, Interrupt and Dispel effects 5 seconds remaining -- "Borrowed" 59889
+			{ 2060, jps.buff(59889,"player") and (LowestImportantUnitHealth > priest.AvgAmountGreatHeal) , LowestImportantUnit , "Emergency_SoinsSup_Immune "..LowestImportantUnit },
+			-- "Soins rapides" 2061 "Focalisation intérieure" 96267 Immune to Silence, Interrupt and Dispel effects 5 seconds remaining
+			{ 2061, (LowestImportantUnitHealth > priest.AvgAmountFlashHeal) , LowestImportantUnit , "Emergency_SoinsRapides_Immune "..LowestImportantUnit },
+		},
+	},
+
+	-- "Inner Focus" 89485 "Focalisation intérieure"
+	{ "nested", not jps.Moving and jps.buffId(89485,"player") ,
+		{
+			-- "Soins rapides" 2061
+			{ 2061, jps.roundValue(jps.cooldown(89485)) == 0 and jps.FriendAggro(LowestImportantUnit) , LowestImportantUnit , "SoinsRapides_Focus_"..LowestImportantUnit },
+			{ 2061, jps.roundValue(jps.cooldown(89485)) == 0 and LowestImportantUnitHpct < 0.75 , LowestImportantUnit , "SoinsRapides_Focus_"..LowestImportantUnit },
+		},
+	},
+	
+	-- "Soins rapides" 2061 "Borrowed" 59889
+	{ 2061, not jps.Moving and jps.buff(59889,"player") and LowestImportantUnitHpct < 0.35 , LowestImportantUnit , "SoinsRapides_Borrowed_"..LowestImportantUnit },
+	-- "Soins de lien" 32546 -- Glyph of Binding Heal Your Binding Heal spell now heals a third friendly target within 20 yards, but costs 35% more mana.
+	{ 32546 , not jps.Moving and type(BindingHealTarget) == "string" , BindingHealTarget , "Lien_MultiUnit_" },
+	-- "Pénitence" 47540
+	{ 47540, LowestImportantUnitHealth > priest.AvgAmountGreatHeal , LowestImportantUnit },
+	-- "Don des naaru" 59544
+	{ 59544, (select(2,GetSpellBookItemInfo(priest.Spell["NaaruGift"]))~=nil) and (LowestImportantUnitHealth > priest.AvgAmountFlashHeal) , LowestImportantUnit , "Naaru_"..LowestImportantUnit },
+	
+	-- DAMAGE
+	-- "Flammes sacrées" 14914  -- "Evangélisme" 81661
+	{ 14914, canDPS(rangedTarget) , rangedTarget , "|cFFFF0000Flammes_"..rangedTarget },
+	-- "Mot de pouvoir : Réconfort" -- "Power Word: Solace" 129250 -- REGEN MANA
+	{ 129250, canDPS(rangedTarget) , rangedTarget, "|cFFFF0000Solace_"..rangedTarget },
+
+	-- "Power Word: Shield" 17 -- TIMER SHIELD
 	{ 17, (type(ShieldTarget) == "string") , ShieldTarget , "Timer_ShieldTarget" },
+	-- "Prière de guérison" 33076 -- TIMER POM
+	{ 33076, UnitAffectingCombat("player")==1 and not jps.buffTracker(33076) , LowestImportantUnit , "Tracker_Mending_"..LowestImportantUnit },
+
+	-- MOVING
+	{ "nested", jps.Moving , parseMoving },
+	-- GROUP HEAL
+	{ "nested", (type(POHTarget) == "string") ,
+		{
+			-- "Cascade" Holy 121135 Shadow 127632
+			{ 121135, CountInRange > 2 and AvgHealthLoss < 0.95 , LowestImportantUnit ,  "Cascade_POH_"..LowestImportantUnit },
+			-- "Carapace spirituelle" spell & buff "player" 109964 buff target 114908
+			{ 109964, jps.MultiTarget , POHTarget , "Carapace_POH_" },
+			{ 596, jps.canHeal(POHTarget) , POHTarget , "POH_" },
+		},
+	},
+	-- EMERGENCY HEAL
+	{ "nested", LowestImportantUnitHpct < 0.55 , parseEmergency },	
 
 	-- DAMAGE
+	-- "Mot de l'ombre : Mort" 32379 -- FARMING OR PVP -- NOT PVE
+	{ 32379, type(DeathEnemyTarget) == "string" , DeathEnemyTarget , "|cFFFF0000Death_MultiUnit_" },
+	{ 32379, priest.canShadowWordDeath(rangedTarget) , rangedTarget , "|cFFFF0000Death_Health_"..rangedTarget },
 	{ "nested", jps.FaceTarget and canDPS(rangedTarget) and LowestImportantUnitHpct > 0.75 ,
 		{
 			-- "Mot de l'ombre : Mort" 32379 -- FARMING OR PVP -- NOT PVE
 			{ 32379, type(DeathEnemyTarget) == "string" , DeathEnemyTarget , "|cFFFF0000Death_MultiUnit_" },
-			{ 32379, priest.canShadowWordDeath(rangedTarget) , rangedTarget , "|cFFFF0000Death_Health_"..rangedTarget },
-			-- "Flammes sacrées" 14914  -- "Evangélisme" 81661
-			{ 14914, true , rangedTarget , "|cFFFF0000Flammes_"..rangedTarget },
-			-- "Mot de pouvoir : Réconfort" -- "Power Word: Solace" 129250 -- REGEN MANA
-			{ 129250, true , rangedTarget, "|cFFFF0000Solace_"..rangedTarget },
+			-- "Pénitence" 47540 
+			{ 47540, true , rangedTarget,"|cFFFF0000Penance_"..rangedTarget }, -- jps.glyphInfo(119866) and (Glyphe de Penance)
+			-- "Mot de l'ombre: Douleur" 589 -- FARMING OR PVP -- NOT PVE -- Only if 1 targeted enemy 
+			{ 589, TargetCount == 1 and jps.myDebuffDuration(589,rangedTarget) == 0 , rangedTarget , "|cFFFF0000Douleur_"..rangedTarget },
+			-- "Châtiment" 585
+			{ 585, jps.FaceTarget and CountInRange >= 1 and jps.castEverySeconds(585,2) , rangedTarget , "|cFFFF0000Chatiment_"..rangedTarget },
 		},
 	},
-
-	-- "Inner Focus" 89485 "Focalisation intérieure" --  96267 Immune to Silence, Interrupt and Dispel effects 5 seconds remaining
-	{ 89485, jps.Defensive and not jps.buffId(89485,"player") , "player" , "Def_Focus" },
 	
-	-- "Carapace" 109964 Player "Penance" 47540 cd == 0 to remove weakened soul with Divine Insight
-	{ 109964, jps.Defensive and jps.buffId(89485,"player") , "player" },
-	-- "Carapace spirituelle" spell & buff "player" 109964 buff target 114908
-	{ "nested", jps.Defensive and jps.buffId(109964) , parsePlayerShell },
-	{ "nested", jps.buffId(109964) , parseShell },
-
-	-- CONTROL -- "Psychic Scream" "Cri psychique" 8122 -- FARMING OR PVP -- NOT PVE -- debuff same ID 8122
-	{ 8122, type(FearEnemyTarget) == "string" , FearEnemyTarget , "Fear_MultiUnit_" },
-	{ "nested", jps.PvP , parseControl },
-	-- "Inner Focus" 89485 "Focalisation intérieure" --  96267 Immune to Silence, Interrupt and Dispel effects 5 seconds remaining
-	{ 89485, playerAggro and not jps.buffId(89485,"player") , "player" , "Focus_Aggro" },
-	
-	-- "Soins rapides" 2061 "From Darkness, Comes Light" 109186 gives buff -- "Vague de Lumière" 114255 "Surge of Light"
-	{ 2061, jps.buff(114255) and (LowestImportantUnitHealth > priest.AvgAmountFlashHeal) , LowestImportantUnit , "SoinsRapides_Light_"..LowestImportantUnit },
-	{ 2061, jps.buff(114255) and (jps.buffDuration(priest.Spell.surgeOfLight) < 4) , LowestImportantUnit , "SoinsRapides_Light_"..LowestImportantUnit },
-	-- "Pénitence" 47540
-	{ 47540, (LowestImportantUnitHealth > priest.AvgAmountFlashHeal) , LowestImportantUnit },
-	-- "Prière de guérison" 33076 -- "Priere de guerison" buff 4P pvp aug. 50% soins
-	{ 33076, (type(MendingTarget) == "string") , MendingTarget , "MendingTarget" },
-	-- "Divine Star" Holy 110744 Shadow 122121
-	{ 110744, CountInRange > 2 and jps.hp("player") < 0.55, LowestImportantUnit , "Health_DivineStar_"..LowestImportantUnit },
-	-- "Cascade" 121135
-	{ 121135, CountInRange > 2 and AvgHealthLoss < 0.95 , LowestImportantUnit ,  "Cascade_"..LowestImportantUnit },
-
-	-- MOVING
-	{ "nested", jps.Moving , parseMoving },
-
-	-- "Soins rapides" 2061 -- "Focalisation intérieure" 89485 -- "Focalisation intérieure" 96267 Immune to Silence, Interrupt and Dispel effects 5 seconds remaining
-	-- "Soins rapides" 2061 "Borrowed" 59889 -- After casting Power Word: Shield reducing the cast time or channel time of your next Priest spell within 6 sec by 15%.
-	priest.tableForFlash(LowestImportantUnit),
-	{ 2061, jps.roundValue(jps.cooldown(89485)) == 0 and jps.buffId(89485,"player") , LowestImportantUnit , "SoinsRapides_Focus_"..LowestImportantUnit },
-
-	-- GROUP HEAL
-	{ "nested", (type(POHTarget) == "string") , parsePOH },
-	-- EMERGENCY HEAL
-	{ "nested", LowestImportantUnitHpct < 0.55 , parseEmergency },
-
-	-- "Prière de guérison" 33076 buff 4P pvp aug. 50% soins
-	{ 33076, UnitAffectingCombat("player")==1 and not jps.buffTracker(33076) , LowestImportantUnit , "Tracker_Mending_"..LowestImportantUnit },
 	-- "Torve-esprit" 123040 -- "Ombrefiel" 34433 "Shadowfiend"
 	{ 34433, jps.mana("player") < 0.75 and priest.canShadowfiend(rangedTarget) , rangedTarget },
 	{ 123040, jps.mana("player") < 0.75 and priest.canShadowfiend(rangedTarget) , rangedTarget },
-	-- "Inner Focus" 89485 "Focalisation intérieure" --  96267 Immune to Silence, Interrupt and Dispel effects 5 seconds remaining
-	{ 89485, UnitAffectingCombat("player")==1 and not jps.buffId(89485,"player") , "player" , "Focus_Combat" },
 	-- "Infusion de puissance" 10060 
-	{ 10060, not jps.buffId(10060,"player") and UnitAffectingCombat("player") == 1, "player" , "Puissance_" },
+	{ 10060, not jps.buffId(10060,"player") and UnitAffectingCombat("player") == 1, "player" , "POWERINFUSION_" },
 	-- "Archange" 81700 -- "Evangélisme" 81661 buffStacks == 5
 	{ 81700, (LowestImportantUnitHpct < 0.75) and (jps.buffStacks(81661) == 5) , "player", "ARCHANGE_" },
-	-- PARSEMANA
-	{ "nested", LowestImportantUnitHpct > 0.55 , parseMana },
+	-- "Rénovation" 139 -- debuff "Ame affaiblie" 6788 -- "Prière de guérison" 33076  on CD
+	{ 139, not jps.buff(139,LowestImportantUnit) and (LowestImportantUnitHealth > priest.AvgAmountFlashHeal) , LowestImportantUnit , "Renew_"..LowestImportantUnit },
+	-- "Soins supérieurs" 2060
+	{ 2060, not playerAggro and (LowestImportantUnitHealth > priest.AvgAmountGreatHeal) , LowestImportantUnit , "SoinsSup_"..LowestImportantUnit  },
+
 	-- "Feu intérieur" 588 -- "Volonté intérieure" 73413
 	{ 588, not jps.buff(588,"player") and not jps.buff(73413,"player") }, -- "target" by default must must be a valid target
-	}
+	-- "Soins" 2050
+	{ 2050, LowestImportantUnitHealth > priest.AvgAmountHeal , LowestImportantUnit , "Soins_"..LowestImportantUnit },
+}
 
 	local spell,target = parseSpellTable(spellTable)
 	return spell,target
@@ -397,16 +422,13 @@ end
 
 jps.registerRotation("PRIEST","DISCIPLINE", priestDiscPvP, "Disc Priest PVP 5.4", false , true)
 
--- "Divine Insight" 109175 Penance, gives 100% chance your next Power Word: Shield will both ignore and not cause the Weakened Soul effect. Gives buff "Divine Insight" 123266
--- Divine Star belong to schools that are not used by any of the class's other spells. 
--- When these spells are instant cast, this means that it is not possible for that spell to be locked down.
-
+-- Divine Star belong to schools that are not used by any of the class's other spells. When these spells are instant cast, this means that it is not possible for that spell to be locked down.
 -- Spirit Shell(SS) se cumule avec Divine Aegis(DA) Bouclier protecteur si soins critiques
 -- sous SS Les soins critiques de Focalisation ne donnent plus DA pour Soins Rapides, Sup, POH. Seul Penance sous SS peut donner DA
--- SS Max Absorb = 60% UnitHealthMax("player")
--- SS is affected by Archangel
--- SS Scales with Grace
+-- SS Max Absorb = 60% UnitHealthMax("player") -- SS is affected by Archangel -- SS Scales with Grace
+-- "Borrowed" 59889 -- After casting Power Word: Shield reducing the cast time or channel time of your next Priest spell within 6 sec by 15%.
 
+-- "Divine Insight" 109175 Penance, gives 100% chance your next Power Word: Shield will both ignore and not cause the Weakened Soul effect. Gives buff "Divine Insight" 123266
 -- "Leap of Faith" -- "Saut de foi" 
 -- "Mass Dispel"  -- Dissipation de masse 32375
 -- "Psyfiend" -- "Démon psychique" 108921

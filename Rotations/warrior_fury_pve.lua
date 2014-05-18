@@ -154,23 +154,3 @@ jps.registerStaticTable("WARRIOR","FURY",
 		}},
 	}
 ,"Noxxic 5.3" , true, false)
-
-
-jps.registerStaticTable("WARRIOR","FURY",
-	{
-		-- "Heroic Throw" 57755 "Lancer héroïque"
-		{warrior.spells["Heroic Throw"], 'true' , warrior.rangedTarget },
-		-- "Raging Blow" 85288 "Coup déchaîné" -- buff Raging Blow! 131116
-		{warrior.spells["Raging Blow"],'jps.buff(131116)', warrior.rangedTarget },
-		-- "Bloodthirst" 23881 "Sanguinaire"
-		{warrior.spells["Bloodthirst"],'true', warrior.rangedTarget },
-		-- "Thunder Clap" 6343 "Coup de tonnerre" 
-		{warrior.spells["Thunder Clap"], 'true' , warrior.rangedTarget   },
-		-- "Shockwave" 46968 "Onde de choc"
-		{warrior.spells["Shockwave"], 'CheckInteractDistance(warrior.rangedTarget(), 3) == 1', warrior.rangedTarget },
-		-- "Whirlwind" 1680 "Tourbillon"
-		{warrior.spells["Whirlwind"], 'true' , warrior.rangedTarget },
-		-- "Dragon Roar" 118000 "Rugissement de dragon"
-		{warrior.spells["Dragon Roar"],'onCD', warrior.rangedTarget },
-	}
-	,"MultiTarget PvE", true, false)

@@ -683,11 +683,6 @@ jps.registerOnUpdate(UpdateIntervalRaidStatus)
 -- eventtable[15] -- amount if suffix is SPELL_DAMAGE or SPELL_HEAL
 -- eventtable[12] -- amount if suffix is SWING_DAMAGE
 
-------------------------------
--- SPELLTABLE 
--- contains the average value of healing spells
-------------------------------
-
 local damageEvents = {
         ["SWING_DAMAGE"] = true,
         ["SPELL_DAMAGE"] = true,
@@ -699,6 +694,22 @@ local healEvents = {
         ["SPELL_HEAL"] = true,
         ["SPELL_PERIODIC_HEAL"] = true,
 }
+
+local hostileEvents = {
+  ["_DAMAGE"] = true,
+  ["_LEECH"] = true,
+  ["_DRAIN"] = true,
+  ["_STOLEN"] = true,
+  ["_INSTAKILL"] = true,
+  ["_INTERRUPT"] = true,
+  ["_MISSED"] = true
+}
+
+-- UNIT_DIED destGUID and destName refer to the unit that died.
+jps.listener.registerCombatLogEventUnfiltered("UNIT_DIED", function(...)
+	local destGUID = select(8,...)
+	if EnemyTable[destGUID] then EnemyTable[destGUID] = nil end
+end)
 
 local COMBATLOG_OBJECT_TYPE_PLAYER = COMBATLOG_OBJECT_TYPE_PLAYER
 local COMBATLOG_OBJECT_AFFILIATION_MINE = COMBATLOG_OBJECT_AFFILIATION_MINE
@@ -720,6 +731,7 @@ jps.listener.registerEvent("COMBAT_LOG_EVENT_UNFILTERED", function(...)
 	local destName = select(9,...)
 	local destFlags = select(10,...)
 
+-- HEAL TABLE -- contains the average value of healing spells
 	if sourceGUID == UnitGUID("player") and healEvents[event] then
 		local healname = select(13, ...)
 		local healVal = select(15, ...)
@@ -738,11 +750,7 @@ jps.listener.registerEvent("COMBAT_LOG_EVENT_UNFILTERED", function(...)
 		end
 	end
 
-	if event == "UNIT_DIED" and destGUID then
-		if EnemyTable[destGUID] then EnemyTable[destGUID] = nil end
-	end
-
--- TABLE DAMAGE Note that for the SWING prefix, _DAMAGE starts at the 12th parameter
+-- DAMAGE TABLE Note that for the SWING prefix, _DAMAGE starts at the 12th parameter
 	if sourceGUID and destGUID and damageEvents[event] then
 	
 	-- The numeric values of the global variables starts with 1 for MINE and increases toward OUTSIDER with 8
@@ -764,10 +772,10 @@ jps.listener.registerEvent("COMBAT_LOG_EVENT_UNFILTERED", function(...)
 --		if isSourceEnemy then
 --			print("isSourceEnemy: ", bitband(sourceFlags, COMBATLOG_OBJECT_REACTION_HOSTILE))
 --		elseif isDestEnemy then
---			print("isDestEnemy: ",bitband(destFlags, COMBATLOG_OBJECT_REACTION_HOSTILE))
+--			print("isDestEnemy: ", bitband(destFlags, COMBATLOG_OBJECT_REACTION_HOSTILE))
 --		end
 --	end
-	
+
 		if isSourceEnemy and isDestRaid then
 			local dmgTTD = 0
 			if event == "SWING_DAMAGE" then
@@ -779,7 +787,6 @@ jps.listener.registerEvent("COMBAT_LOG_EVENT_UNFILTERED", function(...)
 				if damage == nil then damage = 0 end
 				if damage > 0 then dmgTTD = damage end
 			end
-			--if dmgTTD > 0 and destGUID == UnitGUID("player") then jps.createTimer("PlayerAggro", 2) end
 			
 			if canHeal(destName) then
 				if EnemyTable[sourceGUID] == nil then EnemyTable[sourceGUID] = {} end

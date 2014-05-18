@@ -111,31 +111,6 @@
 		return spell,target
 end, "Warrior Single PvP" , false, true)
 
-jps.registerRotation("WARRIOR","FURY",function()
-	
-	local spell = nil
-	local target = nil
-	local rangedTarget = warrior.rangedTarget()
-
-	local MultispellTable = {
-		-- "Whirlwind" 1680 "Tourbillon"
-		{ 1680, jps.rage() > 30 , rangedTarget , "Cleave" },
-		-- "Heroic Throw" 57755 "Lancer héroïque"
-		{ 57755, true , rangedTarget , "Heroic Throw" },
-		-- "Raging Blow" 85288 "Coup déchaîné" -- buff Raging Blow! 131116
-		{ 85288, jps.buffStacks(131116) == 2 , rangedTarget , "Raging Blow" },
-		-- "Bloodthirst" 23881 "Sanguinaire"
-		{ 23881, true , rangedTarget , "Bloodthirst" },
-		-- "Thunder Clap" 6343 "Coup de tonnerre" 
-		{ 6343, true , rangedTarget , "Thunder Clap" },
-		-- "Shockwave" 46968 "Onde de choc"
-		{ 46968, (CheckInteractDistance(rangedTarget, 3) == 1), rangedTarget , "Shockwave" },
-	}
-
-		spell,target = parseSpellTable(MultispellTable)
-		return spell,target
-end, "Warrior MultiTarget PvP" , false, true)
-
 	-- "Victorieux" 32216 " Victorious -- Ivresse de la victoire activée -- Attaque instantanément la cible, lui inflige 1246 points de dégâts et vous soigne pour un montant égal à 20% de votre maximum de points de vie
 	-- "Enrage" 13046 12880 "Enrager" -- Les coups critiques de FRAPPE MORTELLE, DE SANGUINAIRE ET DE FRAPPE DU COLOSSE ainsi que les blocages critiques vous font enrager 
 	-- "Enrage" 13046 12880 "Enrager" -- augmente les dégâts physiques infligés de 10% pendant 6 s

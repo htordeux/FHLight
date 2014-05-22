@@ -204,27 +204,6 @@ local function isBattleRez(spell)
 end
 
 -------------------------
--- SPELL CONFIG METHODS
--------------------------
-
---function setSpellStatus(spell, status)
---	spell = string.lower(spell)
---	jps.spellConfig[jps.Spec][spell] = status
---end
---
---function getSpellStatus(spell)
---	spell = spell:lower() --spell = string.lower(spell)
---	local spellConfig = jps.spellConfig[jps.Spec][spell]
---	if(spellConfig == nil) then
---		setSpellStatus(spell, 1)
---		jps.addSpellCheckboxToFrame(spell)
---		return 1
---	else
---		return jps.spellConfig[jps.Spec][spell]
---	end
---end
-
--------------------------
 -- CANCAST SPELL
 -------------------------
 
@@ -246,8 +225,6 @@ function jps.canCast(spell,unit)
 	if (jps.cooldown(spellname) > 0) then return false end
 	if jps.SpellHasRange(spell) and not jps.IsSpellInRange(spell,unit) then return false end
 	if jps[spellname] ~= nil and jps[spellname] == false then return false end -- need spellname
-	-- control if spell are added to Rotation Panel
-	--if(getSpellStatus(string.lower(spellname) ) == 0) then return false end
 	return true
 end
 

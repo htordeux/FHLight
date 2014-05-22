@@ -19,6 +19,7 @@ local ipairs = ipairs
 
 local iceblock = tostring(select(1,GetSpellInfo(45438))) -- ice block mage
 local divineshield = tostring(select(1,GetSpellInfo(642))) -- divine shield paladin
+local UnitGetTotalAbsorbs = UnitGetTotalAbsorbs
 
 ----------------------------
 -- ROTATION
@@ -118,7 +119,7 @@ local priestDiscPvP = function()
 ---------------------
 
 	local rangedTarget, EnemyUnit, TargetCount = jps.LowestTarget() -- returns "target" by default
-	
+
 	if jps.UnitExists("mouseover") and not jps.UnitExists("focus") then
 		if jps.UnitIsUnit("mouseovertarget","player") then
 			jps.Macro("/focus mouseover")
@@ -219,7 +220,7 @@ local InterruptTable = {
 
 	parseShell = {
 	--TANK not Buff Spirit Shell 114908
-		{ 2061, jps.buff(114255,"player") , LowestImportantUnit , "Carapace_SoinsRapides_Waves_"..LowestImportantUnit },
+		{ 2061, jps.buff(114255) , LowestImportantUnit , "Carapace_SoinsRapides_Waves_"..LowestImportantUnit },
 		{ 596, jps.MultiTarget and jps.canHeal(ShellTarget) , ShellTarget , "Carapace_Shell_Target_" },
 		{ 596, (jps.LastCast~=priest.Spell["PrayerOfHealing"]) and jps.canHeal(ShellTarget) , ShellTarget , "Carapace_Shell_Target_" },
 		{ 2061, not jps.buffId(114908,LowestImportantUnit) , LowestImportantUnit , "Carapace_NoBuff_SoinsRapides_"..LowestImportantUnit },
@@ -301,6 +302,7 @@ local InterruptTable = {
 			{ 110744, playerAggro and playerIsInterrupt > 0 , "player" , "Interrupt_DivineStar_" },
 		},
 	},
+
 	-- "Inner Focus" 89485 "Focalisation intérieure" --  96267 Immune to Silence, Interrupt and Dispel effects 5 seconds remaining
 	{ 89485, playerAggro and not jps.buffId(89485,"player") , "player" , "Focus_Aggro" },
 	{ 89485, jps.Defensive and not jps.buffId(89485,"player") , "player" , "Focus_Defensive" },
@@ -394,7 +396,7 @@ local InterruptTable = {
 			-- "Mot de l'ombre: Douleur" 589 -- FARMING OR PVP -- NOT PVE -- Only if 1 targeted enemy 
 			{ 589, TargetCount == 1 and jps.myDebuffDuration(589,rangedTarget) == 0 , rangedTarget , "|cFFFF0000Douleur_"..rangedTarget },
 			-- "Châtiment" 585
-			{ 585, jps.FaceTarget and CountInRange >= 1 and jps.castEverySeconds(585,2) , rangedTarget , "|cFFFF0000Chatiment_"..rangedTarget },
+			{ 585, CountInRange >= 1 and jps.castEverySeconds(585,2.5) , rangedTarget , "|cFFFF0000Chatiment_"..rangedTarget },
 		},
 	},
 	
@@ -427,6 +429,7 @@ jps.registerRotation("PRIEST","DISCIPLINE", priestDiscPvP, "Disc Priest PVP 5.4"
 -- sous SS Les soins critiques de Focalisation ne donnent plus DA pour Soins Rapides, Sup, POH. Seul Penance sous SS peut donner DA
 -- SS Max Absorb = 60% UnitHealthMax("player") -- SS is affected by Archangel -- SS Scales with Grace
 -- "Borrowed" 59889 -- After casting Power Word: Shield reducing the cast time or channel time of your next Priest spell within 6 sec by 15%.
+-- "Focused Will" 45243 -- victim of any damage greater than 10% of your total health or critically hit reducing all damage taken by 15% lasting for 8 sec. Stacks up to 2 times.
 
 -- "Divine Insight" 109175 Penance, gives 100% chance your next Power Word: Shield will both ignore and not cause the Weakened Soul effect. Gives buff "Divine Insight" 123266
 -- "Leap of Faith" -- "Saut de foi" 

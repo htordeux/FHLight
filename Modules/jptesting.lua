@@ -39,7 +39,7 @@ function jps_RaidTest()
 	local target, dupe, dupecount = jps.LowestTarget()
 	print("target: ",target,"count", dupecount,"Table: ", unpack(dupe))
 	
-	local CountInRange, AvgHealthLoss, FriendUnit = jps.CountInRaidStatus(100)
+	local CountInRange, AvgHealthLoss, FriendUnit = jps.CountInRaidStatus(1)
 	write("CountInRange: ",CountInRange,"AvgHealthLoss", AvgHealthLoss,"Table: ", unpack(FriendUnit))
 
 end

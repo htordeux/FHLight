@@ -263,18 +263,6 @@ ToggleRot.shadow:SetPoint('BOTTOMLEFT', ToggleRot.border, -4.5, -4.5)
 ToggleRot.shadow:SetTexture(jps.GUIshadow)
 ToggleRot.shadow:SetVertexColor(0, 0, 0, 0.85)
 
--- FUNCTION TO TOGGLE A FRAME
---local countToggle = 0
---ToggleRot:SetScript("OnClick",function(self, button)
---	if countToggle > 1 then countToggle = 0 end
---	countToggle = countToggle + 1 
---	if countToggle == 1 then
---		DropDownMenuRotation:Show()
---	else
---		DropDownMenuRotation:Hide()
---	end
---end)
-
 ToggleRot:SetScript("OnClick", function(self, button)
 	jps.gui_toggleRot()
 end)

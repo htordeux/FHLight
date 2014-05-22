@@ -824,6 +824,31 @@ jps.FriendAggro = function (friend)
 	return false
 end
 
+-- Most Targeted Friend -- SPELLNAME
+local FriendTable = {}
+jps.FriendAggroTable = function()
+	jps.removeTable(FriendTable)
+	for unit,index in pairs (EnemyTable) do
+		table.insert(FriendTable, index.friendname) -- { "Bob" , "Fred" , "Bob" }
+	end
+
+	-- make unique keys
+	local hash = {}
+	for _,v in ipairs(FriendTable) do
+		local count = hash[v]
+		if count == nil then count = 1 else count = count + 1 end
+		hash[v] = count --  hash = { ["Bob] = 2 , ["Fred"] = 1}
+	end
+
+	-- transform keys back into values
+	local dupe = {}
+	for k,_ in pairs(hash) do
+		dupe[#dupe+1] = k
+	end
+	table.sort(dupe, function(a,b) return jps.hp(a) < jps.hp(b) end)
+	return dupe[1] or nil, dupe, #dupe
+end
+
 -- EnemyTable[enemyGuid] = { ["friend"] = enemyFriend }
 -- className, classId, raceName, raceId, gender, name, realm = GetPlayerInfoByGUID("guid")
 jps.LookupEnemy = function()

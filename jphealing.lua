@@ -103,10 +103,6 @@ jps.RoleInRaid = function (unit)
 	return "NONE"
 end
 
-----------------------
--- UPDATE RAIDTARGET
-----------------------
-
 local findTanksInRaid = function(unit)
 	local foundTank = false
 	if UnitGroupRolesAssigned(unit) == "TANK" then
@@ -132,6 +128,10 @@ function jps.findTanksInRaid()
 	return myTanks
 end
 
+----------------------
+-- UPDATE RAIDTARGET
+----------------------
+
 local RaidTarget = {}
 jps.LowestTarget = function()
 	jps.removeTable(RaidTarget)
@@ -145,8 +145,9 @@ jps.LowestTarget = function()
 	local hash = {}
 	for _,v in ipairs(RaidTarget) do -- { "playertarget" , "raid5target" , "raid4target" }
 		local targuid = UnitGUID(v)
-		hash[targuid] = v -- hash = { [targuid1] = true , [targuid2] = true }
+		hash[targuid] = v -- hash = { [targuid1] = "playertarget" , [targuid2] = "raid5target"}
 	end
+
 	local dupe = {}
 	for _,j in pairs(hash) do
 		dupe[#dupe+1] = j -- dupe = { "playertarget" , "raid5target" }
@@ -456,13 +457,15 @@ end
 -----------------------
 
 function jps.LookupRaid ()
--- RaidStatus
-	for unit,index in pairs(RaidStatus) do 
-		print("|cffa335ee",unit,"Hpct: ",index.hpct,"Health: ",index.health,"Range: ",index.inrange) -- color violet 
-	end
+
 -- RaidClass
 	for unit,index in pairs(RaidStatusRole) do 
 		print("|cffe5cc80",unit,"Role: ",index.role,"Class: ",index.class) -- color beige(artifact)
+	end
+	
+-- RaidStatus
+	for unit,index in pairs(RaidStatus) do 
+		print("|cffa335ee",unit,"Hpct: ",index.hpct,"Health: ",index.health,"Range: ",index.inrange) -- color violet 
 	end
 end
 

@@ -256,8 +256,9 @@ end
 -- "Holy Word: Sanctuary" 88685 - Priest
 -- "Shadowfury" 30283 - Warlock
 -- "Psyfiend" 108921 - Priest
+-- "Plume angélique" 121536 - Priest
 
-local spellNeedSelectTable = {108921,30283,88685,724,32375,43265,62618,2120,104233,118022,114158,73921,88747, 13813, 13809, 34600, 1499, 115313, 115460, 114203, 114192, 6544, 33395, 116011, 5740}
+local spellNeedSelectTable = {121536,108921,30283,88685,724,32375,43265,62618,2120,104233,118022,114158,73921,88747, 13813, 13809, 34600, 1499, 115313, 115460, 114203, 114192, 6544, 33395, 116011, 5740}
 function jps.spellNeedSelect(spell)
 	local spellname = nil
 	if type(spell) == "string" then spellname = string.lower(spell) end

@@ -16,11 +16,11 @@ local divineshield = tostring(select(1,GetSpellInfo(642))) -- divine shield pala
 	local sanctuary = tostring(select(1,GetSpellInfo(81206)))
 	local poh = tostring(select(1,GetSpellInfo(596)))
 	
-	local chastise = tostring(select(1,GetSpellInfo(88625)))
-	local CKchastise = tostring(select(1,GetSpellInfo(81209)))
+	local Chastise = tostring(select(1,GetSpellInfo(88625)))
+	local ChakraChastise = tostring(select(1,GetSpellInfo(81209)))
 	local sanctuaryPOH = "/cast "..sanctuary.."\n".."/cast "..poh
 	local sanctuaryCOH = "/cast "..sanctuary.."\n".."/cast "..coh
-	local macroChastise = "/cast "..CKchastise.."\n".."/cast "..chastise
+	local macroChastise = "/cast "..ChakraChastise.."\n".."/cast "..Chastise
 
 ----------------------------
 -- ROTATION
@@ -289,7 +289,7 @@ local spellTable = {
 		{
 			--- Chakra: Sanctuary 81206
 			{ 81206, not jps.buffId(81206) and (type(POHTarget) == "string") , "player" },
-			-- "Circle of Healing"
+			-- "Circle of Healing" 34861
 			{ 34861, true , LowestImportantUnit },
 			-- "Cascade" 121135
 			{ 121135, jps.IsSpellKnown(121135) , LowestImportantUnit },
@@ -305,7 +305,7 @@ local spellTable = {
 	{ 139, not jps.buff(139,LowestImportantUnit) and LowestImportantUnitHealth > priest.AvgAmountFlashHeal , LowestImportantUnit , "Renew_"..LowestImportantUnit },
 	-- "Holy Word: Serenity" 88684 -- Chakra: Serenity 81208
 	{ 88684, jps.buffId(81208) and LowestImportantUnitHealth > priest.AvgAmountFlashHeal, LowestImportantUnit , "Serenity_"..LowestImportantUnit },
-	{ 88684, jps.buffId(81208) and jps.myBuffDuration(139,LowestImportantUnit) < 2 , LowestImportantUnit , "Serenity_"..LowestImportantUnit},
+	{ 88684, jps.buffId(81208) and jps.myBuffDuration(139,LowestImportantUnit) < 2 and jps.buff(139,LowestImportantUnit) , LowestImportantUnit , "Serenity_"..LowestImportantUnit},
 	
 	-- MOVING
 	{ "nested", jps.Moving , parseMoving },

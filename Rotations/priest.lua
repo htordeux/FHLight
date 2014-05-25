@@ -87,7 +87,8 @@ priest.Spell["DispelMagic"] =  tostring(select(1,GetSpellInfo(528))) -- Dispel M
 --	{priest.Spell.prayerOfHealing, 0.95, jps.buffId(priest.Spell.spiritShellBuild) or jps.MultiTarget}
 --}
 
-priest.ShouldInterruptCasting = function ( InterruptTable, AvgHealthLoss, CountInRaid ) 
+priest.ShouldInterruptCasting = function ( InterruptTable, AvgHealthLoss, CountInRaid )
+	-- third parameter CountInRaid do nothing for instance
 	if jps.LastTarget == nil then return end
 	local spellCasting, _, _, _, _, endTime, _ = UnitCastingInfo("player")
 	if spellCasting == nil then return false end

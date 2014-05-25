@@ -33,7 +33,7 @@ local Healtable = {}
 -- Timetodie based on incoming Damage
 local RaidTimeToDie = {}
 local GetTime = GetTime
--- RaisStatus
+-- RaidStatus
 local canHeal = jps.canHeal
 local UpdateRaidUnit = jps.UpdateRaidUnit
 local pairs = pairs
@@ -824,7 +824,7 @@ jps.FriendAggro = function (friend)
 	return false
 end
 
--- Most Targeted Friend -- SPELLNAME
+-- Table of Targeted Friend -- SPELLNAME
 local FriendTable = {}
 jps.FriendAggroTable = function()
 	jps.removeTable(FriendTable)

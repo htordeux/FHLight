@@ -35,6 +35,7 @@ end
 ---------------------------
 -- LOSE CONTROL TABLES -- Credits - to LoseControl Addon
 ---------------------------
+
 jps.SpellControl = {
 -- Death Knight
 	[108194] = "CC",		-- Asphyxiate

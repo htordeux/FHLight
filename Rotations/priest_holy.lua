@@ -12,14 +12,15 @@ local ipairs = ipairs
 local iceblock = tostring(select(1,GetSpellInfo(45438))) -- ice block mage
 local divineshield = tostring(select(1,GetSpellInfo(642))) -- divine shield paladin
 
-	local coh = tostring(select(1,GetSpellInfo(34861)))
-	local sanctuary = tostring(select(1,GetSpellInfo(81206)))
-	local poh = tostring(select(1,GetSpellInfo(596)))
+
+	local ChakraSanctuary = tostring(select(1,GetSpellInfo(81206))) -- Chakra: Sanctuary 81206
+	local POH = tostring(select(1,GetSpellInfo(596)))
+	local Hymn = tostring(select(1,GetSpellInfo(64843))) -- "Divine Hymn" 64843
 	
-	local Chastise = tostring(select(1,GetSpellInfo(88625)))
-	local ChakraChastise = tostring(select(1,GetSpellInfo(81209)))
-	local sanctuaryPOH = "/cast "..sanctuary.."\n".."/cast "..poh
-	local sanctuaryCOH = "/cast "..sanctuary.."\n".."/cast "..coh
+	local Chastise = tostring(select(1,GetSpellInfo(88625))) -- Holy Word: Chastise 88625
+	local ChakraChastise = tostring(select(1,GetSpellInfo(81209))) -- Chakra: Chastise 81209
+	local sanctuaryPOH = "/cast "..ChakraSanctuary.."\n".."/cast "..POH
+	local sanctuaryHymn = "/cast "..ChakraSanctuary.."\n".."/cast "..Hymn
 	local macroChastise = "/cast "..ChakraChastise.."\n".."/cast "..Chastise
 
 ----------------------------
@@ -86,6 +87,17 @@ local priestHoly = function()
 			end
 		end
 	end
+	
+	-- {"Magic", "Poison", "Disease", "Curse"}
+	--local DispelTarget = jps.FindMeDispelTarget( {"Magic"} )
+
+	local DispelTargetRole = nil
+	for _,unit in ipairs(FriendUnit) do 
+		local role = UnitGroupRolesAssigned(unit)
+		if role == "HEALER" and jps.canDispel(unit,{"Magic"}) then
+			DispelTargetRole = unit
+		end
+	end
 
 	local DispelFriendlyTarget = nil
 	local DispelFriendlyTargetHealth = 1
@@ -99,15 +111,6 @@ local priestHoly = function()
 		end
 	end
 
-	local DispelTarget = jps.FindMeDispelTarget( {"Magic"} ) -- {"Magic", "Poison", "Disease", "Curse"}
-	local DispelTargetRole = nil
-	for _,unit in ipairs(FriendUnit) do 
-		local role = UnitGroupRolesAssigned(unit)
-		if role == "HEALER" and jps.canDispel(unit,{"Magic"}) then
-			DispelTargetRole = unit
-		end
-	end
-	
 	local LeapFriend = nil
 	for _,unit in ipairs(FriendUnit) do
 		if priest.unitForLeap(unit) and jps.FriendAggro(unit) then 
@@ -186,7 +189,7 @@ local InterruptTable = {
 ---------------------
 
 	local rangedTarget, EnemyUnit, TargetCount = jps.LowestTarget() -- returns "target" by default
-
+	-- set focus a senemy healer or enemy targeting you
 	if jps.UnitExists("mouseover") and not jps.UnitExists("focus") then
 		if jps.RoleClass("mouseover") == "HEALER" then
 			jps.Macro("/focus mouseover")
@@ -201,7 +204,7 @@ local InterruptTable = {
 	elseif canDPS("focustarget") then rangedTarget = "focustarget"
 	elseif canDPS("mouseover") then rangedTarget = "mouseover"
 	end
-
+	-- if your target is friendly keep it as target
 	if not jps.canHeal("target") and canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
 	
 ------------------------
@@ -245,7 +248,6 @@ local InterruptTable = {
 		-- "Dispel" "Purifier" 527
 		{ 527, type(DispelTargetRole) == "string" , DispelTargetRole , "|cff1eff00DispelTargetRole_MultiUnit_" },
 		{ 527, type(DispelFriendlyTarget) == "string" , DispelFriendlyTarget , "|cff1eff00DispelFriendlyTarget_MultiUnit_" },
-		{ 527, jps.Interrupts and type(DispelTarget) == "string" , DispelTarget , "|cff1eff00DispelTarget_MultiUnit_" },
 	}
 
 ------------------------
@@ -273,7 +275,7 @@ local spellTable = {
 			-- "Prière du désespoir" 19236
 			{ 19236, select(2,GetSpellBookItemInfo(priest.Spell["Desesperate"]))~=nil , "player" },
 			-- "Power Word: Shield" 17 
-			{ 17, not jps.buff(17,"player") and not jps.debuff(6788,"player"), "player" },
+			{ 17, not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" },
 			-- "Pierre de soins" 5512
 			{ {"macro","/use item:5512"}, select(1,IsUsableItem(5512))==1 and jps.itemCooldown(5512)==0 , "player" },
 		},

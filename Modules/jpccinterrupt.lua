@@ -122,14 +122,13 @@ local polySpellIds = {
 	[28271] = "Polymorph: Turtle" ,
 	}
 
--- Enemy Casting Polymorph Target is Player
+-- Enemy Casting Polymorph
 local latencyWorld = select(4,GetNetStats())/1000
 function jps.IsCastingPoly(unit)
 	if not canDPS(unit) then return false end
 	local delay, spellname = jps.CastTimeLeft(unit)
-
-	for spellID,spell in pairs(polySpellIds) do
-		if jps.UnitIsUnit(unit.."target","player") and spellname == toSpellName(spellID) and delay > 0 then
+	for spellID,_ in pairs(polySpellIds) do
+		if spellname == toSpellName(spellID) and delay > 0 then -- jps.UnitIsUnit(unit.."target","player")
 			if delay - (latencyWorld * 2) < 0 then return true end
 		end
 	end 
@@ -195,8 +194,12 @@ local BuffToDispel =
 	toSpellName(1022), -- Hand of Protection 1022  Dispel type	Magic
 	toSpellName(1463), -- Incanter's Ward 1463 Dispel type	Magic
 	toSpellName(69369), -- Predatory Swiftness 69369 Dispel type	Magic
-	toSpellName(11426) -- Ice Barrier 11426 Dispel type	Magic
-}
+	toSpellName(11426), -- Ice Barrier 11426 Dispel type	Magic
+	toSpellName(6940), -- Hand of Sacrifice Dispel type	Magic
+	toSpellName(110909), -- Alter Time Dispel type	Magic
+	toSpellName(132158), -- Nature's Swiftness Dispel type	Magic
+	toSpellName(12043) -- Presence of Mind Dispel type	Magic
+} 
 
 -- "Lifebloom" When Lifebloom expires or is dispelled, the target is instantly healed
 local NotOffensiveDispel = toSpellName(94447) -- "Lifebloom"

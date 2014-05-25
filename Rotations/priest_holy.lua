@@ -12,16 +12,18 @@ local ipairs = ipairs
 local iceblock = tostring(select(1,GetSpellInfo(45438))) -- ice block mage
 local divineshield = tostring(select(1,GetSpellInfo(642))) -- divine shield paladin
 
-
-	local ChakraSanctuary = tostring(select(1,GetSpellInfo(81206))) -- Chakra: Sanctuary 81206
 	local POH = tostring(select(1,GetSpellInfo(596)))
 	local Hymn = tostring(select(1,GetSpellInfo(64843))) -- "Divine Hymn" 64843
-	
+	local Serenity = tostring(select(1,GetSpellInfo(88684))) -- "Holy Word: Serenity" 88684
 	local Chastise = tostring(select(1,GetSpellInfo(88625))) -- Holy Word: Chastise 88625
+
+	local ChakraSanctuary = tostring(select(1,GetSpellInfo(81206))) -- Chakra: Sanctuary 81206
 	local ChakraChastise = tostring(select(1,GetSpellInfo(81209))) -- Chakra: Chastise 81209
+	local ChakraSerenity = tostring(select(1,GetSpellInfo(81208))) -- Chakra: Serenity 81208
+	
 	local sanctuaryPOH = "/cast "..ChakraSanctuary.."\n".."/cast "..POH
 	local sanctuaryHymn = "/cast "..ChakraSanctuary.."\n".."/cast "..Hymn
-	local macroChastise = "/cast "..ChakraChastise.."\n".."/cast "..Chastise
+
 
 ----------------------------
 -- ROTATION
@@ -256,6 +258,9 @@ local InterruptTable = {
 	
 local spellTable = {
 
+	-- Chakra: Serenity 81208 -- "Holy Word: Serenity" 88684
+	{ 81208, not jps.buffId(81208) and LowestImportantUnitHpct < 0.85 , "player" , "Chakra: Serenity" },
+
 	-- TRINKETS -- jps.useTrinket(0) est "Trinket0Slot" est slotId  13 -- "jps.useTrinket(1) est "Trinket1Slot" est slotId  14
 	{ jps.useTrinket(1), jps.UseCDs and jps.useTrinketBool(1) and playerIsStun , "player" },
 	-- "Soins rapides" 2061 "From Darkness, Comes Light" 109186 gives buff -- "Vague de Lumière" 114255 "Surge of Light"
@@ -270,21 +275,37 @@ local spellTable = {
 	-- "Spectral Guise" -- "Semblance spectrale" 108968 -- fast out of combat drinking
 	{ 112833, playerAggro and jps.IsSpellKnown(112833) , "player" , "Aggro_Spectral_" },
 
-	{ "nested", jps.hp("player") < 0.55 ,
+	{ "nested", jps.hp("player") < 0.65 ,
 		{
-			-- "Prière du désespoir" 19236
-			{ 19236, select(2,GetSpellBookItemInfo(priest.Spell["Desesperate"]))~=nil , "player" },
+			-- "Guardian Spirit"
+			{ 47788, jps.hp("player") < 0.40 , "player", "Gardien_Player" },
+			-- "Holy Word: Serenity" 88684 -- Chakra: Serenity 81208
+			{ 88684, jps.buffId(81208) , "player" , "Serenity_Player"},
 			-- "Power Word: Shield" 17 
-			{ 17, not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" },
+			{ 17, not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Shield_Player" },
 			-- "Pierre de soins" 5512
-			{ {"macro","/use item:5512"}, select(1,IsUsableItem(5512))==1 and jps.itemCooldown(5512)==0 , "player" },
+			{ {"macro","/use item:5512"}, select(1,IsUsableItem(5512))==1 and jps.itemCooldown(5512)==0 , "player" , "PIERRESOINS"},
+			-- "Prière du désespoir" 19236
+			{ 19236, select(2,GetSpellBookItemInfo(priest.Spell["Desesperate"]))~=nil , "player" , "DESESPERATE" },
+			-- "Divine Star" Holy 110744 Shadow 122121
+			{ 110744, jps.IsSpellKnown(110744) and playerIsInterrupt > 0 , "player" , "Interrupt_DivineStar_" },
+			-- "Glyph of Purify" 55677 Your Purify spell also heals your target for 5% of maximum health
+			{ 527, playerAggro and jps.canDispel("player",{"Magic"}) and jps.glyphInfo(55677) , "player" , "Aggro_Dispell_Player" },
+			-- "Circle of Healing"
+			{ 34861, playerAggro , "player" , "COH_Player" },
+			-- "Renew" 139 -- Haste breakpoints are 12.5 and 16.7%(Holy)
+			{ 139, not jps.buff(139,"player") , "player" , "Renew_Player" },
 		},
 	},
 
 	-- CONTROL -- "Psychic Scream" "Cri psychique" 8122 -- FARMING OR PVP -- NOT PVE -- debuff same ID 8122
 	{ "nested", true , parseControl },
-	-- "Prière de guérison" 33076 -- TIMER POM
-	{ 33076, UnitAffectingCombat("player") == 1 and not jps.buffTracker(33076) , LowestImportantUnit , "Tracker_Mending_"..LowestImportantUnit },
+	-- "Prière de guérison" 33076 -- TIMER POM -- UnitAffectingCombat("player") == 1
+	{ 33076, not jps.buffTracker(33076) , LowestImportantUnit , "Tracker_Mending_"..LowestImportantUnit },
+	-- "Divine Insight" 109175
+	{ 33076, jps.IsSpellKnown(109175) and jps.buff(109175), LowestImportantUnit },
+	-- "Renew" 139 -- Haste breakpoints are 12.5 and 16.7%(Holy)
+	{ 139, LowestImportantUnitHealth > priest.AvgAmountHeal , LowestImportantUnit , "Renew_"..LowestImportantUnit },
 
 	-- GROUP
 	{ "nested", CountInRange > 2 and AvgHealthLoss < 0.85 , 
@@ -300,9 +321,6 @@ local spellTable = {
 		},
 	},
 
-	-- Chakra: Serenity 81208
-	{ 81208, not jps.buffId(81208) and LowestImportantUnitHpct < 0.85 , "player" , "Chakra: Serenity" },
-
 	-- "Renew" 139 -- Haste breakpoints are 12.5 and 16.7%(Holy)
 	{ 139, not jps.buff(139,LowestImportantUnit) and LowestImportantUnitHealth > priest.AvgAmountFlashHeal , LowestImportantUnit , "Renew_"..LowestImportantUnit },
 	-- "Holy Word: Serenity" 88684 -- Chakra: Serenity 81208
@@ -316,14 +334,14 @@ local spellTable = {
 	-- OFFENSIVE Dispel -- "Dissipation de la magie" 528
 	{ 528, jps.castEverySeconds(528,2) and jps.DispelOffensive(rangedTarget) , rangedTarget , "|cff1eff00DispelOffensive_"..rangedTarget },
 
+	-- "Soins supérieurs" 2060
+	{ 2060, stackSerendip == 2 and (LowestImportantUnitHealth > priest.AvgAmountGreatHeal) , LowestImportantUnit , "SoinsSup_"..LowestImportantUnit  },
 	-- "Soins rapides" 2061
 	{ 2061, (LowestImportantUnitHpct < 0.40) , LowestImportantUnit , "Emergency_SoinsRapides_40%_"..LowestImportantUnit },
 	-- "Soins de lien"
 	{ 32546 , type(BindingHealTarget) == "string" , BindingHealTarget , "Lien_" },
 	-- "Soins rapides" 2061
 	{ 2061, (LowestImportantUnitHealth > priest.AvgAmountGreatHeal) and stackSerendip < 2, LowestImportantUnit },
-	-- "Soins supérieurs" 2060
-	{ 2060, stackSerendip == 2 and (LowestImportantUnitHealth > priest.AvgAmountGreatHeal) , LowestImportantUnit , "SoinsSup_"..LowestImportantUnit  },
 	
 	-- DAMAGE
 	-- "Mot de l'ombre : Mort" 32379 -- FARMING OR PVP -- NOT PVE
@@ -340,9 +358,9 @@ local spellTable = {
 			-- "Mot de pouvoir : Réconfort" -- "Power Word: Solace" 129250 -- REGEN MANA
 			{ 129250, true , rangedTarget, "|cFFFF0000Solace_"..rangedTarget },
 			-- "Mot de l'ombre: Douleur" 589 -- FARMING OR PVP -- NOT PVE -- Only if 1 targeted enemy 
-			{ 589, priest.get("ShadowPain") and TargetCount == 1 and jps.myDebuffDuration(589,rangedTarget) == 0 , rangedTarget , "|cFFFF0000Douleur_"..rangedTarget },
+			--{ 589, TargetCount == 1 and jps.myDebuffDuration(589,rangedTarget) == 0 , rangedTarget , "|cFFFF0000Douleur_"..rangedTarget },
 			-- "Châtiment" 585
-			{ 585, priest.get("Chastise") and CountInRange > 0 and jps.castEverySeconds(585,2.5) , rangedTarget , "|cFFFF0000Chatiment_"..rangedTarget },
+			{ 585, true , rangedTarget , "|cFFFF0000Chatiment_"..rangedTarget },
 		},
 	},
 
@@ -401,7 +419,8 @@ jps.registerRotation("PRIEST","HOLY", priestHoly, "Holy Priest", false , true)
 
 -- From Darkness, Comes Light has been buffed this patch increasing it's procs when using Renew, Circle of Healing, Prayer of Mending, and Prayer of Healing
 
--- Divine Insight, When you cast Greater Heal or Prayer of Healing, there is a 40% chance
+-- "Divine Insight" 109175
+-- When you cast Greater Heal or Prayer of Healing, there is a 40% chance
 -- your next Prayer of Mending will not trigger its cooldown, and will jump to each target instantly.
 
 --[[

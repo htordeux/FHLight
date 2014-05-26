@@ -226,9 +226,9 @@ local priestHoly = function()
 
 -- "Holy Spark" 131567 "Etincelle sacrée" -- increases the healing done by your next Flash Heal, Greater Heal or Holy Word: Serenity by 50% for 10 sec.
 local InterruptTable = {
-	{priest.Spell.flashHeal, 0.75, jps.buff(131567) },
-	{priest.Spell.greaterHeal, 0.95, jps.buff(131567) },
-	{priest.Spell.heal, 1 , jps.buff(131567)},
+	{priest.Spell.flashHeal, 0.75, false },
+	{priest.Spell.greaterHeal, 0.95, false },
+	{priest.Spell.heal, 1 , false },
 	{priest.Spell.prayerOfHealing, 0.85, jps.MultiTarget or jps.buffId(81206)}
 }
 
@@ -346,18 +346,31 @@ local spellTable = {
 			{ 527, jps.canDispel("player",{"Magic"}) and jps.glyphInfo(55677) , "player" , "Aggro_Dispell_Player" },
 		},
 	},
+	
+	-- GROUP HEAL
+	{ "nested", CountInRange > 2 and AvgHealthLoss < 0.85 and and jps.MultiTarget , 
+		{
+			--- Chakra: Sanctuary 81206
+			{ 81206, not jps.buffId(81206) and (type(POHTarget) == "string") , "player" },
+			-- "Circle of Healing" 34861
+			{ 34861, true , LowestImportantUnit ,"COH_"..LowestImportantUnit },
+			-- "Cascade" 121135
+			{ 121135, jps.IsSpellKnown(121135) , LowestImportantUnit },
+			-- "Prayer of Healing" 596
+			{ 596, (type(POHTarget) == "string") , POHTarget },
+		},
+	},
 
 	{ "nested", LowestImportantUnitHpct < 0.70 ,
 		{
 			-- "Holy Word: Serenity" 88684 -- Chakra: Serenity 81208 -- LowestImportantUnitHealth > priest.AvgAmountFlashHeal
 			{ {"macro",macroSerenity}, jps.cooldown(88684) == 0 and jps.buffId(81208) , LowestImportantUnit , "Emergency_Serenity_"..LowestImportantUnit },
 			-- "Prière de guérison" 33076 -- buff 4P pvp aug. 50% soins 
-			-- "Holy Spark" 131567 "Etincelle sacrée" -- increases the healing done by your next Flash Heal, Greater Heal or Holy Word: Serenity by 50% for 10 sec.
 			{ 33076, (type(MendingTarget) == "string") , MendingTarget , "Emergency_MendingTarget_" },
 			{ "nested", not jps.Moving , 
 				{
 					-- "Soins rapides" 2061 "Holy Spark" 131567 "Etincelle sacrée" -- increases the healing done by your next Flash Heal, Greater Heal or Holy Word: Serenity by 50% for 10 sec.
-					{ 2061, jps.buff(131567) , LowestImportantUnit , "Emergency_SoinsRapides_Holy Spark_"..LowestImportantUnit },
+					{ 2061, jps.buff(131567,LowestImportantUnit) , LowestImportantUnit , "Emergency_SoinsRapides_Holy Spark_"..LowestImportantUnit },
 					-- "Soins supérieurs" 2060
 					{ 2060,  stackSerendip == 2 and (LowestImportantUnitHealth > priest.AvgAmountGreatHeal) , LowestImportantUnit , "Emergency_SoinsSup_"..LowestImportantUnit  },
 					-- "Soins rapides" 2061
@@ -397,20 +410,6 @@ local spellTable = {
 	{ 34433, jps.mana("player") < 0.75 and priest.canShadowfiend(rangedTarget) , rangedTarget },
 	{ 123040, jps.mana("player") < 0.75 and priest.canShadowfiend(rangedTarget) , rangedTarget },
 
-	-- GROUP
-	{ "nested", CountInRange > 2 and AvgHealthLoss < 0.85 , 
-		{
-			--- Chakra: Sanctuary 81206
-			{ 81206, not jps.buffId(81206) and (type(POHTarget) == "string") , "player" },
-			-- "Circle of Healing" 34861
-			{ 34861, true , LowestImportantUnit ,"COH_"..LowestImportantUnit },
-			-- "Cascade" 121135
-			{ 121135, jps.IsSpellKnown(121135) , LowestImportantUnit },
-			-- "Prayer of Healing" 596
-			{ 596, (type(POHTarget) == "string") , POHTarget },
-		},
-	},
-
 	-- "Holy Word: Serenity" 88684 -- Chakra: Serenity 81208 -- LowestImportantUnitHealth > priest.AvgAmountFlashHeal
 	{ {"macro",macroSerenity}, jps.cooldown(88684) == 0 and jps.buffId(81208) and LowestImportantUnitHealth > priest.AvgAmountFlashHeal , LowestImportantUnit , "SERENITY_"..LowestImportantUnit },
 	{ {"macro",macroSerenity}, jps.cooldown(88684) == 0 and jps.buffId(81208) and jps.myBuffDuration(139,LowestImportantUnit) < 2 and jps.buff(139,LowestImportantUnit) , LowestImportantUnit , "Serenity_"..LowestImportantUnit},
@@ -418,6 +417,7 @@ local spellTable = {
 	{ 59544, (select(2,GetSpellBookItemInfo(priest.Spell["NaaruGift"]))~=nil) and LowestImportantUnitHealth > priest.AvgAmountFlashHeal , LowestImportantUnit , "Naaru_"..LowestImportantUnit },
 	-- "Renew" 139 -- Haste breakpoints are 12.5 and 16.7%(Holy)
 	{ 139, not jps.buff(139,LowestImportantUnit) and LowestImportantUnitHealth > priest.AvgAmountFlashHeal , LowestImportantUnit , "Renew_"..LowestImportantUnit },
+
 	-- "Soins supérieurs" 2060
 	{ 2060, stackSerendip == 2 and (LowestImportantUnitHealth > priest.AvgAmountGreatHeal) , LowestImportantUnit , "SoinsSup_"..LowestImportantUnit  },
 	-- "Soins rapides" 2061

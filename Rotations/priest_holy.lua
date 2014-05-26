@@ -27,6 +27,46 @@ local divineshield = tostring(select(1,GetSpellInfo(642))) -- divine shield pala
 	local macroSerenity = "/cast "..Serenity
 	local macroChastise = "/cast "..ChakraChastise.."\n".."/cast "..Chastise
 
+---------------------------
+-- DEBUFF RBG
+---------------------------
+
+local DispelTableRBG = {
+    8122,	-- "Psychic Scream"
+    5484,	-- "Howl of Terror"
+    3355,	-- Freezing Trap -- 1499, -- Freezing Trap ? Dispel type	n/a
+
+   	118,	-- Polymorph
+	61305,	-- Polymorph: Black Cat
+	28272,	-- Polymorph: Pig
+	61721,	-- Polymorph: Rabbit
+	61780,	-- Polymorph: Turkey
+	28271,	-- Polymorph: Turtle
+	
+    64044,	-- Psychic Horror
+    10326,	-- Turn Evil
+    44572,	-- Deep Freeze
+    55021,	-- Improved Counterspell -- 2139,	-- Counterspell? ? Dispel type	n/a
+    853, 	-- Hammer of Justice
+    82691,	-- Ring of Frost 113724, -- Ring of Frost ? Dispel type	n/a
+    20066,	-- Repentance
+    47476,	-- Strangulate
+    113792, -- Psychic Terror (Psyfiend)
+    5782,	-- "Fear"  
+	118699, -- "Fear"
+	130616, -- "Fear" (Glyph of Fear)
+	
+	104045, -- Sleep (Metamorphosis)
+	2944,	-- Devouring Plague ?
+	122,	-- frost nova
+}
+
+local DispelFriendlyTargetRBG = function(unit)
+	for _,debuff in ipairs(DispelTableRBG) do
+		if jps.debuff(debuff,unit) then return true end
+	end
+	return false
+end
 
 ----------------------------
 -- ROTATION
@@ -114,6 +154,13 @@ local priestHoly = function()
 				DispelFriendlyTargetHealth = unitHP
 			end
 		end
+	end
+	
+	local DispelFriendlyRBG = nil
+	for _,unit in ipairs(FriendUnit) do
+		if DispelFriendlyTargetRBG(unit) and unit ~= "player" then
+			DispelFriendlyRBG = unit
+		break end
 	end
 
 	local LeapFriend = nil
@@ -234,6 +281,7 @@ local InterruptTable = {
 		{ 73325 , type(LeapFriend) == "string" , LeapFriend , "|cff1eff00Leap_MultiUnit_" },
 		-- "Dispel" "Purifier" 527
 		{ 527, type(DispelTargetRole) == "string" , DispelTargetRole , "|cff1eff00DispelTargetRole_MultiUnit_" },
+		{ 527, type(DispelFriendlyRBG) == "string" , DispelFriendlyRBG , "|cff1eff00DispelTargetRBG_MultiUnit_" },
 		{ 527, type(DispelFriendlyTarget) == "string" , DispelFriendlyTarget , "|cff1eff00DispelFriendlyTarget_MultiUnit_" },
 	}
 	
@@ -250,9 +298,9 @@ local InterruptTable = {
 		{ 32379, type(DeathEnemyTarget) == "string" , DeathEnemyTarget , "|cFFFF0000Death_MultiUnit_" },
 		{ 32379, priest.canShadowWordDeath(rangedTarget) , rangedTarget , "|cFFFF0000Death_Health_"..rangedTarget },
 		-- "Mot de l'ombre: Douleur" 589 -- FARMING OR PVP -- NOT PVE -- Only if 1 targeted enemy 
-		{ 589, priest.get("ShadowPain") and TargetCount == 1 and jps.myDebuffDuration(589,rangedTarget) == 0 , rangedTarget , "|cFFFF0000Douleur_"..rangedTarget },
+		{ 589, TargetCount == 1 and jps.myDebuffDuration(589,rangedTarget) == 0 , rangedTarget , "|cFFFF0000Douleur_"..rangedTarget },
 		-- "Châtiment" 585
-		{ 585, not jps.Moving and priest.get("Chastise") , rangedTarget , "|cFFFF0000Chatiment_"..rangedTarget },
+		{ 585, not jps.Moving , rangedTarget , "|cFFFF0000Chatiment_"..rangedTarget },
 	}
 
 ------------------------
@@ -262,7 +310,7 @@ local InterruptTable = {
 local spellTable = {
 
 	-- Chakra: Serenity 81208 -- "Holy Word: Serenity" 88684
-	{ 81208, not jps.buffId(81208) and LowestImportantUnitHpct < priest.get("HealthDPS")/100 , "player" , "Chakra: Serenity" },
+	{ 81208, not jps.buffId(81208) and LowestImportantUnitHpct < 0.85 , "player" , "Chakra: Serenity" },
 	{ 81208, not jps.buffId(81208) and not jps.FaceTarget , "player" , "Chakra: Serenity" },
 
 	-- TRINKETS -- jps.useTrinket(0) est "Trinket0Slot" est slotId  13 -- "jps.useTrinket(1) est "Trinket1Slot" est slotId  14
@@ -272,7 +320,6 @@ local spellTable = {
 	{ 2061, jps.buff(114255) and (jps.buffDuration(114255) < 4) , LowestImportantUnit , "SoinsRapides_Light_"..LowestImportantUnit },
 	-- "Void Shift" 108968 -- "Prière du désespoir" 19236
 	{ 108968, not playerAggro and UnitIsUnit(LowestImportantUnit,"player")~=1 and LowestImportantUnitHpct < 0.40 and jps.hp("player") > 0.85 , LowestImportantUnit , "Emergency_VoidShift_"..LowestImportantUnit },
-	{ 108968, jps.cooldown(19236) == 0 and UnitIsUnit(LowestImportantUnit,"player")~=1 and LowestImportantUnitHpct < 0.40 and jps.hp("player") > 0.85 , LowestImportantUnit , "Emergency_VoidShift_"..LowestImportantUnit },
 	-- "Guardian Spirit"
 	{ 47788, jps.FriendAggro(LowestImportantUnit) and LowestImportantUnitHpct < 0.40 , LowestImportantUnit },
 
@@ -281,20 +328,48 @@ local spellTable = {
 
 	{ "nested", jps.hp("player") < 0.70 and playerAggro ,
 		{
-			-- "Holy Word: Serenity" 88684 -- Chakra: Serenity 81208
-			{ {"macro",macroSerenity}, jps.cooldown(88684) == 0 and jps.buffId(81208) , "player" , "Serenity_Player"},
 			-- "Pierre de soins" 5512
 			{ {"macro","/use item:5512"}, select(1,IsUsableItem(5512))==1 and jps.itemCooldown(5512)==0 , "player" , "PIERRESOINS"},
 			-- "Prière du désespoir" 19236
 			{ 19236, select(2,GetSpellBookItemInfo(priest.Spell["Desesperate"]))~=nil , "player" , "DESESPERATE" },
+			-- "Oubli" 586 -- Fantasme 108942 -- vous dissipez tous les effets affectant le déplacement sur vous-même et votre vitesse de déplacement ne peut être réduite pendant 5 s
+			-- "Oubli" 586 -- Glyphe d'ouble 55684 -- Votre technique Oubli réduit à présent tous les dégâts subis de 10%.
+			{ 586, playerAggro and jps.IsSpellKnown(108942) , "player" , "Aggro_Oubli_" },
+			{ 586, playerAggro and jps.glyphInfo(55684) , "player" , "Aggro_Oubli_" },
 			-- "Divine Star" Holy 110744 Shadow 122121
 			{ 110744, jps.IsSpellKnown(110744) and playerIsInterrupt > 0 , "player" , "Interrupt_DivineStar_" },
-			-- "Circle of Healing" 34861
-			{ 34861, AvgHealthLoss < 0.85 , "player" , "Aggro_COH_Player" },
 			-- "Glyph of Purify" 55677 Your Purify spell also heals your target for 5% of maximum health
 			{ 527, jps.canDispel("player",{"Magic"}) and jps.glyphInfo(55677) , "player" , "Aggro_Dispell_Player" },
+		},
+	},
+
+	{ "nested", LowestImportantUnitHpct < 0.70 and type(POHTarget) == nil ,
+		{
+			-- "Holy Word: Serenity" 88684 -- Chakra: Serenity 81208 -- LowestImportantUnitHealth > priest.AvgAmountFlashHeal
+			{ {"macro",macroSerenity}, jps.cooldown(88684) == 0 and jps.buffId(81208) , LowestImportantUnit , "Emergency_Serenity_"..LowestImportantUnit },
+			-- "Prière de guérison" 33076 -- buff 4P pvp aug. 50% soins 
+			-- "Holy Spark" 131567 "Etincelle sacrée" -- increases the healing done by your next Flash Heal, Greater Heal or Holy Word: Serenity by 50% for 10 sec.
+			{ 33076, (type(MendingTarget) == "string") , MendingTarget , "Emergency_MendingTarget_" },
+			{ "nested", not jps.Moving , 
+				{
+					-- "Soins supérieurs" 2060
+					{ 2060,  stackSerendip == 2 and (LowestImportantUnitHealth > priest.AvgAmountGreatHeal) , LowestImportantUnit , "Emergency_SoinsSup_"..LowestImportantUnit  },
+					-- "Soins rapides" 2061
+					{ 2061, (LowestImportantUnitHpct < 0.40) , LowestImportantUnit , "Emergency_SoinsRapides_40%_"..LowestImportantUnit },
+					-- "Soins de lien"
+					{ 32546 , type(BindingHealTarget) == "string" , BindingHealTarget , "Emergency_Lien_" },
+					-- "Soins rapides" 2061
+					{ 2061, (LowestImportantUnitHealth > priest.AvgAmountGreatHeal) and stackSerendip < 2, "Emergency_SoinsRapides_"..LowestImportantUnit },
+				},
+			},
 			-- "Power Word: Shield" 17 
-			{ 17, jps.hp("player") < 0.40 and not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Emergency_Shield_Player" },
+			{ 17, LowestImportantUnitHpct < 0.40 and not jps.buff(17,LowestImportantUnit) and not jps.debuff(6788,LowestImportantUnit) , LowestImportantUnit , "Emergency_Shield_"..LowestImportantUnit },
+			-- "Circle of Healing" 34861
+			{ 34861, AvgHealthLoss < 0.85 , LowestImportantUnit , "Emergency__COH_"..LowestImportantUnit },
+			-- "Don des naaru" 59544
+			{ 59544, (select(2,GetSpellBookItemInfo(priest.Spell["NaaruGift"]))~=nil) and LowestImportantUnitHealth > priest.AvgAmountFlashHeal , LowestImportantUnit , "Emergency_Naaru_"..LowestImportantUnit },
+			-- "Renew" 139 -- Haste breakpoints are 12.5 and 16.7%(Holy)
+			{ 139, not jps.buff(139,LowestImportantUnit) and LowestImportantUnitHealth > priest.AvgAmountFlashHeal , LowestImportantUnit , "Emergency_Renew_"..LowestImportantUnit },
 		},
 	},
 
@@ -363,7 +438,7 @@ local spellTable = {
 			-- "Mot de l'ombre: Douleur" 589 -- FARMING OR PVP -- NOT PVE -- Only if 1 targeted enemy 
 			--{ 589, TargetCount == 1 and jps.myDebuffDuration(589,rangedTarget) == 0 , rangedTarget , "|cFFFF0000Douleur_"..rangedTarget },
 			-- "Châtiment" 585
-			{ 585, true , rangedTarget , "|cFFFF0000Chatiment_"..rangedTarget },
+			{ 585, not jps.Moving , rangedTarget , "|cFFFF0000Chatiment_"..rangedTarget },
 		},
 	},
 

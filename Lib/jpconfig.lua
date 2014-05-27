@@ -235,7 +235,7 @@ end)
 -- SLIDER UPDATE INTERVAL
 ---------------------------
 
-local slider = CreateFrame("Slider","UpdateInterval",rotationDropdownHolder,"OptionsSliderTemplate")
+local slider = CreateFrame("Slider","UpdateInterval",JPSTextInfoFrame,"OptionsSliderTemplate")
 
 slider:ClearAllPoints()
 slider:SetPoint("TOP",0,25)
@@ -360,6 +360,10 @@ function jps.sliderUpdateToggle(key, status)
 	end
 end
 
+function jps.jpHistoryToggle(key, status) 
+	return jps.historyToggle(status)
+end
+
 ---------------------------
 -- Settings Frame
 ---------------------------
@@ -373,6 +377,7 @@ function jps.addSettingsFrame()
 		["rotation dropdown visible"] = jps.DropdownRotationTogle,
 		["show jps window"] = jps.mainIconToggle,
 		["show slider update"] = jps.sliderUpdateToggle,
+		["jphistory visible"] = jps.jpHistoryToggle,
 	}
 	
 	jpsSettingsFrame = CreateFrame("Frame", "jpsSettingsFrame", jpsConfigFrame)
@@ -514,11 +519,10 @@ function jps.loadDefaultSettings()
 	settingsTable["rotation dropdown visible"] = 1
 	settingsTable["timetodie frame visible"] = 0
 	settingsTable["show jps window"] = 1
+	settingsTable["jphistory visible"] = 1
 	settingsTable["show slider update"] = 0
-
 	settingsTable["show latency"] = 0
-	settingsTable["show current cast"] = 1
-	settingsTable["show lowest"] = 1
+	settingsTable["show current cast"] = 0
 	settingsTable["dismount in combat"] = 0
 	settingsTable["show ttd"] = 0
 

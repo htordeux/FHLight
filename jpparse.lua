@@ -51,12 +51,14 @@ local function fnParseMacro(macro, conditions, target)
                 macroSpell = select(3,string.find(macro,"%s(.*)")) -- {"macro","/cast Sanguinaire"}
             end
             if not jps.Casting then jps.Macro(macro) end -- Avoid interrupt Channeling with Macro
-            if jps.Debug then macrowrite(macroSpell,"|cff1eff00",target,"|cffffffff",jps.Message) end
+            if jps.Debug then macrowrite(macroSpell,"|cff1eff00",target) end
+            if jps.DebugMsg then macrowrite("|cffffffff",jps.Message) end
             
         -- CASTSEQUENCE WORKS ONLY FOR INSTANT CAST SPELL
 		-- "#showtooltip\n/cast Frappe du colosse\n/cast Sanguinaire"
-		else
-			jps.Macro("/cast " .. tostring(GetSpellInfo(macro)))
+		elseif type(macro) == "number" then
+			jps.Macro("/cast "..tostring(select(1,GetSpellInfo(macro))))
+			if jps.DebugMsg then macrowrite("|cffffffff",jps.Message) end
 		end
 		if changeTargets and not jps.Casting then jps.Macro("/targetlasttarget") end
 	end

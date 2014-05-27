@@ -65,8 +65,8 @@ local function fnParseMacro(macro, conditions, target)
             
         -- CASTSEQUENCE WORKS ONLY FOR INSTANT CAST SPELL
 		-- "#showtooltip\n/cast Frappe du colosse\n/cast Sanguinaire"
-		else
-			jps.Macro("/cast " .. tostring(GetSpellInfo(macro)))
+		elseif type(macro) == "number" then
+			jps.Macro("/cast "..tostring(GetSpellInfo(macro)))
 		end
 		if changeTargets and not jps.Casting then jps.Macro("/targetlasttarget") end
 	end

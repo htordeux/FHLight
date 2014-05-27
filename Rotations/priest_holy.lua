@@ -348,7 +348,7 @@ local spellTable = {
 	},
 	
 	-- GROUP HEAL
-	{ "nested", CountInRange > 2 and AvgHealthLoss < 0.85 and and jps.MultiTarget , 
+	{ "nested", CountInRange > 2 and AvgHealthLoss < 0.85 and jps.MultiTarget , 
 		{
 			--- Chakra: Sanctuary 81206
 			{ 81206, not jps.buffId(81206) and (type(POHTarget) == "string") , "player" },

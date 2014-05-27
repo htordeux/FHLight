@@ -33,6 +33,9 @@ Lib\jpminimap.lua
 
 jpevents.lua
 
+JPHistory\ringbuffer.lua
+JPHistory\jphistory.lua
+
 Rotations\dk.lua
 Rotations\dk_blood.lua
 Rotations\dk_frost.lua

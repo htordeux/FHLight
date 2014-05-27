@@ -29,6 +29,7 @@ jps.UpdateInterval = 0.05
 jps.Enabled = false
 jps.Combat = false
 jps.Debug = false
+jps.DebugMsg = false
 jps.DebugLevel = 1
 jps.PLuaFlag = false
 jps.MoveToTarget = false
@@ -276,6 +277,9 @@ function SlashCmdList.jps(cmd, editbox)
 	elseif msg == "debug" then
 		jps.Debug = not jps.Debug
 		write("Debug mode set to",tostring(jps.Debug))
+	elseif msg == "msg" then
+		jps.DebugMsg = not jps.DebugMsg
+		write("DebugMsg mode set to",tostring(jps.DebugMsg))
 	elseif msg == "face" then
 		jps.gui_toggleRot()
 		write("jps.FaceTarget set to",tostring(jps.FaceTarget))

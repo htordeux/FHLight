@@ -83,6 +83,7 @@ end
 --	return targetControlled
 --end
 
+-- LoseControl could be FRIEND or ENEMY
 function jps.LoseControl(unit, controlTable)
 	local targetControlled = false
 	local timeControlled = 0

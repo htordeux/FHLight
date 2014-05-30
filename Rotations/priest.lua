@@ -104,7 +104,7 @@ priest.ShouldInterruptCasting = function ( InterruptTable, AvgHealthLoss, CountI
 			if TargetHpct > breakpoint then
 				SpellStopCasting()
 				DEFAULT_CHAT_FRAME:AddMessage("STOPCASTING OverHeal"..spellName.." , unit "..jps.LastTarget.. " has enough hp!",0, 0.5, 0.8)
-			elseif healSpellTable[1] == priest.Spell.heal and TargetHpct < 0.55 and jps.CastTimeLeft(player) > 0.5 and jps.mana() > 0.20 then
+			elseif healSpellTable[1] == priest.Spell.heal and TargetHpct < 0.55 and jps.mana() > 0.20 then
 				SpellStopCasting()
 				DEFAULT_CHAT_FRAME:AddMessage("STOPCASTING "..spellName.." important unit goes critical",0, 0.5, 0.8)
 			elseif healSpellTable[1] == priest.Spell.prayerOfHealing and AvgHealthLoss >= breakpoint then
@@ -231,9 +231,17 @@ jps.listener.registerCombatLogEventUnfiltered("SPELL_CAST_SUCCESS", function(...
 	local sourceGUID = select(4,...)
 	local spellID =  select(12,...)
 	if sourceGUID == UnitGUID("player") then
-		if spellID == 123258 or spellID == 17 then 
+		if spellID == 123258 or spellID == 17 then
 			if jps.checkTimer("ShieldTimer") == 0 then jps.createTimer("ShieldTimer", 12 ) end
 		end
+		if spellID == 88625 then jps.createTimer("Chastise",30) end
+	end
+end)
+
+-- UNIT_SPELLCAST_SUCCEEDED for Holy Word: Chastise 88625 Cooldown
+jps.listener.registerEvent("UNIT_SPELLCAST_SUCCEEDED", function(unitID,spellname,_,_,spellID)
+	if (unitID == "player") and spellID == 88625 then
+		jps.createTimer("Chastise",30)
 	end
 end)
 

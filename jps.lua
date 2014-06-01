@@ -52,12 +52,14 @@ jps.Moving = false
 jps.HarmSpell = nil
 jps.IconSpell = nil
 jps.CurrentCast = nil
+jps.SentCast = nil
 jps.LastCast = ""
 jps.LastTarget = ""
 jps.Message = ""
 jps.LastMessage = ""
 jps.LastTargetGUID = nil
 jps.Latency = 0
+jps.NextSpell = nil
 
 -- Class
 jps.BlacklistTimer = 1
@@ -75,7 +77,6 @@ jps.isTank = false
 jps.Timers = {}
 jps.timedCasting = {}
 jps.HealerBlacklist = {} 
-jps.NextSpell = {}
 jps.settings = {}
 jps.settingsQueue = {}
 jps.functionQueues = {}
@@ -328,9 +329,8 @@ hooksecurefunc("UseAction", function(...)
 		local stype,id,_ = GetActionInfo(select(1, ...))
 		if stype == "spell" then
 			local name = select(1,GetSpellInfo(id))
-			if jps.NextSpell[#jps.NextSpell] ~= name and not jps.shouldSpellBeIgnored(name) then
-				table.insert(jps.NextSpell, name)
-				jps.NextSpell = jps.removeDuplicate(jps.NextSpell)
+			if jps.NextSpell ~= name and not jps.shouldSpellBeIgnored(name) then
+				jps.NextSpell = name
 				if jps.Combat then 
 					write("Set",name,"for next cast.")
 				end
@@ -374,17 +374,17 @@ function jps.Cycle()
 
 	-- Check spell usability -- ALLOW SPELLSTOPCASTING() IN JPS.ROTATION() TABLE
 	jps.ThisCast,jps.Target = jps.activeRotation().getSpell()
-	
+
 	if not jps.Casting and jps.ThisCast ~= nil then
-		if #jps.NextSpell >= 1 then
-			if jps.NextSpell[1] then
-				jps.Cast(jps.NextSpell[1])
-				if jps.cooldown(jps.NextSpell[1]) > 0 then
-					write("Next Spell "..jps.NextSpell[1].. " was casted")
-					table.remove(jps.NextSpell, 1)
+		if jps.NextSpell ~= nil then
+			if jps.NextSpell then
+				jps.Cast(jps.NextSpell,jps.Target)
+				if (jps.cooldown(jps.NextSpell) > 0) or (jps.NextSpell == jps.CurrentCast) or (jps.NextSpell == jps.SentCast) then
+					write("Next Spell "..jps.NextSpell.. " was casted")
+					jps.NextSpell = nil
 				end
 			else
-				jps.NextSpell[1] = nil
+				jps.NextSpell = nil
 				jps.Cast(jps.ThisCast)
 			end
 		else

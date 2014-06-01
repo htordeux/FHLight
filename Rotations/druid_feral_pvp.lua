@@ -57,7 +57,6 @@ jps.registerRotation("DRUID","FERAL", function()
 	local enemycount = jps.RaidEnemyCount()
 
 	local isSpellHarmful = IsHarmfulSpell("target")
-	local lastcast = jps.CurrentCast
 	local castSilence = jps.shouldKick("target")
 
 	local playerhealth_pct = jps.hp(player)

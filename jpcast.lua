@@ -19,6 +19,8 @@ local UnitCanAttack = UnitCanAttack
 local SpellIsTargeting = SpellIsTargeting
 local CastSpellByName = CastSpellByName
 
+local strfind = string.find
+
 ----------------------------
 -- Blacklistplayer functions 
 -- These functions will blacklist a target for a set time.
@@ -415,7 +417,7 @@ function jps.Cast(spell) -- "number" "string"
 	if (jps.IconSpell ~= spellname) then
 		jps.set_jps_icon(spellname)
 		if jps.Debug then write(spellname,"|cff1eff00",GetUnitName(jps.Target)) end
-		if jps.DebugMsg then write("|cffffffff",jps.Message) end
+		if jps.DebugMsg and strfind(jps.Message,"_") then write("|cffffffff",jps.Message) end
 	end
 	jps.Target = nil
 	jps.ThisCast = nil

@@ -36,6 +36,7 @@ local GetTime = GetTime
 -- RaidStatus
 local canHeal = jps.canHeal
 local UpdateRaidUnit = jps.UpdateRaidUnit
+local UpdateRaidStatus = jps.UpdateRaidStatus
 local pairs = pairs
 
 --------------------------
@@ -420,14 +421,13 @@ local leaveCombat = function()
 	jps.combatStart = 0
 
 	-- nil all tables
+	--jps.Timers = {} -- because of Holy Word: Chastise 88625 Cooldown
 	RaidTimeToDie = {}
 	EnemyTable = {}
 	Healtable = {}
 	jps.TimeToDieData = {}
-	--jps.Timers = {} -- because of Holy Word: Chastise 88625 Cooldown
 	jps.timedCasting = {}
 	jps.HealerBlacklist = {} 
-	jps.NextSpell = {}
 	jps.UpdateRaidStatus()
 	collectgarbage()
 end
@@ -494,7 +494,8 @@ end)
 local sendTime = 0
 local GetTime = GetTime
 jps.listener.registerEvent("UNIT_SPELLCAST_SENT", function(unitID,spellname,_,spelltarget,_)
-	if unitID == "player" then 
+	if unitID == "player" then
+		jps.SentCast = spellname
 		sendTime = GetTime() 
 		if spellname == tostring(select(1,GetSpellInfo(17))) then jps.createTimer("ShieldTimer", 12 ) end
 	end
@@ -549,7 +550,7 @@ jps.listener.registerEvent("UNIT_SPELLCAST_SUCCEEDED", function(unitID,spellname
 		end
 	end
 	
-	if ((jps.Class == "Druid" and jps.Spec == "Feral") or jps.Class == "Rogue") and (unitID == "player") and spellID then
+	if (unitID == "player") and spellID and ((jps.Class == "Druid" and jps.Spec == "Feral") or jps.Class == "Rogue") then
 		-- "Druid" -- 5221 -- "Shred" -- "Ambush" 8676
 		if (unitID == "player") and spellID == 5221 then 
 			jps.isNotBehind = false
@@ -666,6 +667,10 @@ local UpdateIntervalRaidStatus = function()
 	scoreLastUpdate = curTime
 	jps.UpdateHealerBlacklist()
 	updateEnemyTable()
+	-- Update RaidStatus if not jps.isHealer
+	if diff < 2 and not jps.isHealer then
+		UpdateRaidStatus()
+	end
 end
 
 -- HealerBlacklist Update

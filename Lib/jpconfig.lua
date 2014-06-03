@@ -525,6 +525,7 @@ function jps.loadDefaultSettings()
 	settingsTable["show current cast"] = 0
 	settingsTable["dismount in combat"] = 0
 	settingsTable["show ttd"] = 0
+	settingsTable["set healer as focus"] = 1
 
 	for key,val in pairs(settingsTable) do 
 		if jps.settings[string.lower(key)] == nil then

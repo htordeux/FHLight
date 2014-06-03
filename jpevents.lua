@@ -28,6 +28,7 @@ local UnitGUID = UnitGUID
 
 -- TABLE ENEMIES IN COMBAT
 local EnemyTable = {}
+local EnemyHealer = {}
 -- HEALTABLE
 local Healtable = {}
 -- Timetodie based on incoming Damage
@@ -424,6 +425,7 @@ local leaveCombat = function()
 	--jps.Timers = {} -- because of Holy Word: Chastise 88625 Cooldown
 	RaidTimeToDie = {}
 	EnemyTable = {}
+	EnemyHealer = {}
 	Healtable = {}
 	jps.TimeToDieData = {}
 	jps.timedCasting = {}
@@ -676,6 +678,107 @@ end
 -- HealerBlacklist Update
 jps.registerOnUpdate(UpdateIntervalRaidStatus)
 
+------------------------
+-- Healer ENEMY Table
+------------------------
+
+local HealerSpellID = {
+
+        -- Priests
+        -- Discipline
+        -- [000017] = "PRIEST", -- Power word: Shield -- exists also for shadow priests
+        [047540] = "PRIEST", -- Penance
+        [062618] = "PRIEST", -- Power word: Barrier
+        [109964] = "PRIEST", -- Spirit shell
+        [047515] = "PRIEST", -- Divine Aegis
+        [081700] = "PRIEST", -- Archangel
+        [002060] = "PRIEST", -- Greater Heal
+        [002050] = "PRIEST", -- Heal
+        [014914] = "PRIEST", -- Holy Fire
+        [089485] = "PRIEST", -- Inner Focus
+        [033206] = "PRIEST", -- Pain Suppression
+        [000596] = "PRIEST", -- Prayer of Healing
+        [000527] = "PRIEST", -- Purify
+        -- Holy
+        [034861] = "PRIEST", -- Circle of Healing
+        [064843] = "PRIEST", -- Divine Hymn
+        [047788] = "PRIEST", -- Guardian Spirit
+        [000724] = "PRIEST", -- Lightwell
+        [088684] = "PRIEST", -- Holy Word: Serenity
+        [088685] = "PRIEST", -- Holy Word: Sanctuary
+
+        -- Druids
+        [018562] = "DRUID", -- Swiftmend
+        [102342] = "DRUID", -- Ironbark
+        [033763] = "DRUID", -- Lifebloom
+        [088423] = "DRUID", -- Nature's Cure
+        [050464] = "DRUID", -- Nourish
+        [008936] = "DRUID", -- Regrowth
+        [033891] = "DRUID", -- Incarnation: Tree of Life
+        [048438] = "DRUID", -- Wild Growth
+        [102791] = "DRUID", -- Wild Mushroom Bloom
+
+        -- Shamans
+        [00974] = "SHAMAN", -- Earth Shield
+        [61295] = "SHAMAN", -- Riptide
+        [77472] = "SHAMAN", -- Greater Healing Wave
+        [98008] = "SHAMAN", -- Spirit link totem
+        [77130] = "SHAMAN", -- Purify Spirit
+
+        -- Paladins
+        [20473] = "PALADIN", -- Holy Shock
+        -- [85673] = "PALADIN", -- Word of Glory (also true for prot paladins)
+        [82327] = "PALADIN", -- Holy radiance
+        [53563] = "PALADIN", -- Beacon of Light
+        [02812] = "PALADIN", -- Denounce
+        [31842] = "PALADIN", -- Divine Favor
+        [82326] = "PALADIN", -- Divine Light
+        [54428] = "PALADIN", -- Divine Plea
+        -- [86669] = "PALADIN", -- Guardian of Ancient Kings (also true for ret paladins)
+        [00635] = "PALADIN", -- Holy Light
+        [82327] = "PALADIN", -- Holy Radiance
+        [85222] = "PALADIN", -- Light of Dawn
+
+        -- Monks
+        [115175] = "MONK", -- Soothing Mist
+        [115294] = "MONK", -- Mana Tea
+        [115310] = "MONK", -- Revival
+        [116670] = "MONK", -- Uplift
+        [116680] = "MONK", -- Thunder Focus Tea
+        [116849] = "MONK", -- Life Cocoon
+        [116995] = "MONK", -- Surging mist
+        [119611] = "MONK", -- Renewing mist
+        [132120] = "MONK", -- Envelopping Mist
+    };
+
+local UnitIsPlayer = UnitIsPlayer
+local UnitExists = jps.UnitExists
+local MouseoverIsPlayer = function(unit)
+	if UnitIsPlayer(unit) and UnitExists(unit) then return true end
+	return false
+end
+
+jps.LookupEnemyHealer = function()
+	if jps.tableLength(EnemyHealer) == 0 then print("EnemyHealer is nil") end
+	for _,index in pairs(EnemyHealer) do
+		print(index[1],": ",index[2])
+	end
+end
+
+-- EnemyHealer[UnitGUId] = {"MONK"}
+-- className, classId, raceName, raceId, gender, name, realm = GetPlayerInfoByGUID("guid")
+jps.listener.registerEvent("UPDATE_MOUSEOVER_UNIT", function()
+	if MouseoverIsPlayer("mouseover") and jps.getConfigVal("set healer as focus") == 1 then
+		local unitGuidMouseover = UnitGUID("mouseover")
+		if EnemyHealer[unitGuidMouseover] ~= nil then
+			local class = EnemyHealer[unitGuidMouseover][1]
+			local name = EnemyHealer[unitGuidMouseover][2]
+			jps.Macro("/focus mouseover")
+			print("Enemy Healer|cff1eff00 "..name..": "..class.." |cffffffffset as FOCUS")
+		end
+	end
+end)
+
 --------------------------
 -- COMBAT_LOG_EVENT_UNFILTERED FUNCTIONS
 --------------------------
@@ -700,20 +803,11 @@ local healEvents = {
         ["SPELL_PERIODIC_HEAL"] = true,
 }
 
-local hostileEvents = {
-  ["_DAMAGE"] = true,
-  ["_LEECH"] = true,
-  ["_DRAIN"] = true,
-  ["_STOLEN"] = true,
-  ["_INSTAKILL"] = true,
-  ["_INTERRUPT"] = true,
-  ["_MISSED"] = true
-}
-
 -- UNIT_DIED destGUID and destName refer to the unit that died.
 jps.listener.registerCombatLogEventUnfiltered("UNIT_DIED", function(...)
 	local destGUID = select(8,...)
 	if EnemyTable[destGUID] then EnemyTable[destGUID] = nil end
+	if EnemyHealer[destGUID] then EnemyHealer[destGUID] = nil end
 end)
 
 local COMBATLOG_OBJECT_TYPE_PLAYER = COMBATLOG_OBJECT_TYPE_PLAYER
@@ -730,39 +824,56 @@ local bitband = bit.band
 jps.listener.registerEvent("COMBAT_LOG_EVENT_UNFILTERED", function(...)
 	local event = select(2,...)
 	local sourceGUID = select(4,...)
-	local sourceName = select(5,...)
 	local sourceFlags = select(6,...)
 	local destGUID = select(8,...)
 	local destName = select(9,...)
 	local destFlags = select(10,...)
+	
+-- The numeric values of the global variables starts with 1 for MINE and increases toward OUTSIDER with 8
+	local isDestEnemy = bitband(destFlags, COMBATLOG_OBJECT_REACTION_HOSTILE) == COMBATLOG_OBJECT_REACTION_HOSTILE
+	local isDestRaid = bitband(destFlags, RAID_AFFILIATION) > 0
+	local isSourceRaid = bitband(sourceFlags, RAID_AFFILIATION) > 0
+	local isSourceEnemy = bitband(sourceFlags, COMBATLOG_OBJECT_REACTION_HOSTILE) == COMBATLOG_OBJECT_REACTION_HOSTILE
 
 -- HEAL TABLE -- contains the average value of healing spells
-	if sourceGUID == UnitGUID("player") and healEvents[event] then
-		local healname = select(13, ...)
-		local healVal = select(15, ...)
-		
-		if Healtable[healname] == nil then
-			Healtable[healname] = { 	
-				["healname"]= healname,
-				["healtotal"]= healVal,
-				["healcount"]= 1,
-				["averageheal"]=healVal
-			}
-		else
-			Healtable[healname]["healtotal"] = Healtable[healname]["healtotal"] + healVal
-			Healtable[healname]["healcount"] = Healtable[healname]["healcount"] + 1
-			Healtable[healname]["averageheal"] = Healtable[healname]["healtotal"] / Healtable[healname]["healcount"]
+	if sourceGUID and destGUID and healEvents[event] then
+
+		if sourceGUID == UnitGUID("player") then
+			local healname = select(13, ...)
+			local healVal = select(15, ...)
+			
+			if Healtable[healname] == nil then
+				Healtable[healname] = { 	
+					["healname"]= healname,
+					["healtotal"]= healVal,
+					["healcount"]= 1,
+					["averageheal"]=healVal
+				}
+			else
+				Healtable[healname]["healtotal"] = Healtable[healname]["healtotal"] + healVal
+				Healtable[healname]["healcount"] = Healtable[healname]["healcount"] + 1
+				Healtable[healname]["averageheal"] = Healtable[healname]["healtotal"] / Healtable[healname]["healcount"]
+			end
 		end
+
+-- HEAL ENEMY TABLE -- contains the UnitGUID of Enemy Healers
+		if isSourceEnemy then
+			local healId = select(12, ...)
+			local sourceName = select(5,...)
+			local updateEnemyHealer = false
+			if HealerSpellID[healId] then
+				if EnemyHealer[sourceGUID] == nil then
+					EnemyHealer[sourceGUID] = {}
+					updateEnemyHealer = true
+				end
+				if updateEnemyHealer then EnemyHealer[sourceGUID] = {HealerSpellID[healId],sourceName} end
+			end
+		end
+	
 	end
 
 -- DAMAGE TABLE Note that for the SWING prefix, _DAMAGE starts at the 12th parameter
 	if sourceGUID and destGUID and damageEvents[event] then
-	
-	-- The numeric values of the global variables starts with 1 for MINE and increases toward OUTSIDER with 8
-		local isDestEnemy = bitband(destFlags, COMBATLOG_OBJECT_REACTION_HOSTILE) == COMBATLOG_OBJECT_REACTION_HOSTILE
-		local isDestRaid = bitband(destFlags, RAID_AFFILIATION) > 0
-		local isSourceRaid = bitband(sourceFlags, RAID_AFFILIATION) > 0
-		local isSourceEnemy = bitband(sourceFlags, COMBATLOG_OBJECT_REACTION_HOSTILE) == COMBATLOG_OBJECT_REACTION_HOSTILE
 	
 --	if jps.Debug then
 --		print("COMBATLOG_OBJECT_TYPE_PLAYER =", COMBATLOG_OBJECT_TYPE_PLAYER,bitband(sourceFlags,COMBATLOG_OBJECT_TYPE_PLAYER),
@@ -808,7 +919,7 @@ end)
 -- ENEMY TABLE
 ------------------------------
 -- table.insert called without a position, it inserts the element in the last position of the array (and, therefore, moves no elements)
--- table.remove called without a position, it removes the last element of the array. 
+-- table.remove called without a position, it removes the last element of the array.
 
 -- EnemyTable[enemyGuid] = { ["friend"] = enemyFriend } -- TABLE OF ENEMY GUID TARGETING FRIEND NAME
 -- COUNT ENEMY ONLY WHEN THEY DO DAMAGE TO INRANGE FRIENDS
@@ -854,8 +965,7 @@ jps.FriendAggroTable = function()
 	return dupe[1] or nil, dupe, #dupe
 end
 
--- EnemyTable[enemyGuid] = { ["friend"] = enemyFriend }
--- className, classId, raceName, raceId, gender, name, realm = GetPlayerInfoByGUID("guid")
+-- EnemyTable[enemyGuid] = { ["friend"] = enemyFriend , [""friendname""] = destName , ["friendaggro"] = dmgTTD }
 jps.LookupEnemy = function()
 	if jps.tableLength(EnemyTable) == 0 then print("EnemyTable is nil") end
 	for unit,index in pairs(EnemyTable) do

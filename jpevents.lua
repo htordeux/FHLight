@@ -427,6 +427,7 @@ local leaveCombat = function()
 	EnemyTable = {}
 	EnemyHealer = {}
 	Healtable = {}
+	jps.LastMessage = {}
 	jps.TimeToDieData = {}
 	jps.timedCasting = {}
 	jps.HealerBlacklist = {} 
@@ -498,7 +499,8 @@ local GetTime = GetTime
 jps.listener.registerEvent("UNIT_SPELLCAST_SENT", function(unitID,spellname,_,spelltarget,_)
 	if unitID == "player" then
 		jps.SentCast = spellname
-		sendTime = GetTime() 
+		sendTime = GetTime()
+		jps.CurrentCastInterrupt = nil
 		if spellname == tostring(select(1,GetSpellInfo(17))) then jps.createTimer("ShieldTimer", 12 ) end
 	end
 end)
@@ -529,12 +531,13 @@ end)
 --	end
 --end)
 
---jps.listener.registerEvent("UNIT_SPELLCAST_INTERRUPTED", function(unitID,spellname,_,_,spellID)
---	if unitID == "player" and spellID ~= nil then
---		jps.Casting = false
---		--print("INTERRUPTED: ",unitID,"spellname:",spellname,"",jps.Casting)
---	end
---end)
+jps.listener.registerEvent("UNIT_SPELLCAST_INTERRUPTED", function(unitID,spellname,_,_,spellID)
+	if unitID == "player" and spellID ~= nil then
+		jps.Casting = false
+		jps.CurrentCastInterrupt = spellname
+		--print("INTERRUPTED: ",unitID,"spellname:",spellname,": ",spellID)
+	end
+end)
 
 --jps.listener.registerEvent("UNIT_SPELLCAST_STOP", function(unitID,spellname,_,_,spellID)
 --	if unitID == "player" and spellID ~= nil then
@@ -546,20 +549,22 @@ end)
 
 -- UNIT_SPELLCAST_SUCCEEDED
 jps.listener.registerEvent("UNIT_SPELLCAST_SUCCEEDED", function(unitID,spellname,_,_,spellID)
-	if (unitID == "player") and jps.FaceTarget then
-		if jps.checkTimer("FacingBug") > 0 then
-			TurnLeftStop()
+	if (unitID == "player") and spellID then
+		jps.CurrentCastInterrupt = nil
+		if jps.FaceTarget then
+			if jps.checkTimer("FacingBug") > 0 then
+				TurnLeftStop()
+			end
 		end
-	end
-	
-	if (unitID == "player") and spellID and ((jps.Class == "Druid" and jps.Spec == "Feral") or jps.Class == "Rogue") then
-		-- "Druid" -- 5221 -- "Shred" -- "Ambush" 8676
-		if (unitID == "player") and spellID == 5221 then 
-			jps.isNotBehind = false
-			jps.isBehind = true
-		elseif (unitID == "player") and spellID == 8676 then
-			jps.isNotBehind = false
-			jps.isBehind = true
+		if ((jps.Class == "Druid" and jps.Spec == "Feral") or jps.Class == "Rogue") then
+			-- "Druid" -- 5221 -- "Shred" -- "Ambush" 8676
+			if (unitID == "player") and spellID == 5221 then 
+				jps.isNotBehind = false
+				jps.isBehind = true
+			elseif (unitID == "player") and spellID == 8676 then
+				jps.isNotBehind = false
+				jps.isBehind = true
+			end
 		end
 	end
 end)
@@ -661,7 +666,7 @@ end
 --end
 
 local scoreLastUpdate = GetTime()
-local scoreFrequency  = jps.BlacklistTimer -- 1 sec
+local scoreFrequency  = 2 -- 2 sec
 local UpdateIntervalRaidStatus = function()
 	local curTime = GetTime()
 	local diff = curTime - scoreLastUpdate
@@ -670,8 +675,11 @@ local UpdateIntervalRaidStatus = function()
 	jps.UpdateHealerBlacklist()
 	updateEnemyTable()
 	-- Update RaidStatus if not jps.isHealer
-	if diff < 2 and not jps.isHealer then
+	if not jps.isHealer then
 		UpdateRaidStatus()
+	end
+	if #jps.LastMessage > 2 then
+		for i=3,#jps.LastMessage do jps.LastMessage[i] = nil end
 	end
 end
 
@@ -765,6 +773,43 @@ jps.LookupEnemyHealer = function()
 	end
 end
 
+local MarkerTable = { {"star",false,1}, {"triangle",false,4}, {"cross",false,7}, {"skull",false,8} }
+local resetMarkerTable = function()
+	MarkerTable = { {"star",false,1}, {"triangle",false,4}, {"cross",false,7}, {"skull",false,8} }
+end
+
+--	  0 - Clear any raid target markers
+--    1 - Star
+--    2 - Circle
+--    3 - Diamond
+--    4 - Triangle
+--    5 - Moon
+--    6 - Square
+--    7 - Cross
+--    8 - Skull
+
+local hookSetRaidTarget = function(unit, index)
+	SetRaidTarget(unit, index)
+end
+
+hooksecurefunc("SetRaidTarget",hookSetRaidTarget)
+
+jps.TargetMarker = function(unit)
+	if not MouseoverIsPlayer(unit) then return end
+	if GetRaidTargetIndex(unit) == nil then
+		for _,index in ipairs(MarkerTable) do
+			if index[2] == false then
+				SetRaidTarget(unit, index[3])
+				index[2] = true
+			break end
+		end
+	end
+	-- if all MarkerTable are true reset the table
+	if GetRaidTargetIndex(unit) == nil then
+		resetMarkerTable()
+	end
+end
+
 -- EnemyHealer[UnitGUId] = {"MONK"}
 -- className, classId, raceName, raceId, gender, name, realm = GetPlayerInfoByGUID("guid")
 jps.listener.registerEvent("UPDATE_MOUSEOVER_UNIT", function()
@@ -773,8 +818,11 @@ jps.listener.registerEvent("UPDATE_MOUSEOVER_UNIT", function()
 		if EnemyHealer[unitGuidMouseover] ~= nil then
 			local class = EnemyHealer[unitGuidMouseover][1]
 			local name = EnemyHealer[unitGuidMouseover][2]
-			jps.Macro("/focus mouseover")
-			print("Enemy Healer|cff1eff00 "..name..": "..class.." |cffffffffset as FOCUS")
+			print("Enemy Healer|cff1eff00 "..name..": "..class.." |cffffffffFound on MOUSEOVER")
+--			if not jps.UnitExists("focus") then
+--				jps.Macro("/focus mouseover")
+--				print("Enemy Healer|cff1eff00 "..name..": "..class.." |cffffffffSet as FOCUS")
+--			end
 		end
 	end
 end)

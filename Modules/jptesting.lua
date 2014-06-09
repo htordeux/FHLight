@@ -43,12 +43,12 @@ function jps_Test()
 	jps.LookupEnemy()
 	jps.LookupEnemyHealer()
 
---	print("Stun:",jps.checkTimer("PlayerStun"))
---	print("Interrupt:",jps.checkTimer("PlayerInterrupt"))
---	print("Shield:",jps.checkTimer("ShieldTimer"))
---	print("Aggro:",jps.FriendAggro("player"))
---	print("LoseControl:",jps.LoseControl("player"))
---	print("ChastiseCd: ",jps.checkTimer("Chastise"))
+	print("Stun:",jps.checkTimer("PlayerStun"))
+	print("Interrupt:",jps.checkTimer("PlayerInterrupt"))
+	print("Shield:",jps.checkTimer("ShieldTimer"))
+	print("Aggro:",jps.FriendAggro("player"))
+	print("LoseControl:",jps.LoseControl("player"))
+	print("ChastiseCd: ",jps.checkTimer("Chastise"))
 	
 --	local masteryValue = math.ceil(GetMastery())/100
 --	local bonusHealing = math.ceil(GetSpellBonusHealing())
@@ -58,6 +58,8 @@ function jps_Test()
 
 --	local friendtableaggro = jps.FriendAggroTable()
 --	print("friendtableaggro: ",friendtableaggro)
+
+--	print("NextSpell: ",jps.NextSpell)
 
 end
 

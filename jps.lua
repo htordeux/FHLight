@@ -22,8 +22,7 @@
 local L = MyLocalizationTable
 jps = {}
 setmetatable(jps, { __mode = 'k' }) -- jps is now weak
-jps.Version = "1.3.2"
-jps.Revision = "r613"
+jps.Version = "1.4"
 jps.Rotation = nil
 jps.UpdateInterval = 0.05
 jps.Enabled = false
@@ -52,17 +51,17 @@ jps.Moving = false
 jps.HarmSpell = nil
 jps.IconSpell = nil
 jps.CurrentCast = nil
+jps.CurrentCastInterrupt = nil
 jps.SentCast = nil
 jps.LastCast = ""
 jps.LastTarget = ""
 jps.Message = ""
-jps.LastMessage = ""
+jps.LastMessage = {}
 jps.LastTargetGUID = nil
 jps.Latency = 0
 jps.NextSpell = nil
 
 -- Class
-jps.BlacklistTimer = 1
 jps.Class = nil
 jps.Spec = nil
 jps.Race = nil
@@ -289,8 +288,8 @@ function SlashCmdList.jps(cmd, editbox)
 		jps_VARIABLES_LOADED()
 		write("jps.ResetDB set to",tostring(jps.ResetDB))
 		jps.Macro("/reload")
-	elseif msg == "ver"  or msg == "version" or msg == "revision" or msg == "v" then
-		write("You have JPS version: "..jps.Version..", revision: "..jps.Revision)
+	elseif msg == "ver" or msg == "v" then
+		write("You have JPS version: "..jps.Version)
 	elseif msg == "size" then
 		jps.resize( rest )
 	elseif msg == "reset" then

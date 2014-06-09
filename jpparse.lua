@@ -1,5 +1,6 @@
 local UnitIsUnit = UnitIsUnit
 local canCast = jps.canCast
+local tinsert = table.insert
 
 
 local function fnMessageEval(message)
@@ -61,6 +62,7 @@ local function fnParseMacro(macro, conditions, target)
 			if jps.DebugMsg then macrowrite("|cffffffff",jps.Message) end
 		end
 		if changeTargets and not jps.Casting then jps.Macro("/targetlasttarget") end
+		tinsert(jps.LastMessage,1,jps.Message)
 	end
 end
 

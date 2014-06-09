@@ -20,18 +20,22 @@ local SpellIsTargeting = SpellIsTargeting
 local CastSpellByName = CastSpellByName
 
 local strfind = string.find
+local tinsert = table.insert
+local tremove = table.remove
 
 ----------------------------
 -- Blacklistplayer functions 
 -- These functions will blacklist a target for a set time.
 ----------------------------
 
+jps.BlacklistTimer = 1
+
 jps.UpdateHealerBlacklist = function(self)
 	if #jps.HealerBlacklist > 0 then
 		for i = #jps.HealerBlacklist, 1, -1 do
 			if GetTime() - jps.HealerBlacklist[i][2] > jps.BlacklistTimer then
 				if jps.Debug then print("Releasing ", jps.HealerBlacklist[i][1]) end
-				table.remove(jps.HealerBlacklist,i)
+				tremove(jps.HealerBlacklist,i)
 			end
 		end
 	end
@@ -49,9 +53,9 @@ end
 jps.BlacklistPlayer = function(unit)
 	if unit ~= nil then
 	local playerexclude = {}
-	table.insert(playerexclude, unit)
-	table.insert(playerexclude, GetTime())
-	table.insert(jps.HealerBlacklist,playerexclude)
+	tinsert(playerexclude, unit)
+	tinsert(playerexclude, GetTime())
+	tinsert(jps.HealerBlacklist,playerexclude)
 	if jps.Debug then print("|cffa335eeBlacklisting", unit) end
 	end
 
@@ -412,7 +416,7 @@ function jps.Cast(spell) -- "number" "string"
 	jps.LastCast = spellname
 	jps.LastTarget = jps.Target
 	jps.LastTargetGUID = UnitGUID(jps.Target)
-	jps.LastMessage = jps.Message
+	tinsert(jps.LastMessage,1,jps.Message)
 	
 	if (jps.IconSpell ~= spellname) then
 		jps.set_jps_icon(spellname)
@@ -422,4 +426,24 @@ function jps.Cast(spell) -- "number" "string"
 	jps.Target = nil
 	jps.ThisCast = nil
 	jps.Message = ""
+end
+
+function jps.myLastCast(spell)
+	if type(spell) == "string" then spellname = spell end
+	if type(spell) == "number" then spellname = tostring(select(1,GetSpellInfo(spell))) end
+	if not spellname then return false end
+	if jps.CurrentCastInterrupt == spellname then return false end
+	
+	if jps.CurrentCast == spellname then return true end
+	if jps.LastCast == spellname then return true end
+	if jps.SentCast == spellname then return true end
+	return false
+end
+
+local proxy = setmetatable(jps.LastMessage, {__index = function(t, index) return index end})
+function jps.FinderLastMessage(message,iter)
+	for i=1,#jps.LastMessage do
+		if strfind(jps.LastMessage[i],message) then return true end
+	end
+return false
 end

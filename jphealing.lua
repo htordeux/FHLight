@@ -20,6 +20,7 @@ local canHeal = jps.canHeal
 local canDPS = jps.canDPS
 local UnitGroupRolesAssigned = UnitGroupRolesAssigned
 local pairs = pairs
+local tinsert = table.insert
 
 ----------------------
 -- UPDATE RAIDROSTER
@@ -123,7 +124,7 @@ end
 function jps.findTanksInRaid()
 	local myTanks = {}
 	for unit,index in pairs(RaidStatus) do
-		if findTanksInRaid(unit) then table.insert(myTanks, unit) end
+		if findTanksInRaid(unit) then tinsert(myTanks, unit) end
 	end
 	return myTanks
 end
@@ -138,7 +139,7 @@ jps.LowestTarget = function()
 	for unit,index in pairs (RaidStatus) do
 		if canDPS(unit.."target") then
 			local unittarget = unit.."target"
-			table.insert(RaidTarget, unittarget)
+			tinsert(RaidTarget, unittarget)
 		end
 	end
 	
@@ -170,7 +171,7 @@ jps.CountInRaidStatus = function (lowHealthDef)
 
 	for unit,index in pairs(RaidStatus) do
 		if (index["inrange"] == true) then
-			table.insert(myFriends, unit)
+			tinsert(myFriends, unit)
 			raidHP = raidHP + index["hpct"]
 			if index["hpct"] <= lowHealthDef then
 				countInRange = countInRange + 1
@@ -232,10 +233,10 @@ jps.LowestImportantUnit = function()
 	local LowestImportantUnit = "player"
 	if jps.Defensive then 
 -- WARNING FOCUS RETURN FALSE IF NOT IN GROUP OR RAID BECAUSE OF UNITINRANGE(UNIT)
---		if canHeal("focus") then table.insert(myTanks,"focus") end
---		if canHeal("target") then table.insert(myTanks,"target") end
---		if canHeal("targettarget") then table.insert(myTanks,"targettarget") end
---		if canHeal("mouseover") then table.insert(myTanks,"mouseover") end
+--		if canHeal("focus") then tinsert(myTanks,"focus") end
+--		if canHeal("target") then tinsert(myTanks,"target") end
+--		if canHeal("targettarget") then tinsert(myTanks,"targettarget") end
+--		if canHeal("mouseover") then tinsert(myTanks,"mouseover") end
 		local lowestHP = 100 -- in case with Inc & Abs > 1
 		for _, unit in pairs(myTanks) do
 			local thisHP = jps.hp(unit)
@@ -299,7 +300,7 @@ jps.FindSubGroupTarget = function(lowHealthDef)
 		if groupTable[i] > groupVal then -- HEAL >= 3 JOUEURS
 			groupVal = groupTable[i]
 			groupToHeal = i
-			table.insert(groupTableToHeal,i)
+			tinsert(groupTableToHeal,i)
 		end
 	end
 
@@ -340,7 +341,7 @@ jps.FindSubGroup = function()
 			if groupTable[i] > groupVal then -- HEAL >= 3 JOUEURS
 				groupVal = groupTable[i]
 				groupToHeal = i
-				table.insert(groupTableToHeal,i)
+				tinsert(groupTableToHeal,i)
 			end
 		end
 	return groupToHeal, groupTableToHeal -- RETURN Group with at least 3 unit in range

@@ -61,6 +61,8 @@ function jps_Test()
 
 --	print("NextSpell: ",jps.NextSpell)
 
+	print("Leader: ",UnitIsGroupLeader("player"))
+
 end
 
 function jps_RaidTest()

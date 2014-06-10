@@ -40,6 +40,9 @@ local UpdateRaidUnit = jps.UpdateRaidUnit
 local UpdateRaidStatus = jps.UpdateRaidStatus
 local pairs = pairs
 
+local UnitIsPlayer = UnitIsPlayer
+local UnitExists = UnitExists
+
 --------------------------
 -- (UN)REGISTER FUNCTIONS 
 --------------------------
@@ -666,7 +669,7 @@ end
 --end
 
 local scoreLastUpdate = GetTime()
-local scoreFrequency  = 2 -- 2 sec
+local scoreFrequency  = 2 -- sec
 local UpdateIntervalRaidStatus = function()
 	local curTime = GetTime()
 	local diff = curTime - scoreLastUpdate
@@ -773,9 +776,10 @@ jps.LookupEnemyHealer = function()
 	end
 end
 
-local MarkerTable = { {"star",false,1}, {"triangle",false,4}, {"cross",false,7}, {"skull",false,8} }
+local MarkerTable = { {"star",false,1}, {"triangle",false,4}, {"cross",false,7} }
+-- {"skull",false,8} keep it for target to kill
 local resetMarkerTable = function()
-	MarkerTable = { {"star",false,1}, {"triangle",false,4}, {"cross",false,7}, {"skull",false,8} }
+	MarkerTable = { {"star",false,1}, {"triangle",false,4}, {"cross",false,7} }
 end
 
 --	  0 - Clear any raid target markers
@@ -791,11 +795,14 @@ end
 local hookSetRaidTarget = function(unit, index)
 	SetRaidTarget(unit, index)
 end
-
 hooksecurefunc("SetRaidTarget",hookSetRaidTarget)
 
-jps.TargetMarker = function(unit)
+jps.TargetMarker = function(unit,num)
+	if IsInRaid() and not UnitIsGroupLeader("player") then return end
+	if IsActiveBattlefieldArena() and not UnitIsGroupLeader("player") then return end
 	if not MouseoverIsPlayer(unit) then return end
+	if GetRaidTargetIndex(unit) == nil and type(num) == "number" then SetRaidTarget(unit, num) return end
+
 	if GetRaidTargetIndex(unit) == nil then
 		for _,index in ipairs(MarkerTable) do
 			if index[2] == false then
@@ -818,11 +825,7 @@ jps.listener.registerEvent("UPDATE_MOUSEOVER_UNIT", function()
 		if EnemyHealer[unitGuidMouseover] ~= nil then
 			local class = EnemyHealer[unitGuidMouseover][1]
 			local name = EnemyHealer[unitGuidMouseover][2]
-			print("Enemy Healer|cff1eff00 "..name..": "..class.." |cffffffffFound on MOUSEOVER")
---			if not jps.UnitExists("focus") then
---				jps.Macro("/focus mouseover")
---				print("Enemy Healer|cff1eff00 "..name..": "..class.." |cffffffffSet as FOCUS")
---			end
+			jps.TargetMarker("mouseover")
 		end
 	end
 end)

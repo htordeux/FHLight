@@ -32,7 +32,6 @@ local tinsert = table.insert
 -- name, rank, subgroup, level, class, fileName, zone, online, isDead, role, isML, combatRole = GetRaidRosterInfo(raidIndex)
 -- raidIndex of raid member between 1 and MAX_RAID_MEMBERS (40). If you specify an index that is out of bounds, the function returns nil
 
-local RaidStatusRole = {}
 local RaidStatus = {}
 local unitHpct = function(unit,inrange) if inrange then return jps.hp(unit) end end
 local unitHealth = function(unit,inrange) if inrange then return jps.hp(unit,"abs") end end
@@ -70,15 +69,6 @@ jps.UpdateRaidStatus = function ()
 		RaidStatus[unit]["inrange"] = inrange
 	end
 
--- Role in Raid 
--- local role = UnitGroupRolesAssigned(unit) -- works only for friendly unit in raid
-	table.wipe(RaidStatusRole)
-	for unit,_ in pairs(RaidStatus) do
-		if RaidStatusRole[unit] == nil then RaidStatusRole[unit] = {} end
-		RaidStatusRole[unit]["role"] = UnitGroupRolesAssigned(unit)
-		RaidStatusRole[unit]["class"] = select(2,UnitClass(unit))
-	end
-
 end
 
 -- Unit is INRANGE
@@ -99,11 +89,6 @@ end
 ----------------------
 
 -- "DAMAGER" , "HEALER" , "TANK" , "NONE"
-jps.RoleInRaid = function (unit)
-	if RaidStatus[unit] ~= nil then return RaidStatusRole[unit]["role"] end
-	return "NONE"
-end
-
 local findTanksInRaid = function(unit)
 	local foundTank = false
 	if UnitGroupRolesAssigned(unit) == "TANK" then
@@ -458,11 +443,6 @@ end
 -----------------------
 
 function jps.LookupRaid ()
-
--- RaidClass
-	for unit,index in pairs(RaidStatusRole) do 
-		print("|cffe5cc80",unit,"Role: ",index.role,"Class: ",index.class) -- color beige(artifact)
-	end
 	
 -- RaidStatus
 	for unit,index in pairs(RaidStatus) do 

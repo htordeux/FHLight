@@ -38,6 +38,13 @@ local function spelltoName(spellID)
 	return tostring(select(1,GetSpellInfo(spellID)))
 end
 
+local IsRaidLeader = jps.IsLearderRaid()
+local PlayerIsLeader = function()
+	if IsInRaid() and IsRaidLeader > 0 then return true end
+	if not IsInRaid() and not IsInGroup() then return true end
+	return false
+end
+
 function jps_Test()
 
 	jps.LookupEnemy()

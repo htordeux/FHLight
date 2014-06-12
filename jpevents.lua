@@ -348,8 +348,6 @@ jps.registerOnUpdate(updateTimeToDie)
 jps.registerOnUpdate(function()
 	if jps.Combat and jps.Enabled then
     	jps.Cycle()
-	elseif jps.Enabled then
-		jps.cachedValue(jps.Cycle,2)
 	end
 end)
 
@@ -711,6 +709,7 @@ local HealerSpellID = {
         [033206] = "PRIEST", -- Pain Suppression
         [000596] = "PRIEST", -- Prayer of Healing
         [000527] = "PRIEST", -- Purify
+        [000139] = "PRIEST", -- Renew
         -- Holy
         [034861] = "PRIEST", -- Circle of Healing
         [064843] = "PRIEST", -- Divine Hymn
@@ -799,8 +798,8 @@ end
 hooksecurefunc("SetRaidTarget",hookSetRaidTarget)
 
 jps.TargetMarker = function(unit,num)
-	local assistRaid = PlayerIsLeader()
-	if not assistRaid then return end
+	local playerAssistRaid = PlayerIsLeader()
+	if not playerAssistRaid then return end
 	
 	if GetRaidTargetIndex(unit) == nil and type(num) == "number" then SetRaidTarget(unit, num) return end
 	if GetRaidTargetIndex(unit) == nil then
@@ -820,11 +819,13 @@ end
 -- EnemyHealer[UnitGUId] = {"MONK"}
 -- className, classId, raceName, raceId, gender, name, realm = GetPlayerInfoByGUID("guid")
 jps.listener.registerEvent("UPDATE_MOUSEOVER_UNIT", function()
-	if jps.UnitType("mouseover") == "player" and jps.getConfigVal("set healer as focus") == 1 then
+	if jps.getConfigVal("set healer as focus") == 1 then
 		local unitGuidMouseover = UnitGUID("mouseover")
-		if EnemyHealer[unitGuidMouseover] ~= nil then
+		if EnemyHealer[unitGuidMouseover] then
 			local class = EnemyHealer[unitGuidMouseover][1]
 			local name = EnemyHealer[unitGuidMouseover][2]
+			jps.Macro("/focus mouseover")
+			print("Enemy HEALER|cff1eff00 "..name.." |cffffffffClass|cff1eff00 "..class.." |cffffffffset as FOCUS")
 			jps.TargetMarker("mouseover")
 		end
 	end
@@ -914,7 +915,6 @@ jps.listener.registerEvent("COMBAT_LOG_EVENT_UNFILTERED", function(...)
 			local updateEnemyHealer = false
 			if HealerSpellID[healId] then
 				if EnemyHealer[sourceGUID] == nil then
-					EnemyHealer[sourceGUID] = {}
 					updateEnemyHealer = true
 				end
 				if updateEnemyHealer then EnemyHealer[sourceGUID] = {HealerSpellID[healId],sourceName} end

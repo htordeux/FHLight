@@ -61,7 +61,7 @@ function jps_Test()
 
 --	print("NextSpell: ",jps.NextSpell)
 
-	print("Leader: ",UnitIsGroupLeader("player"))
+	if IsAltKeyDown() then SetRaidTarget("target",0) end
 
 end
 

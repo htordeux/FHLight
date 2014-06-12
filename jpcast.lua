@@ -358,6 +358,14 @@ end
 -- PLUA PROTECTED
 ------------------------------
 
+local knownTypes = {[0]="player", [1]="world object", [3]="NPC", [4]="pet", [5]="vehicle"}
+jps.UnitType = function (unit)
+	if not jps.UnitExists(unit) then return false end
+	local UnitGuid = UnitGUID(unit)
+	local knownType = tonumber(UnitGuid:sub(5,5), 16) % 8
+	return knownTypes[knownType]
+end
+
 local fh = {}
 function fh.groundClick(spell,unit)
 	if unit == nil then unit = "player" end

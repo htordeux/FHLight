@@ -39,9 +39,7 @@ local canHeal = jps.canHeal
 local UpdateRaidUnit = jps.UpdateRaidUnit
 local UpdateRaidStatus = jps.UpdateRaidStatus
 local pairs = pairs
-
 local UnitIsPlayer = UnitIsPlayer
-local UnitExists = UnitExists
 
 --------------------------
 -- (UN)REGISTER FUNCTIONS 
@@ -346,10 +344,12 @@ end
 -- TimeToDie Update
 jps.registerOnUpdate(updateTimeToDie)
 
--- Combat
+-- Combat -- and UPDATE 2 sec if not in COMBAT
 jps.registerOnUpdate(function()
 	if jps.Combat and jps.Enabled then
     	jps.Cycle()
+	elseif jps.Enabled then
+		jps.cachedValue(jps.Cycle,2)
 	end
 end)
 
@@ -435,6 +435,7 @@ local leaveCombat = function()
 	jps.timedCasting = {}
 	jps.HealerBlacklist = {} 
 	jps.UpdateRaidStatus()
+	jps.IsLearderRaid()
 	collectgarbage()
 end
 
@@ -762,24 +763,18 @@ local HealerSpellID = {
         [132120] = "MONK", -- Envelopping Mist
     };
 
-local UnitIsPlayer = UnitIsPlayer
-local UnitExists = jps.UnitExists
-local MouseoverIsPlayer = function(unit)
-	if UnitIsPlayer(unit) and UnitExists(unit) then return true end
+-- isArena, isRegistered = IsActiveBattlefieldArena()
+-- isArena - 1 if player is in an Arena match; otherwise nil
+-- IsInRaid() Boolean - returns true if the player is currently in a raid group, false otherwise
+-- IsInGroup() Boolean - returns true if the player is in a some kind of group, otherwise false
+
+-- leader = UnitIsRaidOfficer("unit") -- 1 if the unit is a raid assistant; otherwise nil or false if not in raid
+-- leader = UnitIsGroupLeader("unit") -- true if the unit is a raid assistant; otherwise false (bool)
+local IsRaidLeader = jps.IsLearderRaid()
+local PlayerIsLeader = function()
+	if IsInRaid() and IsRaidLeader > 0 then return true end
+	if not IsInRaid() and not IsInGroup() then return true end
 	return false
-end
-
-jps.LookupEnemyHealer = function()
-	if jps.tableLength(EnemyHealer) == 0 then print("EnemyHealer is nil") end
-	for _,index in pairs(EnemyHealer) do
-		print(index[1],": ",index[2])
-	end
-end
-
-local MarkerTable = { {"star",false,1}, {"triangle",false,4}, {"cross",false,7} }
--- {"skull",false,8} keep it for target to kill
-local resetMarkerTable = function()
-	MarkerTable = { {"star",false,1}, {"triangle",false,4}, {"cross",false,7} }
 end
 
 --	  0 - Clear any raid target markers
@@ -792,17 +787,22 @@ end
 --    7 - Cross
 --    8 - Skull
 
+-- {"skull",false,8} keep it for target to kill
+local MarkerTable = { {"star",false,1}, {"triangle",false,4}, {"cross",false,7} }
+local resetMarkerTable = function()
+	MarkerTable = { {"star",false,1}, {"triangle",false,4}, {"cross",false,7} }
+end
+
 local hookSetRaidTarget = function(unit, index)
 	SetRaidTarget(unit, index)
 end
 hooksecurefunc("SetRaidTarget",hookSetRaidTarget)
 
 jps.TargetMarker = function(unit,num)
-	if IsInRaid() and not UnitIsGroupLeader("player") then return end
-	if IsActiveBattlefieldArena() and not UnitIsGroupLeader("player") then return end
-	if not MouseoverIsPlayer(unit) then return end
+	local assistRaid = PlayerIsLeader()
+	if not assistRaid then return end
+	
 	if GetRaidTargetIndex(unit) == nil and type(num) == "number" then SetRaidTarget(unit, num) return end
-
 	if GetRaidTargetIndex(unit) == nil then
 		for _,index in ipairs(MarkerTable) do
 			if index[2] == false then
@@ -820,7 +820,7 @@ end
 -- EnemyHealer[UnitGUId] = {"MONK"}
 -- className, classId, raceName, raceId, gender, name, realm = GetPlayerInfoByGUID("guid")
 jps.listener.registerEvent("UPDATE_MOUSEOVER_UNIT", function()
-	if MouseoverIsPlayer("mouseover") and jps.getConfigVal("set healer as focus") == 1 then
+	if jps.UnitType("mouseover") == "player" and jps.getConfigVal("set healer as focus") == 1 then
 		local unitGuidMouseover = UnitGUID("mouseover")
 		if EnemyHealer[unitGuidMouseover] ~= nil then
 			local class = EnemyHealer[unitGuidMouseover][1]
@@ -991,7 +991,7 @@ jps.FriendAggro = function (friend)
 	return false
 end
 
--- Table of Targeted Friend -- SPELLNAME
+-- Table of Targeted Friend -- Return SPELLNAME
 local FriendTable = {}
 jps.FriendAggroTable = function()
 	jps.removeTable(FriendTable)
@@ -1021,6 +1021,14 @@ jps.LookupEnemy = function()
 	if jps.tableLength(EnemyTable) == 0 then print("EnemyTable is nil") end
 	for unit,index in pairs(EnemyTable) do
 		print("|cffa335ee","EnemyGuid_",unit,"|cff1eff00","FriendGuid_",index.friend,"|cffe5cc80Name_",index.friendname,"|cFFFF0000Dmg:",index.friendaggro[1],"/",index.friendaggro[2])
+	end
+end
+
+-- EnemyHealer[enemyGuid] = {Class,sourceName}
+jps.LookupEnemyHealer = function()
+	if jps.tableLength(EnemyHealer) == 0 then print("EnemyHealer is nil") end
+	for _,index in pairs(EnemyHealer) do
+		print("|cffff8000Class: ",index[1],"|cffe5cc80Name: ",index[2])
 	end
 end
 

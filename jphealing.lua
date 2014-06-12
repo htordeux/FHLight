@@ -21,6 +21,7 @@ local canDPS = jps.canDPS
 local UnitGroupRolesAssigned = UnitGroupRolesAssigned
 local pairs = pairs
 local tinsert = table.insert
+local GetUnitName = GetUnitName
 
 ----------------------
 -- UPDATE RAIDROSTER
@@ -82,6 +83,16 @@ end
 jps.UnitInRaid = function(unit)
 	if RaidStatus[unit] ~= nil then return true end
 	return false
+end
+
+function jps.IsLearderRaid()
+	for i=1,MAX_RAID_MEMBERS do
+		-- if index is out of bounds, the function returns nil
+		if GetRaidRosterInfo(i) == nil then return 0 end
+		local rank = select(2,GetRaidRosterInfo(i))
+		local name = select(1,GetRaidRosterInfo(i))
+		if name == GetUnitName("player") then return rank end
+	end
 end
 
 ----------------------
@@ -214,14 +225,10 @@ jps.avgRaidHP = function()
 end
 
 local myTanks = { "player","focus","target","targettarget","mouseover" }
+-- WARNING FOCUS RETURN FALSE IF NOT IN GROUP OR RAID BECAUSE OF UNITINRANGE(UNIT)
 jps.LowestImportantUnit = function()
 	local LowestImportantUnit = "player"
 	if jps.Defensive then 
--- WARNING FOCUS RETURN FALSE IF NOT IN GROUP OR RAID BECAUSE OF UNITINRANGE(UNIT)
---		if canHeal("focus") then tinsert(myTanks,"focus") end
---		if canHeal("target") then tinsert(myTanks,"target") end
---		if canHeal("targettarget") then tinsert(myTanks,"targettarget") end
---		if canHeal("mouseover") then tinsert(myTanks,"mouseover") end
 		local lowestHP = 100 -- in case with Inc & Abs > 1
 		for _, unit in pairs(myTanks) do
 			local thisHP = jps.hp(unit)

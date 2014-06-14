@@ -49,7 +49,6 @@ jps.Casting = false
 jps.ThisCast = nil
 jps.Moving = false
 jps.HarmSpell = nil
-jps.IconSpell = nil
 jps.CurrentCast = nil
 jps.CurrentCastInterrupt = nil
 jps.SentCast = nil
@@ -60,6 +59,7 @@ jps.LastMessage = {}
 jps.LastTargetGUID = nil
 jps.Latency = 0
 jps.NextSpell = nil
+jps.GCD = 1
 
 -- Class
 jps.Class = nil
@@ -316,6 +316,10 @@ function SlashCmdList.jps(cmd, editbox)
 	end
 end
 
+----------------------
+-- USE ACTION
+----------------------
+
 -- cache for WoW API functions that return always the same results for the given params
 local spellcache = setmetatable({}, {__index=function(t,v) local a = {GetSpellInfo(v)} if GetSpellInfo(v) then t[v] = a end return a end})
 local function GetSpellInfo(a)
@@ -330,9 +334,7 @@ hooksecurefunc("UseAction", function(...)
 			local name = select(1,GetSpellInfo(id))
 			if jps.NextSpell ~= name and not jps.shouldSpellBeIgnored(name) then
 				jps.NextSpell = name
-				if jps.Combat then 
-					write("Set",name,"for next cast.")
-				end
+				write("Set",name,"for next cast.")
 			end
 		end
 	end
@@ -340,17 +342,6 @@ end)
 
 ----------------------
 -- COMBAT
-----------------------
-
-local IsPlayerCasting = function()
-	if jps.CastTimeLeft("player") - jps.Latency > 0 then return true
-	elseif jps.ChannelTimeLeft("player") - jps.Latency > 0 then return true
-	end
-	return false
-end
-
-----------------------
--- PLAYER CASTING
 ----------------------
 
 function jps.Cycle()
@@ -369,17 +360,19 @@ function jps.Cycle()
 	jps.Moving = select(1,GetUnitSpeed("player")) > 0 
 
 	-- casting
-	jps.Casting = IsPlayerCasting()
+	if jps.ChannelTimeLeft("player") > 0 then jps.Casting = true
+	elseif jps.CastTimeLeft("player") - jps.Latency > 0 then jps.Casting = true
+	else jps.Casting = false end
 
 	-- Check spell usability -- ALLOW SPELLSTOPCASTING() IN JPS.ROTATION() TABLE
 	jps.ThisCast,jps.Target = jps.activeRotation().getSpell()
 
 	if not jps.Casting and jps.ThisCast ~= nil then
 		if jps.NextSpell ~= nil then
-			if jps.NextSpell then
+			if jps.NextSpell and jps.NextSpell ~= jps.SentCast then
 				jps.Cast(jps.NextSpell,jps.Target)
-				if (jps.cooldown(jps.NextSpell) > 0) or (jps.NextSpell == jps.CurrentCast) or (jps.NextSpell == jps.SentCast) then
-					write("Next Spell "..jps.NextSpell.. " was casted")
+				if (jps.cooldown(jps.NextSpell) > 0) then -- or jps.NextSpell == jps.SentCast
+					write("|cFFFF0000Next Spell "..jps.NextSpell.. " was casted")
 					jps.NextSpell = nil
 				end
 			else

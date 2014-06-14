@@ -38,26 +38,37 @@ local function spelltoName(spellID)
 	return tostring(select(1,GetSpellInfo(spellID)))
 end
 
-local IsRaidLeader = jps.IsLearderRaid()
+local IsRaidLeader = jps.IsRaidLeader()
 local PlayerIsLeader = function()
 	if IsInRaid() and IsRaidLeader > 0 then return true end
 	if not IsInRaid() and not IsInGroup() then return true end
 	return false
 end
 
+local GlobalCooldown = function()
+	local cdStart, duration = GetSpellCooldown(61304)
+	local timeLeft = duration - (GetTime() - cdStart )
+	if timeLeft < 0 then timeLeft = 0 end
+	return duration
+end
+
+
 function jps_Test()
 
 	jps.LookupEnemy()
 	jps.LookupEnemyHealer()
 
-	print("Stun:",jps.checkTimer("PlayerStun"))
-	print("Interrupt:",jps.checkTimer("PlayerInterrupt"))
-	print("Shield:",jps.checkTimer("ShieldTimer"))
-	print("Aggro:",jps.FriendAggro("player"))
-	print("LoseControl:",jps.LoseControl("player"))
-	print("ChastiseCd: ",jps.checkTimer("Chastise"))
-	
---	local masteryValue = math.ceil(GetMastery())/100
+--	print("Stun:",jps.checkTimer("PlayerStun"))
+--	print("Interrupt:",jps.checkTimer("PlayerInterrupt"))
+--	print("Shield:",jps.checkTimer("ShieldTimer"))
+--	print("Aggro:",jps.FriendAggro("player"))
+--	print("LoseControl:",jps.LoseControl("player"))
+--	print("ChastiseCd: ",jps.checkTimer("Chastise"))
+
+-- GetMastery() the value returns by GetMastery is not your final Mastery value
+-- To find your true Mastery, and the multiplier factor used to calculate it, see GetMasteryEffect.
+--	local mastery = GetMasteryEffect()
+--	local masteryValue = math.ceil(mastery)/100
 --	local bonusHealing = math.ceil(GetSpellBonusHealing())
 --	local minCrit = math.ceil(GetSpellCritChance(2))/100 -- 2 - Holy
 --	print("priestFlash",priest.AvgAmountFlashHeal,"/",(1+masteryValue)*(1+minCrit)*(14664+(1.314*bonusHealing)))
@@ -66,9 +77,12 @@ function jps_Test()
 --	local friendtableaggro = jps.FriendAggroTable()
 --	print("friendtableaggro: ",friendtableaggro)
 
---	print("NextSpell: ",jps.NextSpell)
-
 	if IsAltKeyDown() then SetRaidTarget("target",0) end
+	write("Isleader: ",PlayerIsLeader())
+
+	--SendChatMessage("Test" , RAID )
+	print("GCD: ",jps.GCD)
+
 
 end
 

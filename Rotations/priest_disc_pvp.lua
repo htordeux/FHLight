@@ -130,7 +130,6 @@ local priestDiscPvP = function()
 	if canDPS("target") then rangedTarget =  "target"
 	elseif canDPS("focustarget") then rangedTarget = "focustarget"
 	elseif canDPS("targettarget") then rangedTarget = "targettarget"
-	elseif canDPS("mouseover") and jps.RoleClass("mouseover") == "HEALER" then rangedTarget = "mouseover"
 	elseif canDPS("mouseover") then rangedTarget = "mouseover"
 	end
 

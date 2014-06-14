@@ -216,38 +216,33 @@ function jps.DispelOffensive(unit)
 end
 
 function jps.shouldKick(unit)
-	if not jps.Interrupts then return false end
 	if not canDPS(unit) then return false end
 	if unit == nil then unit = "target" end
-	local target_spell, _, _, _, _, _, _, _, unInterruptable = UnitCastingInfo(unit)
-	local channelling, _, _, _, _, _, _, notInterruptible = UnitChannelInfo(unit)
-	if target_spell == L["Release Aberrations"] then return false end
+	local casting = select(1,UnitCastingInfo(unit))
+	local interrupt = select(9,UnitCastingInfo(unit))
+	local channelling = select(1,UnitChannelInfo(unit))
+	local interruptible = select(9,UnitChannelInfo(unit))
+	if casting == L["Release Aberrations"] then return false end
 
-	if target_spell and (unInterruptable == false) then
+	if casting and not interrupt then
 		return true
-	elseif channelling and (notInterruptible == false) then
+	elseif channelling then
 		return true
 	end
 	return false
 end
 
-function jps.shouldKickLag(unit)
-	if not jps.Interrupts then return false end
+function jps.shouldKickDelay(unit)
 	if not canDPS(unit) then return false end
 	if unit == nil then unit = "target" end
-	local target_spell, _, _, _, _, cast_endTime, _, _, unInterruptable = UnitCastingInfo(unit)
-	local channelling, _, _, _, _, chanel_endTime, _, notInterruptible = UnitChannelInfo(unit)
-	if target_spell == L["Release Aberrations"] then return false end
+	local casting = UnitCastingInfo(unit)
+	local channelling = UnitChannelInfo(unit)
+	if casting == L["Release Aberrations"] then return false end
 
-	if cast_endTime == nil then cast_endTime = 0 end
-	if chanel_endTime == nil then chanel_endTime = 0 end
-
-	if target_spell and unInterruptable == false then
-		if jps.CastTimeLeft(unit) < 1 then
-		return true end
-	elseif channelling and notInterruptible == false then
-		if jps.ChannelTimeLeft(unit) < 1 then
-		return true end
+	if casting and jps.CastTimeLeft(unit) < 2 then
+		return true
+	elseif channelling and jps.ChannelTimeLeft(unit) < 2 then
+		return true
 	end
 	return false
 end
@@ -257,7 +252,6 @@ local interruptDelaySpellUnit = ""
 local interruptDelayTimestamp = GetTime()
 
 function jps.kickDelay(unit)
-	if not jps.Interrupts then return false end
 	if not canDPS(unit) then return false end
 	if jps.IsCasting(unit) then
 		local castLeft, spellName = jps.CastTimeLeft(unit) or jps.ChannelTimeLeft(unit)

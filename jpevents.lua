@@ -367,6 +367,7 @@ jps.listener.registerEvent("PLAYER_ENTERING_WORLD", function()
 	jps.detectSpec()
 	reset_healtable()
 	jps.UpdateRaidStatus()
+	EnemyHealer = {}
 end)
 
 -- INSPECT_READY
@@ -405,6 +406,7 @@ jps.listener.registerEvent("PLAYER_REGEN_DISABLED", function()
 	jps.gui_toggleCombat(true)
 	jps.combatStart = GetTime()
 	jps.UpdateRaidStatus()
+	jps.IsRaidLeader()
 end)
 
 -- LOOT_OPENED
@@ -426,14 +428,13 @@ local leaveCombat = function()
 	--jps.Timers = {} -- because of Holy Word: Chastise 88625 Cooldown
 	RaidTimeToDie = {}
 	EnemyTable = {}
-	EnemyHealer = {}
 	Healtable = {}
 	jps.LastMessage = {}
 	jps.TimeToDieData = {}
 	jps.timedCasting = {}
 	jps.HealerBlacklist = {} 
 	jps.UpdateRaidStatus()
-	jps.IsLearderRaid()
+
 	collectgarbage()
 end
 
@@ -457,6 +458,17 @@ jps.listener.registerEvent("UNIT_AURA", function(unitID)
 		updateAverageHeal()
 	end
 end)
+
+--------------------------
+-- GLOBAL COOLDOWN
+--------------------------
+
+local GlobalCooldown = function()
+	local cdStart, duration = GetSpellCooldown(61304)
+	local timeLeft = duration - (GetTime() - cdStart )
+	if timeLeft < 0 then timeLeft = 0 end
+	return duration
+end
 
 --------------------------
 -- EVENT FUNCTIONS SPELL
@@ -512,6 +524,7 @@ jps.listener.registerEvent("UNIT_SPELLCAST_START", function(unitID,spellname,_,_
 		if unitID == "player" then
 			jps.CurrentCast = spellname
 			jps.Latency = GetTime() - sendTime
+			jps.GCD = GlobalCooldown()
 			--jps.Casting = true
 			--print("SPELLCAST_START: ",unitID,"spellname: ",spellname,"",jps.Casting)
 		end
@@ -521,6 +534,7 @@ jps.listener.registerEvent("UNIT_SPELLCAST_CHANNEL_START", function(unitID,spell
 		if unitID == "player" and spellID ~= nil then
 			jps.CurrentCast = spellname
 			jps.Latency = GetTime() - sendTime
+			jps.GCD = GlobalCooldown()
 			--jps.Casting = true
 			--print("CHANNEL_START: ",unitID,"spellname:",spellname,"",jps.Casting)
 		end
@@ -529,14 +543,14 @@ end)
 --jps.listener.registerEvent("UNIT_SPELLCAST_CHANNEL_STOP", function(unitID,spellname,_,_,spellID)
 --	if unitID == "player" and spellID ~= nil then
 --		jps.Casting = false
---		--print("CHANNEL_STOP: ",unitID,"spellname:",spellname,"",jps.Casting)
+--		print("CHANNEL_STOP: ",unitID,"spellname:",spellname,"",jps.Casting)
 --	end
 --end)
 
 jps.listener.registerEvent("UNIT_SPELLCAST_INTERRUPTED", function(unitID,spellname,_,_,spellID)
 	if unitID == "player" and spellID ~= nil then
-		jps.Casting = false
 		jps.CurrentCastInterrupt = spellname
+		--jps.Casting = false
 		--print("INTERRUPTED: ",unitID,"spellname:",spellname,": ",spellID)
 	end
 end)
@@ -544,10 +558,9 @@ end)
 --jps.listener.registerEvent("UNIT_SPELLCAST_STOP", function(unitID,spellname,_,_,spellID)
 --	if unitID == "player" and spellID ~= nil then
 --		jps.Casting = false
---		--print("SPELLCAST_STOP: ",unitID,"spellname:",spellname,"",jps.Casting)
+--		print("SPELLCAST_STOP: ",unitID,"spellname:",spellname,"",jps.Casting)
 --	end
 --end)
-
 
 -- UNIT_SPELLCAST_SUCCEEDED
 jps.listener.registerEvent("UNIT_SPELLCAST_SUCCEEDED", function(unitID,spellname,_,_,spellID)
@@ -703,13 +716,14 @@ local HealerSpellID = {
         [047515] = "PRIEST", -- Divine Aegis
         [081700] = "PRIEST", -- Archangel
         [002060] = "PRIEST", -- Greater Heal
+        [002061] = "PRIEST", -- Flash Heal
         [002050] = "PRIEST", -- Heal
         [014914] = "PRIEST", -- Holy Fire
         [089485] = "PRIEST", -- Inner Focus
         [033206] = "PRIEST", -- Pain Suppression
         [000596] = "PRIEST", -- Prayer of Healing
         [000527] = "PRIEST", -- Purify
-        [000139] = "PRIEST", -- Renew
+        [000139] = "PRIEST", -- Renew -- exists also for shadow priests
         -- Holy
         [034861] = "PRIEST", -- Circle of Healing
         [064843] = "PRIEST", -- Divine Hymn
@@ -769,7 +783,7 @@ local HealerSpellID = {
 
 -- leader = UnitIsRaidOfficer("unit") -- 1 if the unit is a raid assistant; otherwise nil or false if not in raid
 -- leader = UnitIsGroupLeader("unit") -- true if the unit is a raid assistant; otherwise false (bool)
-local IsRaidLeader = jps.IsLearderRaid()
+local IsRaidLeader = jps.IsRaidLeader()
 local PlayerIsLeader = function()
 	if IsInRaid() and IsRaidLeader > 0 then return true end
 	if not IsInRaid() and not IsInGroup() then return true end

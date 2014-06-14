@@ -85,7 +85,7 @@ jps.UnitInRaid = function(unit)
 	return false
 end
 
-function jps.IsLearderRaid()
+function jps.IsRaidLeader()
 	for i=1,MAX_RAID_MEMBERS do
 		-- if index is out of bounds, the function returns nil
 		if GetRaidRosterInfo(i) == nil then return 0 end

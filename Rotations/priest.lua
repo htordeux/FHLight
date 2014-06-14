@@ -11,6 +11,11 @@ if not priest then priest = {} end
 -- Flash Heal: Heals a friendly target for 12619 to 14664 (+ 131.4% of Spell power).
 -- Greater Heal : heals a single target for 21022 to 24430 (+ 219% of Spell power).
 -- Heal : heals your target for 9848 to 11443 (+ 102.4% of Spell power).
+
+-- GetMastery() the value returns by GetMastery is not your final Mastery value
+-- To find your true Mastery, and the multiplier factor used to calculate it, see GetMasteryEffect.
+	
+local mastery = GetMasteryEffect()
 local masteryValue = math.ceil(GetMastery())/100
 local bonusHealing = math.ceil(GetSpellBonusHealing())
 local minCrit = math.ceil(GetSpellCritChance(2))/100 -- 2 - Holy

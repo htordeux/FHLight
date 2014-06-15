@@ -58,12 +58,12 @@ function jps_Test()
 	jps.LookupEnemy()
 	jps.LookupEnemyHealer()
 
---	print("Stun:",jps.checkTimer("PlayerStun"))
---	print("Interrupt:",jps.checkTimer("PlayerInterrupt"))
---	print("Shield:",jps.checkTimer("ShieldTimer"))
---	print("Aggro:",jps.FriendAggro("player"))
---	print("LoseControl:",jps.LoseControl("player"))
---	print("ChastiseCd: ",jps.checkTimer("Chastise"))
+	print("Stun:|cff0070dd ",jps.checkTimer("PlayerStun"))
+	print("Interrupt:|cff0070dd ",jps.checkTimer("PlayerInterrupt"))
+	print("Shield:|cff0070dd ",jps.checkTimer("ShieldTimer"))
+	print("Aggro:|cff0070dd ",jps.FriendAggro("player"))
+	print("LoseControl:|cff0070dd ",jps.LoseControl("player"))
+	print("ChastiseCd:|cff0070dd ",jps.checkTimer("Chastise"))
 
 -- GetMastery() the value returns by GetMastery is not your final Mastery value
 -- To find your true Mastery, and the multiplier factor used to calculate it, see GetMasteryEffect.
@@ -77,12 +77,9 @@ function jps_Test()
 --	local friendtableaggro = jps.FriendAggroTable()
 --	print("friendtableaggro: ",friendtableaggro)
 
-	if IsAltKeyDown() then SetRaidTarget("target",0) end
 	write("Isleader: ",PlayerIsLeader())
 
 	--SendChatMessage("Test" , RAID )
-	print("GCD: ",jps.GCD)
-
 
 end
 

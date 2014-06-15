@@ -814,6 +814,7 @@ hooksecurefunc("SetRaidTarget",hookSetRaidTarget)
 jps.TargetMarker = function(unit,num)
 	local playerAssistRaid = PlayerIsLeader()
 	if not playerAssistRaid then return end
+	if IsAltKeyDown() then SetRaidTarget("target",0) return end
 	
 	if GetRaidTargetIndex(unit) == nil and type(num) == "number" then SetRaidTarget(unit, num) return end
 	if GetRaidTargetIndex(unit) == nil then
@@ -840,7 +841,6 @@ jps.listener.registerEvent("UPDATE_MOUSEOVER_UNIT", function()
 		if EnemyHealer[unitGuidMouseover] then
 			local class = EnemyHealer[unitGuidMouseover][1]
 			local name = EnemyHealer[unitGuidMouseover][2]
-			jps.Macro("/focus mouseover")
 			print("Enemy HEALER|cff1eff00 "..name.." |cffffffffClass|cff1eff00 "..class.." |cffffffffset as FOCUS")
 			jps.TargetMarker("mouseover")
 		end

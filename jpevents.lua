@@ -827,6 +827,8 @@ jps.TargetMarker = function(unit,num)
 	-- if all MarkerTable are true reset the table
 	if GetRaidTargetIndex(unit) == nil then
 		resetMarkerTable()
+		SetRaidTarget(unit, 1)
+		MarkerTable[1][2] = true
 	end
 end
 

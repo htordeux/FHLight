@@ -127,7 +127,7 @@ local title = DropDownRotationGUI:CreateFontString(nil, "ARTWORK", "GameFontNorm
 title:SetPoint("TOPLEFT", 20, 10) 
 title:SetText("JPS ROTATIONS")	
 
- function GUIRotation_OnClick(self)
+function GUIRotation_OnClick(self)
    UIDropDownMenu_SetSelectedID(DropDownRotationGUI, self:GetID())
    jps.Count = self:GetID() -- HERE we get the jps.Count in the DropDownRotation
    jps.setActiveRotation(self:GetID())

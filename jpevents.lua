@@ -812,11 +812,13 @@ end
 hooksecurefunc("SetRaidTarget",hookSetRaidTarget)
 
 jps.TargetMarker = function(unit,num)
+	if unit == nil then return end
 	local playerAssistRaid = PlayerIsLeader()
 	if not playerAssistRaid then return end
 	if IsAltKeyDown() then SetRaidTarget("target",0) return end
-	
-	if GetRaidTargetIndex(unit) == nil and type(num) == "number" then SetRaidTarget(unit, num) return end
+
+	if type(num) == "number" then SetRaidTarget(unit, num) return end
+
 	if GetRaidTargetIndex(unit) == nil then
 		for _,index in ipairs(MarkerTable) do
 			if index[2] == false then
@@ -828,8 +830,6 @@ jps.TargetMarker = function(unit,num)
 	-- if all MarkerTable are true reset the table
 	if GetRaidTargetIndex(unit) == nil then
 		resetMarkerTable()
-		SetRaidTarget(unit, 1)
-		MarkerTable[1][2] = true
 	end
 end
 

@@ -8,7 +8,6 @@ jps.registerRotation("SHAMAN","RESTORATION",function()
 	local me = "player"
 	local mh, _, _, oh, _, _, _, _, _ =GetWeaponEnchantInfo()
 	local engineering ="/use 10"
-	local r = jps.Macro
 	local tank = nil
 
 

@@ -12,7 +12,6 @@ jps.registerRotation("HUNTER","MARKSMANSHIP", function()
 	local spell = nil
 	local target = nil
 	local up = UnitPower
-	local r = jps.Macro;
 	local focus = UnitPower("player")
 
 	-- Interupting, Borrowed directly from feral cat

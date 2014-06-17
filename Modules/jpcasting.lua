@@ -78,7 +78,7 @@ function jps.cooldown(spell) -- start, duration, enable = GetSpellCooldown("name
 	if type(spell) == "number" then spellname = tostring(select(1,GetSpellInfo(spell))) end
 	local start,duration,_ = GetSpellCooldown(spellname)
 	-- if spell is unknown start is nil and cd is 0 => set it to 1 if the spell is unknown
-	if start == nil then return 1 end
+	if start == nil then return 999 end
 	local cd = start+duration-GetTime()
 	if cd < 0 then return 0 end
 	return cd

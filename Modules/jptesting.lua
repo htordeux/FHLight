@@ -78,6 +78,7 @@ function jps_Test()
 --	print("friendtableaggro: ",friendtableaggro)
 
 	write("Isleader: ",PlayerIsLeader())
+	write("GCD: ",jps.GCD)
 
 	--SendChatMessage("Test" , RAID )
 

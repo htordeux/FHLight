@@ -228,7 +228,7 @@ function jps.canCast(spell,unit)
 	local usable, nomana = IsUsableSpell(spell) -- usable, nomana = IsUsableSpell("spellName" or spellID)
 	if not usable then return false end
 	if nomana then return false end
-	if (jps.cooldown(spellname) > 0) then return false end
+	if (jps.cooldown(spellname) > jps.GCD) then return false end
 	if jps.SpellHasRange(spell) and not jps.IsSpellInRange(spell,unit) then return false end
 	if jps[spellname] ~= nil and jps[spellname] == false then return false end -- need spellname
 	return true

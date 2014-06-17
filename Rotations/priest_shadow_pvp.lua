@@ -47,7 +47,6 @@ local playermana = UnitPower ("player",0)/UnitPowerMax ("player",0)
 -- HELPER
 ----------------------
 
-local GCD = jps.GCD
 local Orbs = UnitPower("player",13)
 local NaaruGift = tostring(select(1,GetSpellInfo(59544))) -- NaaruGift 59544
 local Desesperate = tostring(select(1,GetSpellInfo(19236))) -- "Prière du désespoir" 19236
@@ -266,7 +265,7 @@ local spellTable = {
 	-- "Devouring Plague" 2944 -- orbs < 3 if timetodie < few sec
 	{ 2944, Orbs > 0 and jps.hp(rangedTarget) < 0.20 and not jps.buff(124430) , rangedTarget , "ORBS_20%_NoBuff" },
 	{ 2944, Orbs > 1 and jps.hp(rangedTarget) < 0.20 , rangedTarget , "ORBS_2_" },
-	{ 2944, Orbs > 1 and jps.myDebuffDuration(34914,rangedTarget) > (6 + GCD*3) and jps.myDebuffDuration(589,rangedTarget) > (6 + GCD*3) , rangedTarget , "ORBS_2_Buff_" },
+	{ 2944, Orbs > 1 and jps.myDebuffDuration(34914,rangedTarget) > (6 + jps.GCD*3) and jps.myDebuffDuration(589,rangedTarget) > (6 + jps.GCD*3) , rangedTarget , "ORBS_2_Buff_" },
 	
 	-- FOCUS CONTROL
 	{ "nested", canDPS("focus") and not jps.LoseControl("focus") , parseControlFocus },
@@ -283,7 +282,7 @@ local spellTable = {
 	{ 32379, jps.hp(rangedTarget) < 0.20 , rangedTarget, "castDeath_"..rangedTarget },
 	{ 32379, type(DeathEnemyTarget) == "string" , DeathEnemyTarget , "Death_MultiUnit_" },
 	-- "Mind Spike" 73510 -- "From Darkness, Comes Light" 109186 gives buff -- "Surge of Darkness" 87160 -- 10 sec
-	{ 73510, jps.buff(87160) and jps.buffDuration(87160) < (GCD*4) , rangedTarget },
+	{ 73510, jps.buff(87160) and jps.buffDuration(87160) < (jps.GCD*4) , rangedTarget },
 	{ 73510, jps.buff(87160) and jps.myDebuff(34914,rangedTarget) , rangedTarget }, -- debuff "Vampiric Touch" 34914
 	{ 73510, jps.buff(87160) and jps.myDebuff(589,rangedTarget) , rangedTarget }, -- debuff "Shadow Word: Pain" 589
 
@@ -300,9 +299,9 @@ local spellTable = {
 	-- "Dispel" "Purifier" 527 -- UNAVAILABLE IN SHADOW FORM 15473
 
 	-- "Vampiric Touch" 34914 Keep VT up with duration
-	{ 34914, not jps.Moving and UnitHealth(rangedTarget) > 120000 and jps.myDebuff(34914,rangedTarget) and jps.myDebuffDuration(34914,rangedTarget) < (GCD*2) and not jps.myLastCast(34914) , rangedTarget , "VT_Keep_" },
+	{ 34914, not jps.Moving and UnitHealth(rangedTarget) > 120000 and jps.myDebuff(34914,rangedTarget) and jps.myDebuffDuration(34914,rangedTarget) < (jps.GCD*2) and not jps.myLastCast(34914) , rangedTarget , "VT_Keep_" },
 	-- "Shadow Word: Pain" 589 Keep SW:P up with duration
-	{ 589, jps.myDebuff(589,rangedTarget) and jps.myDebuffDuration(589,rangedTarget) < (GCD*2) and not jps.myLastCast(589) , rangedTarget , "Pain_Keep_"..rangedTarget },
+	{ 589, jps.myDebuff(589,rangedTarget) and jps.myDebuffDuration(589,rangedTarget) < (jps.GCD*2) and not jps.myLastCast(589) , rangedTarget , "Pain_Keep_"..rangedTarget },
 	-- "Vampiric Touch" 34914 
 	{ 34914, not jps.Moving and UnitHealth(rangedTarget) > 120000 and not jps.myDebuff(34914,rangedTarget) and not jps.myLastCast(34914) , rangedTarget , "VT_On_" },
 	-- "Shadow Word: Pain" 589 Keep up

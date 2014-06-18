@@ -55,15 +55,17 @@ end
 
 function jps_Test()
 
-	jps.LookupEnemy()
+	jps.LookupEnemyDamager()
 	jps.LookupEnemyHealer()
 
-	print("Stun:|cff0070dd ",jps.checkTimer("PlayerStun"))
-	print("Interrupt:|cff0070dd ",jps.checkTimer("PlayerInterrupt"))
-	print("Shield:|cff0070dd ",jps.checkTimer("ShieldTimer"))
-	print("Aggro:|cff0070dd ",jps.FriendAggro("player"))
-	print("LoseControl:|cff0070dd ",jps.LoseControl("player"))
-	print("ChastiseCd:|cff0070dd ",jps.checkTimer("Chastise"))
+--	print("Stun:|cff0070dd ",jps.checkTimer("PlayerStun"))
+--	print("Interrupt:|cff0070dd ",jps.checkTimer("PlayerInterrupt"))
+--	print("Shield:|cff0070dd ",jps.checkTimer("ShieldTimer"))
+--	print("Aggro:|cff0070dd ",jps.FriendAggro("player"))
+--	print("LoseControl:|cff0070dd ",jps.LoseControl("player"))
+--	print("ChastiseCd:|cff0070dd ",jps.checkTimer("Chastise"))
+	write("Isleader: ",PlayerIsLeader())
+	write("GCD: ",jps.GCD)
 
 -- GetMastery() the value returns by GetMastery is not your final Mastery value
 -- To find your true Mastery, and the multiplier factor used to calculate it, see GetMasteryEffect.
@@ -76,11 +78,7 @@ function jps_Test()
 
 --	local friendtableaggro = jps.FriendAggroTable()
 --	print("friendtableaggro: ",friendtableaggro)
-
-	write("Isleader: ",PlayerIsLeader())
-	write("GCD: ",jps.GCD)
-
-	--SendChatMessage("Test" , RAID )
+	print("test",jps.RoleInRaid("mouseover"))
 
 end
 
@@ -90,9 +88,6 @@ function jps_RaidTest()
 
 	local target, dupe, dupecount = jps.LowestTarget()
 	print("target: ",target,"count", dupecount,"Table: ", unpack(dupe))
-	
-	local CountInRange, AvgHealthLoss, FriendUnit = jps.CountInRaidStatus(1)
-	write("CountInRange: ",CountInRange,"AvgHealthLoss", AvgHealthLoss,"Table: ", unpack(FriendUnit))
 
 end
 

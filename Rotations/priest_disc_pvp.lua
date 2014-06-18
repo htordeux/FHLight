@@ -119,20 +119,22 @@ local priestDiscPvP = function()
 ---------------------
 
 	local rangedTarget, EnemyUnit, TargetCount = jps.LowestTarget() -- returns "target" by default
-
-	if jps.UnitExists("mouseover") and not jps.UnitExists("focus") then
+	-- set focus an enemy targeting you
+	if jps.UnitExists("mouseover") and not jps.UnitExists("focus") and canDPS("mouseover") then
 		if jps.UnitIsUnit("mouseovertarget","player") then
 			jps.Macro("/focus mouseover")
+			local name = GetUnitName("focus")
+			print("Enemy DAMAGER|cff1eff00 "..name.." |cffffffffset as FOCUS")
 		end
 	end
 	if not canDPS("focus") then jps.Macro("/clearfocus") end
 	
 	if canDPS("target") then rangedTarget =  "target"
-	elseif canDPS("focustarget") then rangedTarget = "focustarget"
 	elseif canDPS("targettarget") then rangedTarget = "targettarget"
+	elseif canDPS("focustarget") then rangedTarget = "focustarget"
 	elseif canDPS("mouseover") then rangedTarget = "mouseover"
 	end
-
+	-- if your target is friendly keep it as target
 	if not jps.canHeal("target") and canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
 
 ------------------------
@@ -145,22 +147,12 @@ local priestDiscPvP = function()
 			DeathEnemyTarget = unit
 		break end
 	end
-	
+
 	local FearEnemyTarget = nil
 	for _,unit in ipairs(EnemyUnit) do 
 		if priest.canFear(unit) and not jps.LoseControl(unit) then 
 			FearEnemyTarget = unit
 		break end
-	end
-
--------------------
--- DEBUG
--------------------
-
-	if IsControlKeyDown() then
-		write("|cff1eff00Name: ",GetUnitName(LowestImportantUnit),"|cffe5cc80hp: ",LowestImportantUnitHpct,"hpAbs: ",LowestImportantUnitHealth)
-		write("Name: ",GetUnitName(jps.LowestInRaidStatus()),"|cffe5cc80hp: ",jps.hp(jps.LowestInRaidStatus()),"hpAbs: ",jps.hp(jps.LowestInRaidStatus(),"abs"))
-		print("POHTarget: ", POHTarget, "groupToHeal: ", groupToHeal, "groupTableToHeal: ", unpack(groupTableToHeal))
 	end
 
 ----------------------------------------------------------

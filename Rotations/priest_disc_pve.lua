@@ -1,7 +1,6 @@
 -- jps.Interrupts for Dispel
 
 local L = MyLocalizationTable
-
 local spellTable = {}
 local parseDispel = {}
 local parseControl = {}

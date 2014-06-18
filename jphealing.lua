@@ -19,9 +19,10 @@ local L = MyLocalizationTable
 local canHeal = jps.canHeal
 local canDPS = jps.canDPS
 local UnitGroupRolesAssigned = UnitGroupRolesAssigned
-local pairs = pairs
-local tinsert = table.insert
+local UnitClass = UnitClass
 local GetUnitName = GetUnitName
+local tinsert = table.insert
+local pairs = pairs
 
 ----------------------
 -- UPDATE RAIDROSTER
@@ -33,6 +34,7 @@ local GetUnitName = GetUnitName
 -- name, rank, subgroup, level, class, fileName, zone, online, isDead, role, isML, combatRole = GetRaidRosterInfo(raidIndex)
 -- raidIndex of raid member between 1 and MAX_RAID_MEMBERS (40). If you specify an index that is out of bounds, the function returns nil
 
+local RaidStatusRole = {}
 local RaidStatus = {}
 local unitHpct = function(unit,inrange) if inrange then return jps.hp(unit) end end
 local unitHealth = function(unit,inrange) if inrange then return jps.hp(unit,"abs") end end
@@ -69,6 +71,18 @@ jps.UpdateRaidStatus = function ()
 		RaidStatus[unit]["health"] = unitHealth(unit,inrange)
 		RaidStatus[unit]["inrange"] = inrange
 	end
+	
+-- Role in Raid
+-- local role = UnitGroupRolesAssigned(unit) -- works only for friendly unit in raid
+	table.wipe(RaidStatusRole)
+
+	for unit,_ in pairs(RaidStatus) do
+		if RaidStatusRole[unit] == nil then RaidStatusRole[unit] = {} end
+		local role = UnitGroupRolesAssigned(unit)
+		local class = select(2,UnitClass(unit))
+		RaidStatusRole[unit]["role"] = role
+		RaidStatusRole[unit]["class"] = class
+	end
 
 end
 
@@ -95,9 +109,15 @@ function jps.IsRaidLeader()
 	end
 end
 
-----------------------
+--------------------------
 -- CLASS SPEC RAIDROSTER
-----------------------
+--------------------------
+
+-- "DAMAGER" , "HEALER" , "TANK" , "NONE"
+jps.RoleInRaid = function (unit)
+	if RaidStatus[unit] then return RaidStatusRole[unit]["role"] end
+	return "NONE"
+end
 
 -- "DAMAGER" , "HEALER" , "TANK" , "NONE"
 local findTanksInRaid = function(unit)
@@ -450,6 +470,11 @@ end
 -----------------------
 
 function jps.LookupRaid ()
+
+-- RaidClass
+	for unit,index in pairs(RaidStatusRole) do
+		print("|cffe5cc80",unit,"Role: ",index.role,"Class: ",index.class) -- color beige(artifact)
+	end
 	
 -- RaidStatus
 	for unit,index in pairs(RaidStatus) do 

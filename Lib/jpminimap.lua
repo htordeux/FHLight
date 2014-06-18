@@ -4,7 +4,7 @@
 local GetCursorPosition = GetCursorPosition
 local InterfaceOptionsFrame_OpenToCategory = InterfaceOptionsFrame_OpenToCategory
 
-local minimap = jps.minimap
+local minimap = jps.Minimap
 
 local function reposition()
 	minimap.button:SetPoint('TOPLEFT', Minimap, 'TOPLEFT', 52 - (80 * cos(minimap.position)), (80 * sin(minimap.position)) - 52)

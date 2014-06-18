@@ -3,9 +3,9 @@ jps.GUInormal = "Interface\\AddOns\\JPS\\Media\\basquiat.tga"
 jps.GUIpvp = "Interface\\Glues\\CharacterCreate\\UI-CharacterCreate-Factions.blp"
 jps.GUInoplua = "Interface\\Icons\\Spell_Totem_WardOfDraining"
 jps.GUIshadow = "Interface\\AddOns\\JPS\\Media\\shadow.tga"
-jps.GUIborder = "Interface\\AddOns\\JPS\\Media\\border.tga"
-jps.GUIborder_active = "Interface\\AddOns\\JPS\\Media\\border_on.tga"
-jps.GUIborder_combat = "Interface\\AddOns\\JPS\\Media\\border_combat.tga"
+jps.GUIborder = "Interface\\AddOns\\JPS\\Media\\border.tga" -- black border
+jps.GUIborder_active = "Interface\\AddOns\\JPS\\Media\\border_on.tga" -- green border
+jps.GUIborder_combat = "Interface\\AddOns\\JPS\\Media\\border_combat.tga" -- red border
 jps.GUIicon_cd = "Interface\\Icons\\Spell_Holy_BorrowedTime"
 jps.GUIicon_multi = "Interface\\Icons\\achievement_arena_5v5_3"
 jps.GUIicon_int = "Interface\\Icons\\INV_Shield_05"
@@ -395,7 +395,12 @@ function jps.gui_toggleEnabled( value )
 		jpsIcon.border:SetTexture(jps.GUIborder)
 		write("Disabled.")
 	else
-		jpsIcon.border:SetTexture(jps.GUIborder_active)
+		--jpsIcon.border:SetTexture(jps.GUIborder_active)
+		if jps.Combat then 
+			jpsIcon.border:SetTexture(jps.GUIborder_combat)
+		else
+			jpsIcon.border:SetTexture(jps.GUIborder_active)
+		end
 		write("Enabled.")
 	end
 	jps.Enabled = not jps.Enabled

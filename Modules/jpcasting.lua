@@ -118,10 +118,10 @@ function jps.castEverySeconds(spell, seconds)
 	if type(spell) == "string" then spellname = spell end
 	if type(spell) == "number" then spellname = tostring(select(1,GetSpellInfo(spell))) end
 	
-	if not jps.timedCasting[string.lower(spellname)] then
+	if not jps.TimedCasting[string.lower(spellname)] then
 		return true
 	end
-	if jps.timedCasting[string.lower(spellname)] + seconds <= GetTime() then
+	if jps.TimedCasting[string.lower(spellname)] + seconds <= GetTime() then
 		return true
 	end
 	return false

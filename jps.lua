@@ -74,12 +74,12 @@ jps.isTank = false
 
 -- Tables
 jps.Timers = {}
-jps.timedCasting = {}
+jps.TimedCasting = {}
 jps.HealerBlacklist = {} 
 jps.settings = {}
 jps.settingsQueue = {}
 jps.functionQueues = {}
-jps.minimap = {}
+jps.Minimap = {}
 
 -- Config.
 jps.initializedRotation = false

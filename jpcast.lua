@@ -420,7 +420,7 @@ function jps.Cast(spell) -- "number" "string"
 		CastSpellByName(spellname,jps.Target)
 	end
 
-	jps.timedCasting[string.lower(spellname)] = math.ceil(GetTime())
+	jps.TimedCasting[string.lower(spellname)] = math.ceil(GetTime())
 	jps.LastCast = spellname
 	jps.LastTarget = jps.Target
 	jps.LastTargetGUID = UnitGUID(jps.Target)

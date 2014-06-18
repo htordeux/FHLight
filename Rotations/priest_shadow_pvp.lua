@@ -70,7 +70,7 @@ local playerControlled = jps.LoseControl("player",{"CC"})
 local rangedTarget, EnemyUnit, TargetCount = jps.LowestTarget() -- returns "target" by default
 local EnemyCount = jps.RaidEnemyCount()
 -- set focus an enemy targeting you
-if canDPS("mouseover") and not jps.UnitExists("focus") then
+if jps.UnitExists("mouseover") and not jps.UnitExists("focus") and canDPS("mouseover") then
 	if jps.UnitIsUnit("mouseovertarget","player") then
 		jps.Macro("/focus mouseover")
 		local name = GetUnitName("focus")
@@ -88,7 +88,6 @@ end
 if canDPS(rangedTarget) then
 	jps.Macro("/target "..rangedTarget)
 end
-
 
 ------------------------
 -- LOCAL FUNCTIONS ENEMY
@@ -281,10 +280,14 @@ local spellTable = {
 	-- "Shadow Word: Death " "Mot de l'ombre : Mort" 32379
 	{ 32379, jps.hp(rangedTarget) < 0.20 , rangedTarget, "castDeath_"..rangedTarget },
 	{ 32379, type(DeathEnemyTarget) == "string" , DeathEnemyTarget , "Death_MultiUnit_" },
+	
 	-- "Mind Spike" 73510 -- "From Darkness, Comes Light" 109186 gives buff -- "Surge of Darkness" 87160 -- 10 sec
 	{ 73510, jps.buff(87160) and jps.buffDuration(87160) < (jps.GCD*4) , rangedTarget },
 	{ 73510, jps.buff(87160) and jps.myDebuff(34914,rangedTarget) , rangedTarget }, -- debuff "Vampiric Touch" 34914
 	{ 73510, jps.buff(87160) and jps.myDebuff(589,rangedTarget) , rangedTarget }, -- debuff "Shadow Word: Pain" 589
+	
+	-- "Vampiric Touch" 34914
+	{ 34914, not jps.Moving and playermana < 0.50 and type(VampEnemyTarget) == "string" , VampEnemyTarget , "Vamp_MultiUnit_Mana_" },
 
 	{ "nested", playerhealthpct < 0.75 , parseHeal },
 	-- "Vampiric Embrace" 15286
@@ -310,18 +313,18 @@ local spellTable = {
 	-- "Mindbender" "Torve-esprit" 123040 -- "Ombrefiel" 34433 "Shadowfiend"
 	{ 34433, priest.canShadowfiend(rangedTarget) , rangedTarget },
 	{ 123040, priest.canShadowfiend(rangedTarget) , rangedTarget },
-
-	-- "Power Infusion" "Infusion de puissance" 10060
-	{ 10060, UnitAffectingCombat("player")==1 and (UnitPower ("player",0)/UnitPowerMax ("player",0) > 0.20) , "player" },
 	
 	-- "Cascade" Holy 121135 Shadow 127632
-	{ 127632, EnemyCount > 2 , rangedTarget , "Cascade_"  },
-	-- MULTITARGET
+	{ 127632, EnemyCount > 3 , rangedTarget , "Cascade_"  },
+	-- "MindSear" 48045
 	{  48045, not jps.Moving and jps.MultiTarget and EnemyCount > 4 , rangedTarget  },
 	-- "Shadow Word: Pain" 589
 	{ 589, type(PainEnemyTarget) == "string" , PainEnemyTarget , "Pain_MultiUnit_" },	
 	-- "Vampiric Touch" 34914
-	{ 34914, type(VampEnemyTarget) == "string" , VampEnemyTarget , "Vamp_MultiUnit_" },
+	{ 34914, not jps.Moving and type(VampEnemyTarget) == "string" , VampEnemyTarget , "Vamp_MultiUnit_" },
+
+	-- "Power Infusion" "Infusion de puissance" 10060
+	{ 10060, UnitAffectingCombat("player")==1 , "player" },
 
 	-- "Mind Flay" 15407 -- "Devouring Plague" 2944 -- "Shadow Word: Pain" 589
 	{ 15407, jps.IsSpellKnown(139139) and jps.debuff(2944,rangedTarget) and jps.myDebuffDuration(2944,rangedTarget) < jps.myDebuffDuration(589,rangedTarget) and jps.myDebuff(34914,rangedTarget) , rangedTarget , "MINDFLAYORBS_" },

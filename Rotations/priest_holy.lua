@@ -466,7 +466,7 @@ local spellTable = {
 					-- "Soins de lien"
 					{ 32546 , type(BindingHealTarget) == "string" , BindingHealTarget , "Emergency_Lien_" },
 					-- "Soins rapides" 2061
-					{ 2061, stackSerendip < 2, "Emergency_SoinsRapides_"..LowestImportantUnit },
+					{ 2061, stackSerendip < 2, LowestImportantUnit , "Emergency_SoinsRapides_"..LowestImportantUnit },
 				},
 			},
 			-- "Circle of Healing" 34861
@@ -498,7 +498,7 @@ local spellTable = {
 			-- "Soins de lien"
 			{ 32546 , type(BindingHealTarget) == "string" , BindingHealTarget , "Lien_" },					
 			-- "Soins rapides" 2061
-			{ 2061, (LowestImportantUnitHealth > priest.AvgAmountGreatHeal) and stackSerendip < 2, "SoinsRapides_"..LowestImportantUnit },
+			{ 2061, (LowestImportantUnitHealth > priest.AvgAmountGreatHeal) and stackSerendip < 2, LowestImportantUnit, "SoinsRapides_"..LowestImportantUnit },
 		},
 	},
 

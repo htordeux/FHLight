@@ -13,6 +13,7 @@ local UnitPower = UnitPower
 local UnitBuff = UnitBuff
 local UnitDebuff = UnitDebuff
 local MAX_RAID_MEMBERS = MAX_RAID_MEMBERS
+local UnitGUID = UnitGUID
 
 -- Localization
 local L = MyLocalizationTable
@@ -71,18 +72,6 @@ jps.UpdateRaidStatus = function ()
 		RaidStatus[unit]["health"] = unitHealth(unit,inrange)
 		RaidStatus[unit]["inrange"] = inrange
 	end
-	
--- Role in Raid
--- local role = UnitGroupRolesAssigned(unit) -- works only for friendly unit in raid
-	table.wipe(RaidStatusRole)
-
-	for unit,_ in pairs(RaidStatus) do
-		if RaidStatusRole[unit] == nil then RaidStatusRole[unit] = {} end
-		local role = UnitGroupRolesAssigned(unit)
-		local class = select(2,UnitClass(unit))
-		RaidStatusRole[unit]["role"] = role
-		RaidStatusRole[unit]["class"] = class
-	end
 
 end
 
@@ -97,6 +86,20 @@ end
 jps.UnitInRaid = function(unit)
 	if RaidStatus[unit] ~= nil then return true end
 	return false
+end
+
+-- Role in Raid
+-- local role = UnitGroupRolesAssigned(unit) -- works only for friendly unit in raid -- erturn "NONE" if not in raid
+function jps.UpdateRaidRole()
+	table.wipe(RaidStatusRole)
+	for unit,_ in pairs(RaidStatus) do
+		local unitguid = UnitGUID(unit)
+		if RaidStatusRole[unitguid] == nil then RaidStatusRole[unitguid] = {} end
+		local role = UnitGroupRolesAssigned(unit)
+		local class = select(2,UnitClass(unit))
+		RaidStatusRole[unitguid]["role"] = role
+		RaidStatusRole[unitguid]["class"] = class
+	end
 end
 
 function jps.IsRaidLeader()
@@ -115,7 +118,8 @@ end
 
 -- "DAMAGER" , "HEALER" , "TANK" , "NONE"
 jps.RoleInRaid = function (unit)
-	if RaidStatus[unit] then return RaidStatusRole[unit]["role"] end
+	local unitguid = UnitGUID(unit)
+	if RaidStatusRole[unitguid] then return RaidStatusRole[unitguid]["role"] end
 	return "NONE"
 end
 

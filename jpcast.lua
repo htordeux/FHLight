@@ -18,7 +18,7 @@ local UnitInVehicle = UnitInVehicle
 local UnitCanAttack = UnitCanAttack
 local SpellIsTargeting = SpellIsTargeting
 local CastSpellByName = CastSpellByName
-
+local UnitGUID = UnitGUID
 local strfind = string.find
 local tinsert = table.insert
 local tremove = table.remove

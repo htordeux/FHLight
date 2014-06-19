@@ -78,7 +78,6 @@ function jps_Test()
 
 --	local friendtableaggro = jps.FriendAggroTable()
 --	print("friendtableaggro: ",friendtableaggro)
-	print("test",jps.RoleInRaid("mouseover"))
 
 end
 

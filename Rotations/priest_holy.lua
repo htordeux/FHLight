@@ -2,6 +2,7 @@ local L = MyLocalizationTable
 local spellTable = {}
 local parseMoving = {}
 local parseControl = {}
+local parseControlFocus = {}
 local parseDispel = {}
 local parseDamage = {}
 
@@ -209,8 +210,12 @@ local priestHoly = function()
 
 	local FearEnemyTarget = nil
 	for _,unit in ipairs(EnemyUnit) do 
-		if priest.canFear(unit) and not jps.LoseControl(unit) and jps.shouldKickDelay(unit) then 
-			FearEnemyTarget = unit
+		if priest.canFear(unit) and not jps.LoseControl(unit) then
+			if jps.IsCastingControl(unit) then
+				FearEnemyTarget = unit
+			elseif jps.shouldKickDelay(unit) then
+				FearEnemyTarget = unit
+			end
 		break end
 	end
 
@@ -253,17 +258,29 @@ local InterruptTable = {
 	parseControl = {
 		-- Chakra: Chastise 81209 -- Chakra: Sanctuary 81206 -- Chakra: Serenity 81208 -- Holy Word: Chastise 88625
 		{ {"macro",macroCancelaura}, (jps.buffId(81208) or jps.buffId(81206)) and (jps.cooldown(81208) == 0 or jps.cooldown(81206) == 0) and jps.checkTimer("Chastise") == 0 and canDPS(rangedTarget) , rangedTarget  , "Cancelaura_Chakra_" },
-		{ 88625, not jps.buffId(81208) and not jps.buffId(81206) and canDPS("focus") , "focus"  , "|cFFFF0000Chastise_NO_Chakra_".."focus" },
 		{ 88625, not jps.buffId(81208) and not jps.buffId(81206) , rangedTarget  , "|cFFFF0000Chastise_NO_Chakra_"..rangedTarget },
 		{ 88625, jps.buffId(81209) , rangedTarget , "|cFFFF0000Chastise_Chakra_"..rangedTarget },
 		-- "Psychic Scream" "Cri psychique" 8122 -- FARMING OR PVP -- NOT PVE -- debuff same ID 8122
-		{ 8122, type(FearEnemyTarget) == "string" , FearEnemyTarget , "Fear_MultiUnit_" },
+		{ 8122, type(FearEnemyTarget) == "string" , FearEnemyTarget , "FEAR_MultiUnit_" },
 		{ 8122, priest.canFear(rangedTarget) , rangedTarget },
 		-- "Psyfiend" 108921 Démon psychique
 		{ 108921, playerAggro and priest.canFear(rangedTarget) , rangedTarget },
 		-- "Void Tendrils" 108920 -- debuff "Void Tendril's Grasp" 114404
 		{ 108920, playerAggro and priest.canFear(rangedTarget) , rangedTarget },
 	}
+	
+	parseControlFocus = {
+		-- Chakra: Chastise 81209 -- Chakra: Sanctuary 81206 -- Chakra: Serenity 81208 -- Holy Word: Chastise 88625
+		{ 88625, not jps.buffId(81208) and not jps.buffId(81206) , "focus"  , "|cFFFF0000Chastise_NO_Chakra_".."focus" },
+		{ 88625, jps.buffId(81209) , "focus" , "|cFFFF0000Chastise_Chakra_".."focus" },
+		-- "Psychic Scream" "Cri psychique" 8122 -- FARMING OR PVP -- NOT PVE -- debuff same ID 8122
+		{ 8122, priest.canFear("focus") , "focus" , "Fear_".."focus" },
+		-- "Psyfiend" 108921 Démon psychique
+		{ 108921, priest.canFear("focus") , "focus" },
+		-- "Void Tendrils" 108920 -- debuff "Void Tendril's Grasp" 114404
+		{ 108920, priest.canFear("focus") , "focus" },
+	}
+
 	
 	parseDispel = {
 		-- "Leap of Faith" 73325 -- "Saut de foi"
@@ -332,7 +349,9 @@ local spellTable = {
 	{ jps.useTrinket(1), jps.useTrinketBool(1) and playerIsStun , "player" },
 
 	-- CONTROL -- "Psychic Scream" "Cri psychique" 8122 -- FARMING OR PVP -- NOT PVE -- debuff same ID 8122
+	{ "nested", LowestImportantUnitHpct > 0.50 and not jps.LoseControl("focus") and canDPS("focus") , parseControlFocus },
 	{ "nested", LowestImportantUnitHpct > 0.50 and not jps.LoseControl(rangedTarget) and canDPS(rangedTarget) , parseControl },
+
 	-- DISPEL	
 	{ "nested", LowestImportantUnitHpct > 0.50 , parseDispel },
 	
@@ -450,14 +469,14 @@ local spellTable = {
 					{ 2061, stackSerendip < 2, "Emergency_SoinsRapides_"..LowestImportantUnit },
 				},
 			},
-			-- "Power Word: Shield" 17 
-			{ 17, LowestImportantUnitHpct < 0.50 and not jps.buff(17,LowestImportantUnit) and not jps.debuff(6788,LowestImportantUnit) , LowestImportantUnit , "Emergency_Shield_"..LowestImportantUnit },
 			-- "Circle of Healing" 34861
 			{ 34861, AvgHealthLoss < 0.85 , LowestImportantUnit , "Emergency__COH_"..LowestImportantUnit },
 			-- "Don des naaru" 59544
 			{ 59544, (select(2,GetSpellBookItemInfo(priest.Spell["NaaruGift"]))~=nil) , LowestImportantUnit , "Emergency_Naaru_"..LowestImportantUnit },
 			-- "Renew" 139 -- Haste breakpoints are 12.5 and 16.7%(Holy)
 			{ 139, not jps.buff(139,LowestImportantUnit) , LowestImportantUnit , "Emergency_Renew_"..LowestImportantUnit },
+			-- "Power Word: Shield" 17 
+			{ 17, LowestImportantUnitHpct < 0.50 and not jps.buff(17,LowestImportantUnit) and not jps.debuff(6788,LowestImportantUnit) , LowestImportantUnit , "Emergency_Shield_"..LowestImportantUnit },
 		},
 	},
 	
@@ -499,7 +518,7 @@ local spellTable = {
 	return spell,target
 end
 
-jps.registerRotation("PRIEST","HOLY", priestHoly, "Holy Priest", false , true)
+jps.registerRotation("PRIEST","HOLY", priestHoly, "Holy Priest" )
 
 -- Haste at least 12.51% (4721) preferably up to 16.66% (7082) cap
 -- to ensure we get additional ticks from HW: Sanctuary and the Glyphed Renew.

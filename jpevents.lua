@@ -866,12 +866,12 @@ jps.listener.registerEvent("COMBAT_LOG_EVENT_UNFILTERED", function(...)
 		if isSourceEnemy then
 			local healId = select(12, ...)
 			local sourceName = select(5,...)
-			local updateEnemyHealer = false
+			local addEnemyHealer = false
 			if HealerSpellID[healId] then
 				if EnemyHealer[sourceGUID] == nil then
-					updateEnemyHealer = true
+					addEnemyHealer = true
 				end
-				if updateEnemyHealer then EnemyHealer[sourceGUID] = {HealerSpellID[healId],sourceName} end
+				if addEnemyHealer then EnemyHealer[sourceGUID] = {HealerSpellID[healId],sourceName} end
 			end
 		end
 	end

@@ -73,6 +73,18 @@ jps.UpdateRaidStatus = function ()
 		RaidStatus[unit]["inrange"] = inrange
 	end
 
+-- Role in Raid
+-- local role = UnitGroupRolesAssigned(unit) -- works only for friendly unit in raid -- erturn "NONE" if not in raid	
+	table.wipe(RaidStatusRole)
+	for unit,_ in pairs(RaidStatus) do
+		local unitguid = UnitGUID(unit)
+		if RaidStatusRole[unitguid] == nil then RaidStatusRole[unitguid] = {} end
+		local role = UnitGroupRolesAssigned(unit)
+		local class = select(2,UnitClass(unit))
+		RaidStatusRole[unitguid]["role"] = role
+		RaidStatusRole[unitguid]["class"] = class
+	end
+
 end
 
 -- Unit is INRANGE
@@ -86,20 +98,6 @@ end
 jps.UnitInRaid = function(unit)
 	if RaidStatus[unit] ~= nil then return true end
 	return false
-end
-
--- Role in Raid
--- local role = UnitGroupRolesAssigned(unit) -- works only for friendly unit in raid -- erturn "NONE" if not in raid
-function jps.UpdateRaidRole()
-	table.wipe(RaidStatusRole)
-	for unit,_ in pairs(RaidStatus) do
-		local unitguid = UnitGUID(unit)
-		if RaidStatusRole[unitguid] == nil then RaidStatusRole[unitguid] = {} end
-		local role = UnitGroupRolesAssigned(unit)
-		local class = select(2,UnitClass(unit))
-		RaidStatusRole[unitguid]["role"] = role
-		RaidStatusRole[unitguid]["class"] = class
-	end
 end
 
 function jps.IsRaidLeader()

@@ -40,7 +40,6 @@ local canHeal = jps.canHeal
 local canDPS = jps.canDPS
 local UpdateRaidUnit = jps.UpdateRaidUnit
 local UpdateRaidStatus = jps.UpdateRaidStatus
-local UpdateRaidRole = jps.UpdateRaidRole
 local GetUnitName = GetUnitName
 local pairs = pairs
 
@@ -370,7 +369,6 @@ jps.listener.registerEvent("PLAYER_ENTERING_WORLD", function()
 	jps.detectSpec()
 	reset_healtable()
 	UpdateRaidStatus()
-	UpdateRaidRole()
 	EnemyHealer = {} -- keep healer enemy table during all RBG time?
 end)
 
@@ -410,7 +408,6 @@ jps.listener.registerEvent("PLAYER_REGEN_DISABLED", function()
 	jps.gui_toggleCombat(true)
 	jps.combatStart = GetTime()
 	UpdateRaidStatus()
-	UpdateRaidRole()
 end)
 
 -- LOOT_OPENED
@@ -438,7 +435,6 @@ local leaveCombat = function()
 	jps.TimedCasting = {}
 	jps.HealerBlacklist = {} 
 	UpdateRaidStatus()
-	UpdateRaidRole()
 
 	collectgarbage()
 end
@@ -644,7 +640,6 @@ end)
 -- Group/Raid Update
 -- RAID_ROSTER_UPDATE's pre-MoP functionality was moved to the new event GROUP_ROSTER_UPDATE
 jps.listener.registerEvent("GROUP_ROSTER_UPDATE", UpdateRaidStatus)
-jps.listener.registerEvent("GROUP_ROSTER_UPDATE", UpdateRaidRole)
 jps.listener.registerEvent("GROUP_ROSTER_UPDATE", jps.IsRaidLeader)
 jps.listener.registerEvent("ARENA_TEAM_ROSTER_UPDATE", UpdateRaidStatus)
 

@@ -184,12 +184,28 @@ end
 -- CHECK IF WE CAN DAMAGE A UNIT
 local iceblock = tostring(select(1,GetSpellInfo(45438))) -- ice block mage
 local divineshield = tostring(select(1,GetSpellInfo(642))) -- divine shield paladin
+local spellreflection = tostring(select(1,GetSpellInfo(23920))) 
+local deterrence = tostring(select(1,GetSpellInfo(110617))) 
+local antimagic = tostring(select(1,GetSpellInfo(48707)))
+-- Spell Reflection 23920 -- Spell Reflection Reflects a spell cast on you -- Dispel type n/a
+-- Deterrence 110617 -- reduces the chance ranged attacks will hit you by 100% and grants a 100% chance to deflect spells.
+-- While Deterrence is active, you cannot attack -- Dispel type	n/a
+-- Anti-Magic Shell 48707 -- Absorbing up to 75 magic damage. Immune to magic debuffs -- Dispel type	n/a
+
+local buffImmune = {iceblock, divineshield, spellreflection, deterrence, antimagic}
+function UnitHasImmuneBuff(unit)
+	for _,buff in ipairs(buffImmune) do
+		if jps.buff(buff,unit) then return true end
+	end
+	return false
+end
+
 function jps.canDPS(unit)
 	if not jps.UnitExists(unit) then return false end
+	if jps.PvP and UnitHasImmuneBuff(unit) then return false end
+
 	-- if UnitIsEnemy("player",unit)~=1 then return false end
 	-- WARNING a unit is hostile to you or not Returns either 1 ot nil -- Raider's Training returns nil with UnitIsEnemy
-	if jps.buff(divineshield,unit) then return false end
-	if jps.buff(iceblock,unit) then return false end
 	if UnitCanAttack("player", unit)~=1 then return false end-- UnitCanAttack(attacker, attacked) return 1 if the attacker can attack the attacked, nil otherwise.
 	if jps.PlayerIsBlacklisted(unit) then return false end
 	if not jps.IsSpellInRange(jps.HarmSpell,unit) then return false end

@@ -186,16 +186,7 @@ local priestHoly = function()
 ---------------------
 
 	local rangedTarget, EnemyUnit, TargetCount = jps.LowestTarget() -- returns "target" by default
-	-- set focus an enemy targeting you
-	if jps.UnitExists("mouseover") and not jps.UnitExists("focus") and canDPS("mouseover") then
-		if jps.UnitIsUnit("mouseovertarget","player") then
-			jps.Macro("/focus mouseover")
-			local name = GetUnitName("focus")
-			print("Enemy DAMAGER|cff1eff00 "..name.." |cffffffffset as FOCUS")
-		end
-	end
-	if not canDPS("focus") then jps.Macro("/clearfocus") end
-	
+
 	if canDPS("target") then rangedTarget =  "target"
 	elseif canDPS("targettarget") then rangedTarget = "targettarget"
 	elseif canDPS("focustarget") then rangedTarget = "focustarget"

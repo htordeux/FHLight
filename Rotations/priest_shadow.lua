@@ -70,7 +70,12 @@ local playerControlled = jps.LoseControl("player",{"CC"})
 
 local rangedTarget, EnemyUnit, TargetCount = jps.LowestTarget() -- returns "target" by default
 local EnemyCount = jps.RaidEnemyCount()
-if canDPS("target") then rangedTarget = "target" end
+
+if canDPS("target") then rangedTarget =  "target"
+elseif canDPS("targettarget") then rangedTarget = "targettarget"
+elseif canDPS("focustarget") then rangedTarget = "focustarget"
+elseif canDPS("mouseover") then rangedTarget = "mouseover"
+end
 if canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
 
 ------------------------

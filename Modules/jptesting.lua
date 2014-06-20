@@ -64,8 +64,8 @@ function jps_Test()
 --	print("Aggro:|cff0070dd ",jps.FriendAggro("player"))
 --	print("LoseControl:|cff0070dd ",jps.LoseControl("player"))
 --	print("ChastiseCd:|cff0070dd ",jps.checkTimer("Chastise"))
-	write("Isleader: ",PlayerIsLeader())
-	write("GCD: ",jps.GCD)
+--	write("Isleader: ",PlayerIsLeader())
+--	write("GCD: ",jps.GCD)
 
 -- GetMastery() the value returns by GetMastery is not your final Mastery value
 -- To find your true Mastery, and the multiplier factor used to calculate it, see GetMasteryEffect.

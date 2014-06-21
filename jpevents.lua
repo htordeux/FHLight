@@ -640,7 +640,6 @@ end)
 -- Group/Raid Update
 -- RAID_ROSTER_UPDATE's pre-MoP functionality was moved to the new event GROUP_ROSTER_UPDATE
 jps.listener.registerEvent("GROUP_ROSTER_UPDATE", UpdateRaidStatus)
-jps.listener.registerEvent("GROUP_ROSTER_UPDATE", jps.IsRaidLeader)
 jps.listener.registerEvent("ARENA_TEAM_ROSTER_UPDATE", UpdateRaidStatus)
 
 -----------------------
@@ -954,7 +953,7 @@ end
 -- EnemyDamager[enemyGuid] = { ["friend"] = enemyFriend , [""friendname""] = destName , ["friendaggro"] = {GetTime(), dmgTTD} }
 -- className, classId, raceName, raceId, gender, name, realm = GetPlayerInfoByGUID("guid")
 jps.LookupEnemyDamager = function()
-	if jps.tableLength(EnemyDamager) == 0 then print("EnemyDamager is nil") end
+	if jps.tableLength(EnemyDamager) == 0 then print("EnemyDamager is Empty") end
 	for unit,index in pairs(EnemyDamager) do
 		print("EnemyGuid_|cFFFF0000: ",unit," |cffffffffFriendGuid_|cff1eff00: ",index.friend," |cffffffffName_|cff1eff00: ",index.friendname,"|cffffffffDmg|cFFFF0000: ",index.friendaggro[2])
 	end
@@ -962,7 +961,7 @@ end
 
 -- EnemyHealer[enemyGuid] = {Class,sourceName}
 jps.LookupEnemyHealer = function()
-	if jps.tableLength(EnemyHealer) == 0 then print("EnemyHealer is nil") end
+	if jps.tableLength(EnemyHealer) == 0 then print("EnemyHealer is Empty") end
 	for _,index in pairs(EnemyHealer) do
 		print("Class:|cFFFF0000: ",index[1]," |cffffffffName:|cFFFF0000: ",index[2])
 	end

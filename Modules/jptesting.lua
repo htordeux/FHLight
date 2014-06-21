@@ -38,13 +38,6 @@ local function spelltoName(spellID)
 	return tostring(select(1,GetSpellInfo(spellID)))
 end
 
-local IsRaidLeader = jps.IsRaidLeader()
-local PlayerIsLeader = function()
-	if IsInRaid() and IsRaidLeader > 0 then return true end
-	if not IsInRaid() and not IsInGroup() then return true end
-	return false
-end
-
 local GlobalCooldown = function()
 	local cdStart, duration = GetSpellCooldown(61304)
 	local timeLeft = duration - (GetTime() - cdStart )
@@ -58,14 +51,13 @@ function jps_Test()
 	jps.LookupEnemyDamager()
 	jps.LookupEnemyHealer()
 
---	print("Stun:|cff0070dd ",jps.checkTimer("PlayerStun"))
---	print("Interrupt:|cff0070dd ",jps.checkTimer("PlayerInterrupt"))
---	print("Shield:|cff0070dd ",jps.checkTimer("ShieldTimer"))
---	print("Aggro:|cff0070dd ",jps.FriendAggro("player"))
---	print("LoseControl:|cff0070dd ",jps.LoseControl("player"))
---	print("ChastiseCd:|cff0070dd ",jps.checkTimer("Chastise"))
---	write("Isleader: ",PlayerIsLeader())
---	write("GCD: ",jps.GCD)
+	print("Stun:|cff0070dd ",jps.checkTimer("PlayerStun"))
+	print("Interrupt:|cff0070dd ",jps.checkTimer("PlayerInterrupt"))
+	print("Shield:|cff0070dd ",jps.checkTimer("ShieldTimer"))
+	print("Aggro:|cff0070dd ",jps.FriendAggro("player"))
+	print("LoseControl:|cff0070dd ",jps.LoseControl("player"))
+	print("ChastiseCd:|cff0070dd ",jps.checkTimer("Chastise"))
+	write("GCD: ",jps.GCD)
 
 -- GetMastery() the value returns by GetMastery is not your final Mastery value
 -- To find your true Mastery, and the multiplier factor used to calculate it, see GetMasteryEffect.

@@ -100,7 +100,11 @@ jps.UnitInRaid = function(unit)
 	return false
 end
 
-function jps.IsRaidLeader()
+-- IsInRaid() Boolean - returns true if the player is currently in a raid group, false otherwise
+-- IsInGroup() Boolean - returns true if the player is in a some kind of group, otherwise false
+-- leader = UnitIsRaidOfficer("unit") -- 1 if the unit is a raid assistant; otherwise nil or false if not in raid
+-- leader = UnitIsGroupLeader("unit") -- true if the unit is a raid assistant; otherwise false (bool)
+local IsRaidLeader = function()
 	for i=1,MAX_RAID_MEMBERS do
 		-- if index is out of bounds, the function returns nil
 		if GetRaidRosterInfo(i) == nil then return 0 end
@@ -108,6 +112,13 @@ function jps.IsRaidLeader()
 		local name = select(1,GetRaidRosterInfo(i))
 		if name == GetUnitName("player") then return rank end
 	end
+end
+
+function jps.PlayerIsLeader()
+	local RaidLeader = IsRaidLeader()
+	if IsInRaid() and RaidLeader > 0 then return true end
+	if not IsInRaid() and not IsInGroup() then return true end
+	return false
 end
 
 --------------------------

@@ -220,6 +220,7 @@ local parseAggro = {
 	-- "Dispersion" 47585
 	{ 47585,  playerhealthpct < 0.40 , "player" , "Aggro_Dispersion_" },
 	-- "Oubli" 586 -- Fantasme 108942 -- vous dissipez tous les effets affectant le déplacement sur vous-même et votre vitesse de déplacement ne peut être réduite pendant 5 s
+	-- "Oubli" 586 -- Glyphe d'oubli 55684 -- Votre technique Oubli réduit à présent tous les dégâts subis de 10%.
 	{ 586, jps.IsSpellKnown(108942) and playerhealthpct < 0.75 , "player" , "Aggro_Oubli" },
 	{ 586, jps.glyphInfo(55684) and playerhealthpct < 0.75 , "player" , "Aggro_Oubli" },
 	-- "Semblance spectrale" 108968

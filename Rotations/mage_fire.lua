@@ -4,8 +4,8 @@ jps.registerRotation("MAGE","FIRE",function()
 local spellTable = 
 {
    --interrupt
-	{ "Counterspell",     jps.Interrupts and jps.shouldKick("target"), "target" },
-	{ "Counterspell",     jps.Interrupts and jps.shouldKick("focus"), "focus" },
+	{ "Counterspell",     jps.Interrupts and jps.ShouldKick("target"), "target" },
+	{ "Counterspell",     jps.Interrupts and jps.ShouldKick("focus"), "focus" },
 	
 	-- Deff 
 	{ "Ice Barrier",      (UnitHealth("player") / UnitHealthMax("player") < 0.50)  and not jps.buff("Ice Barrier","player"), "player" },

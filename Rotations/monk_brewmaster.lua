@@ -62,15 +62,15 @@ jps.registerRotation("MONK","BREWMASTER",function()
       
       
       -- INTERRUPTS
-      { "Spear Hand Strike", jps.shouldKick("target") and jps.CastTimeLeft("target") < 1.4 },
-      { "Paralysis", jps.shouldKick("target") and jps.CastTimeLeft("target") < 1.4 and jps.LastCast ~= "Spear Hand Strike" },
-      { "Breath of Fire", jps.shouldKick("target") and chi >= 2 and jps.CastTimeLeft("target") < 1.4 and jps.LastCast ~= "Spear Hand Strike" and jps.LastCast ~= "Paralysis" },
-      { "Arcane Torrent", jps.shouldKick("target") and CheckInteractDistance("target",3)==1 and jps.CastTimeLeft("target") < 1.4 and jps.LastCast ~= "Spear Hand Strike" and jps.LastCast ~= "Paralysis" },
+      { "Spear Hand Strike", jps.ShouldKick("target") and jps.CastTimeLeft("target") < 1.4 },
+      { "Paralysis", jps.ShouldKick("target") and jps.CastTimeLeft("target") < 1.4 and jps.LastCast ~= "Spear Hand Strike" },
+      { "Breath of Fire", jps.ShouldKick("target") and chi >= 2 and jps.CastTimeLeft("target") < 1.4 and jps.LastCast ~= "Spear Hand Strike" and jps.LastCast ~= "Paralysis" },
+      { "Arcane Torrent", jps.ShouldKick("target") and CheckInteractDistance("target",3)==1 and jps.CastTimeLeft("target") < 1.4 and jps.LastCast ~= "Spear Hand Strike" and jps.LastCast ~= "Paralysis" },
 
       -- INTERRUPT FOCUS
-      { "Spear Hand Strike", jps.shouldKick("focus") and jps.CastTimeLeft("focus") < 1.4 },
-      { "Paralysis", jps.shouldKick("focus") and jps.CastTimeLeft("focus") < 1.4 and IsSpellInRange("Spear Hand Strike","focus")==0 and jps.LastCast ~= "Spear Hand Strike" },
-      { "Arcane Torrent", jps.shouldKick("focus") and CheckInteractDistance("focus",3)==1 and jps.CastTimeLeft("target") < 1.4 and jps.LastCast ~= "Spear Hand Strike" and jps.LastCast ~= "Paralysis" },
+      { "Spear Hand Strike", jps.ShouldKick("focus") and jps.CastTimeLeft("focus") < 1.4 },
+      { "Paralysis", jps.ShouldKick("focus") and jps.CastTimeLeft("focus") < 1.4 and IsSpellInRange("Spear Hand Strike","focus")==0 and jps.LastCast ~= "Spear Hand Strike" },
+      { "Arcane Torrent", jps.ShouldKick("focus") and CheckInteractDistance("focus",3)==1 and jps.CastTimeLeft("target") < 1.4 and jps.LastCast ~= "Spear Hand Strike" and jps.LastCast ~= "Paralysis" },
 
 
       -- PROFESSIONS AND RACIALS
@@ -197,9 +197,9 @@ jps.registerRotation("MONK","BREWMASTER",function()
 		{ "Keg Smash", 	chi < 3 or not jps.debuff("Weakened Blows") },
 		
 		-- Interrupt. 
-		{ "Spear Hand Strike", jps.Interrupts and jps.shouldKick() },
+		{ "Spear Hand Strike", jps.Interrupts and jps.ShouldKick() },
 		
-		{ "Paralysis", jps.Interrupts and jps.shouldKick() },
+		{ "Paralysis", jps.Interrupts and jps.ShouldKick() },
 		
 		-- Invoke Xuen on cooldown for single-target. (talent based) 
 		{ "Invoke Xuen, the White Tiger", jps.UseCDs },

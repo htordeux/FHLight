@@ -57,7 +57,7 @@ jps.registerRotation("DRUID","FERAL", function()
 	local enemycount = jps.RaidEnemyCount()
 
 	local isSpellHarmful = IsHarmfulSpell("target")
-	local castSilence = jps.shouldKick("target")
+	local castSilence = jps.ShouldKick("target")
 
 	local playerhealth_pct = jps.hp(player)
 	local targethealth_pct = jps.hp("target")
@@ -227,16 +227,16 @@ local spellTable =
 	{ CancelShapeshiftForm(),  	 	playerAggro and jps.IsCastingSpell("hibernate",rangedTarget) and jps.CastTimeLeft(rangedTarget) < 1 , player },
 	
 	-- Kicks, Crowd Control, etc.
-	{ "skull bash",			 		jps.shouldKick() , rangedTarget },
-	{ "mighty bash",			 	jps.shouldKick() , rangedTarget },
-	{ "maim",						jps.shouldKick() , rangedTarget },
-	{ "pounce",					  	jps.shouldKick() , rangedTarget },
-	{ "force of nature",		  	jps.shouldKick() , rangedTarget },
-	{ "bash",					 	jps.shouldKick() , rangedTarget }, -- Only available after Force of Nature
-	{ "hibernate",				 	jps.shouldKick() and shouldSleep() , rangedTarget },
+	{ "skull bash",			 		jps.ShouldKick() , rangedTarget },
+	{ "mighty bash",			 	jps.ShouldKick() , rangedTarget },
+	{ "maim",						jps.ShouldKick() , rangedTarget },
+	{ "pounce",					  	jps.ShouldKick() , rangedTarget },
+	{ "force of nature",		  	jps.ShouldKick() , rangedTarget },
+	{ "bash",					 	jps.ShouldKick() , rangedTarget }, -- Only available after Force of Nature
+	{ "hibernate",				 	jps.ShouldKick() and shouldSleep() , rangedTarget },
 	
 	-- Racials
-	{ "war stomp",			 		jps.shouldKick() and playerRace == "tauren" , rangedTarget },
+	{ "war stomp",			 		jps.ShouldKick() and playerRace == "tauren" , rangedTarget },
 	
 	-- Survival, Heals, etc.
 	{ "barkskin",			 		playerhealth_pct < 0.30 , player },

@@ -75,13 +75,13 @@ jps.registerRotation("HUNTER","BEASTMASTERY", function()
 		{ "every man for himself", playerIsStun and playerRace == "human" , player },
 	
 	-- Kicks etc.
-		{ "war stomp", jps.shouldKick() and CheckInteractDistance("target",3)==1 and playerRace == "tauren" },
-		{ "arcane torrent", jps.shouldKick() and CheckInteractDistance("target",3)==1 and playerRace == "blood elf" },
+		{ "war stomp", jps.ShouldKick() and CheckInteractDistance("target",3)==1 and playerRace == "tauren" },
+		{ "arcane torrent", jps.ShouldKick() and CheckInteractDistance("target",3)==1 and playerRace == "blood elf" },
 		{ "concussive shot", shouldCShot() , rangedTarget },
-		{ "intimidation", jps.shouldKick() , rangedTarget },
-		{ "scatter shot", jps.shouldKick() , rangedTarget },
-		{ "silencing shot", jps.shouldKick() , rangedTarget },
-		{ "wyvern sting", jps.shouldKick() , rangedTarget },
+		{ "intimidation", jps.ShouldKick() , rangedTarget },
+		{ "scatter shot", jps.ShouldKick() , rangedTarget },
+		{ "silencing shot", jps.ShouldKick() , rangedTarget },
+		{ "wyvern sting", jps.ShouldKick() , rangedTarget },
 		{ "scare beast", jps.buff("bear form","target") or jps.buff("cat form","target") or UnitCreatureType("target") == "beast" , rangedTarget },
 	
 	-- Heals etc.

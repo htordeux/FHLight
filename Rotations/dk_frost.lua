@@ -54,12 +54,12 @@ local frostDWSpellTable = {
 	{ "Death Strike",'jps.Defensive and jps.hp() < 0.7'},
 
 	-- Interrupts
-	{ "mind freeze",'jps.shouldKick()'},
-	{ "mind freeze",'jps.shouldKick("focus")', "focus" },
-	{ "Strangulate",'jps.shouldKick() and jps.UseCDs and IsSpellInRange("mind freeze","target")==0 and jps.LastCast ~= "mind freeze"'},
-	{ "Strangulate",'jps.shouldKick("focus") and jps.UseCDs and IsSpellInRange("mind freeze","focus")==0 and jps.LastCast ~= "mind freeze"', "focus"},
-	{ "Asphyxiate",'jps.shouldKick() and jps.LastCast ~= "Mind Freeze" and jps.LastCast ~= "Strangulate"'},
-	{ "Asphyxiate",'jps.shouldKick() and jps.LastCast ~= "Mind Freeze" and jps.LastCast ~= "Strangulate"', "focus"},
+	{ "mind freeze",'jps.ShouldKick()'},
+	{ "mind freeze",'jps.ShouldKick("focus")', "focus" },
+	{ "Strangulate",'jps.ShouldKick() and jps.UseCDs and IsSpellInRange("mind freeze","target")==0 and jps.LastCast ~= "mind freeze"'},
+	{ "Strangulate",'jps.ShouldKick("focus") and jps.UseCDs and IsSpellInRange("mind freeze","focus")==0 and jps.LastCast ~= "mind freeze"', "focus"},
+	{ "Asphyxiate",'jps.ShouldKick() and jps.LastCast ~= "Mind Freeze" and jps.LastCast ~= "Strangulate"'},
+	{ "Asphyxiate",'jps.ShouldKick() and jps.LastCast ~= "Mind Freeze" and jps.LastCast ~= "Strangulate"', "focus"},
 
 	-- Spell Steal
 	{"Dark Simulacrum ", 'dk.shouldDarkSimTarget()' , "target"},
@@ -207,12 +207,12 @@ jps.registerStaticTable("DEATHKNIGHT","FROST",{
 	--{ "Death Strike",'jps.Defensive and jps.hp() < 0.7'},
 
 	-- Interrupts
-	{ "mind freeze",'jps.shouldKick()'},
-	{ "mind freeze",'jps.shouldKick("focus")', "focus" },
-	{ "Strangulate",'jps.shouldKick() and jps.UseCDs and IsSpellInRange("mind freeze","target")==0 and jps.LastCast ~= "mind freeze"'},
-	{ "Strangulate",'jps.shouldKick("focus") and jps.UseCDs and IsSpellInRange("mind freeze","focus")==0 and jps.LastCast ~= "mind freeze"', "focus"},
-	{ "Asphyxiate",'jps.shouldKick() and jps.LastCast ~= "Mind Freeze" and jps.LastCast ~= "Strangulate"'},
-	{ "Asphyxiate",'jps.shouldKick() and jps.LastCast ~= "Mind Freeze" and jps.LastCast ~= "Strangulate"', "focus"},
+	{ "mind freeze",'jps.ShouldKick()'},
+	{ "mind freeze",'jps.ShouldKick("focus")', "focus" },
+	{ "Strangulate",'jps.ShouldKick() and jps.UseCDs and IsSpellInRange("mind freeze","target")==0 and jps.LastCast ~= "mind freeze"'},
+	{ "Strangulate",'jps.ShouldKick("focus") and jps.UseCDs and IsSpellInRange("mind freeze","focus")==0 and jps.LastCast ~= "mind freeze"', "focus"},
+	{ "Asphyxiate",'jps.ShouldKick() and jps.LastCast ~= "Mind Freeze" and jps.LastCast ~= "Strangulate"'},
+	{ "Asphyxiate",'jps.ShouldKick() and jps.LastCast ~= "Mind Freeze" and jps.LastCast ~= "Strangulate"', "focus"},
 	
 	-- Spell Steal
 	{"Dark Simulacrum ", 'dk.shouldDarkSimTarget() ~= ""' , "target"},
@@ -324,12 +324,12 @@ jps.registerStaticTable("DEATHKNIGHT","FROST",{
 	{ "Soul Reaper",'jps.hp("target") < 0.35'},
 
 	-- Kick
-	{ "mind freeze",'jps.shouldKick()'},
-	{ "mind freeze",'jps.shouldKick("focus")', "focus"},
-	{ "Strangulate",'jps.shouldKick() and jps.UseCDs and IsSpellInRange("mind freeze","target")==0 and jps.LastCast ~= "mind freeze"'},
-	{ "Strangulate",'jps.shouldKick("focus") and jps.UseCDs and IsSpellInRange("mind freeze","focus")==0 and jps.LastCast ~= "mind freeze"', "focus"},
-	{ "Asphyxiate",'jps.shouldKick() and jps.LastCast ~= "Mind Freeze" and jps.LastCast ~= "Strangulate"'},
-	{ "Asphyxiate",'jps.shouldKick() and jps.LastCast ~= "Mind Freeze" and jps.LastCast ~= "Strangulate"', "focus"},
+	{ "mind freeze",'jps.ShouldKick()'},
+	{ "mind freeze",'jps.ShouldKick("focus")', "focus"},
+	{ "Strangulate",'jps.ShouldKick() and jps.UseCDs and IsSpellInRange("mind freeze","target")==0 and jps.LastCast ~= "mind freeze"'},
+	{ "Strangulate",'jps.ShouldKick("focus") and jps.UseCDs and IsSpellInRange("mind freeze","focus")==0 and jps.LastCast ~= "mind freeze"', "focus"},
+	{ "Asphyxiate",'jps.ShouldKick() and jps.LastCast ~= "Mind Freeze" and jps.LastCast ~= "Strangulate"'},
+	{ "Asphyxiate",'jps.ShouldKick() and jps.LastCast ~= "Mind Freeze" and jps.LastCast ~= "Strangulate"', "focus"},
 
 	-- Spell Steal
 	{"Dark Simulacrum ", 'dk.shouldDarkSimTarget()' , "target"},
@@ -387,12 +387,12 @@ This Rotation only spread's your diseases & interrupt units. The rest you have t
 ]]--
 jps.registerStaticTable("DEATHKNIGHT","FROST",{
 	-- Kicks
-	{ "mind freeze",'jps.shouldKick()'},
-	{ "mind freeze",'jps.shouldKick("focus")', "focus"},
-	{ "Strangulate",'jps.shouldKick() and jps.UseCDs and IsSpellInRange("mind freeze","target")==0 and jps.LastCast ~= "mind freeze"'},
-	{ "Strangulate",'jps.shouldKick("focus") and jps.UseCDs and IsSpellInRange("mind freeze","focus")==0 and jps.LastCast ~= "mind freeze"', "focus"},
-	{ "Asphyxiate",'jps.shouldKick() and jps.LastCast ~= "Mind Freeze" and jps.LastCast ~= "Strangulate"'},
-	{ "Asphyxiate",'jps.shouldKick() and jps.LastCast ~= "Mind Freeze" and jps.LastCast ~= "Strangulate"', "focus"},
+	{ "mind freeze",'jps.ShouldKick()'},
+	{ "mind freeze",'jps.ShouldKick("focus")', "focus"},
+	{ "Strangulate",'jps.ShouldKick() and jps.UseCDs and IsSpellInRange("mind freeze","target")==0 and jps.LastCast ~= "mind freeze"'},
+	{ "Strangulate",'jps.ShouldKick("focus") and jps.UseCDs and IsSpellInRange("mind freeze","focus")==0 and jps.LastCast ~= "mind freeze"', "focus"},
+	{ "Asphyxiate",'jps.ShouldKick() and jps.LastCast ~= "Mind Freeze" and jps.LastCast ~= "Strangulate"'},
+	{ "Asphyxiate",'jps.ShouldKick() and jps.LastCast ~= "Mind Freeze" and jps.LastCast ~= "Strangulate"', "focus"},
 	-- Buffs
 	{ "frost presence",'not jps.buff("frost presence")'},
 	{ "horn of winter",'"onCD"'},

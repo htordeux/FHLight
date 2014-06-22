@@ -45,12 +45,12 @@ jps.registerRotation("DEATHKNIGHT","UNHOLY",function()
 	local spellTable =
 	{
 	   -- Kick
-		{ "mind freeze",		jps.shouldKick() },
-		{ "mind freeze",		jps.shouldKick("focus"), "focus" },
-		{ "Strangulate",		jps.shouldKick() and jps.UseCDs and IsSpellInRange("mind freeze","target")==0 and jps.LastCast ~= "mind freeze" },
-		{ "Strangulate",		jps.shouldKick("focus") and jps.UseCDs and IsSpellInRange("mind freeze","focus")==0 and jps.LastCast ~= "mind freeze" , "focus" },
-		{ "Asphyxiate",			jps.shouldKick() and jps.LastCast ~= "Mind Freeze" and jps.LastCast ~= "Strangulate" },
-		{ "Asphyxiate",			jps.shouldKick() and jps.LastCast ~= "Mind Freeze" and jps.LastCast ~= "Strangulate", "focus" },
+		{ "mind freeze",		jps.ShouldKick() },
+		{ "mind freeze",		jps.ShouldKick("focus"), "focus" },
+		{ "Strangulate",		jps.ShouldKick() and jps.UseCDs and IsSpellInRange("mind freeze","target")==0 and jps.LastCast ~= "mind freeze" },
+		{ "Strangulate",		jps.ShouldKick("focus") and jps.UseCDs and IsSpellInRange("mind freeze","focus")==0 and jps.LastCast ~= "mind freeze" , "focus" },
+		{ "Asphyxiate",			jps.ShouldKick() and jps.LastCast ~= "Mind Freeze" and jps.LastCast ~= "Strangulate" },
+		{ "Asphyxiate",			jps.ShouldKick() and jps.LastCast ~= "Mind Freeze" and jps.LastCast ~= "Strangulate", "focus" },
 		
 		-- Self heals
 		{ "Death Siphon", jps.hp() < .8 and jps.Defensive },

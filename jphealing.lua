@@ -25,6 +25,9 @@ local GetUnitName = GetUnitName
 local tinsert = table.insert
 local pairs = pairs
 
+-- local function
+local function toSpellName(id) return tostring(select(1,GetSpellInfo(id))) end
+
 ----------------------
 -- UPDATE RAIDROSTER
 ----------------------
@@ -73,8 +76,8 @@ jps.UpdateRaidStatus = function ()
 		RaidStatus[unit]["inrange"] = inrange
 	end
 
--- Role in Raid
--- local role = UnitGroupRolesAssigned(unit) -- works only for friendly unit in raid -- erturn "NONE" if not in raid	
+-- Role in Raid -- with UnitGUID
+-- local role = UnitGroupRolesAssigned(unit) -- works only for friendly unit in raid -- return "NONE" if not in raid	
 	table.wipe(RaidStatusRole)
 	for unit,_ in pairs(RaidStatus) do
 		local unitguid = UnitGUID(unit)
@@ -403,8 +406,6 @@ end
 ---------------------------------
 -- DISPEL FUNCTIONS RAID STATUS
 ---------------------------------
-
-local function toSpellName(id) return tostring(select(1,GetSpellInfo(id))) end
 
 -- Don't Dispel if unit is affected by some debuffs
 local DebuffNotDispel = {

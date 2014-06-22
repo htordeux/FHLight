@@ -38,20 +38,20 @@ jps.registerRotation("PALADIN","PROTECTION",function()
 		{ "Seal of Insight", stance ~= 3 , player },
 
 		-- Interrupt
-		{ "Rebuke", jps.shouldKick() },
-		{ "Rebuke", jps.shouldKick("focus"), "focus" },
+		{ "Rebuke", jps.ShouldKick() },
+		{ "Rebuke", jps.ShouldKick("focus"), "focus" },
 
 		-- Interrupt
-		{ "Avenger's Shield",	jps.shouldKick() and IsSpellInRange("Avenger's Shield","target") == 0 and jps.LastCast ~= "Rebuke" },
-		{ "Avenger's Shield",	jps.shouldKick("focus") and IsSpellInRange("Avenger's Shield","focus") == 0 and jps.LastCast ~= "Rebuke", "focus" },
+		{ "Avenger's Shield",	jps.ShouldKick() and IsSpellInRange("Avenger's Shield","target") == 0 and jps.LastCast ~= "Rebuke" },
+		{ "Avenger's Shield",	jps.ShouldKick("focus") and IsSpellInRange("Avenger's Shield","focus") == 0 and jps.LastCast ~= "Rebuke", "focus" },
 
 		-- Stun
-		{ "Hammer of Justice",	jps.shouldKick() },
-		{ "Hammer of Justice",	jps.shouldKick("focus"), "focus" },
+		{ "Hammer of Justice",	jps.ShouldKick() },
+		{ "Hammer of Justice",	jps.ShouldKick("focus"), "focus" },
 
 		-- Stun
-		{ "Fist of Justice",	jps.shouldKick() },
-		{ "Fist of Justice",	jps.shouldKick("focus"), "focus" },
+		{ "Fist of Justice",	jps.ShouldKick() },
+		{ "Fist of Justice",	jps.ShouldKick("focus"), "focus" },
 
 		-- Aggro
 		{ "Holy Avenger",	jps.UseCDs },
@@ -160,16 +160,16 @@ jps.registerRotation("PALADIN","PROTECTION",function()
 		{ "Seal of Insight", stance ~= 3 , player },
 
 		-- Interrupt
-		{ "Rebuke", jps.shouldKick() },
-		{ "Rebuke", jps.shouldKick("focus"), "focus" },
+		{ "Rebuke", jps.ShouldKick() },
+		{ "Rebuke", jps.ShouldKick("focus"), "focus" },
 
 		-- Stun
-		{ "Hammer of Justice",	jps.shouldKick() },
-		{ "Hammer of Justice",	jps.shouldKick("focus"), "focus" },
+		{ "Hammer of Justice",	jps.ShouldKick() },
+		{ "Hammer of Justice",	jps.ShouldKick("focus"), "focus" },
 
 		-- Stun
-		{ "Fist of Justice",	jps.shouldKick() },
-		{ "Fist of Justice",	jps.shouldKick("focus"), "focus" },
+		{ "Fist of Justice",	jps.ShouldKick() },
+		{ "Fist of Justice",	jps.ShouldKick("focus"), "focus" },
 
 		-- Aggro
 		{ "Holy Avenger",	jps.UseCDs },
@@ -269,20 +269,20 @@ jps.registerRotation("PALADIN","PROTECTION",function()
 		{ "Seal of Insight", stance ~= 3 , player },
 
 		-- Interrupt
-		{ "Rebuke", jps.shouldKick() },
-		{ "Rebuke", jps.shouldKick("focus"), "focus" },
+		{ "Rebuke", jps.ShouldKick() },
+		{ "Rebuke", jps.ShouldKick("focus"), "focus" },
 
 		-- Interrupt
-		{ "Avenger's Shield",	jps.shouldKick() and IsSpellInRange("Avenger's Shield","target") == 0 and jps.LastCast ~= "Rebuke" },
-		{ "Avenger's Shield",	jps.shouldKick("focus") and IsSpellInRange("Avenger's Shield","focus") == 0 and jps.LastCast ~= "Rebuke", "focus" },
+		{ "Avenger's Shield",	jps.ShouldKick() and IsSpellInRange("Avenger's Shield","target") == 0 and jps.LastCast ~= "Rebuke" },
+		{ "Avenger's Shield",	jps.ShouldKick("focus") and IsSpellInRange("Avenger's Shield","focus") == 0 and jps.LastCast ~= "Rebuke", "focus" },
 
 		-- Stun
-		{ "Hammer of Justice",	jps.shouldKick() },
-		{ "Hammer of Justice",	jps.shouldKick("focus"), "focus" },
+		{ "Hammer of Justice",	jps.ShouldKick() },
+		{ "Hammer of Justice",	jps.ShouldKick("focus"), "focus" },
 
 		-- Stun
-		{ "Fist of Justice",	jps.shouldKick() },
-		{ "Fist of Justice",	jps.shouldKick("focus"), "focus" },
+		{ "Fist of Justice",	jps.ShouldKick() },
+		{ "Fist of Justice",	jps.ShouldKick("focus"), "focus" },
 
 		-- Heal
 		{ "Word of Glory",	jps.hp() < 0.7 and holyPower > 2 },

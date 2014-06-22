@@ -27,8 +27,8 @@ jps.registerRotation("WARRIOR","ARMS",function()
 	local noMelee = IsSpellInRange("pummel","target")==0
 	local isImmune = jps.LoseControl(rangedTarget,{"Immune"})
 	local dmgBlock = jps.buff("ice block",rangedTarget) or jps.buff("devine shield",rangedTarget) or jps.buff("hand of protection",rangedTarget)
-	local kick = jps.shouldKick(rangedTarget) or jps.IsCastingPoly(rangedTarget)
-	local kickFocus = jps.shouldKick("focus") or jps.IsCastingPoly("focus")
+	local kick = jps.ShouldKick(rangedTarget) or jps.IsCastingPoly(rangedTarget)
+	local kickFocus = jps.ShouldKick("focus") or jps.IsCastingPoly("focus")
 ------------------------
 -- LOCAL FUNCTIONS -----
 ------------------------

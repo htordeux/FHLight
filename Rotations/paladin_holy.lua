@@ -131,9 +131,9 @@ end
 ------------------------
 hpala.spellTable = {
 	-- Kicks
-	{ "Rebuke",'jps.shouldKick(hpala.rangedTarget())', hpala.rangedTarget },
-	{ "Rebuke",'jps.shouldKick("focus")', "focus" },
-	{ "Fist of Justice",'jps.shouldKick(hpala.rangedTarget()) and jps.cooldown("Rebuke") > 0', hpala.rangedTarget },
+	{ "Rebuke",'jps.ShouldKick(hpala.rangedTarget())', hpala.rangedTarget },
+	{ "Rebuke",'jps.ShouldKick("focus")', "focus" },
+	{ "Fist of Justice",'jps.ShouldKick(hpala.rangedTarget()) and jps.cooldown("Rebuke") > 0', hpala.rangedTarget },
 
 -- Dispels
 	hpala.dispel,

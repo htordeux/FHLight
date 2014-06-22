@@ -3,10 +3,10 @@ jps.registerStaticTable("WARRIOR","ARMS",
 {
 
 	-- Interrupts
-	{ "Pummel", ' jps.shouldKick() '},
-	{ "Pummel", ' jps.shouldKick("focus")', "focus" },
-	{ "Disrupting Shout", ' jps.shouldKick() '},
-	{ "Disrupting Shout", ' jps.shouldKick("focus")', "focus" },
+	{ "Pummel", ' jps.ShouldKick() '},
+	{ "Pummel", ' jps.ShouldKick("focus")', "focus" },
+	{ "Disrupting Shout", ' jps.ShouldKick() '},
+	{ "Disrupting Shout", ' jps.ShouldKick("focus")', "focus" },
 
 	-- Pots and Flasks
 	{ jps.useBagItem("Flask of Winter's Bite"), 'jps.targetIsRaidBoss() and not jps.playerInLFR() and not jps.buff("Flask of Winter\'s Bite") '},

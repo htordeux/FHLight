@@ -35,8 +35,8 @@ jps.registerRotation("PALADIN","RETRIBUTION",function()
 		{ "Word of Glory", jps.hp() < .6 and jps.Defensive }, 
 	
 		-- Interrupts
-		{ "Rebuke",  jps.shouldKick() },
-		{ "Rebuke", jps.shouldKick("focus"), "focus" }, 
+		{ "Rebuke",  jps.ShouldKick() },
+		{ "Rebuke", jps.ShouldKick("focus"), "focus" }, 
 		
 		-- Trinket CDs.
 		{ jps.useTrinket(0), jps.UseCDs }, 

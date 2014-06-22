@@ -18,8 +18,8 @@ jps.registerRotation("WARRIOR","PROTECTION",function()
 		{ "Enraged Regeneration" ,	(jps.buff("Berserker Rage","player") or jps.buff("enraged","player")) and jps.hp() < 0.80 , "player" },
 
 		-- interrupts
-		{ "Pummel" ,				jps.shouldKick("target") , "target" },
-		{ "Pummel" ,				jps.shouldKick("focus") , "focus" },
+		{ "Pummel" ,				jps.ShouldKick("target") , "target" },
+		{ "Pummel" ,				jps.ShouldKick("focus") , "focus" },
 		{ "Spell Reflection" ,	UnitThreatSituation("player","target") == 3 and (UnitCastingInfo("target") or UnitChannelInfo("target")) , "target" },
 		{ "Shield Slam" ,		jps.buff("Sword and Board") , "target" },
 

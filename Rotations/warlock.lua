@@ -144,7 +144,7 @@ function wl.getInterruptSpell(unit)
 		elseif jps.canCast(wl.spells.commandDemon, unit) and select(3,GetSpellInfo(wl.spells.commandDemon))=="Interface\\Icons\\Spell_Shadow_MindRot" then -- GoSac Felhunter
 			canInterrupt = true
 		end
-		local shouldInterrupt = jps.Interrupts and jps.shouldKick(unit) and jps.CastTimeLeft(unit) < wl.maxIntCastLength
+		local shouldInterrupt = jps.Interrupts and jps.ShouldKick(unit) and jps.CastTimeLeft(unit) < wl.maxIntCastLength
 		interruptSpellTables[unit][2] = canInterrupt and shouldInterrupt
 		return interruptSpellTables[unit]
 	end

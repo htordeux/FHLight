@@ -40,9 +40,9 @@ jps.registerRotation("MONK","WINDWALKER",function()
 		{ "Touch of Death", jps.UseCDs and jps.buff("Death Note") and not jps.MultiTarget },
 		
 		 -- Interrupts 
-		{ "Spear Hand Strike", jps.Interrupts and jps.shouldKick() },
+		{ "Spear Hand Strike", jps.Interrupts and jps.ShouldKick() },
 		 
-		{ "Paralysis", jps.Interrupts and jps.shouldKick() },
+		{ "Paralysis", jps.Interrupts and jps.ShouldKick() },
 		
 		 -- Chi Brew if we have no chi. (talent based) 
 		{ "Chi Brew", chi == 0 },

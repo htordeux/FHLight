@@ -22,10 +22,10 @@ jps.registerRotation("ROGUE","SUBTLETY",function()
 		{ 8676	 , jps.buff(1784,"player")	, rangedTarget },
 		
 		-- Interrupts
-		{ "Kick",  jps.shouldKick() },
-		{ "Blind", jps.shouldKick() },
-		{ "Kick",  jps.shouldKick("focus"),"focus" },
-		{ "Blind", jps.shouldKick("focus"),"focus" },
+		{ "Kick",  jps.ShouldKick() },
+		{ "Blind", jps.ShouldKick() },
+		{ "Kick",  jps.ShouldKick("focus"),"focus" },
+		{ "Blind", jps.ShouldKick("focus"),"focus" },
 		
 		-- Slice and Dice
 		{ 5171	 , (snd_duration < 4) and (cp > 3)	, rangedTarget , "SND_SpellID" },

@@ -557,7 +557,7 @@ jps.registerRotation("WARLOCK","DEMONOLOGY",function()
 		{ "imp swarm" },
 		{ "Grimoire: Felguard", not jps.buff("metamorphosis") and not jps.Opening },
 		----------------- axe toss to interupts or stunt if target is in stuntlist ----
-		{ 89766, jps.cooldown("axe toss") == 0 and ((pet and isAxeToss ) or (jps.shouldKick and pet))  },
+		{ 89766, jps.cooldown("axe toss") == 0 and ((pet and isAxeToss ) or (jps.ShouldKick and pet))  },
 
 		---------------------------------------- opening ------------------------------------------------------
 		{ "nested", jps.Opening , opening() },

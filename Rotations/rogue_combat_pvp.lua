@@ -13,7 +13,7 @@ jps.registerRotation("ROGUE","COMBAT",function()
 	{
 		{ nil,			jps.buff("killing spree") },
 		{ "Cheap Shot",		jps.buff("stealth") and IsUsableSpell("cheap shot") },
-		{ "Kick",		jps.Interrupts and jps.shouldKick("target") and jps.cooldown("kick") == 0 },
+		{ "Kick",		jps.Interrupts and jps.ShouldKick("target") and jps.cooldown("kick") == 0 },
 		{ BFMacro,		jps.buff("Blade Flurry") and not jps.MultiTarget },
 		{ "Blade Flurry",	jps.MultiTarget and not jps.buff("Blade Flurry") },
 		{ "Evasion",		jps.hp() < 0.6 and not jps.buff("evasion") },

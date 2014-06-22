@@ -29,7 +29,7 @@ jps.registerStaticTable("ROGUE","ASSASSINATION",{
     {jps.useBagItem(5512), 'jps.hp("player") < 0.65' },
 
     -- Interrupt
-    { rogue.spells.kick, 'jps.Interrupts and jps.shouldKick("target") and jps.CastTimeLeft("target") < 1.5', "target"},
+    { rogue.spells.kick, 'jps.Interrupts and jps.ShouldKick("target") and jps.CastTimeLeft("target") < 1.5', "target"},
 
     -- CD's
     { rogue.spells.shadowBlaes, 'jps.bloodlusting() and jps.buffDuration(rogue.spells.sliceAndDice) >= jps.buffDuration(rogue.spells.shadowBlades) and jps.UseCDs' },

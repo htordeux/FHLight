@@ -134,11 +134,7 @@ local priestDisc = function()
 	local FearEnemyTarget = nil
 	for _,unit in ipairs(EnemyUnit) do 
 		if priest.canFear(unit) and not jps.LoseControl(unit) then
-			if jps.IsCastingControl(unit) then
-				FearEnemyTarget = unit
-			elseif jps.shouldKickDelay(unit) then
-				FearEnemyTarget = unit
-			end
+			FearEnemyTarget = unit
 		break end
 	end
 
@@ -163,9 +159,9 @@ local priestDisc = function()
 
 local InterruptTable = {
 	{priest.Spell.flashHeal, 0.75, jps.buffId(priest.Spell.spiritShellBuild) or jps.buffId(priest.Spell.innerFocus) },
-	{priest.Spell.greaterHeal, 0.95, jps.buffId(priest.Spell.spiritShellBuild) },
+	{priest.Spell.greaterHeal, 0.90, jps.buffId(priest.Spell.spiritShellBuild) },
 	{priest.Spell.heal, 1 , jps.buffId(priest.Spell.spiritShellBuild) },
-	{priest.Spell.prayerOfHealing, 0.95, jps.buffId(priest.Spell.spiritShellBuild) or jps.buffId(priest.Spell.innerFocus) or jps.MultiTarget}
+	{priest.Spell.prayerOfHealing, 0.85, jps.buffId(priest.Spell.spiritShellBuild) or jps.buffId(priest.Spell.innerFocus) or jps.MultiTarget}
 }
 
 -- Avoid interrupt Channeling

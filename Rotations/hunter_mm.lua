@@ -15,7 +15,7 @@ jps.registerRotation("HUNTER","MARKSMANSHIP", function()
 	local focus = UnitPower("player")
 
 	-- Interupting, Borrowed directly from feral cat
-	if jps.Interrupts and jps.shouldKick("target") and cd("Silencing Shot") == 0 then
+	if jps.Interrupts and jps.ShouldKick("target") and cd("Silencing Shot") == 0 then
 		return "Silencing Shot"
 
 	-- Misdirecting to pet if not in a party

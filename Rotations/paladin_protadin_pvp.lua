@@ -7,10 +7,10 @@ local holyPower = UnitPower("player",9)
 local spellTable_single =
 {    
 	 -- Kicks
-	{ "Rebuke",                     jps.shouldKick() },
-	{ "Rebuke",                     jps.shouldKick("focus"), "focus" },
-	{ "Avenger's Shield",            jps.shouldKick() and jps.UseCDs and IsSpellInRange("Avenger's Shield","target")==0 and jps.LastCast ~= "Rebuke" },
-	{ "Avenger's Shield",            jps.shouldKick("focus") and jps.UseCDs and IsSpellInRange("Avenger's Shield","focus")==0 and jps.LastCast ~= "Rebuke" , "focus" },
+	{ "Rebuke",                     jps.ShouldKick() },
+	{ "Rebuke",                     jps.ShouldKick("focus"), "focus" },
+	{ "Avenger's Shield",            jps.ShouldKick() and jps.UseCDs and IsSpellInRange("Avenger's Shield","target")==0 and jps.LastCast ~= "Rebuke" },
+	{ "Avenger's Shield",            jps.ShouldKick("focus") and jps.UseCDs and IsSpellInRange("Avenger's Shield","focus")==0 and jps.LastCast ~= "Rebuke" , "focus" },
 	
 	-- Aggro Cooldowns
 	{ "Holy Avenger",               jps.UseCDs },
@@ -44,10 +44,10 @@ local spellTable_single =
  local spellTable_multi =
 {    
 	 -- Kicks
-	{ "Rebuke",                     jps.shouldKick() },
-	{ "Rebuke",                     jps.shouldKick("focus"), "focus" },
-	{ "Avenger's Shield",            jps.shouldKick() and jps.UseCDs and IsSpellInRange("Avenger's Shield","target")==0 and jps.LastCast ~= "Rebuke" },
-	{ "Avenger's Shield",            jps.shouldKick("focus") and jps.UseCDs and IsSpellInRange("Avenger's Shield","focus")==0 and jps.LastCast ~= "Rebuke" , "focus" },
+	{ "Rebuke",                     jps.ShouldKick() },
+	{ "Rebuke",                     jps.ShouldKick("focus"), "focus" },
+	{ "Avenger's Shield",            jps.ShouldKick() and jps.UseCDs and IsSpellInRange("Avenger's Shield","target")==0 and jps.LastCast ~= "Rebuke" },
+	{ "Avenger's Shield",            jps.ShouldKick("focus") and jps.UseCDs and IsSpellInRange("Avenger's Shield","focus")==0 and jps.LastCast ~= "Rebuke" , "focus" },
 	
 	-- Aggro Cooldowns
 	{ "Holy Avenger",               jps.UseCDs },

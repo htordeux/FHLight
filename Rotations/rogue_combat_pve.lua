@@ -42,16 +42,16 @@ local defensiveCDActive = jps.buff("Evasion") or jps.buff("Cloak of Shadows") or
               { "Smoke Bomb", jps.UseCDs and jps.hp() < .5 and not defensiveCDActive },
              
               -- Kick
-              { "Kick", jps.shouldKick() and jps.LastCast ~= "Blind" and jps.LastCast ~= "Gouge" },
+              { "Kick", jps.ShouldKick() and jps.LastCast ~= "Blind" and jps.LastCast ~= "Gouge" },
              
               -- Kick
-              { "Blind", jps.shouldKick() and jps.LastCast ~= "Kick" and jps.LastCast ~= "Gouge" },
+              { "Blind", jps.ShouldKick() and jps.LastCast ~= "Kick" and jps.LastCast ~= "Gouge" },
              
               -- Kick
-              { "Kick", jps.shouldKick() },
+              { "Kick", jps.ShouldKick() },
              
               -- Kick
-              { "Gouge", jps.shouldKick() and jps.LastCast ~= "Kick" },
+              { "Gouge", jps.ShouldKick() and jps.LastCast ~= "Kick" },
              
               -- Trinket CDs.
               -- Disabled one slot (the 1st one) just so the addon won't waste a cooldown, like PvP trinkets. Most people
@@ -142,16 +142,16 @@ local defensiveCDActive = jps.buff("Evasion") or jps.buff("Cloak of Shadows") or
               { "Smoke Bomb", jps.UseCDs and jps.hp() < .5 and not defensiveCDActive },
              
               -- Kick
-              { "Kick", jps.shouldKick() and jps.LastCast ~= "Blind" and jps.LastCast ~= "Gouge" },
+              { "Kick", jps.ShouldKick() and jps.LastCast ~= "Blind" and jps.LastCast ~= "Gouge" },
              
               -- Kick
-              { "Blind", jps.shouldKick() and jps.LastCast ~= "Kick" and jps.LastCast ~= "Gouge" },
+              { "Blind", jps.ShouldKick() and jps.LastCast ~= "Kick" and jps.LastCast ~= "Gouge" },
              
               -- Kick
-              { "Kick", jps.shouldKick() },
+              { "Kick", jps.ShouldKick() },
              
               -- Kick
-              { "Gouge", jps.shouldKick() and jps.LastCast ~= "Kick" },
+              { "Gouge", jps.ShouldKick() and jps.LastCast ~= "Kick" },
              
               -- Trinket CDs.
               -- Disabled one slot (the 1st one) just so the addon won't waste a cooldown, like PvP trinkets. Most people
@@ -230,16 +230,16 @@ local defensiveCDActive = jps.buff("Evasion") or jps.buff("Cloak of Shadows") or
               { "Smoke Bomb", jps.UseCDs and jps.hp() < .5 and not defensiveCDActive },
              
               -- Kick
-              { "Kick", jps.shouldKick() and jps.LastCast ~= "Blind" and jps.LastCast ~= "Gouge" },
+              { "Kick", jps.ShouldKick() and jps.LastCast ~= "Blind" and jps.LastCast ~= "Gouge" },
              
               -- Kick
-              { "Blind", jps.shouldKick() and jps.LastCast ~= "Kick" and jps.LastCast ~= "Gouge" },
+              { "Blind", jps.ShouldKick() and jps.LastCast ~= "Kick" and jps.LastCast ~= "Gouge" },
              
               -- Kick
-              { "Kick", jps.shouldKick() },
+              { "Kick", jps.ShouldKick() },
              
               -- Kick
-              { "Gouge", jps.shouldKick() and jps.LastCast ~= "Kick" },
+              { "Gouge", jps.ShouldKick() and jps.LastCast ~= "Kick" },
              
               -- Trinket CDs.
               -- Disabled one slot (the 1st one) just so the addon won't waste a cooldown, like PvP trinkets. Most people

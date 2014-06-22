@@ -26,10 +26,10 @@ jps.registerRotation("PALADIN","RETRIBUTION",function()
 local spellTable_single =
 {	 
 	-- Kicks
-	{ "Rebuke", jps.shouldKick(rangedTarget) , rangedTarget },
-	{ "Rebuke", jps.shouldKick("focus") , "focus" },
-	{ "Fist of Justice", jps.cooldown("rebuke") and jps.shouldKick(rangedTarget) , rangedTarget },
-	{ "Fist of Justice", jps.cooldown("rebuke") and jps.shouldKick("focus") , "focus" },
+	{ "Rebuke", jps.ShouldKick(rangedTarget) , rangedTarget },
+	{ "Rebuke", jps.ShouldKick("focus") , "focus" },
+	{ "Fist of Justice", jps.cooldown("rebuke") and jps.ShouldKick(rangedTarget) , rangedTarget },
+	{ "Fist of Justice", jps.cooldown("rebuke") and jps.ShouldKick("focus") , "focus" },
 	-- Buffs
 	{ "Avenging Wrath", jps.UseCDs , player },
 	{ "Execution Sentence", onCD and not jps.cooldown("Avenging Wrath") > 0.2 , rangedTarget },
@@ -48,10 +48,10 @@ local spellTable_single =
 local spellTable_multi =
 {	 
 	-- Kicks
-	{ "Rebuke", jps.shouldKick(rangedTarget) , rangedTarget },
-	{ "Rebuke", jps.shouldKick("focus") , "focus" },
-	{ "Fist of Justice", jps.cooldown("rebuke") and jps.shouldKick(rangedTarget) , rangedTarget },
-	{ "Fist of Justice", jps.cooldown("rebuke") and jps.shouldKick("focus") , "focus" },
+	{ "Rebuke", jps.ShouldKick(rangedTarget) , rangedTarget },
+	{ "Rebuke", jps.ShouldKick("focus") , "focus" },
+	{ "Fist of Justice", jps.cooldown("rebuke") and jps.ShouldKick(rangedTarget) , rangedTarget },
+	{ "Fist of Justice", jps.cooldown("rebuke") and jps.ShouldKick("focus") , "focus" },
 	-- Buffs
 	{ "Avenging Wrath", jps.UseCDs , player },
 	{ "Execution Sentence", onCD and not jps.cooldown("Avenging Wrath") > 0.2 , rangedTarget },

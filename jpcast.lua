@@ -180,25 +180,22 @@ function jps.canHeal(unit)
 	return true
 end
 
--- WORKING ONLY FOR PARTYn..TARGET AND RAIDn..TARGET NOT FOR UNITNAME..TARGET
--- CHECK IF WE CAN DAMAGE A UNIT
-local iceblock = tostring(select(1,GetSpellInfo(45438))) -- ice block mage
-local divineshield = tostring(select(1,GetSpellInfo(642))) -- divine shield paladin
-local spellreflection = tostring(select(1,GetSpellInfo(23920))) 
-local deterrence = tostring(select(1,GetSpellInfo(110617))) 
-local antimagic = tostring(select(1,GetSpellInfo(48707)))
--- Spell Reflection 23920 -- Spell Reflection Reflects a spell cast on you -- Dispel type n/a
--- Deterrence 110617 -- reduces the chance ranged attacks will hit you by 100% and grants a 100% chance to deflect spells.
--- While Deterrence is active, you cannot attack -- Dispel type	n/a
--- Anti-Magic Shell 48707 -- Absorbing up to 75 magic damage. Immune to magic debuffs -- Dispel type	n/a
-
-local buffImmune = {iceblock, divineshield, spellreflection, deterrence, antimagic}
-function UnitHasImmuneBuff(unit)
+local buffImmune = {
+tostring(select(1,GetSpellInfo(45438))), -- ice block mage
+tostring(select(1,GetSpellInfo(642))), -- divine shield paladin
+tostring(select(1,GetSpellInfo(23920))), -- Spell Reflection 23920 -- Spell Reflection Reflects a spell cast on you -- Dispel type n/a
+tostring(select(1,GetSpellInfo(110617))), -- Deterrence 110617 -- reduces the chance ranged attacks will hit you by 100% and grants a 100% chance to deflect spells -- Dispel type	n/a
+tostring(select(1,GetSpellInfo(48707))), -- Anti-Magic Shell 48707 -- Absorbing up to 75 magic damage. Immune to magic debuffs -- Dispel type	n/a
+}
+local UnitHasImmuneBuff = function(unit)
 	for _,buff in ipairs(buffImmune) do
 		if jps.buff(buff,unit) then return true end
 	end
 	return false
 end
+
+-- WORKING ONLY FOR PARTYn..TARGET AND RAIDn..TARGET NOT FOR UNITNAME..TARGET
+-- CHECK IF WE CAN DAMAGE A UNIT
 
 function jps.canDPS(unit)
 	if not jps.UnitExists(unit) then return false end
@@ -218,7 +215,7 @@ tostring(select(1,GetSpellInfo(61999))), -- DK: Raise Ally
 tostring(select(1,GetSpellInfo(20707))), -- Warlock: Soulstone
 tostring(select(1,GetSpellInfo(126393))) -- Hunter: Eternal Guardian
 }
-local function isBattleRez(spell)
+local isBattleRez = function (spell)
     for _,v in ipairs(battleRezSpells) do
         if v == spell then return true end
     end

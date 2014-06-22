@@ -26,7 +26,7 @@ function ma_fr.rangedTarget()
 end
 
 function ma_fr.kick(unit)
-	return jps.shouldKick(unit) or jps.IsCastingPoly(unit)
+	return jps.ShouldKick(unit) or jps.IsCastingPoly(unit)
 end
 ma_fr.invokersEnergy = select(1,GetSpellInfo(116257))
 --[[[

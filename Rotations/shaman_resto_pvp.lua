@@ -81,8 +81,8 @@ jps.registerRotation("SHAMAN","RESTORATION",function()
 		{ "healing surge",			defaultHP < 0.6, defaultTarget },
 	
 		-- Kick.
-		{ "wind shear",				jps.shouldKick(focus), focus },
-		{ "wind shear",				hostileTarget and jps.shouldKick(target) },
+		{ "wind shear",				jps.ShouldKick(focus), focus },
+		{ "wind shear",				hostileTarget and jps.ShouldKick(target) },
 	
 		-- Dispels.
 		{ "purge",					hostileTarget and buffToPurge and lotsOfMana },

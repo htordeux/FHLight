@@ -37,8 +37,8 @@ end
 
 -- what is missning: purge, more keybinds
 spellTable = {
-	{ "Wind Shear", 'jps.shouldKick("target")',"target"},
-	{ "Wind Shear", 'jps.shouldKick("focus")',"focus"},
+	{ "Wind Shear", 'jps.ShouldKick("target")',"target"},
+	{ "Wind Shear", 'jps.ShouldKick("focus")',"focus"},
 	{ "Hex", 'keyPressed("shift","alt") and jps.canDPS("mouseover")' , 'mouseover' },
 	
 	{ "Lightning Shield",'not jps.buff("Lightning Shield")' },

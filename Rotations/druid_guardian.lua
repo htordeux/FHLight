@@ -26,8 +26,8 @@ jps.registerRotation("DRUID","GUARDIAN",function()
 		--[[{nil,						IsSpellInRange("lacerate","target") ~= 1 },]]--
 
 		-- Interrupts
-		{"skull bash",					jps.Interrupts and jps.shouldKick() },
-		{"mighty bash",					jps.Interrupts and jps.shouldKick() },
+		{"skull bash",					jps.Interrupts and jps.ShouldKick() },
+		{"mighty bash",					jps.Interrupts and jps.ShouldKick() },
 
 		-- Healing / Support
 		{"heart of the wild",			IsControlKeyDown() ~= nil},

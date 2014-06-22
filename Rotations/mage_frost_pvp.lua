@@ -124,7 +124,7 @@ jps.registerRotation("MAGE","FROST",function()
 -- Unit Info
 	local targetName = GetUnitName("target")
 	local targetClass = UnitClass("target")
-	local kick = jps.shouldKick(rangedTarget) or jps.IsCastingPoly(rangedTarget)
+	local kick = jps.ShouldKick(rangedTarget) or jps.IsCastingPoly(rangedTarget)
 
 	------------------------
 	-- SPELL TABLE ---------

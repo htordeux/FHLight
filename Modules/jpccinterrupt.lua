@@ -55,35 +55,8 @@ function jps.StunEvents(duration) -- ONLY FOR PLAYER
 end
 
 -- Check if unit loosed control
--- unit = http://www.wowwiki.com/UnitId
 -- { "CC" , "Snare" , "Root" , "Silence" , "Immune", "ImmuneSpell", "Disarm" }
-
---function jps.LoseControl(unit, controlTable)
---	local targetControlled = false
---	local timeControlled = 0
---	if controlTable == nil then controlTable = {"CC" , "Snare" , "Root" , "Silence" } end
---	-- Check debuffs
---	local auraname, duration, expTime, spellId
---	local i = 1
---	auraname, _, _, _, debufftype, duration, expTime, _, _, _, spellId = UnitAura(unit, i, "HARMFUL")
---	while auraname do
---		local Priority = jps.SpellControl[spellId]
---		if Priority then
---			for _,control in ipairs(controlTable) do
---				if Priority == control then
---					targetControlled = true
---					if expTime ~= nil then timeControlled = expTime - GetTime() end
---				break end
---			end
---		end
---		if targetControlled == true and timeControlled > 0 then return true end
---		i = i + 1
---		auraname, _, _, _, debufftype, duration, expTime, _, _, _, spellId = UnitAura(unit, i, "HARMFUL")
---	end
---	return targetControlled
---end
-
--- LoseControl could be FRIEND or ENEMY
+-- LoseControl could be FRIEND or ENEMY -- Time controlled set to 1 sec
 function jps.LoseControl(unit, controlTable)
 	local targetControlled = false
 	local timeControlled = 0
@@ -93,7 +66,7 @@ function jps.LoseControl(unit, controlTable)
 	local i = 1
 	auraname, _, _, _, debufftype, duration, expTime, _, _, _, spellId = UnitAura(unit, i, "HARMFUL")
 	while auraname do
-		local Priority = DebuffToDispel[auraname] -- return nil or "CC", "Snare" ...
+		local Priority = DebuffToDispel[auraname] -- jps.SpellControl[spellId]
 		if Priority then
 			for _,control in ipairs(controlTable) do -- {"CC" , "Snare" , "Root" , "Silence" }
 				if Priority == control then
@@ -102,7 +75,7 @@ function jps.LoseControl(unit, controlTable)
 				break end
 			end
 		end
-		if targetControlled == true and timeControlled > 0 then return true end
+		if targetControlled == true and timeControlled > 1 then return true end
 		i = i + 1
 		auraname, _, _, _, debufftype, duration, expTime, _, _, _, spellId = UnitAura(unit, i, "HARMFUL")
 	end
@@ -113,23 +86,57 @@ end
 -- DISPEL FUNCTIONS TABLE
 --------------------------
 
-local polySpellIds = {
-	[51514] = "Hex" ,
-	[118]	= "Polymorph" ,
-	[61305] = "Polymorph: Black Cat" ,
-	[28272] = "Polymorph: Pig" ,
-	[61721] = "Polymorph: Rabbit" ,
-	[61780] = "Polymorph: Turkey" ,
-	[28271] = "Polymorph: Turtle" ,
-	}
+---------------------------
+-- DEBUFF RBG
+---------------------------
 
--- Enemy Casting Polymorph
+    -- 1499, -- Freezing Trap ? Dispel type	n/a
+    -- 2139,	-- Counterspell ? Dispel type	n/a
+    -- 113724,  -- Ring of Frost ? Dispel type	n/a
+    -- 5782,	-- "Fear"  -- Dispel type	n/a
+local DispelTableRBG = {
+	[2944] = toSpellName(2944),	-- Devouring Plague			-- Dispel type	Disease
+	[118] = toSpellName(2944),	-- Polymorph				-- Dispel type	Magic
+	[61305] = toSpellName(61305),	-- Polymorph: Black Cat
+	[28272] = toSpellName(28272),	-- Polymorph: Pig
+	[61721] = toSpellName(61721),	-- Polymorph: Rabbit
+	[61780] = toSpellName(61780),	-- Polymorph: Turkey
+	[28271] = toSpellName(28271),	-- Polymorph: Turtle
+	
+    [8122] = toSpellName(8122),	-- "Psychic Scream"			-- Dispel type	Magic
+    [5484] = toSpellName(5484),	-- "Howl of Terror"			-- Dispel type	Magic
+    [3355] = toSpellName(3355),	-- Freezing Trap			-- Dispel type	Magic
+    [64044] = toSpellName(64044),	-- Psychic Horror			-- Dispel type	Magic
+    [10326] = toSpellName(10326),	-- Turn Evil				-- Dispel type	Magic
+    [44572] = toSpellName(44572),	-- Deep Freeze				-- Dispel type	Magic
+    [55021] = toSpellName(55021),	-- Improved Counterspell	-- Dispel type	Magic
+    [853] = toSpellName(853),	-- Hammer of Justice		-- Dispel type	Magic
+    [82691] = toSpellName(82691),	-- Ring of Frost			-- Dispel type	Magic
+    [20066] = toSpellName(20066),	-- Repentance				-- Dispel type	Magic
+    [47476] = toSpellName(47476),	-- Strangulate				-- Dispel type	Magic
+    [113792] = toSpellName(113792),-- Psychic Terror (Psyfiend)-- Dispel type	Magic
+	[118699] = toSpellName(118699),-- "Fear"					-- Dispel type	Magic
+	[130616] = toSpellName(130616),-- "Fear" (Glyph of Fear)	-- Dispel type	Magic
+	[104045] = toSpellName(104045),-- Sleep (Metamorphosis)	-- Dispel type	Magic
+	[122] = toSpellName(122),	-- frost nova				-- Dispel type	Magic
+}
+
+local PolymorphSpells = {
+	toSpellName(118),	-- "Polymorph" , -- Dispel type	Magic
+	toSpellName(61305),	-- "Polymorph: Black Cat" ,
+	toSpellName(28272),	-- "Polymorph: Pig" ,
+	toSpellName(61721),	-- "Polymorph: Rabbit" ,
+	toSpellName(61780),	-- "Polymorph: Turkey" ,
+	toSpellName(28271),	-- "Polymorph: Turtle" ,
+}
+
+-- Enemy Casting Polymorph -- jps.UnitIsUnit(unit.."target","player")
 local latencyWorld = select(4,GetNetStats())/1000
 function jps.IsCastingPoly(unit)
 	if not canDPS(unit) then return false end
 	local delay, spellname = jps.CastTimeLeft(unit)
-	for spellID,_ in pairs(polySpellIds) do
-		if spellname == toSpellName(spellID) and delay > 0 then -- jps.UnitIsUnit(unit.."target","player")
+	for _,spell in ipairs(PolymorphSpells) do
+		if spellname == spell and delay > 0 then
 			if delay - (latencyWorld * 2) < 0 then return true end
 		end
 	end 
@@ -137,6 +144,7 @@ function jps.IsCastingPoly(unit)
 end
 
 -- Enemy casting CrowdControl Spell
+-- name, subText, text, texture, startTime, endTime, isTradeSkill, castID, notInterruptible = UnitCastingInfo("unit")
 function jps.IsCastingControl(unit)
 	if not canDPS(unit) then return false end
 	local delay, spellname = jps.CastTimeLeft(unit)
@@ -159,10 +167,11 @@ local NotDispelFriendly = function(unit)
 	return false
 end
 
--- Dispel all debuff in the debuff table EXCEPT if unit is affected by some debuffs
-jps.DispelFriendly = function (unit)
+-- Dispel all MAGIC debuff in the debuff table EXCEPT if unit is affected by some debuffs
+jps.DispelFriendly = function (unit,timed)
 	if not canHeal(unit) then return false end
 	if NotDispelFriendly(unit) then return false end
+	if timed == nil then timed = 0 end
 	local timeControlled = 0
 	local auraname, debufftype, duration, expTime, spellId
 	local i = 1
@@ -170,7 +179,28 @@ jps.DispelFriendly = function (unit)
 	while auraname do
 		if debufftype == "Magic" and DebuffToDispel[auraname] then
 			if expTime ~= nil then timeControlled = expTime - GetTime() end
-			if timeControlled > 0 then
+			if timeControlled > timed then
+			return true end
+		end
+		i = i + 1
+		auraname, _, _, _, debufftype, duration, expTime, _, _, _, spellId = UnitAura(unit, i, "HARMFUL")
+	end
+	return false
+end
+
+-- Dispel all MAGIC debuff in the debuff table EXCEPT if unit is affected by some debuffs
+jps.DispelFriendlyRBG = function (unit,timed)
+	if not canHeal(unit) then return false end
+	if NotDispelFriendly(unit) then return false end
+	if timed == nil then timed = 0 end
+	local timeControlled = 0
+	local auraname, debufftype, duration, expTime, spellId
+	local i = 1
+	auraname, _, _, _, debufftype, duration, expTime, _, _, _, spellId = UnitAura(unit, i, "HARMFUL")
+	while auraname do
+		if debufftype == "Magic" and DispelTableRBG[spellId] then
+			if expTime ~= nil then timeControlled = expTime - GetTime() end
+			if timeControlled > timed then
 			return true end
 		end
 		i = i + 1
@@ -215,7 +245,7 @@ function jps.DispelOffensive(unit)
 	return false
 end
 
-function jps.shouldKick(unit)
+function jps.ShouldKick(unit)
 	if not canDPS(unit) then return false end
 	if unit == nil then unit = "target" end
 	local casting = select(1,UnitCastingInfo(unit))
@@ -232,7 +262,7 @@ function jps.shouldKick(unit)
 	return false
 end
 
-function jps.shouldKickDelay(unit)
+function jps.ShouldKickDelay(unit)
 	if not canDPS(unit) then return false end
 	if unit == nil then unit = "target" end
 	local casting = UnitCastingInfo(unit)
@@ -251,7 +281,7 @@ local interruptDelay = 0
 local interruptDelaySpellUnit = ""
 local interruptDelayTimestamp = GetTime()
 
-function jps.kickDelay(unit)
+function jps.KickDelay(unit)
 	if not canDPS(unit) then return false end
 	if jps.IsCasting(unit) then
 		local castLeft, spellName = jps.CastTimeLeft(unit) or jps.ChannelTimeLeft(unit)

@@ -59,10 +59,10 @@ jps.registerRotation("DRUID","FERAL", function()
 		{ "Barkskin", jps.hp() < .6 },
 		
 	-- Interrupts 
-		{ "Skull Bash",  jps.shouldKick()  and jps.Interrupts },
+		{ "Skull Bash",  jps.ShouldKick()  and jps.Interrupts },
 		
 	-- Talent based stun. 
-		{ "Mighty Bash",  jps.shouldKick()  and jps.Interrupts },
+		{ "Mighty Bash",  jps.ShouldKick()  and jps.Interrupts },
 		
 	-- Savage Roar should be kept up at all times. 
 		{ "Savage Roar",  savageRoarDuration == 0 },

@@ -113,7 +113,7 @@ jps.registerRotation("HUNTER","BEASTMASTERY", function()
 		-- Healthstone
 		{ jps.useBagItem("Healthstone") , 	jps.hp("player") < 0.50 }, -- restores 20% of total health
 		--
-		{ "Silencing Shot", 				jps.shouldKick() and jps.CastTimeLeft("target") < 1.4 }, -- Tier 2 talent
+		{ "Silencing Shot", 				jps.ShouldKick() and jps.CastTimeLeft("target") < 1.4 }, -- Tier 2 talent
 		-- Trinkets and Engineering Gloves
 		-- On-use Trinkets.
 		{ jps.useTrinket(0), jps.UseCDs },
@@ -207,7 +207,7 @@ jps.registerStaticTable("HUNTER", "BEASTMASTERY", {
     { hunter.spells.misdirection, 'not jps.buff(hunter.spells.misdirection) and UnitExists("focus") ~= nil', 'focus' },
 
     -- Interrupt
-    { hunter.spells.counterShot, 'jps.shouldKick() and jps.CastTimeLeft("target") < 1.4' },
+    { hunter.spells.counterShot, 'jps.ShouldKick() and jps.CastTimeLeft("target") < 1.4' },
 
     -- Healthstone
     { jps.useBagItem(5512), 'jps.hp("player") < 0.50' },

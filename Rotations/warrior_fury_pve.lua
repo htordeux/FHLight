@@ -12,11 +12,11 @@ jps.registerStaticTable("WARRIOR","FURY",
 	{
 -- Interrupts
 		-- "Pummel" 6552 "Volée de coups"
-		{ 6552, 'jps.shouldKick()' , warrior.rangedTarget , "Pummel" },
-		{warrior.spells["Pummel"],'jps.shouldKick()'},
-		{warrior.spells["Pummel"],'jps.shouldKick("focus")', "focus"},
-		{warrior.spells["Disrupting Shout"],'jps.shouldKick()'},
-		{warrior.spells["Disrupting Shout"],'jps.shouldKick("focus")', "focus"},
+		{ 6552, 'jps.ShouldKick()' , warrior.rangedTarget , "Pummel" },
+		{warrior.spells["Pummel"],'jps.ShouldKick()'},
+		{warrior.spells["Pummel"],'jps.ShouldKick("focus")', "focus"},
+		{warrior.spells["Disrupting Shout"],'jps.ShouldKick()'},
+		{warrior.spells["Disrupting Shout"],'jps.ShouldKick("focus")', "focus"},
 		
 -- Cooldowns and Utility
 		{warrior.spells["Impending Victory"],'jps.buff("Victorious") and jps.rage() >= 10 and jps.hp("player") < 0.8', warrior.rangedTarget },
@@ -85,10 +85,10 @@ This is based on the Default Rotation by atx and kyletxag.
 jps.registerStaticTable("WARRIOR","FURY",
 	{
 -- Interrupts
-		{warrior.spells["Pummel"],'jps.shouldKick()'},
-		{warrior.spells["Pummel"],'jps.shouldKick("focus")', "focus"},
-		{warrior.spells["Disrupting Shout"],'jps.shouldKick()'},
-		{warrior.spells["Disrupting Shout"],'jps.shouldKick("focus")', "focus"},
+		{warrior.spells["Pummel"],'jps.ShouldKick()'},
+		{warrior.spells["Pummel"],'jps.ShouldKick("focus")', "focus"},
+		{warrior.spells["Disrupting Shout"],'jps.ShouldKick()'},
+		{warrior.spells["Disrupting Shout"],'jps.ShouldKick("focus")', "focus"},
 		
 -- Cooldowns and Utility
 		-- "Victory Rush" 34428 "Ivresse de la victoire" -- buff "Victorious" 32216 "Victorieux"

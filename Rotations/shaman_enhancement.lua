@@ -66,7 +66,7 @@ jps.registerRotation("SHAMAN","ENHANCEMENT",function()
 		-- DPS Racial CD. 
 		{ jps.DPSRacial, jps.UseCDs },
 		-- Interrupts 
-		{ "Wind Shear", jps.shouldKick() },
+		{ "Wind Shear", jps.ShouldKick() },
 		-- AoE 
 		{ "Fire Nova", jps.MultiTarget and jps.debuff("Flame Shock") },
 		-- AoE 

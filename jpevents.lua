@@ -30,6 +30,7 @@ local UnitGUID = UnitGUID
 local EnemyDamager = {}
 local EnemyHealer = {}
 jps.EnemyHealer = {}
+jps.EnemyDamager = {}
 -- HEALTABLE
 local Healtable = {}
 -- Timetodie based on incoming Damage
@@ -658,6 +659,7 @@ local updateEnemyDamager = function()
 			if timeDelta > 2 then EnemyDamager[unit] = nil end
 		end
 	end
+	jps.EnemyDamager = jps.deepTableCopy(EnemyDamager)
 end
 
 local updateEnemyHealer = function()

@@ -257,8 +257,8 @@ local parseAggro = {
 local spellTable = {
 	-- "Shadowform" 15473
 	{ 15473, not jps.buff(15473) , "player" },
-	
-	{"nested", not jps.Combat , 
+	-- "Spectral Guise" gives buff 119032
+	{"nested", not jps.Combat and not jps.buff(119032,"player") , 
 		{
 			-- "Gardien de peur" 6346 -- FARMING OR PVP -- NOT PVE
 			{ 6346, not jps.buff(6346,"player") , "player" },
@@ -271,10 +271,12 @@ local spellTable = {
 		},
 	},
 	
+	-- PLAYER AGGRO
+	{ "nested", playerAggro , parseAggro },
+	
 	-- FOCUS CONTROL
 	{ "nested", canDPS("focus") and not jps.LoseControl("focus") , parseControlFocus },
 	{ "nested", not jps.LoseControl(rangedTarget) , parseControl },
-	{ "nested", playerAggro , parseAggro },
 
 	-- TRINKETS -- jps.useTrinket(0) est "Trinket0Slot" est slotId  13 -- "jps.useTrinket(1) est "Trinket1Slot" est slotId  14
 	{ jps.useTrinket(1), jps.useTrinketBool(1) and playerIsStun , "player" },

@@ -12,6 +12,13 @@ local UnitPower = UnitPower
 local UnitMana = UnitMana
 local UnitManaMax = UnitManaMax
 
+local canDPS = jps.canDPS
+local UnitThreatSituation = UnitThreatSituation
+local findTanksInRaid = jps.findTanksInRaid
+local UnitPlayerControlled = UnitPlayerControlled
+local LowestTarget = jps.LowestTarget -- include canDPS
+-- local rangedTarget, EnemyUnit, TargetCount = jps.LowestTarget()
+
 ------------------------------
 -- HEALTH Functions
 ------------------------------
@@ -118,11 +125,6 @@ end
 -- Find TANK
 ----------------------
 
-local canDPS = jps.canDPS
-local UnitThreatSituation = UnitThreatSituation
-local findTanksInRaid = jps.findTanksInRaid
-local UnitPlayerControlled = UnitPlayerControlled
-
 function jps.targetIsRaidBoss(target)
 	if target == nil then target = "target" end
 	if not jps.UnitExists(target) then return false end
@@ -169,8 +171,6 @@ end
 -- Find ENEMY TARGET
 ----------------------
 
-local LowestTarget = jps.LowestTarget -- include canDPS
--- local rangedTarget, EnemyUnit, TargetCount = jps.LowestTarget()
 jps.findMeRangedTarget = function()
 	local rangedTarget = "target"
 	if canDPS("target") then

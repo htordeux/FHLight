@@ -29,8 +29,6 @@ local UnitGUID = UnitGUID
 -- TABLE ENEMIES IN COMBAT
 local EnemyDamager = {}
 local EnemyHealer = {}
-jps.EnemyHealer = {}
-jps.EnemyDamager = {}
 -- HEALTABLE
 local Healtable = {}
 -- Timetodie based on incoming Damage
@@ -601,7 +599,7 @@ jps.listener.registerEvent("LOSS_OF_CONTROL_ADDED", function ()
     --print("CONTROL:", locType,"/",text,"/",duration)
     if text and duration then
     	if locType == "SCHOOL_INTERRUPT" then jps.createTimer("PlayerInterrupt", duration ) end
-    	if duration >= 2 then
+    	if duration > 0 then
 			for _, stuntype in ipairs(stunTypeTable) do
 				if locType == stuntype then 
 					jps.createTimer("PlayerStun", duration )
@@ -659,11 +657,6 @@ local updateEnemyDamager = function()
 			if timeDelta > 2 then EnemyDamager[unit] = nil end
 		end
 	end
-	jps.EnemyDamager = jps.deepTableCopy(EnemyDamager)
-end
-
-local updateEnemyHealer = function()
-	jps.EnemyHealer = jps.deepTableCopy(EnemyHealer)
 end
 
 -----------------------
@@ -686,9 +679,8 @@ local UpdateIntervalRaidStatus = function()
 	if diff < scoreFrequency then return end
 	scoreLastUpdate = curTime
 	jps.UpdateHealerBlacklist()
-	updateEnemyDamager()
-	updateEnemyHealer()
 	-- Update RaidStatus if not jps.isHealer
+	updateEnemyDamager()
 	if not jps.isHealer then
 		UpdateRaidStatus()
 	end
@@ -699,81 +691,6 @@ end
 
 -- HealerBlacklist Update
 jps.registerOnUpdate(UpdateIntervalRaidStatus)
-
-------------------------
--- HEALER ENEMY Table
-------------------------
-
-local HealerSpellID = {
-
-        -- Priests
-        -- [000017] = "PRIEST", -- Power word: Shield -- exists also for shadow priests
-        -- [000139] = "PRIEST", -- Renew -- exists also for shadow priests
-        [047540] = "PRIEST", -- Penance
-        [062618] = "PRIEST", -- Power word: Barrier
-        [109964] = "PRIEST", -- Spirit shell
-        [047515] = "PRIEST", -- Divine Aegis
-        [081700] = "PRIEST", -- Archangel
-        [002060] = "PRIEST", -- Greater Heal
-        [002061] = "PRIEST", -- Flash Heal
-        [002050] = "PRIEST", -- Heal
-        [014914] = "PRIEST", -- Holy Fire
-        [089485] = "PRIEST", -- Inner Focus
-        [033206] = "PRIEST", -- Pain Suppression
-        [000596] = "PRIEST", -- Prayer of Healing
-        [000527] = "PRIEST", -- Purify
-        
-        -- Holy
-        [034861] = "PRIEST", -- Circle of Healing
-        [064843] = "PRIEST", -- Divine Hymn
-        [047788] = "PRIEST", -- Guardian Spirit
-        [000724] = "PRIEST", -- Lightwell
-        [088684] = "PRIEST", -- Holy Word: Serenity
-        [088685] = "PRIEST", -- Holy Word: Sanctuary
-
-        -- Druids
-        [018562] = "DRUID", -- Swiftmend
-        [102342] = "DRUID", -- Ironbark
-        [033763] = "DRUID", -- Lifebloom
-        [088423] = "DRUID", -- Nature's Cure
-        [050464] = "DRUID", -- Nourish
-        [008936] = "DRUID", -- Regrowth
-        [033891] = "DRUID", -- Incarnation: Tree of Life
-        [048438] = "DRUID", -- Wild Growth
-        [102791] = "DRUID", -- Wild Mushroom Bloom
-
-        -- Shamans
-        [00974] = "SHAMAN", -- Earth Shield
-        [61295] = "SHAMAN", -- Riptide
-        [77472] = "SHAMAN", -- Greater Healing Wave
-        [98008] = "SHAMAN", -- Spirit link totem
-        [77130] = "SHAMAN", -- Purify Spirit
-
-        -- Paladins
-        [20473] = "PALADIN", -- Holy Shock
-        -- [85673] = "PALADIN", -- Word of Glory (also true for prot paladins)
-        [82327] = "PALADIN", -- Holy radiance
-        [53563] = "PALADIN", -- Beacon of Light
-        [02812] = "PALADIN", -- Denounce
-        [31842] = "PALADIN", -- Divine Favor
-        [82326] = "PALADIN", -- Divine Light
-        [54428] = "PALADIN", -- Divine Plea
-        -- [86669] = "PALADIN", -- Guardian of Ancient Kings (also true for ret paladins)
-        [00635] = "PALADIN", -- Holy Light
-        [82327] = "PALADIN", -- Holy Radiance
-        [85222] = "PALADIN", -- Light of Dawn
-
-        -- Monks
-        [115175] = "MONK", -- Soothing Mist
-        [115294] = "MONK", -- Mana Tea
-        [115310] = "MONK", -- Revival
-        [116670] = "MONK", -- Uplift
-        [116680] = "MONK", -- Thunder Focus Tea
-        [116849] = "MONK", -- Life Cocoon
-        [116995] = "MONK", -- Surging mist
-        [119611] = "MONK", -- Renewing mist
-        [132120] = "MONK", -- Envelopping Mist
-    };
 
 --------------------------
 -- COMBAT_LOG_EVENT_UNFILTERED FUNCTIONS
@@ -856,11 +773,11 @@ jps.listener.registerEvent("COMBAT_LOG_EVENT_UNFILTERED", function(...)
 			local healId = select(12, ...)
 			local sourceName = select(5,...)
 			local addEnemyHealer = false
-			if HealerSpellID[healId] then
+			if jps.HealerSpellID[healId] then
 				if EnemyHealer[sourceGUID] == nil then
 					addEnemyHealer = true
 				end
-				if addEnemyHealer then EnemyHealer[sourceGUID] = {HealerSpellID[healId],sourceName} end
+				if addEnemyHealer then EnemyHealer[sourceGUID] = {jps.HealerSpellID[healId],sourceName} end
 			end
 		end
 	end
@@ -918,6 +835,18 @@ function jps.RaidEnemyCount()
 	return enemycount
 end
 
+jps.EnemyHealer = function(unit)
+	local unitguid = UnitGUID(unit)
+	if EnemyHealer[unitguid] ~= nil then return true end
+	return false
+end
+
+jps.EnemyDamager = function(unit)
+	local unitguid = UnitGUID(unit)
+	if EnemyDamager[unitguid] ~= nil then return true end
+	return false
+end
+
 -- EnemyDamager[enemyGuid] = { ["friend"] = enemyFriend } -- TABLE OF ENEMY GUID TARGETING FRIEND GUID
 jps.FriendAggro = function (friend)
 	local friendGuid = UnitGUID(friend)
@@ -930,7 +859,7 @@ end
 -- Table of Targeted Friend -- Return SPELLNAME
 local FriendTable = {}
 jps.FriendAggroTable = function()
-	jps.removeTable(FriendTable)
+	table.wipe(FriendTable)
 	for unit,index in pairs (EnemyDamager) do
 		table.insert(FriendTable, index.friendname) -- { "Bob" , "Fred" , "Bob" }
 	end

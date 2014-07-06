@@ -154,6 +154,19 @@ function jps.IsCastingControl(unit)
 	return false
 end
 
+-- Enemy casting Healing Spell
+function jps.IsCastingHeal(unit)
+	if not canDPS(unit) then return false end
+	local delay, spellname = jps.CastTimeLeft(unit)
+	for spellID,_ in pairs(jps.HealerSpellID) do
+		local name = toSpellName(spellID)
+		if spellname == name and delay > 0 then
+			return true
+		end
+	end
+	return false
+end
+
 -- Don't Dispel if unit is affected by some debuffs
 local DebuffNotDispel = {
 	toSpellName(31117), 	-- "Unstable Affliction"

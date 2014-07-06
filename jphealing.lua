@@ -60,8 +60,7 @@ jps.UpdateRaidStatus = function ()
 		npe = GetNumSubgroupMembers()
 	end
 
-	table.wipe(RaidStatus) --jps.removeTable(RaidStatus)
-	
+	table.wipe(RaidStatus)
 	for i=nps,npe do
 		if i==0 then
 			unit = "player"
@@ -167,7 +166,7 @@ end
 
 local RaidTarget = {}
 jps.LowestTarget = function()
-	jps.removeTable(RaidTarget)
+	table.wipe(RaidTarget)
 	for unit,index in pairs (RaidStatus) do
 		if canDPS(unit.."target") then
 			local unittarget = unit.."target"
@@ -439,8 +438,8 @@ jps.canDispel = function (unit,dispelTable) -- {"Magic", "Poison", "Disease", "C
 end
 
 jps.FindMeDispelTarget = function (dispelTable) -- {"Magic", "Poison", "Disease", "Curse"}
-local dispelUnit = nil
-local dispelUnitHP = 100
+	local dispelUnit = nil
+	local dispelUnitHP = 100
 	for unit,index in pairs(RaidStatus) do	 
 		if (index["inrange"] == true) then
 			if jps.canDispel(unit,dispelTable) then

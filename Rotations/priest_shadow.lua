@@ -1,3 +1,6 @@
+-- jps.MultiTarget for "MindSear" 48045
+-- jps.Interrupts for "Semblance spectrale" 108968
+
 local L = MyLocalizationTable
 local canDPS = jps.canDPS
 
@@ -28,6 +31,7 @@ end
 
 local iceblock = tostring(select(1,GetSpellInfo(45438))) -- ice block mage
 local divineshield = tostring(select(1,GetSpellInfo(642))) -- divine shield paladin
+local orbofpower = tostring(select(1,GetSpellInfo(112055))) -- Orb of Power RBG Temple of Kotmogu
 
 ----------------------------
 -- ROTATION
@@ -69,9 +73,10 @@ local rangedTarget, EnemyUnit, TargetCount = jps.LowestTarget() -- returns "targ
 local EnemyCount = jps.RaidEnemyCount()
 
 if canDPS("target") then rangedTarget =  "target"
+elseif canDPS("focus") then rangedTarget =  "focus"
+elseif canDPS("mouseover") then rangedTarget = "mouseover"
 elseif canDPS("targettarget") then rangedTarget = "targettarget"
 elseif canDPS("focustarget") then rangedTarget = "focustarget"
-elseif canDPS("mouseover") then rangedTarget = "mouseover"
 end
 if canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
 
@@ -91,22 +96,22 @@ local fnVampEnemyTarget = function(unit)
 	return false
 end
 
-local FearEnemyTarget = nil
-for _,unit in ipairs(EnemyUnit) do 
-	if priest.canFear(unit) and not jps.LoseControl(unit) then
-		FearEnemyTarget = unit
-	break end
-end
-
-local SilenceEnemyTarget = nil
 -- if enemy is casting sure is not under control ^^
+local SilenceEnemyTarget = nil
 for _,unit in ipairs(EnemyUnit) do
 	if jps.canCast(15487,unit) then
-		if jps.IsCastingControl(unit) then 
-			SilenceEnemyTarget = unit
-		elseif jps.ShouldKick(unit) then
+		if jps.IsCastingHeal(unit) then
 			SilenceEnemyTarget = unit
 		break end
+	end
+end
+if SilenceEnemyTarget == nil then
+	if jps.canCast(15487,unit) then
+		for _,unit in ipairs(EnemyUnit) do
+			if jps.IsCastingControl(unit) then 
+				SilenceEnemyTarget = unit
+			break end
+		end
 	end
 end
 
@@ -187,19 +192,16 @@ local fnOrbs = function(unit)
 	if not jps.UseCDs then return false end
 	if jps.LoseControl(unit) then return false end
 	if Orbs == 0 then return false end
-	local unitguid = UnitGUID(unit)
 	if Orbs < 3 and jps.hp(unit) < 0.20 then return true end
-	if Orbs < 3 and jps.EnemyHealer[unitguid] then return true end
+	if Orbs < 3 and jps.EnemyHealer(unit) then return true end
 	if Orbs < 3 and EnemyCaster(unit) == "cac" and jps.UnitIsUnit(unit.."target","player") then return true end
 	return false
 end
 
 local parseControl = {
 	-- "Psychic Scream" "Cri psychique" 8122 -- FARMING OR PVP -- NOT PVE -- debuff same ID 8122
-	--{ 8122, type(FearEnemyTarget) == "string" , FearEnemyTarget , "FEAR_MultiUnit_" },
 	{ 8122, priest.canFear(rangedTarget) , rangedTarget },
 	-- "Silence" 15487
-	{ 15487, type(SilenceEnemyTarget) == "string" , SilenceEnemyTarget , "Silence_MultiUnit_" },
 	{ 15487, EnemyCaster(rangedTarget) == "caster" , rangedTarget },
 	-- "Psychic Horror" 64044 "Horreur psychique" -- 30 yd range
 	{ 64044, jps.canCast(64044,rangedTarget) and fnOrbs(rangedTarget)  , rangedTarget , "Psychic Horror_"..rangedTarget },
@@ -241,13 +243,14 @@ local parseHeal = {
 
 local parseAggro = {
 	-- "Semblance spectrale" 108968
-	{ 112833, jps.IsSpellKnown(112833) , "player" , "Aggro_Spectral_" },
+	{ 112833, not jps.buff(orbofpower,"player") and jps.IsSpellKnown(112833) , "player" , "Aggro_Spectral_" },
+	{ 112833, jps.Interrupts and jps.IsSpellKnown(112833) , "player" , "Aggro_Spectral_" },
 	-- "Dispersion" 47585
 	{ 47585,  playerhealthpct < 0.40 , "player" , "Aggro_Dispersion_" },
 	-- "Oubli" 586 -- Fantasme 108942 -- vous dissipez tous les effets affectant le déplacement sur vous-même et votre vitesse de déplacement ne peut être réduite pendant 5 s
 	-- "Oubli" 586 -- Glyphe d'oubli 55684 -- Votre technique Oubli réduit à présent tous les dégâts subis de 10%.
-	{ 586, jps.IsSpellKnown(108942) and playerhealthpct < 0.75 , "player" , "Aggro_Oubli" },
-	{ 586, jps.glyphInfo(55684) and playerhealthpct < 0.75 , "player" , "Aggro_Oubli" },
+	{ 586, jps.IsSpellKnown(108942) and playerhealthpct < 0.70 , "player" , "Aggro_Oubli" },
+	{ 586, jps.glyphInfo(55684) and playerhealthpct < 0.70 , "player" , "Aggro_Oubli" },
 }
 
 -----------------------------
@@ -267,16 +270,19 @@ local spellTable = {
 			-- "Fortitude" 21562 Keep Inner Fortitude up 
 			{ 21562, not jps.buff(21562,"player") , "player" },
 			-- "Renew" 139 Self heal when critical 
-			{ 139, playerhealthpct < 0.9 and not jps.buff(139,"player"), "player" },
+			{ 139, playerhealthpct < 0.90 and not jps.buff(139,"player"), "player" },
+			-- "Enhanced Intellect" 79640 -- "Alchemist's Flask 75525
+			{ {"macro","/use item:75525"}, jps.buffDuration(79640,"player") < 900 , "player" },
 		},
 	},
 	
-	-- PLAYER AGGRO
-	{ "nested", playerAggro , parseAggro },
-	
 	-- FOCUS CONTROL
+	{ 15487, type(SilenceEnemyTarget) == "string" , SilenceEnemyTarget , "Silence_MultiUnit_" },
 	{ "nested", canDPS("focus") and not jps.LoseControl("focus") , parseControlFocus },
 	{ "nested", not jps.LoseControl(rangedTarget) , parseControl },
+
+	-- PLAYER AGGRO
+	{ "nested", playerAggro , parseAggro },
 
 	-- TRINKETS -- jps.useTrinket(0) est "Trinket0Slot" est slotId  13 -- "jps.useTrinket(1) est "Trinket1Slot" est slotId  14
 	{ jps.useTrinket(1), jps.useTrinketBool(1) and playerIsStun , "player" },
@@ -305,7 +311,7 @@ local spellTable = {
 
 	-- "Vampiric Embrace" 15286
 	{ 15286, AvgHealthLoss < 0.85 , "player" },
-	{ "nested", playerhealthpct < 0.75 , parseHeal },
+	{ "nested", playerhealthpct < 0.70 , parseHeal },
 
 	-- "Mass Dispel" 32375 "Dissipation de masse"
 	-- "Dispel" "Purifier" 527 -- UNAVAILABLE IN SHADOW FORM 15473

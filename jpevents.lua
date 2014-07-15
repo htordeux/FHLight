@@ -599,12 +599,10 @@ jps.listener.registerEvent("LOSS_OF_CONTROL_ADDED", function ()
     --print("CONTROL:", locType,"/",text,"/",duration)
     if text and duration then
     	if locType == "SCHOOL_INTERRUPT" then jps.createTimer("PlayerInterrupt", duration ) end
-    	if duration > 0 then
-			for _, stuntype in ipairs(stunTypeTable) do
-				if locType == stuntype then 
-					jps.createTimer("PlayerStun", duration )
-				break end
-			end
+		for _, stuntype in ipairs(stunTypeTable) do
+			if locType == stuntype then 
+				jps.createTimer("PlayerStun", duration )
+			break end
 		end
     end
 end)
@@ -679,8 +677,8 @@ local UpdateIntervalRaidStatus = function()
 	if diff < scoreFrequency then return end
 	scoreLastUpdate = curTime
 	jps.UpdateHealerBlacklist()
-	-- Update RaidStatus if not jps.isHealer
 	updateEnemyDamager()
+	-- Update RaidStatus if not jps.isHealer
 	if not jps.isHealer then
 		UpdateRaidStatus()
 	end

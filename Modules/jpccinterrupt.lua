@@ -54,6 +54,12 @@ function jps.StunEvents(duration) -- ONLY FOR PLAYER
 	return false
 end
 
+function jps.InterruptEvents(duration) -- ONLY FOR PLAYER
+	if duration == nil then duration = 0 end
+	if jps.checkTimer("PlayerInterrupt") > duration then return true end
+	return false
+end
+
 -- Check if unit loosed control
 -- { "CC" , "Snare" , "Root" , "Silence" , "Immune", "ImmuneSpell", "Disarm" }
 -- LoseControl could be FRIEND or ENEMY -- Time controlled set to 1 sec

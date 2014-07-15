@@ -402,6 +402,15 @@ jps.buffTracker = function(buff)
 	return false
 end
 
+-- CHECKS THE WHOLE RAID FOR A MISSING BUFF (E.G. FORTITUDE)
+jps.buffMissing = function(buff)
+	for unit,index in pairs(RaidStatus) do
+		if (index["inrange"] == true) and not jps.buff(buff,unit) then
+		return true end
+	end
+	return false
+end
+
 ---------------------------------
 -- DISPEL FUNCTIONS RAID STATUS
 ---------------------------------

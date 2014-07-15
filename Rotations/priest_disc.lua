@@ -37,7 +37,7 @@ local priestDisc = function()
 	local timerShield = jps.checkTimer("ShieldTimer")
 	local playerAggro = jps.FriendAggro("player")
 	local playerIsStun = jps.StunEvents(2) -- return true/false ONLY FOR PLAYER
-	local playerIsInterrupt = jps.checkTimer("PlayerInterrupt")
+	local playerIsInterrupt = jps.InterruptEvents() -- return true/false ONLY FOR PLAYER
 
 	local LowestImportantUnit = jps.LowestImportantUnit()
 	local LowestImportantUnitHealth = jps.hp(LowestImportantUnit,"abs") -- UnitHealthMax(unit) - UnitHealth(unit)
@@ -254,7 +254,7 @@ local InterruptTable = {
 			{ 586, playerAggro and jps.IsSpellKnown(108942) , "player" , "Aggro_Oubli_" },
 			{ 586, playerAggro and jps.glyphInfo(55684) , "player" , "Aggro_Oubli_" },
 			-- "Divine Star" Holy 110744 Shadow 122121
-			{ 110744, playerIsInterrupt > 0 , "player" , "Interrupt_DivineStar_" },
+			{ 110744, playerIsInterrupt , "player" , "Interrupt_DivineStar_" },
 			-- "Glyph of Purify" 55677 Your Purify spell also heals your target for 5% of maximum health
 			{ 527, playerAggro and jps.canDispel("player",{"Magic"}) and jps.glyphInfo(55677) , "player" , "Aggro_Dispell_Player" },
 		},

@@ -228,13 +228,12 @@ local priestHoly = function()
 -- TRINKETS -- OPENING -- CANCELAURA -- STOPCASTING
 ----------------------------------------------------------
 
--- "Holy Spark" 131567 "Etincelle sacrée" -- increases the healing done by your next Flash Heal, Greater Heal or Holy Word: Serenity by 50% for 10 sec.
-local InterruptTable = {
-	{priest.Spell.flashHeal, 0.70 , jps.buff(27827) },
-	{priest.Spell.greaterHeal, 0.85 , jps.buff(27827) },
-	{priest.Spell.heal, 1 , false },
-	{priest.Spell.prayerOfHealing, 0.85, jps.MultiTarget or jps.buffId(81206)}
-}
+	local InterruptTable = {
+		{priest.Spell.flashHeal, 0.70 , jps.buff(27827) },
+		{priest.Spell.greaterHeal, 0.85 , jps.buff(27827) },
+		{priest.Spell.heal, 1 , false },
+		{priest.Spell.prayerOfHealing, 0.85, jps.MultiTarget or jps.buffId(81206)}
+	}
 
 -- Avoid interrupt Channeling
 	if jps.ChannelTimeLeft() > 0 then return nil end
@@ -335,9 +334,13 @@ local spellTable = {
 	},
 
 	-- TRINKETS -- jps.useTrinket(0) est "Trinket0Slot" est slotId  13 -- "jps.useTrinket(1) est "Trinket1Slot" est slotId  14
-	{ jps.useTrinket(1), jps.useTrinketBool(1) and playerIsStun , "player" },
+	{ jps.useTrinket(1), playerIsStun and jps.useTrinketBool(1) , "player" },
+	-- "Guardian Spirit"
+	{ 47788, playerIsStun and not jps.useTrinketBool(1) and LowestImportantUnitHpct < 0.40 , LowestImportantUnit },
 	-- "Divine Star" Holy 110744 Shadow 122121
 	{ 110744, jps.IsSpellKnown(110744) and playerIsInterrupt and LowestImportantUnitHpct < 0.85 , "player" , "Interrupt_DivineStar" },
+	-- "Spectral Guise" -- "Semblance spectrale" 108968 -- fast out of combat drinking
+	{ 112833, jps.Interrupts and playerAggro and jps.IsSpellKnown(112833) , "player" , "Aggro_Spectral" },
 
 	-- FOCUS CONTROL -- Chakra: Chastise 81209 -- Chakra: Sanctuary 81206 -- Chakra: Serenity 81208 -- Holy Word: Chastise 88625
 	{ {"macro",macroCancelaura}, jps.checkTimer("Chastise") == 0 and not jps.LoseControl(rangedTarget) and canDPS(rangedTarget) and jps.buffId(81208) and jps.cooldown(81208) == 0 , "player"  , "Cancelaura_Chakra_" },
@@ -382,6 +385,7 @@ local spellTable = {
 		{
 			-- "Spectral Guise" -- "Semblance spectrale" 108968 -- fast out of combat drinking
 			{ 112833, jps.Interrupts and jps.IsSpellKnown(112833) , "player" , "Aggro_Spectral" },
+
 			{ "nested", jps.hp("player") < 0.85 ,
 				{
 					-- "Pierre de soins" 5512
@@ -394,30 +398,30 @@ local spellTable = {
 					-- "Oubli" 586 -- Glyphe d'oubli 55684 -- Votre technique Oubli réduit à présent tous les dégâts subis de 10%.
 					{ 586, jps.IsSpellKnown(108942) , "player" , "Aggro_Oubli" },
 					{ 586, jps.glyphInfo(55684) , "player" , "Aggro_Oubli" },
-				},
-				
-				{ "nested", jps.hp("player") < 0.70 ,
-					{
-						-- "Guardian Spirit"
-						{ 47788, jps.hp("player") < 0.40 , "player" },
-						-- "Holy Word: Serenity" 88684 -- Chakra: Serenity 81208
-						{ {"macro",macroSerenity}, jps.cooldown(88684) == 0 and jps.buffId(81208) , "player" , "Aggro_Serenity_Player" },
-						-- "Soins rapides" 2061 "From Darkness, Comes Light"
-						{ 2061, jps.buff(114255) , "player" },
-						-- "Soins rapides" 2061 "Holy Spark" 131567 "Etincelle sacrée" -- increases the healing done by your next Flash Heal, Greater Heal or Holy Word: Serenity by 50% for 10 sec.
-						{ 2061, not jps.Moving and jps.buff(131567) ,"player" , "Aggro_SoinsRapides_HolySpark_Player" },
-						-- "Power Word: Shield" 17 
-						{ 17, jps.hp("player") < 0.50 and not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Aggro_Shield_Player" },
-						-- "Soins rapides" 2061
-						{ 2061, not jps.Moving and jps.hp("player") < 0.50 , "player" , "Aggro_SoinsRapides_Player" },
-						-- "Circle of Healing" 34861
-						{ 34861, true , "player" , "Aggro_COH_Player" },
+
+					{ "nested", jps.hp("player") < 0.70 ,
+						{
+							-- "Guardian Spirit"
+							{ 47788, jps.hp("player") < 0.40 , "player" },
+							-- "Holy Word: Serenity" 88684 -- Chakra: Serenity 81208
+							{ {"macro",macroSerenity}, jps.cooldown(88684) == 0 and jps.buffId(81208) , "player" , "Aggro_Serenity_Player" },
+							-- "Soins rapides" 2061 "From Darkness, Comes Light"
+							{ 2061, jps.buff(114255) , "player" },
+							-- "Soins rapides" 2061 "Holy Spark" 131567 "Etincelle sacrée" -- increases the healing done by your next Flash Heal, Greater Heal or Holy Word: Serenity by 50% for 10 sec.
+							{ 2061, not jps.Moving and jps.buff(131567) ,"player" , "Aggro_SoinsRapides_HolySpark_Player" },
+							-- "Power Word: Shield" 17 
+							{ 17, jps.hp("player") < 0.50 and not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Aggro_Shield_Player" },
+							-- "Soins rapides" 2061
+							{ 2061, not jps.Moving and jps.hp("player") < 0.50 , "player" , "Aggro_SoinsRapides_Player" },
+							-- "Circle of Healing" 34861
+							{ 34861, true , "player" , "Aggro_COH_Player" },
+						},
 					},
+					-- "Renew" 139 -- Haste breakpoints are 12.5 and 16.7%(Holy)
+					{ 139, not jps.buff(139,"player") , "player" ,"Aggro_Renew_Player" },
+					-- "Don des naaru" 59544
+					{ 59544, (select(2,GetSpellBookItemInfo(priest.Spell["NaaruGift"]))~=nil) , "player" , "Aggro_Naaru_Player" },
 				},
-				-- "Renew" 139 -- Haste breakpoints are 12.5 and 16.7%(Holy)
-				{ 139, not jps.buff(139,"player") , "player" ,"Aggro_Renew_Player" },
-				-- "Don des naaru" 59544
-				{ 59544, (select(2,GetSpellBookItemInfo(priest.Spell["NaaruGift"]))~=nil) , "player" , "Aggro_Naaru_Player" },
 			},
 		},
 	},

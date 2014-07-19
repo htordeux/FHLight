@@ -278,6 +278,8 @@ priest.unitForMassDispelFriend = function () -- Mass Dispel on PLAYER
 	return parseMassDispell
 end
 
+local iceblock = tostring(select(1,GetSpellInfo(45438))) -- ice block mage
+local divineshield = tostring(select(1,GetSpellInfo(642))) -- divine shield paladin
 priest.unitForMassDispelEnemy = function () -- Mass Dispel on TARGET
 	local parseMassDispell = { 32375, false , "target" , "MassDispel_Enemy" }
 	if not FireHack then return parseMassDispell end
@@ -288,14 +290,13 @@ priest.unitForMassDispelEnemy = function () -- Mass Dispel on TARGET
 	local PlayerObject = GetObjectFromGUID(PlayerGuid)
 	local NearbyEnemies = PlayerObject:GetNearbyEnemies (30)
 	if jps.tableLength(NearbyEnemies) == 0 then return parseMassDispell end
-		
-	local iceblock = tostring(select(1,GetSpellInfo(45438))) -- ice block mage
-	local divineshield = tostring(select(1,GetSpellInfo(642))) -- divine shield paladin
+
 	for _,UnitObject in ipairs(NearbyEnemies) do
 		if UnitObject:GetAura (divineshield) then
 			UnitObject:Target()
 			parseMassDispell[2] = true
-		elseif UnitObject:GetAura (iceblock) then
+		break end
+		if UnitObject:GetAura (iceblock) then
 			UnitObject:Target()
 			parseMassDispell[2] = true
 		break end

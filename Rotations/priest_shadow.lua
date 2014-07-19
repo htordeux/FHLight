@@ -41,7 +41,7 @@ jps.registerRotation("PRIEST","SHADOW",function()
 local CountInRange, AvgHealthLoss, FriendUnit = jps.CountInRaidStatus(1)
 local playerhealth =  jps.hp("player","abs")
 local playerhealthpct = jps.hp("player")
-local playermana = UnitPower ("player",0)/UnitPowerMax ("player",0)
+local playermana = jps.roundValue(UnitPower ("player",0)/UnitPowerMax ("player",0),2)
 	
 ----------------------
 -- HELPER
@@ -121,8 +121,8 @@ for _,unit in ipairs(EnemyUnit) do
 	end
 end
 if SilenceEnemyTarget == nil then
-	if jps.canCast(15487,unit) then
-		for _,unit in ipairs(EnemyUnit) do
+	for _,unit in ipairs(EnemyUnit) do
+		if jps.canCast(15487,unit) then
 			if jps.IsCastingControl(unit) then 
 				SilenceEnemyTarget = unit
 			break end

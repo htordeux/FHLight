@@ -265,8 +265,8 @@ function jps.DispelOffensive(unit)
 end
 
 function jps.ShouldKick(unit)
-	if not canDPS(unit) then return false end
 	if unit == nil then unit = "target" end
+	if not canDPS(unit) then return false end
 	local casting = select(1,UnitCastingInfo(unit))
 	local interrupt = select(9,UnitCastingInfo(unit))
 	local channelling = select(1,UnitChannelInfo(unit))

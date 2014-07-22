@@ -108,7 +108,7 @@ local priestDisc = function()
 	
 	local LeapFriend = nil
 	for _,unit in ipairs(FriendUnit) do
-		if priest.unitForLeap(unit) and jps.FriendAggro(unit) then 
+		if priest.unitForLeap(unit) and jps.FriendAggro(unit) and jps.LoseControl(unit) then 
 			LeapFriend = unit
 		break end
 	end

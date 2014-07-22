@@ -219,10 +219,9 @@ priest.unitForBinding = function (unit)
 	return true
 end
 
-priest.unitForLeap = function (unit) -- {"CC", "Snare", "Root", "Silence", "Immune", "ImmuneSpell", "Disarm"}
+priest.unitForLeap = function (unit)
 	if unit == nil then return false end
 	if jps.UnitIsUnit(unit,"player") then return false end
-	if not jps.LoseControl(unit) then return false end
 	return true
 end
 

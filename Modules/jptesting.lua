@@ -45,7 +45,6 @@ local GlobalCooldown = function()
 	return duration
 end
 
-
 function jps_Test()
 
 	jps.LookupEnemyDamager()
@@ -70,6 +69,10 @@ function jps_Test()
 
 --	local friendtableaggro = jps.FriendAggroTable()
 --	print("friendtableaggro: ",friendtableaggro)
+
+	local Lowest = jps.LowestImportantUnit() 
+	local face,angle = jps.PlayerIsFacing(Lowest)
+	write("Facing: ",face," Radians: ",angle," Name: ",GetUnitName(Lowest))
 
 end
 

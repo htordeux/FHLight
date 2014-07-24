@@ -98,3 +98,35 @@ function jps.castEverySeconds(spell, seconds)
 	end
 	return false
 end
+
+----------------------
+-- PLAYER FACING FRIEND UNIT
+----------------------
+-- GetPlayerMapPosition Works with "player", "partyN" or "raidN" as unit type
+-- Angle by default is 30° front of Player
+
+function jps.PlayerIsFacing(unit,alpha) -- alpha is angle value between 10-180
+	-- Number - Direction the player is facing in radians, in the [0, 2π] range, where 0 is North and values increase counterclockwise
+	local pf = GetPlayerFacing()
+	local px,py = GetPlayerMapPosition("player")
+	local tx,ty = GetPlayerMapPosition(unit)
+
+	if tx == 0 and ty == 0 then return false end
+	if jps.UnitIsUnit(unit,"player") then return false end
+
+	if alpha == nil then alpha = 30 end
+	local math_360 = math.pi * 2
+	local math_radian = math.rad(alpha) -- math.pi / (180/alpha)
+	-- math.rad(alpha/2) ou math.pi / (360/alpha)
+	local math_alpha = math_radian / 2
+
+	local dir = math_360 - math.atan2 (px-tx,ty-py)
+	local radian = dir - pf
+	local facing = false
+
+	if radian > math.pi + math_alpha then facing = false
+	elseif radian < math.pi - math_alpha then facing = false
+	else facing = true
+	end
+	return facing, radian
+end

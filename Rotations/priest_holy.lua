@@ -1,5 +1,6 @@
 -- jps.MultiTarget for Chakra: Sanctuary 81206
 -- jps.Interrupts for "Semblance spectrale" 108968
+-- jps.UseCDs for "Divine Star" Holy 110744 Shadow 122121 ONLY on LowestImportantUnit
 
 local L = MyLocalizationTable
 local spellTable = {}
@@ -76,7 +77,8 @@ local priestHoly = function()
 	local LowestImportantUnitHealth = jps.hp(LowestImportantUnit,"abs") -- UnitHealthMax(unit) - UnitHealth(unit)
 	local LowestImportantUnitHpct = jps.hp(LowestImportantUnit) -- UnitHealth(unit) / UnitHealthMax(unit)
 	local POHTarget, groupToHeal, groupTableToHeal = jps.FindSubGroupTarget(0.70) -- Target to heal with POH in RAID with AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
-	
+	local PlayerIsFacingLowest = jps.PlayerIsFacing(LowestImportantUnit,30)	-- angle value between 10-180
+
 ----------------------------
 -- LOCAL FUNCTIONS FRIENDS
 ----------------------------
@@ -348,7 +350,8 @@ local spellTable = {
 	{ 47788, playerIsStun and not jps.useTrinketBool(1) and jps.hp("player") < 0.40 , "player" },
 	{ 47788, playerIsStun and not jps.useTrinketBool(1) and LowestImportantUnitHpct < 0.40 , LowestImportantUnit },
 	-- "Divine Star" Holy 110744 Shadow 122121
-	{ 110744, jps.IsSpellKnown(110744) and playerIsInterrupt and LowestImportantUnitHpct < 0.85 , "player" , "Interrupt_DivineStar" },
+	{ 110744, playerIsInterrupt and jps.IsSpellKnown(110744) and jps.hp("player") < 0.70 , "player" , "Interrupt_DivineStar" },
+	{ 110744, playerIsInterrupt and jps.IsSpellKnown(110744) and PlayerIsFacingLowest and CheckInteractDistance(LowestImportantUnit,4) == 1 , LowestImportantUnit , "FACING_Interrupt_DivineStar_" },
 	-- "Spectral Guise" -- "Semblance spectrale" 108968 -- fast out of combat drinking
 	{ 112833, jps.Interrupts and playerAggro and jps.IsSpellKnown(112833) , "player" , "Aggro_Spectral" },
 
@@ -376,63 +379,56 @@ local spellTable = {
 	-- "Prière de guérison" 33076 -- UnitAffectingCombat("player") == 1
 	{ 33076, not jps.buffTracker(33076) and jps.FriendAggro(LowestImportantUnit) , LowestImportantUnit , "Tracker_Mending_"..LowestImportantUnit },
 	-- "Holy Spark" 131567 "Etincelle sacrée"
-	{ "nested", jps.buff(131567,LowestImportantUnit) and LowestImportantUnitHpct < 0.70 , 
+	{ "nested", type(HolySparkTarget) == "string" and jps.hp(HolySparkTarget) < 0.70 , 
 		{
 			-- "Holy Word: Serenity" 88684 -- Chakra: Serenity 81208
-			{ {"macro",macroSerenity}, jps.cooldown(88684) == 0 and jps.buffId(81208) , LowestImportantUnit },
+			{ {"macro",macroSerenity}, jps.cooldown(88684) == 0 and jps.buffId(81208) , HolySparkTarget },
 			-- "Soins supérieurs" 2060
-			{ 2060,  not jps.Moving and jps.buffStacks(63735,"player") == 2 , LowestImportantUnit },
+			{ 2060, not jps.Moving and jps.buffStacks(63735,"player") == 2 , HolySparkTarget },
 			-- "Soins rapides" 2061
-			{ 2061, not jps.Moving and jps.buffStacks(63735,"player") < 2 , LowestImportantUnit },
+			{ 2061, not jps.Moving and jps.buffStacks(63735,"player") < 2 , HolySparkTarget },
 		},
 	},
 	
 	-- DISPEL	
-	{ "nested", true , parseDispel },
+	{ "nested", LowestImportantUnitHpct > 0.40 , parseDispel },
 
 	-- PLAYER AGGRO
-	{ "nested", playerAggro ,
+	{ "nested", playerAggro and jps.hp("player") < 0.85 ,
 		{
-			-- "Spectral Guise" -- "Semblance spectrale" 108968 -- fast out of combat drinking
-			{ 112833, jps.Interrupts and jps.IsSpellKnown(112833) , "player" , "Aggro_Spectral" },
+			-- "Pierre de soins" 5512
+			{ {"macro","/use item:5512"}, select(1,IsUsableItem(5512))==1 and jps.itemCooldown(5512)==0 , "player" },
+			-- "Prière du désespoir" 19236
+			{ 19236, select(2,GetSpellBookItemInfo(priest.Spell["Desesperate"]))~=nil , "player" },
+			-- "Prière de guérison" 33076
+			{ 33076, not jps.buff(33076) , "player" , "Aggro_Mending_Player" },
+			-- "Oubli" 586 -- Fantasme 108942 -- vous dissipez tous les effets affectant le déplacement sur vous-même et votre vitesse de déplacement ne peut être réduite pendant 5 s
+			-- "Oubli" 586 -- Glyphe d'oubli 55684 -- Votre technique Oubli réduit à présent tous les dégâts subis de 10%.
+			{ 586, jps.IsSpellKnown(108942) , "player" , "Aggro_Oubli" },
+			{ 586, jps.glyphInfo(55684) , "player" , "Aggro_Oubli" },
 
-			{ "nested", jps.hp("player") < 0.85 ,
+			{ "nested", jps.hp("player") < 0.70 ,
 				{
-					-- "Pierre de soins" 5512
-					{ {"macro","/use item:5512"}, select(1,IsUsableItem(5512))==1 and jps.itemCooldown(5512)==0 , "player" },
-					-- "Prière du désespoir" 19236
-					{ 19236, select(2,GetSpellBookItemInfo(priest.Spell["Desesperate"]))~=nil , "player" },
-					-- "Prière de guérison" 33076 -- UnitAffectingCombat("player") == 1
-					{ 33076, not jps.buff(33076) , "player" , "Aggro_Mending_Player" },
-					-- "Oubli" 586 -- Fantasme 108942 -- vous dissipez tous les effets affectant le déplacement sur vous-même et votre vitesse de déplacement ne peut être réduite pendant 5 s
-					-- "Oubli" 586 -- Glyphe d'oubli 55684 -- Votre technique Oubli réduit à présent tous les dégâts subis de 10%.
-					{ 586, jps.IsSpellKnown(108942) , "player" , "Aggro_Oubli" },
-					{ 586, jps.glyphInfo(55684) , "player" , "Aggro_Oubli" },
-
-					{ "nested", jps.hp("player") < 0.70 ,
-						{
-							-- "Guardian Spirit"
-							{ 47788, jps.hp("player") < 0.40 , "player" },
-							-- "Holy Word: Serenity" 88684 -- Chakra: Serenity 81208
-							{ {"macro",macroSerenity}, jps.cooldown(88684) == 0 and jps.buffId(81208) , "player" , "Aggro_Serenity_Player" },
-							-- "Soins rapides" 2061 "From Darkness, Comes Light"
-							{ 2061, jps.buff(114255) , "player" },
-							-- "Soins rapides" 2061 "Holy Spark" 131567 "Etincelle sacrée" -- increases the healing done by your next Flash Heal, Greater Heal or Holy Word: Serenity by 50% for 10 sec.
-							{ 2061, not jps.Moving and jps.buff(131567) ,"player" , "Aggro_SoinsRapides_HolySpark_Player" },
-							-- "Power Word: Shield" 17 
-							{ 17, jps.hp("player") < 0.50 and not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Aggro_Shield_Player" },
-							-- "Soins rapides" 2061
-							{ 2061, not jps.Moving and jps.hp("player") < 0.50 , "player" , "Aggro_SoinsRapides_Player" },
-							-- "Circle of Healing" 34861
-							{ 34861, true , "player" , "Aggro_COH_Player" },
-						},
-					},
-					-- "Renew" 139 -- Haste breakpoints are 12.5 and 16.7%(Holy)
-					{ 139, not jps.buff(139,"player") , "player" ,"Aggro_Renew_Player" },
-					-- "Don des naaru" 59544
-					{ 59544, (select(2,GetSpellBookItemInfo(priest.Spell["NaaruGift"]))~=nil) , "player" , "Aggro_Naaru_Player" },
+					-- "Holy Word: Serenity" 88684 -- Chakra: Serenity 81208
+					{ {"macro",macroSerenity}, jps.cooldown(88684) == 0 and jps.buffId(81208) , "player" , "Aggro_Serenity_Player" },
+					-- "Soins rapides" 2061 "From Darkness, Comes Light"
+					{ 2061, jps.buff(114255) , "player" },
+					-- "Soins rapides" 2061 "Holy Spark" 131567 "Etincelle sacrée" -- increases the healing done by your next Flash Heal, Greater Heal or Holy Word: Serenity by 50% for 10 sec.
+					{ 2061, not jps.Moving and jps.buff(131567) ,"player" , "Aggro_SoinsRapides_HolySpark_Player" },
+					-- "Power Word: Shield" 17 
+					{ 17, jps.hp("player") < 0.50 and not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Aggro_Shield_Player" },
+					-- "Soins rapides" 2061
+					{ 2061, not jps.Moving and jps.hp("player") < 0.50 , "player" , "Aggro_SoinsRapides_Player" },
+					-- "Circle of Healing" 34861
+					{ 34861, true , "player" , "Aggro_COH_Player" },
+					-- "Divine Star" Holy 110744 Shadow 122121
+					{ 110744, jps.IsSpellKnown(110744) and jps.hp("player") < 0.50 , "player" , "Aggro_DivineStar" },
 				},
 			},
+			-- "Renew" 139 -- Haste breakpoints are 12.5 and 16.7%(Holy)
+			{ 139, not jps.buff(139,"player") , "player" ,"Aggro_Renew_Player" },
+			-- "Don des naaru" 59544
+			{ 59544, (select(2,GetSpellBookItemInfo(priest.Spell["NaaruGift"]))~=nil) , "player" , "Aggro_Naaru_Player" },
 		},
 	},
 	
@@ -470,6 +466,8 @@ local spellTable = {
 
 	{ "nested", LowestImportantUnitHpct < 0.85 ,
 		{
+			-- "Divine Star" Holy 110744 Shadow 122121
+			{ 110744, jps.UseCDs and jps.IsSpellKnown(110744) and PlayerIsFacingLowest and CheckInteractDistance(LowestImportantUnit,4) == 1 , LowestImportantUnit , "FACING_DivineStar_" },
 			-- "Holy Word: Serenity" 88684 -- Chakra: Serenity 81208
 			{ {"macro",macroSerenity}, jps.cooldown(88684) == 0 and jps.buffId(81208) , LowestImportantUnit , "Emergency_Serenity_"..LowestImportantUnit },
 			-- "Prière de guérison" 33076 
@@ -489,7 +487,7 @@ local spellTable = {
 			-- "Power Word: Shield" 17 
 			{ 17, LowestImportantUnitHpct < 0.40 and not jps.buff(17,LowestImportantUnit) and not jps.debuff(6788,LowestImportantUnit) , LowestImportantUnit , "Emergency_Shield_"..LowestImportantUnit },
 			-- "Circle of Healing" 34861
-			{ 34861, AvgHealthLoss < 0.85 , LowestImportantUnit , "Emergency__COH_"..LowestImportantUnit },
+			{ 34861, AvgHealthLoss < 0.85 , LowestImportantUnit , "Emergency_COH_"..LowestImportantUnit },
 			-- "Don des naaru" 59544
 			{ 59544, (select(2,GetSpellBookItemInfo(priest.Spell["NaaruGift"]))~=nil) , LowestImportantUnit , "Emergency_Naaru_"..LowestImportantUnit },
 			-- "Renew" 139 -- Haste breakpoints are 12.5 and 16.7%(Holy)
@@ -504,7 +502,7 @@ local spellTable = {
 	{ "nested", jps.FaceTarget and canDPS(rangedTarget) and LowestImportantUnitHpct > 0.85 , parseDamage },
 
 	-- "Renew" 139 -- Haste breakpoints are 12.5 and 16.7%(Holy)
-	{ 139, type(RenewTarget) == "string" , RenewTarget },
+	{ 139, type(RenewTarget) == "string" , RenewTarget , "Renew_Target_" },
 	-- "Gardien de peur" 6346 -- FARMING OR PVP -- NOT PVE
 	{ 6346, not jps.buff(6346,"player") , "player" },
 	-- "Feu intérieur" 588 -- "Volonté intérieure" 73413
@@ -512,7 +510,7 @@ local spellTable = {
 	-- "Fortitude" 21562 Keep Fortitude up 
 	{ 21562, jps.buffMissing(21562) , "player" },
 	-- "Soins" 2050
-	{ 2050, type(HealTarget) == "string" , HealTarget },
+	{ 2050, type(HealTarget) == "string" , HealTarget , "Heal_Renew_" },
 	{ 2050, LowestImportantUnitHealth > priest.AvgAmountHeal , LowestImportantUnit },
 
 }

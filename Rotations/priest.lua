@@ -108,7 +108,7 @@ priest.ShouldInterruptCasting = function ( InterruptTable, AvgHealthLoss, CountI
 			if TargetHpct > breakpoint then
 				SpellStopCasting()
 				DEFAULT_CHAT_FRAME:AddMessage("STOPCASTING OverHeal"..spellName.." , unit "..jps.LastTarget.. " has enough hp!",0, 0.5, 0.8)
-			elseif healSpellTable[1] == priest.Spell.heal and TargetHpct < 0.55 and jps.mana() > 0.20 then
+			elseif healSpellTable[1] == priest.Spell.heal and TargetHpct < 0.75 and jps.mana() > 0.20 then
 				SpellStopCasting()
 				DEFAULT_CHAT_FRAME:AddMessage("STOPCASTING "..spellName.." important unit goes critical",0, 0.5, 0.8)
 			elseif healSpellTable[1] == priest.Spell.prayerOfHealing and AvgHealthLoss >= breakpoint then

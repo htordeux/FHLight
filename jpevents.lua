@@ -37,7 +37,6 @@ local GetTime = GetTime
 -- RaidStatus
 local canHeal = jps.canHeal
 local canDPS = jps.canDPS
-local UpdateRaidUnit = jps.UpdateRaidUnit
 local UpdateRaidStatus = jps.UpdateRaidStatus
 local GetUnitName = GetUnitName
 local pairs = pairs
@@ -627,7 +626,7 @@ jps.listener.registerEvent("UNIT_HEALTH_FREQUENT", function(unitID)
 	if not jps.isHealer then return end
 	if jps.UnitInRaid(unitID) then
 		local inrange = canHeal(unitID)
-		UpdateRaidUnit(unitID,inrange)
+		jps.UpdateRaidUnit(unitID,inrange)
 		if jps.PvP and not jps.Combat and jps.tableLength(EnemyDamager) > 0 then
     		jps.Cycle()
 		end

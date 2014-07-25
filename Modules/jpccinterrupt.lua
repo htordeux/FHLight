@@ -101,30 +101,30 @@ end
     -- 113724,  -- Ring of Frost ? Dispel type	n/a
     -- 5782,	-- "Fear"  -- Dispel type	n/a
 local DispelTableRBG = {
-	[2944] = toSpellName(2944),	-- Devouring Plague			-- Dispel type	Disease
-	[118] = toSpellName(2944),	-- Polymorph				-- Dispel type	Magic
+	[2944] = toSpellName(2944),		-- Devouring Plague			-- Dispel type	Disease
+	[118] = toSpellName(2944),		-- Polymorph				-- Dispel type	Magic
 	[61305] = toSpellName(61305),	-- Polymorph: Black Cat
 	[28272] = toSpellName(28272),	-- Polymorph: Pig
 	[61721] = toSpellName(61721),	-- Polymorph: Rabbit
 	[61780] = toSpellName(61780),	-- Polymorph: Turkey
 	[28271] = toSpellName(28271),	-- Polymorph: Turtle
 	
-    [8122] = toSpellName(8122),	-- "Psychic Scream"			-- Dispel type	Magic
-    [5484] = toSpellName(5484),	-- "Howl of Terror"			-- Dispel type	Magic
-    [3355] = toSpellName(3355),	-- Freezing Trap			-- Dispel type	Magic
+    [8122] = toSpellName(8122),		-- "Psychic Scream"			-- Dispel type	Magic
+    [5484] = toSpellName(5484),		-- "Howl of Terror"			-- Dispel type	Magic
+    [3355] = toSpellName(3355),		-- Freezing Trap			-- Dispel type	Magic
     [64044] = toSpellName(64044),	-- Psychic Horror			-- Dispel type	Magic
     [10326] = toSpellName(10326),	-- Turn Evil				-- Dispel type	Magic
     [44572] = toSpellName(44572),	-- Deep Freeze				-- Dispel type	Magic
     [55021] = toSpellName(55021),	-- Improved Counterspell	-- Dispel type	Magic
-    [853] = toSpellName(853),	-- Hammer of Justice		-- Dispel type	Magic
+    [853] = toSpellName(853),		-- Hammer of Justice		-- Dispel type	Magic
     [82691] = toSpellName(82691),	-- Ring of Frost			-- Dispel type	Magic
     [20066] = toSpellName(20066),	-- Repentance				-- Dispel type	Magic
     [47476] = toSpellName(47476),	-- Strangulate				-- Dispel type	Magic
-    [113792] = toSpellName(113792),-- Psychic Terror (Psyfiend)-- Dispel type	Magic
-	[118699] = toSpellName(118699),-- "Fear"					-- Dispel type	Magic
-	[130616] = toSpellName(130616),-- "Fear" (Glyph of Fear)	-- Dispel type	Magic
-	[104045] = toSpellName(104045),-- Sleep (Metamorphosis)	-- Dispel type	Magic
-	[122] = toSpellName(122),	-- frost nova				-- Dispel type	Magic
+    [113792] = toSpellName(113792),	-- Psychic Terror (Psyfiend)-- Dispel type	Magic
+	[118699] = toSpellName(118699),	-- "Fear"					-- Dispel type	Magic
+	[130616] = toSpellName(130616),	-- "Fear" (Glyph of Fear)	-- Dispel type	Magic
+	[104045] = toSpellName(104045),	-- Sleep (Metamorphosis)	-- Dispel type	Magic
+	[122] = toSpellName(122),		-- Frost Nova				-- Dispel type	Magic
 }
 
 local PolymorphSpells = {

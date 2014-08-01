@@ -35,8 +35,6 @@ local function toSpellName(id) return tostring(select(1,GetSpellInfo(id))) end
 -- GetNumGroupMembers() -- returns Number of players in the group (either party or raid), 0 if not in a group. remplace GetNumRaidMembers patch 5.0.4
 -- IsInRaid() Boolean - returns true if the player is currently in a raid group, false otherwise
 -- IsInGroup() Boolean - returns true if the player is in a some kind of group, otherwise false
--- name, rank, subgroup, level, class, fileName, zone, online, isDead, role, isML, combatRole = GetRaidRosterInfo(raidIndex)
--- raidIndex of raid member between 1 and MAX_RAID_MEMBERS (40). If you specify an index that is out of bounds, the function returns nil
 
 local RaidStatusRole = {}
 local RaidStatus = {}
@@ -106,6 +104,7 @@ end
 -- IsInGroup() Boolean - returns true if the player is in a some kind of group, otherwise false
 -- leader = UnitIsRaidOfficer("unit") -- 1 if the unit is a raid assistant; otherwise nil or false if not in raid
 -- leader = UnitIsGroupLeader("unit") -- true if the unit is a raid assistant; otherwise false (bool)
+
 local IsRaidLeader = function()
 	for i=1,MAX_RAID_MEMBERS do
 		-- if index is out of bounds, the function returns nil
@@ -290,6 +289,7 @@ end
 -- FIND THE SUBGROUP OF AN UNIT
 -- partypet1 to partypet4 -- party1 to party4 -- raid1 to raid40 -- raidpet1 to raidpet40 -- arena1 to arena5 - A member of the opposing team in an Arena match
 -- Pet return nil with UnitInRaid -- UnitInRaid("unit") returns 0 for raid1, 12 for raid13
+
 jps.FindSubGroupUnit = function(unit) -- UnitNAME or raidn
 	local subgroup = 1 
 	if not IsInRaid() and IsInGroup() then return subgroup end
@@ -303,6 +303,9 @@ jps.FindSubGroupUnit = function(unit) -- UnitNAME or raidn
 end
 
 -- FIND THE RAID SUBGROUP TO HEAL WITH AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
+-- name, rank, subgroup, level, class, fileName, zone, online, isDead, role, isML, combatRole = GetRaidRosterInfo(raidIndex)
+-- raidIndex of raid member between 1 and MAX_RAID_MEMBERS (40). If you specify an index that is out of bounds, the function returns nil
+
 jps.FindSubGroupTarget = function(lowHealthDef)
 	if lowHealthDef == nil then lowHealthDef = 1 end
 	local group = 0
@@ -335,7 +338,7 @@ jps.FindSubGroupTarget = function(lowHealthDef)
 	local lowestHP = lowHealthDef
 	if groupToHeal > 0 then
 		for unit,index in pairs(RaidStatus) do
-			if (index["inrange"] == true) and (jps.FindSubGroupUnit(unit) == groupToHeal) and (index["hpct"] < lowHealthDef) then
+			if (index["inrange"] == true) and (jps.FindSubGroupUnit(unit) == groupToHeal) and (index["hpct"] < lowestHP) then
 				tt = unit
 				lowestHP = index["hpct"]
 			end

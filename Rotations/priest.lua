@@ -222,6 +222,8 @@ end
 priest.unitForLeap = function (unit)
 	if unit == nil then return false end
 	if jps.UnitIsUnit(unit,"player") then return false end
+	if not jps.FriendAggro(unit) then return false end
+	if not jps.LoseControl(unit) then return false end
 	return true
 end
 

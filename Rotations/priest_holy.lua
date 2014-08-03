@@ -114,7 +114,7 @@ local priestHoly = function()
 	local BindingHealTarget = nil
 	local BindingHealTargetHealth = 100
 	for _,unit in ipairs(FriendUnit) do
-		if priest.unitForBinding(unit) then -- priest.AvgAmountFlashHeal
+		if priest.unitForBinding(unit) then -- Health < priest.AvgAmountFlashHeal
 			local unitHP = jps.hp(unit)
 			if unitHP < BindingHealTargetHealth then
 				BindingHealTarget = unit
@@ -157,8 +157,10 @@ local priestHoly = function()
 
 	local LeapFriendFlag = nil 
 	for _,unit in ipairs(FriendUnit) do
-		if priest.unitForLeap(unit) and jps.FriendAggro(unit) and jps.LoseControl(unit) then
+		if priest.unitForLeap(unit) and jps.hp(unit) < 0.50 then
 			if jps.buff(23335,unit) or jps.buff(23333,unit) then -- 23335/alliance-flag -- 23333/horde-flag 
+				LeapFriendFlag = unit
+			elseif jps.RoleInRaid(unit) == "HEALER" then
 				LeapFriendFlag = unit
 			end
 		end
@@ -205,9 +207,9 @@ local priestHoly = function()
 		print("Enemy DAMAGER|cff1eff00 "..name.." |cffffffffAttack Player set as FOCUS")
 	end
 	
-	-- CONFIG priest.get("KeepFocus") check if you want keep focus set manually
+	-- CONFIG jps.getConfigVal("keep focus") if you want to keep focus
 	if jps.UnitExists("focus") and not canDPS("focus") then
-		jps.Macro("/clearfocus")
+		if jps.getConfigVal("keep focus") == 0 then jps.Macro("/clearfocus") end 
 	end
 
 	if canDPS("target") then rangedTarget =  "target"

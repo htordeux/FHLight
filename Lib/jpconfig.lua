@@ -519,13 +519,13 @@ function jps.loadDefaultSettings()
 	settingsTable["rotation dropdown visible"] = 1
 	settingsTable["timetodie frame visible"] = 0
 	settingsTable["show jps window"] = 1
-	settingsTable["jphistory visible"] = 1
+	settingsTable["jphistory visible"] = 0
 	settingsTable["show slider update"] = 0
 	settingsTable["show latency"] = 0
 	settingsTable["show current cast"] = 0
-	settingsTable["dismount in combat"] = 0
+	settingsTable["keep focus"] = 0
 	settingsTable["show ttd"] = 0
-	settingsTable["set healer as focus"] = 1
+	settingsTable["dismount in combat"] = 0
 
 	for key,val in pairs(settingsTable) do 
 		if jps.settings[string.lower(key)] == nil then

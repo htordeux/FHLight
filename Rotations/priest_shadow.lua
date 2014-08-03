@@ -83,9 +83,9 @@ elseif canDPS("mouseover") and not jps.UnitExists("focus") and jps.EnemyHealer("
 	print("Enemy HEALER|cff1eff00 "..name.." |cffffffffset as FOCUS")
 end
 
--- CONFIG priest.get("KeepFocus") check if you want keep focus set manually
+-- CONFIG jps.getConfigVal("keep focus") if you want to keep focus
 if jps.UnitExists("focus") and not canDPS("focus") then
-	jps.Macro("/clearfocus")
+	if jps.getConfigVal("keep focus") == 0 then jps.Macro("/clearfocus") end
 end
 
 if canDPS("target") then rangedTarget =  "target"
@@ -268,7 +268,7 @@ local parseHeal = {
 }
 
 local parseAggro = {
-	-- "Semblance spectrale" 108968
+	-- "Semblance spectrale" 112833
 	{ 112833, jps.Interrupts and jps.IsSpellKnown(112833) , "player" , "Aggro_Spectral_" },
 	-- "Dispersion" 47585
 	{ 47585,  playerhealthpct < 0.40 , "player" , "Aggro_Dispersion_" },

@@ -1,27 +1,41 @@
 	local L = MyLocalizationTable
 	
-	jps.registerRotation("WARRIOR","FURY",function()
+----------------------------
+-- ROTATION
+----------------------------
 	
+	jps.registerRotation("WARRIOR","FURY",function()
+
 	local spell = nil
 	local target = nil
 	local player = "player"
 	local playerhealth_deficiency =  jps.hp(player,"abs") -- UnitHealthMax(player) - UnitHealth(player)
 	local playerhealth_pct = jps.hp(player) 
 	local rangedTarget = warrior.rangedTarget()
-	local Class, _ = UnitClass(rangedTarget)
-	local ClassCac = false
-	local ClassCaCTable = {L["Warrior"],L["Paladin"],L["Death Knight"],L["Rogue"]}
-	for i,unitClass in pairs(ClassCaCTable) do
-		if Class == unitClass then 
-			ClassCac = true 
-		break end
+	local ClassEnemy = {
+		["WARRIOR"] = "cac",
+		["PALADIN"] = "caster",
+		["HUNTER"] = "cac",
+		["ROGUE"] = "cac",
+		["PRIEST"] = "caster",
+		["DEATHKNIGHT"] = "cac",
+		["SHAMAN"] = "caster",
+		["MAGE"] = "caster",
+		["WARLOCK"] = "caster",
+		["MONK"] = "caster",
+		["DRUID"] = "caster"
+	}
+	
+	local EnemyCaster = function(unit)
+		if not jps.UnitExists(unit) then return false end
+		local _, classTarget, classIDTarget = UnitClass(unit)
+		return ClassEnemy[classTarget]
 	end
 	
 	local playerAggro = jps.FriendAggro("player")
 	local Rage = jps.buff(12880) -- "Enrage" 12880 "Enrager"
 	local playerIsStun = jps.StunEvents() -- return true/false
 	local enemycount = jps.RaidEnemyCount()  
-	local rally = select(1,GetSpellBookItemName(25, "spell")) -- "Cri de ralliement" 97462 "Rallying Cry"
 	local isboss = UnitLevel(rangedTarget) == -1 or UnitClassification(rangedTarget) == "elite"
 	
 	jps.Macro("/target "..rangedTarget)
@@ -44,7 +58,7 @@
 		--{ jps.useTrinket(0), jps.UseCds },
 		--{ jps.useTrinket(1), jps.UseCds },
 		-- "Pierre de soins" 5512
-		{ {"macro","/use item:5512"}, UnitAffectingCombat(player)==1 and select(1,IsUsableItem(5512))==1 and jps.itemCooldown(5512)==0 and (playerhealth_pct < 0.50) , player , "UseItem"},
+		{ {"macro","/use item:5512"}, UnitAffectingCombat("player")==1 and select(1,IsUsableItem(5512))==1 and jps.itemCooldown(5512)==0 and (jps.hp("player") < 0.50) , "player" , "UseItem"},
 		-- "Heroic Throw" 57755 "Lancer héroïque"
 		{ 57755, true , rangedTarget , "Heroic Throw" },
 		-- "Charge" 100
@@ -54,7 +68,7 @@
 		-- "Victory Rush" 34428 "Ivresse de la victoire" -- buff "Victorious" 32216 "Victorieux"
 		{ 34428, jps.buff(32216) , rangedTarget , "Impending Victory" },
 		-- "Berserker Rage" 18499 "Rage de berserker"
-		{ 18499 , (not Rage) , player , "Berserker Rage" },
+		{ 18499 , (not Rage) , "player" , "Berserker Rage" },
 		
 		-- "Pummel" 6552 "Volée de coups"
 		{ 6552, jps.ShouldKick(rangedTarget) , rangedTarget , "Pummel" },
@@ -68,11 +82,11 @@
 		{ 114028, jps.IsCasting(rangedTarget) , rangedTarget , "Mass Spell Reflection" },
 		
 		-- "Stoneform" 20594 "Forme de pierre"
-		{ 20594, playerAggro , player , "Stoneform" },
+		{ 20594, playerAggro , "player" , "Stoneform" },
 		-- "Disarm" 676 "Désarmement"
-		{ 676, ClassCac , rangedTarget , "Disarm"  },
+		--{ 676, EnemyCaster(rangedTarget) == "cac", rangedTarget , "Disarm"  },
 		-- "Lifeblood" 74497 same ID spell & buff -- Herbalist.
-		{ 74497, UnitAffectingCombat(player)==1 , player , "Lifeblood" },
+		{ 74497, UnitAffectingCombat("player")==1 , "player" , "Lifeblood" },
 		
 		-- "Bloodsurge" 46916 "Afflux sanguin"
 		-- buff "Raging Blow!" 131116 "Coup déchaîné !"
@@ -81,7 +95,7 @@
 		-- "Colossus Smash" 86346 "Frappe du colosse" -- "Colossus Smash" 86346 same ID spell & debuff
 		{ 86346, (jps.buff(131116,"player") or jps.buff(46916)) and jps.rage() > 30 , rangedTarget , "Colossus Smash" },
 		-- "Recklessness" 1719 "Témérité"
-		{ 1719, jps.UseCDs and (UnitAffectingCombat(player)==1) and (jps.buff(131116,"player") or jps.buff(46916)) and jps.rage() > 30 , player , "Recklessness" },
+		{ 1719, jps.UseCDs and (UnitAffectingCombat("player")==1) and (jps.buff(131116,"player") or jps.buff(46916)) and jps.rage() > 30 , "player" , "Recklessness" },
 		-- "Raging Blow" 85288 "Coup déchaîné" -- buff Raging Blow! 131116
 		{ 85288, jps.buff(131116,"player") , rangedTarget , "Raging Blow" },
 		-- "Wild Strike" 100130 "Frappe sauvage" -- donne DEBUFF "Mortal Wounds" 115804 "Blessures mortelles" -- Healing effects received reduced by 25%
@@ -102,7 +116,7 @@
 		{ 64382, jps.rage() > 30 and isboss and not jps.debuff(64382,rangedTarget) , rangedTarget , "Shattering Throw" },
 		
 		-- "Commanding Shout" 469 "Cri de commandement"
-		{ 469, jps.rage() < 70 and not jps.debuff(86346,rangedTarget) , player , "Commanding Shout" },
+		{ 469, jps.rage() < 70 and not jps.debuff(86346,rangedTarget) , "player" , "Commanding Shout" },
 		-- "Brise-genou" 1715 "Hamstring"
 		--{ 1715, jps.rage() > 10 and (jps.myDebuffDuration(1715) < 3)  , rangedTarget , "Hamstring" },
 	}

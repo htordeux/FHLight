@@ -55,7 +55,9 @@ do
 		["Greater Heal"] = "Soins supérieurs",
 		["Penance"] = "Pénitence",
 		["Flash Heal"] = "Soins rapides",
-	-- DeBuff to dispel	
+	-- DeBuff to dispel
+		["Polymorph"] = "Métamorphose",
+		["Cyclone"] = "Cyclone",
 		["Death Coil"] = "Voile mortel",
 		["Dragon's Breath"] = "Souffle du dragon",
 		["Polymorph"] = "Métamorphose",

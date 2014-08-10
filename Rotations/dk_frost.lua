@@ -78,7 +78,8 @@ local frostDWSpellTable = {
 		{ jps.useTrinket(0),'jps.useTrinket(0) ~= nil and jps.UseCDs'},
 		{ jps.useTrinket(1),'jps.useTrinket(1) ~= nil and jps.UseCDs'},
 		-- Requires engineerins
-		{ jps.useSynapseSprings(),'jps.useSynapseSprings() ~= "" and jps.UseCDs'},
+		{ {"macro","/use 10"}, 'jps.useSynapseSprings() ~= "" and jps.UseCDs'},
+		
 		-- Requires herbalism
 		{ "Lifeblood",'jps.UseCDs'},
 	
@@ -106,7 +107,7 @@ local frostDWSpellTable = {
 	{ "blood tap",'dk.getRunesReady() < 6 and jps.buffStacks("blood charge") >10 and jps.runicPower() > 76'},
 	
 	{ "frost strike",'jps.runicPower() > 76'},
-	{ "obliterate",'dk.rune("oneUr") and not jps.buff("killing machine")'},
+	--{ "obliterate",'dk.rune("oneUr") and not jps.buff("killing machine")'},
 	{ "Howling Blast",'onCD'},
 	
 	{ "outbreak",'jps.myDebuffDuration("Blood Plague") <3'},
@@ -114,7 +115,7 @@ local frostDWSpellTable = {
 	{ "unholy blight",'jps.myDebuffDuration("Frost Fever") < 3'},
 	{ "unholy blight",'jps.myDebuffDuration("Blood Plague") < 3'},
 	
-	{ "soul reaper",'jps.hp("target") <= 0.35'},
+	--{ "soul reaper",'jps.hp("target") <= 0.35'},
 	{ "blood tap",'dk.getRunesReady() < 6 and jps.buffStacks("Blood Charge") >= 5 and jps.hp("target") <= 0.35 and jps.cooldown("soul reaper") == 0'},
 	
 	{ "frost strike",'not jps.buff("runic corruption") and jps.IsSpellKnown("runic corruption")'},
@@ -123,7 +124,7 @@ local frostDWSpellTable = {
 	{ "blood tap",'dk.getRunesReady() < 6 and jps.buffStacks("blood charge")>=5'},
 	{ "horn of winter"},
 
-	{ "plague leech",'dk.canCastPlagueLeech(30) and jps.castEverySeconds("plague leech",25)'},
+	{ "plague leech",'jps.myDebuffDuration("Blood Plague") > 2 and jps.myDebuffDuration("Frost Fever") > 2 and jps.castEverySeconds("plague leech",26)'},
 
 	{ "empower rune weapon",'IsSpellInRange("Obliterate","target") == 1 and jps.buff("Potion of Mogu Power") and not dk.rune("twoDr") and not dk.rune("twoUr") and not dk.rune("twoFr") and jps.runicPower() < 60 and jps.UseCDs'},
 	{ "empower rune weapon",'IsSpellInRange("Obliterate","target") == 1 and jps.bloodlusting() and not dk.rune("twoDr") and not dk.rune("twoUr") and not dk.rune("twoFr") and jps.runicPower() < 60 and jps.UseCDs'},
@@ -140,7 +141,7 @@ jps.registerRotation("DEATHKNIGHT","FROST",function()
 	local target = nil
 
 	 if jps.canCast("Gorefiend's Grasp") and IsLeftControlKeyDown() ~= nil and GetCurrentKeyBoardFocus() == nil then
-                jps.Macro("/target "..jpsName)
+                jps.Macro("/target focus")
                 jps.Cast("Gorefiend's Grasp")
                 jps.Macro("/targetlasttarget")
         end

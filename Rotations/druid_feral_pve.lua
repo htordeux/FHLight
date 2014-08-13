@@ -302,8 +302,8 @@ local spellTable = {
 	
  -- cooldowns
  
- 	{druid.skullBashCat, 'jps.Interrupts and jps.shouldKick("target")' },
-	{druid.arcaneTorrent, 'jps.Interrupts and jps.shouldKick("target") and IsSpellInRange("Shred", "target") == 1' },
+ 	{druid.skullBashCat, 'jps.Interrupts and jps.ShouldKick("target")' },
+	{druid.arcaneTorrent, 'jps.Interrupts and jps.ShouldKick("target") and IsSpellInRange("Shred", "target") == 1' },
 	
 	{druid.forceOfNature, 'select(1,GetSpellCharges(druid.forceOfNature))==3'},
 	{druid.forceOfNature, 'jps.buff(druid.runeOfReorigination) and jps.buffDuration(druid.runeOfReorigination) < 2'},

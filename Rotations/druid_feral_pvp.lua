@@ -34,7 +34,7 @@ jps.registerRotation("DRUID","FERAL", function()
 	local ripDuration = jps.debuffDuration("rip")
 	local rakeDuration = jps.debuffDuration("rake")
 	local srDuration = jps.buffDuration("savage roar")
-	local srRipSyncTimer = abs(ripDuration - srDuration)
+	local srRipSyncTimer = math.abs(ripDuration - srDuration)
 	local executePhase = jps.hp("target") <= 0.25
 	local gcdLocked = true -- they changed this :( jps.cooldown("shred") == 0 Deprecated?
 	local energyPerSec = 10.59

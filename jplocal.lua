@@ -58,6 +58,7 @@ do
 	-- DeBuff to dispel
 		["Polymorph"] = "Métamorphose",
 		["Cyclone"] = "Cyclone",
+		["Hex"] = "Maléfice",
 		["Death Coil"] = "Voile mortel",
 		["Dragon's Breath"] = "Souffle du dragon",
 		["Polymorph"] = "Métamorphose",

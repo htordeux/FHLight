@@ -198,20 +198,20 @@ end	,"Default PvE",true,false)
 
 
 druid = {}
-druid.arcaneTorrent = "arcane torrent";        
-druid.berserk = "berserk";      
+druid.arcaneTorrent = "Arcane Torrent";        
+druid.berserk = "Berserk";      
 druid.berserking = "Berserking"; 
-druid.bloodFury = "blood fury";        
+druid.bloodFury = "Blood Fury";        
         
 druid.dreamOfCenarius = "Dream of Cenarius";        
-druid.faerieFire = "faerie fire";        
-druid.feralRage = "feral rage";        
-druid.ferociousBite = "ferocious bite";        
+druid.faerieFire = "Faerie Fire";        
+druid.feralRage = "Feral Rage";        
+druid.ferociousBite = "Ferocious Bite";        
 druid.forNext = "for next";        
-druid.forceOfNature = "force of nature";        
+druid.forceOfNature = "Force of Nature";        
 druid.healingTouch = "healing touch";        
 druid.name = "name";        
-druid.omenOfClarity = "omen of clarity";        
+druid.omenOfClarity = "Omen of Clarity";        
 druid.poolResource = "pool resource";        
 druid.predatorySwiftness = "predatory swiftness";        
 druid.rake = "rake";        
@@ -222,13 +222,13 @@ druid.skullBashCat = "skull bash";
 druid.slot = "slot";        
 druid.stealthed = "prowl";   
 druid.shred = "shred";
-druid.kingOfTheJungle = "King Of the Jungle";   
+druid.kingOfTheJungle = "Incarnation: King of the Jungle";   
 druid.swipeCat = "swipe";        
 druid.thrashCat = "thrash";        
-druid.tigersFury = "tiger's fury";        
-druid.vicious = "vicious";        
+druid.tigersFury = "Tiger's Fury";        
+druid.vicious = "Vicious";        
 druid.virmensBitePotion = "Virmen's Bite";        
-druid.weakenedArmor = "weakened armor";      
+druid.weakenedArmor = "Weakened Armor";      
 druid.markOfTheWild = "Mark of the Wild";
 druid.mangle = "Mangle";
 druid.feralFury ="Feral Fury";

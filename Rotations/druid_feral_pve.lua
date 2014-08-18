@@ -197,43 +197,40 @@ jps.registerRotation("DRUID","FERAL", function()
 end	,"Default PvE",true,false)
 
 
-
-
-
 druid = {}
-druid.arcaneTorrent = "arcane torrent";	      
-druid.berserk = "berserk";	    
-druid.berserking = "Berserking";  
-druid.bloodFury = "blood fury";	      
-	      
-druid.dreamOfCenarius = "Dream of Cenarius";	      
-druid.faerieFire = "faerie fire";	      
-druid.feralRage = "feral rage";	      
-druid.ferociousBite = "ferocious bite";	      
-druid.forNext = "for next";	      
-druid.forceOfNature = "force of nature";	      
-druid.healingTouch = "healing touch";	      
-druid.name = "name";	      
-druid.omenOfClarity = "omen of clarity";	      
-druid.poolResource = "pool resource";	      
-druid.predatorySwiftness = "predatory swiftness";	      
-druid.rake = "rake";	      
-druid.rip = "rip";	      
-druid.runeOfReorigination = "rune of reorigination";	      
-druid.savageRoar = "savage roar";	      
-druid.skullBashCat = "skull bash";	      
-druid.slot = "slot";	      
-druid.stealthed = "prowl";	
+druid.arcaneTorrent = "arcane torrent";        
+druid.berserk = "berserk";      
+druid.berserking = "Berserking"; 
+druid.bloodFury = "blood fury";        
+        
+druid.dreamOfCenarius = "Dream of Cenarius";        
+druid.faerieFire = "faerie fire";        
+druid.feralRage = "feral rage";        
+druid.ferociousBite = "ferocious bite";        
+druid.forNext = "for next";        
+druid.forceOfNature = "force of nature";        
+druid.healingTouch = "healing touch";        
+druid.name = "name";        
+druid.omenOfClarity = "omen of clarity";        
+druid.poolResource = "pool resource";        
+druid.predatorySwiftness = "predatory swiftness";        
+druid.rake = "rake";        
+druid.rip = "rip";        
+druid.runeOfReorigination = "Rune of Re-Origination";        
+druid.savageRoar = "savage roar";        
+druid.skullBashCat = "skull bash";        
+druid.slot = "slot";        
+druid.stealthed = "prowl";   
 druid.shred = "shred";
-druid.kingOfTheJungle = "King Of the Jungle";    
-druid.swipeCat = "swipe";	      
-druid.thrashCat = "thrash";	      
-druid.tigersFury = "tiger's fury";	      
-druid.vicious = "vicious";	      
-druid.virmensBitePotion = "virmens bite potion";	      
-druid.weakenedArmor = "weakened armor";	    
+druid.kingOfTheJungle = "King Of the Jungle";   
+druid.swipeCat = "swipe";        
+druid.thrashCat = "thrash";        
+druid.tigersFury = "tiger's fury";        
+druid.vicious = "vicious";        
+druid.virmensBitePotion = "Virmen's Bite";        
+druid.weakenedArmor = "weakened armor";      
 druid.markOfTheWild = "Mark of the Wild";
-druid.mangle = "mangle";
+druid.mangle = "Mangle";
 druid.feralFury ="Feral Fury";
 
 druid.energyRegen = function() 
@@ -287,7 +284,7 @@ local fillerTable = {
 }
 
 local spellTable = {
-		
+      
  -- buffs
 	{nil, 'IsControlKeyDown() and not GetCurrentKeyBoardFocus()'},
 	{druid.barksin, 'jps.hp("player") < 0.5'},
@@ -419,7 +416,7 @@ local spellTable = {
   {'nested' , 'not jps.MultiTarget and jps.cooldown(druid.tigersFury) <= 3', fillerTable },
   {'nested' , 'not jps.MultiTarget and druid.timeToMax() <= 1', fillerTable },
   {druid.mangle, 'onCD'},
-  
+ 
 }
 
 jps.registerRotation("DRUID","FERAL",function()
@@ -430,5 +427,4 @@ jps.registerRotation("DRUID","FERAL",function()
 
 	return spell,target
 end, "Simcraft druid-FERAL")
-
 

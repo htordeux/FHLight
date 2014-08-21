@@ -2,7 +2,6 @@
 
 druid = {}
 
-
 local function toSpellName(id) name = GetSpellInfo(id); return name end
 druid.spells = {}
 druid.spells["removeCorruption"] = toSpellName(2782)

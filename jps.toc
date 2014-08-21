@@ -41,8 +41,8 @@ Rotations\dk_blood.lua
 Rotations\dk_frost.lua
 Rotations\dk_unholy.lua
 
+Rotations\druid.lua
 Rotations\druid_balance.lua
-Rotations\druid_feral.lua
 Rotations\druid_feral_pve.lua
 Rotations\druid_feral_pvp.lua
 Rotations\druid_guardian.lua

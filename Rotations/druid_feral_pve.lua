@@ -196,91 +196,24 @@ jps.registerRotation("DRUID","FERAL", function()
 
 end	,"Default PvE",true,false)
 
-
-druid = {}
-druid.arcaneTorrent = "Arcane Torrent";        
-druid.berserk = "Berserk";      
-druid.berserking = "Berserking"; 
-druid.bloodFury = "Blood Fury";        
-        
-druid.dreamOfCenarius = "Dream of Cenarius";        
-druid.faerieFire = "Faerie Fire";        
-druid.feralRage = "Feral Rage";        
-druid.ferociousBite = "Ferocious Bite";        
-druid.forNext = "for next";        
-druid.forceOfNature = "Force of Nature";        
-druid.healingTouch = "healing touch";        
-druid.name = "name";        
-druid.omenOfClarity = "Omen of Clarity";        
-druid.poolResource = "pool resource";        
-druid.predatorySwiftness = "predatory swiftness";        
-druid.rake = "rake";        
-druid.rip = "rip";        
-druid.runeOfReorigination = "Rune of Re-Origination";        
-druid.savageRoar = "savage roar";        
-druid.skullBashCat = "skull bash";        
-druid.slot = "slot";        
-druid.stealthed = "prowl";   
-druid.shred = "shred";
-druid.kingOfTheJungle = "Incarnation: King of the Jungle";   
-druid.swipeCat = "swipe";        
-druid.thrashCat = "thrash";        
-druid.tigersFury = "Tiger's Fury";        
-druid.vicious = "Vicious";        
-druid.virmensBitePotion = "Virmen's Bite";        
-druid.weakenedArmor = "Weakened Armor";      
-druid.markOfTheWild = "Mark of the Wild";
-druid.mangle = "Mangle";
-druid.feralFury ="Feral Fury";
-
-druid.energyRegen = function() 
-	return select(1,GetPowerRegen())
-end
-
-druid.cp = function()
-	return GetComboPoints("player")
-end
-druid.timeToMax = function() 
-	return (100- UnitMana("player")) / druid.energyRegen()
-end
-
-druid.energy = function()
-	return UnitMana("player")
-end
-
-if jps.TimetoDie == nil then
-	jps.TimetoDie = function(unit) 
-		if DeathClock_TimeTillDeath ~= nil then
-			return jps.cachedValue(function()
-				return  DeathClock_TimeTillDeath(unit) 
-			end , 1)
-		end
-	end
-end
-if AffDots == nil then 
-	print("install Affdots druid! ");
-end
-jps.dotPower = function(dotID)
-	if AffDots == nil then 
-		return 0 
-	end
-	return AffDots.Hook(dotID) or 0
-end
+-------------------------------
+-- Simcraft druid-FERAL PCMD
+-------------------------------
 
 local fillerTable = {
-	{druid.rake, ' (jps.TimeToDie("target") - jps.myDebuffDuration(druid.rake)) > 3 and jps.dotPower(1822) >= 100'},
-	{druid.shred, 'jps.buff(druid.omenOfClarity) and not jps.buff(druid.kingOfTheJungle)'},
-	{druid.shred, 'jps.buff(druid.berserk) and not jps.buff(druid.kingOfTheJungle)'},
-	{druid.shred, 'druid.energyRegen() > 15 and not jps.buff(druid.kingOfTheJungle)'},
-	{druid.mangle, 'not jps.buff(druid.kingOfTheJungle)'}
+	{druidferal.rake, 'jps.sub(jps.TimeToDie("target"),jps.myDebuffDuration(druidferal.rake)) > 3 and jps.dotPower(1822) >= 100'},
+	{druidferal.shred, 'jps.buff(druidferal.omenOfClarity) and not jps.buff(druidferal.kingOfTheJungle)'},
+	{druidferal.shred, 'jps.buff(druidferal.berserk) and not jps.buff(druidferal.kingOfTheJungle)'},
+	{druidferal.shred, 'druidferal.energyRegen() > 15 and not jps.buff(druidferal.kingOfTheJungle)'},
+	{druidferal.mangle, 'not jps.buff(druidferal.kingOfTheJungle)'}
 }
 
 local spellTable = {
       
 -- buffs
 	{nil, 'IsControlKeyDown() and not GetCurrentKeyBoardFocus()'},
-	{druid.barksin, 'jps.hp("player") < 0.5'},
-	{druid.markOfTheWild, 'not jps.hasStatsBuff("player") and not jps.buff("Cat Form")'},
+	{druidferal.barksin, 'jps.hp("player") < 0.5'},
+	{druidferal.markOfTheWild, 'not jps.hasStatsBuff("player") and not jps.buff("Cat Form")'},
 	{jps.useBagItem(5512), 'jps.hp("player") < 0.65' }, -- Healthstone
 	{jps.useBagItem(5512), 'jps.hp("player") < 0.90 and jps.debuff("weak ancient barrier")' }, --malk barrier
 	{jps.useBagItem(5512), 'jps.hp("player") < 0.99 and jps.debuff("ancient barrier")' }, --malk barrier
@@ -291,22 +224,22 @@ local spellTable = {
 
 -- cooldowns
 
-	{druid.skullBashCat, 'jps.Interrupts and jps.ShouldKick("target")' },
-	{druid.arcaneTorrent, 'jps.Interrupts and jps.ShouldKick("target") and IsSpellInRange("Shred", "target") == 1' },
-	{druid.forceOfNature, 'select(1,GetSpellCharges(druid.forceOfNature))==3'},
-	{druid.forceOfNature, 'jps.buff(druid.runeOfReorigination) and jps.buffDuration(druid.runeOfReorigination) < 2'},
-	{druid.forceOfNature, 'jps.buff(druid.vicious) and jps.buffDuration(druid.vicious) < 2'},
-	{druid.forceOfNature, 'jps.TimeToDie("target") < 20'},
+	{druidferal.skullBashCat, 'jps.Interrupts and jps.ShouldKick("target")' },
+	{druidferal.arcaneTorrent, 'jps.Interrupts and jps.ShouldKick("target") and IsSpellInRange("Shred", "target") == 1' },
+	{druidferal.forceOfNature, 'select(1,GetSpellCharges(druidferal.forceOfNature))==3'},
+	{druidferal.forceOfNature, 'jps.buff(druidferal.runeOfReorigination) and jps.buffDuration(druidferal.runeOfReorigination) < 2'},
+	{druidferal.forceOfNature, 'jps.buff(druidferal.vicious) and jps.buffDuration(druidferal.vicious) < 2'},
+	{druidferal.forceOfNature, 'jps.TimeToDie("target") < 20'},
 
 
 	{'nested' , 'not jps.MultiTarget', 
 		{
-			{ravage, 'jps.buff(druid.stealthed)' },
-			{druid.ferociousBite, 'jps.myDebuff(druid.rip) and jps.myDebuffDuration(druid.rip) <= 3 and jps.hp("target") <= 0.25' },
-			{druid.faerieFire, 'jps.debuffStacks(druid.weakenedArmor) < 3' },
-			{druid.healingTouch, 'jps.talentInfo(druid.dreamOfCenarius) and jps.buff(druid.predatorySwiftness) and not jps.buff(druid.dreamOfCenarius) and jps.buffDuration(druid.predatorySwiftness) < 1.5' },
-			{druid.healingTouch, 'jps.talentInfo(druid.dreamOfCenarius) and jps.buff(druid.predatorySwiftness) and not jps.buff(druid.dreamOfCenarius) and druid.cp() >= 4' },
-			{druid.savageRoar, 'not jps.buff(druid.savageRoar)' },
+			{druidferal.ravage, 'jps.buff(druidferal.stealthed)' },
+			{druidferal.ferociousBite, 'jps.myDebuff(druidferal.rip) and jps.myDebuffDuration(druidferal.rip) <= 3 and jps.hp("target") <= 0.25' },
+			{druidferal.faerieFire, 'jps.debuffStacks(druidferal.weakenedArmor) < 3' },
+			{druidferal.healingTouch, 'jps.talentInfo(druidferal.dreamOfCenarius) and jps.buff(druidferal.predatorySwiftness) and not jps.buff(druidferal.dreamOfCenarius) and jps.buffDuration(druidferal.predatorySwiftness) < 1.5' },
+			{druidferal.healingTouch, 'jps.talentInfo(druidferal.dreamOfCenarius) and jps.buff(druidferal.predatorySwiftness) and not jps.buff(druidferal.dreamOfCenarius) and druidferal.cp() >= 4' },
+			{druidferal.savageRoar, 'not jps.buff(druidferal.savageRoar)' },
 		}
 	},
 
@@ -314,9 +247,9 @@ local spellTable = {
 	{ "nested",'IsSpellInRange("Shred", "target") == 1 and jps.UseCDs',
 		{	
 			{jps.getDPSRacial(), 'jps.UseCDs' },
-			{druid.tigersFury, 'druid.energy() <= 35 and not jps.buff(druid.omenOfClarity)' },
-			{druid.berserk, 'jps.buff(druid.tigersFury)' },
-			{druid.berserk, 'jps.TimeToDie("target") < 18 and jps.cooldown(druid.tigersFury) > 6' },
+			{druidferal.tigersFury, 'druidferal.energy() <= 35 and not jps.buff(druidferal.omenOfClarity)' },
+			{druidferal.berserk, 'jps.buff(druidferal.tigersFury)' },
+			{druidferal.berserk, 'jps.TimeToDie("target") < 18 and jps.cooldown(druidferal.tigersFury) > 6' },
 			{"Lifeblood", 'jps.UseCDs' },
 			{jps.useTrinket(0), 'jps.UseCDs' },
 			{jps.useTrinket(1), 'jps.UseCDs' },	
@@ -328,30 +261,30 @@ local spellTable = {
 	
 	{'nested' , 'jps.MultiTarget',
 		{
-			{druid.faerieFire, 'jps.debuffStacks(druid.weakenedArmor) < 3' },
-			{druid.savageRoar, 'not jps.buff(druid.savageRoar)' },
-			{druid.savageRoar, 'jps.buffDuration(druid.savageRoar) < 3 and druid.cp() > 0' },
+			{druidferal.faerieFire, 'jps.debuffStacks(druidferal.weakenedArmor) < 3' },
+			{druidferal.savageRoar, 'not jps.buff(druidferal.savageRoar)' },
+			{druidferal.savageRoar, 'jps.buffDuration(druidferal.savageRoar) < 3 and druidferal.cp() > 0' },
 		
 			{ {"macro","/use 10"}, 'jps.useSynapseSprings() ~= "" and jps.UseCDs' },
-			{druid.bloodFury, 'jps.buff(druid.tigersFury)' },
-			{druid.berserking, 'jps.buff(druid.tigersFury)' },
-			{druid.arcaneTorrent, 'jps.buff(druid.tigersFury)' },
-			{druid.tigersFury, 'druid.energy() <= 35 and  not jps.buff(druid.omenOfClarity)' },
-			{druid.berserk, 'jps.buff(druid.tigersFury)' },
-			--{druid.poolResource,druid.forNext==1, 'onCD' },
-			{druid.thrashCat, 'jps.buff(druid.runeOfReorigination)' },
-			--[[ need edit: {druid.poolResource,druid.wait==0.1,druid.forNext==1 ]--, 'onCD' }, ]]--
-			{druid.thrashCat, 'jps.myDebuffDuration(druid.thrashCat) < 3' },
-			{druid.thrashCat, 'jps.buff(druid.tigersFury) and jps.myDebuffDuration(druid.thrashCat) < 9' },
-			{druid.savageRoar, 'jps.buffDuration(druid.savageRoar) < 9 and druid.cp() >= 5' },
-			{druid.rip, 'druid.cp() >= 5' },
-			{druid.rake, 'jps.buff(druid.runeOfReorigination) and jps.myDebuffDuration(druid.rake) < 3 and jps.TimeToDie("target") >= 15' },
-			{druid.swipeCat, 'jps.buffDuration(druid.savageRoar) <= 5' },
-			{druid.swipeCat, 'jps.buff(druid.tigersFury)' },
-			{druid.swipeCat, 'jps.buff(druid.berserk)'},
-			{druid.swipeCat, 'jps.cooldown(druid.tigersFury) < 3' },
-			{druid.swipeCat, 'jps.buff(druid.omenOfClarity)' },
-			{druid.swipeCat, 'onCD' },
+			{druidferal.bloodFury, 'jps.buff(druidferal.tigersFury)' },
+			{druidferal.berserking, 'jps.buff(druidferal.tigersFury)' },
+			{druidferal.arcaneTorrent, 'jps.buff(druidferal.tigersFury)' },
+			{druidferal.tigersFury, 'druidferal.energy() <= 35 and  not jps.buff(druidferal.omenOfClarity)' },
+			{druidferal.berserk, 'jps.buff(druidferal.tigersFury)' },
+			--{druidferal.poolResource,druidferal.forNext==1, 'onCD' },
+			{druidferal.thrashCat, 'jps.buff(druidferal.runeOfReorigination)' },
+			--[[ need edit: {druidferal.poolResource,druidferal.wait==0.1,druidferal.forNext==1 ]--, 'onCD' }, ]]--
+			{druidferal.thrashCat, 'jps.myDebuffDuration(druidferal.thrashCat) < 3' },
+			{druidferal.thrashCat, 'jps.buff(druidferal.tigersFury) and jps.myDebuffDuration(druidferal.thrashCat) < 9' },
+			{druidferal.savageRoar, 'jps.buffDuration(druidferal.savageRoar) < 9 and druidferal.cp() >= 5' },
+			{druidferal.rip, 'druidferal.cp() >= 5' },
+			{druidferal.rake, 'jps.buff(druidferal.runeOfReorigination) and jps.myDebuffDuration(druidferal.rake) < 3 and jps.TimeToDie("target") >= 15' },
+			{druidferal.swipeCat, 'jps.buffDuration(druidferal.savageRoar) <= 5' },
+			{druidferal.swipeCat, 'jps.buff(druidferal.tigersFury)' },
+			{druidferal.swipeCat, 'jps.buff(druidferal.berserk)'},
+			{druidferal.swipeCat, 'jps.cooldown(druidferal.tigersFury) < 3' },
+			{druidferal.swipeCat, 'jps.buff(druidferal.omenOfClarity)' },
+			{druidferal.swipeCat, 'onCD' },
 		}
 	},
 	
@@ -359,50 +292,50 @@ local spellTable = {
 	{'nested' , 'not jps.MultiTarget', 	
 		{
 			{ {"macro","/use 10"}, 'jps.useSynapseSprings() ~= "" and jps.UseCDs' },
-			{druid.thrashCat, 'jps.buff(druid.omenOfClarity) and jps.myDebuffDuration(druid.thrashCat) < 3 and jps.TimeToDie("target") >= 6' },
-			{druid.ferociousBite, 'jps.TimeToDie("target") <= 1 and druid.cp() >= 3' },
-			{druid.savageRoar, 'jps.buffDuration(druid.savageRoar) <= 3 and druid.cp() > 0 and jps.hp("target") < 0.25' },
-			{druid.rip, 'druid.cp() >= 5 and jps.dotPower(1079) >= 115 and jps.TimeToDie("target") > 30' }, 
-			{druid.rip, 'druid.cp() >= 4 and jps.dotPower(1079) >= 95 and jps.TimeToDie("target") > 30 and jps.buff(druid.runeOfReorigination) and jps.buffDuration(druid.runeOfReorigination) <= 1.5'},
-		--	{druid.poolResource, 'druid.cp() >= 5 and jps.hp("target") <= 0.25 and jps.myDebuff(druid.rip) and  not (druid.energy() >= 50 or (jps.buff(druid.berserk) and druid.energy() >= 25))' },
-			{druid.ferociousBite, 'druid.cp() >= 5 and jps.myDebuff(druid.rip) and jps.hp("target") <= 0.25' },
-			{druid.rip, 'druid.cp() >= 5 and jps.TimeToDie("target") >= 6 and jps.myDebuffDuration(druid.rip) < 2 and jps.buff(druid.berserk)' },
+			{druidferal.thrashCat, 'jps.buff(druidferal.omenOfClarity) and jps.myDebuffDuration(druidferal.thrashCat) < 3 and jps.TimeToDie("target") >= 6' },
+			{druidferal.ferociousBite, 'jps.TimeToDie("target") <= 1 and druidferal.cp() >= 3' },
+			{druidferal.savageRoar, 'jps.buffDuration(druidferal.savageRoar) <= 3 and druidferal.cp() > 0 and jps.hp("target") < 0.25' },
+			{druidferal.rip, 'druidferal.cp() >= 5 and jps.dotPower(1079) >= 115 and jps.TimeToDie("target") > 30' }, 
+			{druidferal.rip, 'druidferal.cp() >= 4 and jps.dotPower(1079) >= 95 and jps.TimeToDie("target") > 30 and jps.buff(druidferal.runeOfReorigination) and jps.buffDuration(druidferal.runeOfReorigination) <= 1.5'},
+		--	{druidferal.poolResource, 'druidferal.cp() >= 5 and jps.hp("target") <= 0.25 and jps.myDebuff(druidferal.rip) and  not (druidferal.energy() >= 50 or (jps.buff(druidferal.berserk) and druidferal.energy() >= 25))' },
+			{druidferal.ferociousBite, 'druidferal.cp() >= 5 and jps.myDebuff(druidferal.rip) and jps.hp("target") <= 0.25' },
+			{druidferal.rip, 'druidferal.cp() >= 5 and jps.TimeToDie("target") >= 6 and jps.myDebuffDuration(druidferal.rip) < 2 and jps.buff(druidferal.berserk)' },
 			
-			{druid.rip, 'druid.cp() >= 5 and jps.TimeToDie("target") >= 6 and jps.myDebuffDuration(druid.rip) < 2 and (jps.myDebuffDuration(druid.rip) + 1.9) <= jps.cooldown(druid.tigersFury)' },
-			{druid.rip, 'druid.cp() >= 5 and jps.TimeToDie("target") >= 6 and jps.myDebuffDuration(druid.rip) == 0' },
-			{druid.savageRoar, 'jps.buffDuration(druid.savageRoar) <= 3 and druid.cp() > 0 and (jps.buffDuration(druid.savageRoar) + 2) > jps.myDebuffDuration(druid.rip)' },
-			{druid.savageRoar, 'jps.buffDuration(druid.savageRoar) <= 6 and druid.cp() >= 5 and (jps.buffDuration(druid.savageRoar) + 2) <= jps.myDebuffDuration(druid.rip) and jps.myDebuff(druid.rip)' },
-			{druid.savageRoar, 'jps.buffDuration(druid.savageRoar) <= 12 and druid.cp() >= 5 and druid.timeToMax() <= 1 and jps.buffDuration(druid.savageRoar) <= (jps.myDebuffDuration(druid.rip) + 6) and jps.myDebuff(druid.rip)' },
-			{druid.rake, 'jps.buff(druid.runeOfReorigination) and jps.myDebuffDuration(druid.rake) < 9 and jps.buffDuration(druid.runeOfReorigination) <= 1.5' },
-			{druid.rake, '(jps.TimeToDie("target") - jps.myDebuffDuration(druid.rake)) > 3 and jps.dotPower(1822) > 100' },
-			{druid.rake, '(jps.TimeToDie("target") - jps.myDebuffDuration(druid.rake)) > 3 and jps.myDebuffDuration(druid.rake) < 3 and jps.dotPower(1822) >= 75' },
-			{druid.rake, '(jps.TimeToDie("target") - jps.myDebuffDuration(druid.rake)) > 3 and jps.myDebuffDuration(druid.rake) < 3 and jps.dotPower(1822) == 0' },
+			{druidferal.rip, 'druidferal.cp() >= 5 and jps.TimeToDie("target") >= 6 and jps.myDebuffDuration(druidferal.rip) < 2 and jps.add(jps.myDebuffDuration(druidferal.rip),1.9) <= jps.cooldown(druidferal.tigersFury)' },
+			{druidferal.rip, 'druidferal.cp() >= 5 and jps.TimeToDie("target") >= 6 and jps.myDebuffDuration(druidferal.rip) == 0' },
+			{druidferal.savageRoar, 'jps.buffDuration(druidferal.savageRoar) <= 3 and druidferal.cp() > 0 and jps.add(jps.buffDuration(druidferal.savageRoar),2) > jps.myDebuffDuration(druidferal.rip)' },
+			{druidferal.savageRoar, 'jps.buffDuration(druidferal.savageRoar) <= 6 and druidferal.cp() >= 5 and jps.add(jps.buffDuration(druidferal.savageRoar),2) <= jps.myDebuffDuration(druidferal.rip) and jps.myDebuff(druidferal.rip)' },
+			{druidferal.savageRoar, 'jps.buffDuration(druidferal.savageRoar) <= 12 and druidferal.cp() >= 5 and druidferal.timeToMax() <= 1 and jps.buffDuration(druidferal.savageRoar) <= jps.add(jps.myDebuffDuration(druidferal.rip),6) and jps.myDebuff(druidferal.rip)' },
+			{druidferal.rake, 'jps.buff(druidferal.runeOfReorigination) and jps.myDebuffDuration(druidferal.rake) < 9 and jps.buffDuration(druidferal.runeOfReorigination) <= 1.5' },
+			{druidferal.rake, 'jps.sub(jps.TimeToDie("target"),jps.myDebuffDuration(druidferal.rake)) > 3 and jps.dotPower(1822) > 100' },
+			{druidferal.rake, 'jps.sub(jps.TimeToDie("target"),jps.myDebuffDuration(druidferal.rake)) > 3 and jps.myDebuffDuration(druidferal.rake) < 3 and jps.dotPower(1822) >= 75' },
+			{druidferal.rake, 'jps.sub(jps.TimeToDie("target"),jps.myDebuffDuration(druidferal.rake)) > 3 and jps.myDebuffDuration(druidferal.rake) < 3 and jps.dotPower(1822) == 0' },
 			
-			--{druid.poolResource,druid.forNext==1, 'onCD' },
-			{druid.thrashCat, 'jps.TimeToDie("target") >= 6 and jps.myDebuffDuration(druid.thrashCat) < 3 and jps.myDebuffDuration(druid.rip) >= 8 and jps.buffDuration(druid.savageRoar) >= 12' },
-			{druid.thrashCat, 'jps.buff(druid.berserk)' },
-			{druid.thrashCat, 'druid.cp() >= 5 and jps.myDebuff(druid.rip)' },
+			--{druidferal.poolResource,druidferal.forNext==1, 'onCD' },
+			{druidferal.thrashCat, 'jps.TimeToDie("target") >= 6 and jps.myDebuffDuration(druidferal.thrashCat) < 3 and jps.myDebuffDuration(druidferal.rip) >= 8 and jps.buffDuration(druidferal.savageRoar) >= 12' },
+			{druidferal.thrashCat, 'jps.buff(druidferal.berserk)' },
+			{druidferal.thrashCat, 'druidferal.cp() >= 5 and jps.myDebuff(druidferal.rip)' },
 		
-			{druid.thrashCat, 'jps.TimeToDie("target") >= 6 and jps.myDebuffDuration(druid.thrashCat) < 3 and jps.myDebuffDuration(druid.rip) >= 8 and jps.buffDuration(druid.savageRoar) >= 12 and jps.myDebuff(druid.rip)' },
+			{druidferal.thrashCat, 'jps.TimeToDie("target") >= 6 and jps.myDebuffDuration(druidferal.thrashCat) < 3 and jps.myDebuffDuration(druidferal.rip) >= 8 and jps.buffDuration(druidferal.savageRoar) >= 12 and jps.myDebuff(druidferal.rip)' },
 		
-			--{druid.poolResource,druid.forNext==1, 'onCD' },
-			{druid.thrashCat, 'jps.TimeToDie("target") >= 6 and jps.myDebuffDuration(druid.thrashCat) < 9 and jps.buff(druid.runeOfReorigination) and jps.buffDuration(druid.runeOfReorigination) <= 1.5 and jps.myDebuff(druid.rip)' },
-		--	{druid.poolResource, 'druid.cp() >= 5 and  not (druid.timeToMax() <= 1 or (jps.buff(druid.berserk) and druid.energy() >= 25) or (jps.buff(druid.feralRage) and jps.buffDuration(druid.feralRage) <= 1)) and jps.myDebuff(druid.rip)' },
-			{druid.ferociousBite, 'druid.cp() >= 5 and jps.myDebuff(druid.rip)' },
-			{druid.ravage, "onCD"},
+			--{druidferal.poolResource,druidferal.forNext==1, 'onCD' },
+			{druidferal.thrashCat, 'jps.TimeToDie("target") >= 6 and jps.myDebuffDuration(druidferal.thrashCat) < 9 and jps.buff(druidferal.runeOfReorigination) and jps.buffDuration(druidferal.runeOfReorigination) <= 1.5 and jps.myDebuff(druidferal.rip)' },
+		--	{druidferal.poolResource, 'druidferal.cp() >= 5 and  not (druidferal.timeToMax() <= 1 or (jps.buff(druidferal.berserk) and druidferal.energy() >= 25) or (jps.buff(druidferal.feralRage) and jps.buffDuration(druidferal.feralRage) <= 1)) and jps.myDebuff(druidferal.rip)' },
+			{druidferal.ferociousBite, 'druidferal.cp() >= 5 and jps.myDebuff(druidferal.rip)' },
+			{druidferal.ravage, "onCD"},
 		}
 	},
 
-	{'nested' , 'not jps.MultiTarget and jps.buff(druid.omenOfClarity)', fillerTable },
-	{'nested' , 'not jps.MultiTarget and jps.buff(druid.feralFury)', fillerTable },
-	{'nested' , 'not jps.MultiTarget and druid.cp() < 5 and jps.myDebuffDuration(druid.rip) < 3', fillerTable },
-	{'nested' , 'not jps.MultiTarget and druid.cp() < 3 and jps.buffDuration(druid.savageRoar) < 2', fillerTable },
+	{'nested' , 'not jps.MultiTarget and jps.buff(druidferal.omenOfClarity)', fillerTable },
+	{'nested' , 'not jps.MultiTarget and jps.buff(druidferal.feralFury)', fillerTable },
+	{'nested' , 'not jps.MultiTarget and druidferal.cp() < 5 and jps.myDebuffDuration(druidferal.rip) < 3', fillerTable },
+	{'nested' , 'not jps.MultiTarget and druidferal.cp() < 3 and jps.buffDuration(druidferal.savageRoar) < 2', fillerTable },
 	{'nested' , 'not jps.MultiTarget and jps.TimeToDie("target") < 8.5', fillerTable },
-	{'nested' , 'not jps.MultiTarget and jps.buff(druid.tigersFury)', fillerTable },
-	{'nested' , 'not jps.MultiTarget and jps.buff(druid.berserk)', fillerTable },
-	{'nested' , 'not jps.MultiTarget and jps.cooldown(druid.tigersFury) <= 3', fillerTable },
-	{'nested' , 'not jps.MultiTarget and druid.timeToMax() <= 1', fillerTable },
-	{druid.mangle, 'onCD'},
+	{'nested' , 'not jps.MultiTarget and jps.buff(druidferal.tigersFury)', fillerTable },
+	{'nested' , 'not jps.MultiTarget and jps.buff(druidferal.berserk)', fillerTable },
+	{'nested' , 'not jps.MultiTarget and jps.cooldown(druidferal.tigersFury) <= 3', fillerTable },
+	{'nested' , 'not jps.MultiTarget and druidferal.timeToMax() <= 1', fillerTable },
+	{druidferal.mangle, 'onCD'},
 
 }
 

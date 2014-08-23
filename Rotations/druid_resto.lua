@@ -1,125 +1,5 @@
 --TO DO : tranquility detection
 
-druid = {}
-
-local function toSpellName(id) name = GetSpellInfo(id); return name end
-druid.spells = {}
-druid.spells["removeCorruption"] = toSpellName(2782)
-druid.spells["naturesCure"] = toSpellName(88423)
-druid.spells["rebirth"] = toSpellName(20484)
-druid.spells["markOfTheWild"] = toSpellName(1126)
-druid.spells["barkskin"] = toSpellName(22812)
-druid.spells["incarnation"] = toSpellName(106731)
-druid.spells["lifebloom"] = toSpellName(33763)
-druid.spells["swiftmend"] = toSpellName(81269)
-druid.spells["wildGrowth"] = toSpellName(48438)
-druid.spells["rejuvination"] = toSpellName(774)
-druid.spells["regrowth"] = toSpellName(8936)
-druid.spells["naturesSwiftness"] = toSpellName(132158)
-druid.spells["healingTouch"] = toSpellName(5185)
-druid.spells["nourish"] = toSpellName(50464)
-druid.spells["clearcasting"] = toSpellName(16870)
-druid.spells["harmony"] = toSpellName(100977)
-druid.spells["innervate"] = toSpellName(29166)
-druid.spells["soulOfTheForrest"] = toSpellName(48504)
-druid.spells["ironbark"] = toSpellName(102342)
-druid.spells["wildMushroom"] = toSpellName(88747)
-druid.spells["wildMushroomBloom"] = toSpellName(102791)
-
-
-druid.groupHealTable = {"NoSpell", false, "player"}
-function druid.groupHealTarget()
-    local tank = jps.findMeATank()
-    local healTarget = jps.LowestInRaidStatus()
-    if jps.canHeal(tank) and jps.hp(tank) <= 0.5 then healTarget = tank end
-    if jps.hpInc("player") < 0.2 then healTarget = "player" end
-    return healTarget
-end
-
-function druid.hastSotF()
-    local selected, talentIndex = GetTalentRowSelectionInfo(4)
-    return talentIndex == 10
-end
-
-function groupHeal()
-    local healTarget = druid.groupHealTarget()
-    local healSpell = nil
-    if jps.canCast(druid.spells.wildGrowth, healTarget) then
-        healSpell = druid.spells.wildGrowth
-    elseif jps.canCast(druid.spells.swiftmend, healTarget) and jps.buff(druid.spells.rejuvination,healTarget) or jps.buff(druid.spells.regrowth,healTarget) then
-        healSpell = druid.spells.swiftmend
-    elseif not jps.buff(druid.spells.rejuvination,healTarget) then
-        healSpell = druid.spells.rejuvination
-    end
-    druid.groupHealTable[1] = healSpell
-    druid.groupHealTable[2] = healSpell ~= nil
-    druid.groupHealTable[3] = healTarget
-    return druid.groupHealTable
-end
-
-druid.focusHealTable = {"NoSpell", false, "player"}
-druid.focusHealTargets = {"target", "targettarget", "focus", "focustarget"}
-function druid.focusHealTarget()
-    if jps.hpInc("player") < 0.2 then return "player" end
-    -- First Check for low targets
-    for _,healTarget in pairs(druid.focusHealTargets) do
-        if jps.hpInc(healTarget) < .5 and jps.canHeal(healTarget) then return healTarget end
-    end
-    -- All above 50% -> take first possible target
-    for _,healTarget in pairs(druid.focusHealTargets) do
-        if jps.canHeal(healTarget) then return healTarget end
-    end
-    return nil
-end
-
-
-
-local dispelTable = {druid.spells.naturesCure}
-function druid.dispel()
-    local cleanseTarget = nil
-    if jps.DispelMagicTarget() then
-    	cleanseTarget = jps.DispelMagicTarget()
-    elseif jps.DispelCurseTarget() then
-    	cleanseTarget = jps.DispelCurseTarget()
-    elseif jps.DispelPoisonTarget() then
-    	cleanseTarget = jps.DispelPoisonTarget()
-    end
-    dispelTable[2] = cleanseTarget ~= nil
-    dispelTable[3] = cleanseTarget
-    return dispelTable
-end
-
-
-function druid.activeMushrooms()
-    local first = GetTotemInfo(1) and 1 or 0
-    local second = GetTotemInfo(2) and 1 or 0
-    local third = GetTotemInfo(3) and 1 or 0
-    return first + second + third
-end
-
-
-function druid.legacyDefaultTarget()
-    --healer
-    local tank = nil
-    local me = "player"
-    
-    -- Tank is focus.
-    tank = jps.findMeATank()
-    
-    --Default to healing lowest partymember
-    local defaultTarget = jps.LowestInRaidStatus()
-    
-    --Check that the tank isn't going critical, and that I'm not about to die
-    if jps.canHeal(tank) and jps.hp(tank) <= 0.5 then defaultTarget = tank end
-    if jps.hpInc(me) < 0.2 then defaultTarget = me end
-    
-    return defaultTarget
-end
-
-function druid.legacyDefaultHP()
-    return jps.hpInc(druid.legacyDefaultTarget())
-end
-
 --[[[
 @rotation Legacy Rotation
 @class DRUID
@@ -127,7 +7,6 @@ end
 @description 
 Makes you Top Healer...until you run out of mana. You have to use Innervate and Tranquility manually![br]
 ]]--
-
 
 jps.registerStaticTable("DRUID","RESTORATION",{
     -- rebirth Ctrl-key + mouseover
@@ -150,7 +29,6 @@ jps.registerStaticTable("DRUID","RESTORATION",{
     { druid.spells.naturesSwiftness, 'druid.legacyDefaultHP() < 0.40' },
     { druid.spells.healingTouch, '(jps.buff(druid.spells.naturesSwiftness) or not jps.Moving) and druid.legacyDefaultHP() < 0.55', druid.legacyDefaultTarget },    
     { druid.spells.nourish, 'druid.legacyDefaultHP() < 0.85', druid.legacyDefaultTarget },
-    --    { "nourish",            jps.hp(tank) < 0.9 or jps.buffDuration("lifebloom",tank) < 5, tank },
 }, "Legacy Rotation")
 
 

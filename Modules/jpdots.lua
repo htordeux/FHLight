@@ -137,7 +137,6 @@ function dotTracker.handleEvent(self, event, ...)
 					dotTracker.toTarget(destGUID, spell.id)
 				end
 			end
-
 		elseif eventType=="SPELL_AURA_REMOVED" then
 			for k,spell in pairs(dotTracker.classSpecificSpells) do
 				if spellId == spell.id or spellId == spell.alternativeId then

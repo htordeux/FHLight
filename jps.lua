@@ -363,6 +363,12 @@ function jps.Cycle()
 	if jps.ChannelTimeLeft("player") > 0 then jps.Casting = true
 	elseif jps.CastTimeLeft("player") - jps.Latency > 0 then jps.Casting = true
 	else jps.Casting = false end
+	
+	-- GCD
+	local cdStart,duration,_ = GetSpellCooldown(61304)
+	local timeLeft = 0
+	if cdStart > 0 then timeLeft = duration - (GetTime() - cdStart ) end
+	if jps.getConfigVal("gcd activation") and timeLeft > 0.15 then return end
 
 	-- Check spell usability -- ALLOW SPELLSTOPCASTING() IN JPS.ROTATION() TABLE
 	jps.ThisCast,jps.Target = jps.activeRotation().getSpell()

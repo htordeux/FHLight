@@ -526,6 +526,7 @@ function jps.loadDefaultSettings()
 	settingsTable["keep focus"] = 0
 	settingsTable["show ttd"] = 0
 	settingsTable["dismount in combat"] = 0
+	settingsTable["gcd activation"] = 1
 
 	for key,val in pairs(settingsTable) do 
 		if jps.settings[string.lower(key)] == nil then

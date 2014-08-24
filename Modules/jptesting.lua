@@ -39,7 +39,8 @@ local function spelltoName(spellID)
 end
 
 local GlobalCooldown = function()
-	local cdStart, duration = GetSpellCooldown(61304)
+	local cdStart,duration,_ = GetSpellCooldown(61304)
+	if cdStart == 0 then return 0 end
 	local timeLeft = duration - (GetTime() - cdStart )
 	if timeLeft < 0 then timeLeft = 0 end
 	return duration

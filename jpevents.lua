@@ -344,7 +344,7 @@ end
 -- TimeToDie Update
 jps.registerOnUpdate(updateTimeToDie)
 
--- Combat -- and UPDATE 2 sec if not in COMBAT
+-- Combat
 jps.registerOnUpdate(function()
 	if jps.Combat and jps.Enabled then
     	jps.Cycle()
@@ -463,7 +463,8 @@ end)
 --------------------------
 
 local GlobalCooldown = function()
-	local cdStart, duration = GetSpellCooldown(61304)
+	local cdStart,duration,_ = GetSpellCooldown(61304)
+	if cdStart == 0 then return 0 end
 	local timeLeft = duration - (GetTime() - cdStart )
 	if timeLeft < 0 then timeLeft = 0 end
 	return duration

@@ -384,6 +384,8 @@ local spellTable = {
 
 	-- "Prière de guérison" 33076 -- UnitAffectingCombat("player") == 1
 	{ 33076, not jps.buffTracker(33076) and jps.FriendAggro(LowestImportantUnit) , LowestImportantUnit , "Tracker_Mending_"..LowestImportantUnit },
+	-- "Renew" 139 -- Haste breakpoints are 12.5 and 16.7%(Holy)
+	{ 139, type(RenewTarget) == "string" and jps.hp(RenewTarget) > 0.70 , RenewTarget , "Renew_Target_" },
 	-- "Holy Spark" 131567 "Etincelle sacrée"
 	{ "nested", jps.buffId(81208) and type(HolySparkTarget) == "string" and jps.hp(HolySparkTarget) < 0.70 , 
 		{
@@ -397,7 +399,7 @@ local spellTable = {
 	},
 	
 	-- DISPEL	
-	{ "nested", LowestImportantUnitHpct > 0.40 , parseDispel },
+	{ "nested", not playerAggro and LowestImportantUnitHpct > 0.40 , parseDispel },
 
 	-- PLAYER AGGRO
 	{ "nested", playerAggro and jps.hp("player") < 0.85 ,
@@ -419,16 +421,16 @@ local spellTable = {
 					{ {"macro",macroSerenity}, jps.cooldown(88684) == 0 and jps.buffId(81208) , "player" , "Aggro_Serenity_Player" },
 					-- "Soins rapides" 2061 "From Darkness, Comes Light"
 					{ 2061, jps.buff(114255) , "player" },
+					-- "Circle of Healing" 34861
+					{ 34861, true , "player" , "Aggro_COH_Player" },
+					-- "Divine Star" Holy 110744 Shadow 122121
+					{ 110744, jps.IsSpellKnown(110744) and jps.hp("player") < 0.50 , "player" , "Aggro_DivineStar" },
 					-- "Soins rapides" 2061 "Holy Spark" 131567 "Etincelle sacrée" -- increases the healing done by your next Flash Heal, Greater Heal or Holy Word: Serenity by 50% for 10 sec.
 					{ 2061, not jps.Moving and jps.buff(131567) ,"player" , "Aggro_SoinsRapides_HolySpark_Player" },
 					-- "Power Word: Shield" 17 
 					{ 17, jps.hp("player") < 0.50 and not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Aggro_Shield_Player" },
 					-- "Soins rapides" 2061
 					{ 2061, not jps.Moving and jps.hp("player") < 0.50 , "player" , "Aggro_SoinsRapides_Player" },
-					-- "Circle of Healing" 34861
-					{ 34861, true , "player" , "Aggro_COH_Player" },
-					-- "Divine Star" Holy 110744 Shadow 122121
-					{ 110744, jps.IsSpellKnown(110744) and jps.hp("player") < 0.50 , "player" , "Aggro_DivineStar" },
 				},
 			},
 			-- "Renew" 139 -- Haste breakpoints are 12.5 and 16.7%(Holy)
@@ -494,6 +496,7 @@ local spellTable = {
 			{ 17, LowestImportantUnitHpct < 0.40 and not jps.buff(17,LowestImportantUnit) and not jps.debuff(6788,LowestImportantUnit) , LowestImportantUnit , "Emergency_Shield_"..LowestImportantUnit },
 			-- "Circle of Healing" 34861
 			{ 34861, AvgHealthLoss < 0.85 , LowestImportantUnit , "Emergency_COH_"..LowestImportantUnit },
+			{ 34861, CountInRange > 2 , LowestImportantUnit , "Emergency_COH_"..LowestImportantUnit },
 			-- "Don des naaru" 59544
 			{ 59544, (select(2,GetSpellBookItemInfo(priest.Spell["NaaruGift"]))~=nil) , LowestImportantUnit , "Emergency_Naaru_"..LowestImportantUnit },
 			-- "Renew" 139 -- Haste breakpoints are 12.5 and 16.7%(Holy)

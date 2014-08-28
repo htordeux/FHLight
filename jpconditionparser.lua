@@ -199,17 +199,9 @@ parseMyStaticSpellTable = function( hydraTable )
 	local target = nil
 	local message = ""
 
---	proxy = setmetatable(hydraTable, {__index = function(t, index) return index end})
---	proxy = setmetatable(hydraTable, proxy) -- sets proxy to be spellTable's metatable
-
---	myListOfObjects = {}  
---	setmetatable(myListOfObjects, { __mode = 'v' }) --myListOfObjects is now weak  
---	myListOfObjects = setmetatable({}, {__mode = 'v' }) --creation of a weak table
-
 	for i, spellTable in ipairs( hydraTable ) do
         spell = spellTable[1] -- spell
 		local cond, targ = strsplit("|", spellTable[2])
-		--table.insert(proxy,{spell,conditions,target})
 		conditions = ConditionEval(jps.conditionParser(cond))
 		target = TargetEval(targ)
 		

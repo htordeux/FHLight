@@ -159,6 +159,13 @@ function jps.findTanksInRaid()
 	return myTanks
 end
 
+function jps.FriendHealerInRange()
+	for unit,index in pairs(RaidStatus) do
+		if jps.RoleInRaid(unit) == "HEALER" and index.inrange then return true end
+	end
+	return false
+end
+
 ----------------------
 -- UPDATE RAIDTARGET
 ----------------------
@@ -408,7 +415,7 @@ end
 -- CHECKS THE WHOLE RAID FOR A MISSING BUFF (E.G. FORTITUDE)
 jps.buffMissing = function(buff)
 	for unit,index in pairs(RaidStatus) do
-		if (index["inrange"] == true) and jps.myBuffDuration(buff,unit) == 0 then
+		if (index["inrange"] == true) and not jps.buff(buff,unit) then
 		return true end
 	end
 	return false

@@ -68,11 +68,11 @@ function jps.LoseControl(unit, controlTable)
 	local timeControlled = 0
 	if controlTable == nil then controlTable = {"CC" , "Snare" , "Root" , "Silence" } end
 	-- Check debuffs
-	local auraname, duration, expTime, spellId
+	local auraName, debufftype, duration, expTime, spellId
 	local i = 1
-	auraname, _, _, _, debufftype, duration, expTime, _, _, _, spellId = UnitAura(unit, i, "HARMFUL")
-	while auraname do
-		local Priority = DebuffToDispel[auraname] -- jps.SpellControl[spellId]
+	auraName, _, _, _, debufftype, duration, expTime, _, _, _, spellId = UnitAura(unit, i, "HARMFUL")
+	while auraName do
+		local Priority = DebuffToDispel[auraName] -- jps.SpellControl[spellId]
 		if Priority then
 			for _,control in ipairs(controlTable) do -- {"CC" , "Snare" , "Root" , "Silence" }
 				if Priority == control then
@@ -83,7 +83,7 @@ function jps.LoseControl(unit, controlTable)
 		end
 		if targetControlled == true and timeControlled > 1 then return true end
 		i = i + 1
-		auraname, _, _, _, debufftype, duration, expTime, _, _, _, spellId = UnitAura(unit, i, "HARMFUL")
+		auraName, _, _, _, debufftype, duration, expTime, _, _, _, spellId = UnitAura(unit, i, "HARMFUL")
 	end
 	return targetControlled
 end
@@ -192,17 +192,17 @@ jps.DispelFriendly = function (unit,timed)
 	if NotDispelFriendly(unit) then return false end
 	if timed == nil then timed = 0 end
 	local timeControlled = 0
-	local auraname, debufftype, duration, expTime, spellId
+	local auraName, debufftype, duration, expTime, spellId
 	local i = 1
-	auraname, _, _, _, debufftype, duration, expTime, _, _, _, spellId = UnitAura(unit, i, "HARMFUL")
-	while auraname do
-		if debufftype == "Magic" and DebuffToDispel[auraname] then
+	auraName, _, _, _, debufftype, duration, expTime, _, _, _, spellId = UnitAura(unit, i, "HARMFUL")
+	while auraName do
+		if debufftype == "Magic" and DebuffToDispel[auraName] then
 			if expTime ~= nil then timeControlled = expTime - GetTime() end
 			if timeControlled > timed then
 			return true end
 		end
 		i = i + 1
-		auraname, _, _, _, debufftype, duration, expTime, _, _, _, spellId = UnitAura(unit, i, "HARMFUL")
+		auraName, _, _, _, debufftype, duration, expTime, _, _, _, spellId = UnitAura(unit, i, "HARMFUL")
 	end
 	return false
 end
@@ -213,17 +213,17 @@ jps.DispelFriendlyRBG = function (unit,timed)
 	if NotDispelFriendly(unit) then return false end
 	if timed == nil then timed = 0 end
 	local timeControlled = 0
-	local auraname, debufftype, duration, expTime, spellId
+	local auraName, debufftype, duration, expTime, spellId
 	local i = 1
-	auraname, _, _, _, debufftype, duration, expTime, _, _, _, spellId = UnitAura(unit, i, "HARMFUL")
-	while auraname do
+	auraName, _, _, _, debufftype, duration, expTime, _, _, _, spellId = UnitAura(unit, i, "HARMFUL")
+	while auraName do
 		if debufftype == "Magic" and DispelTableRBG[spellId] then
 			if expTime ~= nil then timeControlled = expTime - GetTime() end
 			if timeControlled > timed then
 			return true end
 		end
 		i = i + 1
-		auraname, _, _, _, debufftype, duration, expTime, _, _, _, spellId = UnitAura(unit, i, "HARMFUL")
+		auraName, _, _, _, debufftype, duration, expTime, _, _, _, spellId = UnitAura(unit, i, "HARMFUL")
 	end
 	return false
 end

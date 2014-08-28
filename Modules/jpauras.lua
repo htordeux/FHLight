@@ -14,16 +14,31 @@ local GetSpellInfo = GetSpellInfo
 -- name, rank, icon, count, debuffType, duration, expirationTime, unitCaster, isStealable, shouldConsolidate, spellId = UnitDebuff("unit", index or ["name", "rank"][, "filter"])
 -- name, rank, icon, count, debuffType, duration, expirationTime, unitCaster, isStealable, shouldConsolidate, spellId = UnitBuff("unit", index or ["name", "rank"][, "filter"])
 
+--function jps.buffId(spellId,unit)
+--	local spellname = nil
+--	if type(spellId) == "number" then spellname = tostring(select(1,GetSpellInfo(spellId))) end
+--	if unit == nil then unit = "player" end
+--	for i = 1, 40 do
+--		local auraName, _, _, count, _, duration, expirationTime, castBy, _, _, buffId = UnitBuff(unit, i)
+--		if spellId == buffId and auraName == spellname then return true end
+--		if not spellId then break end -- no more auras, terminate the loop 
+--	end
+--return false
+--end
+
 function jps.buffId(spellId,unit)
 	local spellname = nil
 	if type(spellId) == "number" then spellname = tostring(select(1,GetSpellInfo(spellId))) end
 	if unit == nil then unit = "player" end
-	for i = 1, 40 do
-		local auraName, _, _, count, _, duration, expirationTime, castBy, _, _, buffId = UnitBuff(unit, i)
+	local auraName, _, _, count, _, duration, expirationTime, castBy, _, _, buffId
+	local i = 1
+	auraName, _, _, count, _, duration, expirationTime, castBy, _, _, buffId = UnitBuff(unit, i)
+	while auraName do
 		if spellId == buffId and auraName == spellname then return true end
-		if not spellId then break end -- no more auras, terminate the loop 
+		i = i + 1
+		auraName, _, _, count, _, duration, expirationTime, castBy, _, _, buffId = UnitBuff(unit, i)
 	end
-return false
+	return false
 end
 
 function jps.buff(spell,unit)

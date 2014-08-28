@@ -209,7 +209,6 @@ function jps.detectSpec()
 	if jps.Spec == L["Discipline"] or jps.Spec == L["Holy"] or jps.Spec == L["Restoration"] or jps.Spec == L["Mistweaver"] then jps.isHealer = true end
 	if jps.Spec == L["Blood"] or jps.Spec == L["Protection"] or jps.Spec == L["Brewmaster"] or jps.Spec == L["Guardian"] then jps.isTank = true end
 	jps.HarmSpell = GetHarmfulSpell()
-	write("jps.HarmSpell_","|cff1eff00",jps.HarmSpell)
 	setClassCooldowns()
 	jps_VARIABLES_LOADED()
 	if jps.initializedRotation == false then
@@ -343,6 +342,9 @@ end)
 ----------------------
 -- COMBAT
 ----------------------
+local GetTime = GetTime
+local GetUnitSpeed = GetUnitSpeed
+local GetSpellCooldown = GetSpellCooldown
 
 function jps.Cycle()
 	-- Check for the Rotation
@@ -352,23 +354,23 @@ function jps.Cycle()
 		jps.Enabled = false
 		return
 	end
+	
+	-- CASTING
+	if jps.ChannelTimeLeft("player") > 0 then jps.Casting = true
+	elseif jps.CastTimeLeft("player") - jps.Latency > 0 then jps.Casting = true
+	else jps.Casting = false end
 
 	-- STOP Combat
 	if (IsMounted() == 1 and jps.getConfigVal("dismount in combat") == 0) or UnitIsDeadOrGhost("player")==1 or jps.buff(L["Drink"],"player") then return end
 	
-	-- Movement
-	jps.Moving = select(1,GetUnitSpeed("player")) > 0 
-
-	-- casting
-	if jps.ChannelTimeLeft("player") > 0 then jps.Casting = true
-	elseif jps.CastTimeLeft("player") - jps.Latency > 0 then jps.Casting = true
-	else jps.Casting = false end
-	
-	-- GCD
+	-- GCD -- if too small value we can't get spellstopcasting
 	local cdStart,duration,_ = GetSpellCooldown(61304)
 	local timeLeft = 0
 	if cdStart > 0 then timeLeft = duration - (GetTime() - cdStart ) end
-	if jps.getConfigVal("gcd activation") and timeLeft > 0.15 then return end
+	if jps.getConfigVal("gcd activation") and timeLeft > 0.5 then return end
+	
+	-- Movement
+	jps.Moving = select(1,GetUnitSpeed("player")) > 0 
 
 	-- Check spell usability -- ALLOW SPELLSTOPCASTING() IN JPS.ROTATION() TABLE
 	jps.ThisCast,jps.Target = jps.activeRotation().getSpell()

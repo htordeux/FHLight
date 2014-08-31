@@ -357,6 +357,12 @@ local spellTable = {
 	-- PLAYER AGGRO
 	{ "nested", playerAggro , parseAggro },
 	
+	-- FOCUS CONTROL
+	{ 15487, type(SilenceEnemyHealer) == "string" , SilenceEnemyHealer , "SILENCE_MultiUnit_Healer" },
+	{ 15487, type(SilenceEnemyTarget) == "string" , SilenceEnemyTarget , "SILENCE_MultiUnit_Caster" },
+	{ "nested", canDPS("focus") and not jps.LoseControl("focus") , parseControlFocus },
+	{ "nested", canDPS(rangedTarget) and not jps.LoseControl(rangedTarget) , parseControl },
+	
 	-- "Shadow Word: Death " "Mot de l'ombre : Mort" 32379
 	{ 32379, jps.hp(rangedTarget) < 0.20 , rangedTarget, "castDeath_"..rangedTarget },
 	{ 32379, type(DeathEnemyTarget) == "string" , DeathEnemyTarget , "Death_MultiUnit" },
@@ -366,12 +372,6 @@ local spellTable = {
 	{ 2944, Orbs > 1 and jps.hp(rangedTarget) < 0.20 , rangedTarget , "ORBS_2_LowHealth" },
 	-- "Mind Spike" 73510 -- "From Darkness, Comes Light" 109186 gives buff -- "Surge of Darkness" 87160 -- 10 sec
 	{ 73510, jps.buffStacks(87160,"player") > 0 and jps.hp(rangedTarget) < 0.20 , rangedTarget , "Spike_LowHealth" },
-	
-	-- FOCUS CONTROL
-	{ 15487, type(SilenceEnemyHealer) == "string" , SilenceEnemyHealer , "SILENCE_MultiUnit_Healer" },
-	{ 15487, type(SilenceEnemyTarget) == "string" , SilenceEnemyTarget , "SILENCE_MultiUnit_Caster" },
-	{ "nested", canDPS("focus") and not jps.LoseControl("focus") , parseControlFocus },
-	{ "nested", canDPS(rangedTarget) and not jps.LoseControl(rangedTarget) , parseControl },
 
 	-- "Devouring Plague" 2944
 	{ 2944, Orbs == 3 , rangedTarget , "ORBS_3" },

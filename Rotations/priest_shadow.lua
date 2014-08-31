@@ -9,6 +9,7 @@ local UnitClass = UnitClass
 local UnitGroupRolesAssigned = UnitGroupRolesAssigned
 local UnitChannelInfo = UnitChannelInfo
 local UnitGUID = UnitGUID
+local tinsert = table.insert
 
 local ClassEnemy = {
 	["WARRIOR"] = "cac",
@@ -127,7 +128,7 @@ if canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
 ------------------------
 
 -- take care if "focus" not Polymorph and not Cyclone
-if canDPS("focus") and not DebuffUnitCyclone("focus") then table.insert(EnemyUnit,"focus") end
+if canDPS("focus") and not DebuffUnitCyclone("focus") then tinsert(EnemyUnit,"focus") end
 
 local fnPainEnemyTarget = function(unit)
 	if canDPS(unit) and not jps.myDebuff(589,unit) and not jps.myLastCast(589) then

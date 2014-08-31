@@ -116,8 +116,8 @@ local priestDisc = function()
 ---------------------
 -- ENEMY TARGET
 ---------------------
-
-	local rangedTarget, EnemyUnit, TargetCount = jps.LowestTarget() -- returns "target" by default
+	-- rangedTarget returns "target" by default, sometimes could be friend
+	local rangedTarget, EnemyUnit, TargetCount = jps.LowestTarget()
 
 	if canDPS("target") then rangedTarget =  "target"
 	elseif canDPS("targettarget") then rangedTarget = "targettarget"
@@ -142,14 +142,6 @@ local priestDisc = function()
 	for _,unit in ipairs(EnemyUnit) do 
 		if priest.canShadowWordDeath(unit) then 
 			DeathEnemyTarget = unit
-		break end
-	end
-
-	local MassDispellTarget = nil
-	for _,unit in ipairs(EnemyUnit) do 
-		if jps.buff(divineshield,unit) then
-			MassDispellTarget = unit
-			jps.Macro("/target "..MassDispellTarget)
 		break end
 	end
 
@@ -331,7 +323,7 @@ local InterruptTable = {
 	-- DISPEL	
 	{ "nested", true , parseDispel },
 	-- OFFENSIVE Dispel -- "Dissipation de la magie" 528
-	{ 528, jps.castEverySeconds(528,2) and jps.DispelOffensive(rangedTarget) , rangedTarget , "|cff1eff00DispelOffensive_"..rangedTarget },
+	{ 528, jps.castEverySeconds(528,10) and jps.DispelOffensive(rangedTarget) , rangedTarget , "|cff1eff00DispelOffensive_"..rangedTarget },
 
 	-- DAMAGE
 	-- "Flammes sacrées" 14914  -- "Evangélisme" 81661

@@ -4,7 +4,7 @@
 -- ROTATION
 ----------------------------
 	
-	jps.registerRotation("WARRIOR","FURY",function()
+jps.registerRotation("WARRIOR","FURY",function()
 
 	local spell = nil
 	local target = nil

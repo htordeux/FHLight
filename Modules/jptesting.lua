@@ -74,6 +74,9 @@ function jps_Test()
 	local Lowest = jps.LowestImportantUnit() 
 	local face,angle = jps.PlayerIsFacing(Lowest)
 	write("Facing: ",face," Radians: ",angle," Name: ",GetUnitName(Lowest))
+	
+	local test = jps.FriendHealerInRange()
+	print("HealerInRange: ",test)
 
 end
 

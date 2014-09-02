@@ -364,13 +364,16 @@ local spellTable = {
 	{ {"macro",macroCancelaura}, jps.checkTimer("Chastise") == 0 and not jps.LoseControl(rangedTarget) and canDPS(rangedTarget) and jps.buffId(81208) and jps.cooldown(81208) == 0 , "player"  , "Cancelaura_Chakra_" },
 	{ {"macro",macroCancelaura}, jps.checkTimer("Chastise") == 0 and not jps.LoseControl("focus") and canDPS("focus") and jps.buffId(81206) and jps.cooldown(81206) == 0 , "player"  , "Cancelaura_Chakra_" },
 	-- Chastise is in ParseControl -- rangedTarget returns "target" by default, sometimes could be friend
-	{ "nested", LowestImportantUnitHpct > 0.40 and not jps.LoseControl("focus") and canDPS("focus") , parseControlFocus },
 	{ "nested", LowestImportantUnitHpct > 0.40 and not jps.LoseControl(rangedTarget) and canDPS(rangedTarget) , parseControl },
-	
+	{ "nested", LowestImportantUnitHpct > 0.40 and not jps.LoseControl("focus") and canDPS("focus") , parseControlFocus },
+
 	-- Chakra: Serenity 81208 -- "Holy Word: Serenity" 88684
 	{ 81208, not jps.buffId(81208) and jps.FinderLastMessage("Chastise_NO") == true , "player" , "|cffa335eeChakra_Serenity" },
 	{ 81208, not jps.buffId(81208) and LowestImportantUnitHpct < 0.85 and jps.FinderLastMessage("Cancelaura") == false , "player" , "|cffa335eeChakra_Serenity" },
 	{ 81208, not jps.buffId(81208) and not jps.FaceTarget and jps.FinderLastMessage("Cancelaura") == false , "player" , "|cffa335eeChakra_Serenity" },
+	
+	-- DISPEL	
+	{ "nested", LowestImportantUnitHpct > 0.70 , parseDispel },
 
 	-- "Guardian Spirit"
 	{ 47788, jps.FriendAggro(LowestImportantUnit) and LowestImportantUnitHpct < 0.40 , LowestImportantUnit },
@@ -395,9 +398,6 @@ local spellTable = {
 			{ 2061, not jps.Moving and jps.buffStacks(63735,"player") < 2 , HolySparkTarget , "HolySparkTarget_" },
 		},
 	},
-	
-	-- DISPEL	
-	{ "nested", not playerAggro and LowestImportantUnitHpct > 0.40 , parseDispel },
 
 	-- PLAYER AGGRO
 	{ "nested", playerAggro and jps.hp("player") < 0.85 ,
@@ -435,6 +435,8 @@ local spellTable = {
 			{ 139, not jps.buff(139,"player") , "player" ,"Aggro_Renew_Player" },
 			-- "Don des naaru" 59544
 			{ 59544, (select(2,GetSpellBookItemInfo(priest.Spell["NaaruGift"]))~=nil) , "player" , "Aggro_Naaru_Player" },
+			-- Dispel Player 527
+			{ 527, not playerIsStun and jps.canDispel("player",{"Magic"}) , "player" , "Aggro_Dispel_Player" },
 		},
 	},
 	
@@ -513,9 +515,7 @@ local spellTable = {
 	-- "Gardien de peur" 6346 -- FARMING OR PVP -- NOT PVE
 	{ 6346, not jps.buff(6346,"player") , "player" },
 	-- "Feu intérieur" 588 -- "Volonté intérieure" 73413
-	{ 588, not jps.buff(588,"player") and not jps.buff(73413,"player") , "player" }, -- "target" by default must must be a valid target
-	-- "Fortitude" 21562 Keep Fortitude up 
-	--{ 21562, jps.buffMissing(21562) , "player" },
+	{ 588, not jps.buff(588,"player") and not jps.buff(73413,"player") , "player" },
 	-- "Soins" 2050
 	{ 2050, type(HealTarget) == "string" , HealTarget , "Heal_Renew_" },
 	{ 2050, LowestImportantUnitHealth > priest.AvgAmountHeal , LowestImportantUnit },

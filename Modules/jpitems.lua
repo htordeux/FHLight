@@ -56,7 +56,6 @@ function parseTrinketText(trinket,str)
 	local id = 13 + trinket
 	if trinket > 1 then return false end
 	ScanningTooltip:SetInventoryItem("player", id)
-	-- hasItem, hasCooldown, repairCost = Tooltip:SetInventoryItem("unit", invSlot {, nameOnly})
 
 	local found = false
 	for i=1,select("#",ScanningTooltip:GetRegions()) do 

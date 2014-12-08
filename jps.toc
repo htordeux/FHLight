@@ -1,4 +1,4 @@
-## Interface: 50400
+## Interface: 60000
 ## Title: |cffff8000JPS Addon
 ## Notes: Protect your LUA.
 ## SavedVariables: jpsDB

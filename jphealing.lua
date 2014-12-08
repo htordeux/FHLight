@@ -26,7 +26,10 @@ local tinsert = table.insert
 local pairs = pairs
 
 -- local function
-local function toSpellName(id) return tostring(select(1,GetSpellInfo(id))) end
+local function toSpellName(id)
+	local name = GetSpellInfo(id)
+	return name
+end
 
 ----------------------
 -- UPDATE RAIDROSTER

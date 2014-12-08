@@ -88,8 +88,10 @@ local function Sleep(Interval)
 end
 
 local function spelltoName(spellID)
-	return tostring(select(1,GetSpellInfo(spellID)))
+	local name = GetSpellInfo(spellID)
+	return name
 end
+
 -- 0x7 is the index of the created-by descriptor, not the offset.
 -- You need to multiply it by 4 to get the offset, so the offset would be 0x1C. Since created-by is a GUID
 -- you need to use Object:GetInt64Descriptor(0x1C) to read it. 

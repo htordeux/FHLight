@@ -41,7 +41,7 @@ local function fnParseMacro(macro, conditions, target)
     if conditions then
     	if target == nil then target = "target" end 
         -- Workaround for TargetUnit is still PROTECTED despite goblin active
-        local changeTargets = UnitIsUnit(target,"target")~=1 and jps.UnitExists(target)
+        local changeTargets = not UnitIsUnit(target,"target") and jps.UnitExists(target)
         if changeTargets then jps.Macro("/target "..target) end
 
         if type(macro) == "string" then
@@ -58,7 +58,8 @@ local function fnParseMacro(macro, conditions, target)
         -- CASTSEQUENCE WORKS ONLY FOR INSTANT CAST SPELL
 		-- "#showtooltip\n/cast Frappe du colosse\n/cast Sanguinaire"
 		elseif type(macro) == "number" then
-			jps.Macro("/cast "..tostring(select(1,GetSpellInfo(macro))))
+			local macroSpell = GetSpellInfo(macro)
+			jps.Macro("/cast "..tostring(macroSpell))
 			if jps.DebugMsg then macrowrite("|cffffffff",jps.Message) end
 		end
 		if changeTargets and not jps.Casting then jps.Macro("/targetlasttarget") end

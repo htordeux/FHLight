@@ -1,6 +1,10 @@
 rogue = {}
 
-local function toSpellName(id) local name = GetSpellInfo(id); return name end
+local function toSpellName(id)
+	local name = GetSpellInfo(id)
+	return name
+end
+
 rogue.spells = {}
 rogue.spells["kick"] = toSpellName(1766)
 rogue.spells["shadowBlades"] = toSpellName(121471)

@@ -19,6 +19,10 @@
 --------------------------
 -- LOCALIZATION
 --------------------------
+--Pre-6.0:
+-- name, rank, icon, cost, isFunnel, powerType, castTime, minRange, maxRange = GetSpellInfo(spellId or spellName)
+--6.0:
+-- name, rank, icon, castTime, minRange, maxRange, spellId = GetSpellInfo(spellId or spellName)
 
 local L = MyLocalizationTable
 local UnitAura = UnitAura
@@ -27,8 +31,13 @@ local UnitChannelInfo = UnitChannelInfo
 local canDPS = jps.canDPS
 local canHeal = jps.canHeal
 local UnitIsUnit = UnitIsUnit
-local function toSpellName(id) return tostring(select(1,GetSpellInfo(id))) end
 local GetTime = GetTime
+local GetSpellInfo = GetSpellInfo
+
+local function toSpellName(id)
+	local name = GetSpellInfo(id)
+	return name
+end
 
 --------------------------------------
 -- LOSS OF CONTROL CHECK
@@ -96,7 +105,7 @@ end
 -- DEBUFF RBG
 ---------------------------
 
-    -- 1499, -- Freezing Trap ? Dispel type	n/a
+    -- 1499, 	-- Freezing Trap ? Dispel type	n/a
     -- 2139,	-- Counterspell ? Dispel type	n/a
     -- 113724,  -- Ring of Frost ? Dispel type	n/a
     -- 5782,	-- "Fear"  -- Dispel type	n/a

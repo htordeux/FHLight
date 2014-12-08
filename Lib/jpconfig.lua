@@ -194,17 +194,17 @@ JPSTextInfoFrame:Hide()
 local GetUnitName = GetUnitName
 local UpdateTextInfo = function()
 	local infoTexts = ""
-	if jps.getConfigVal("show ttd") == 1 then
+	if jps.getConfigVal("show ttd") == true then
 		local infoTTD = jps.TimeToDie("target")
 		local minutesDie = math.floor(infoTTD / 60)
 		local secondsDie = infoTTD - (minutesDie*60)
 		infoTexts = "TTD: "..minutesDie.. "min "..secondsDie.. "sec\n"
 	end
-	if jps.getConfigVal("show latency") == 1 then
+	if jps.getConfigVal("show latency") == true then
 		local Lag = jps.roundValue(jps.Latency,2)
 		infoTexts = infoTexts.."|cffffffffLatency: ".."|cFFFF0000"..Lag.."\n"
 	end
-	if jps.getConfigVal("show current cast") == 1 then
+	if jps.getConfigVal("show current cast") == true then
 		local currentCast = jps.LastCast
 		local currentTarget = jps.LastTarget
 		infoTexts = infoTexts.."|cff1eff00"..currentCast.."|cffffffff@".."|cffa335ee"..currentTarget.."\n"
@@ -224,7 +224,7 @@ JPSTextInfoFrame_OnUpdate:SetScript("OnUpdate", function(self, elapsed)
 	if (self.TimeSinceLastUpdate > jps.UpdateInterval) then
 		if jps.Combat then
 			self.TimeSinceLastUpdate = 0
-			if jps.getConfigVal("timetodie frame visible") == 1 then
+			if jps.getConfigVal("timetodie frame visible") == true then
 				UpdateTextInfo()
 			end
 		end
@@ -329,7 +329,7 @@ end
 ---------------------------
 
 function jps.TimeToDieToggle(key, status)
-	if status == 1 then -- and InCombatLockdown() == 1
+	if status == true then -- and InCombatLockdown() == 1
 		JPSTextInfoFrame:Show()
 	else
 		JPSTextInfoFrame:Hide()
@@ -337,7 +337,7 @@ function jps.TimeToDieToggle(key, status)
 end
 
 function jps.DropdownRotationTogle(key, status)
-	if status == 1 then
+	if status == true then
 		rotationDropdownHolder:Show()
 	else
 		rotationDropdownHolder:Hide()
@@ -345,7 +345,7 @@ function jps.DropdownRotationTogle(key, status)
 end
 
 function jps.mainIconToggle(key, status) 
-	if status == 1 then
+	if status == true then
 		jpsIcon:Show()
 	else
 		jpsIcon:Hide()
@@ -353,7 +353,7 @@ function jps.mainIconToggle(key, status)
 end
 
 function jps.sliderUpdateToggle(key, status) 
-	if status == 1 then
+	if status == true then
 		slider:Show()
 	else
 		slider:Hide()
@@ -413,10 +413,10 @@ function jps.addSettingsFrame()
 
 		local function settingsJPS_IconOptions_CheckButton_OnClick()
             local settingsStatus = nil
-            if(settingsJPS_IconOptions_CheckButton:GetChecked() == nil) then 
-                settingsStatus = 0 
+            if(settingsJPS_IconOptions_CheckButton:GetChecked() == false) then 
+                settingsStatus = false 
             else 
-                settingsStatus = 1 
+                settingsStatus = true 
             end
             jps.notifySettingChanged(settingsKey, settingsStatus)
             jps.setConfigVal(settingsKey, settingsStatus)
@@ -449,15 +449,15 @@ end
 function jps.getConfigVal(key)
 	local setting = jps.settings[string.lower(key)]
 	if setting == nil then
-		jps.setConfigVal(key, 1)
+		jps.setConfigVal(key, true)
 		if not jps.Configged then
 			if jps.settingsQueue[key] == nil then
-				jps.settingsQueue[key] = {settingType="checkbox" }
+				jps.settingsQueue[key] = {settingType = "checkbox" }
 			end
 		else
 			jps.addSettingsCheckbox(key)
 		end
-		return 1
+		return true
 	else 
 		return setting
 	end
@@ -490,9 +490,9 @@ function jps.addSettingsCheckbox(settingName)
     local function settingsJPS_IconOptions_CheckButton_OnClick()
         local settingStatus = nil
         if(settingsJPS_IconOptions_CheckButton:GetChecked() == nil) then 
-            settingStatus = 0 
+            settingStatus = false
         else 
-            settingStatus = 1 
+            settingStatus = true 
         end
         jps.notifySettingChanged(settingName, settingsStatus)
         jps.setConfigVal(settingName, settingsStatus)
@@ -516,17 +516,17 @@ end
 function jps.loadDefaultSettings()
 
 	local settingsTable = {}
-	settingsTable["rotation dropdown visible"] = 1
-	settingsTable["timetodie frame visible"] = 0
-	settingsTable["show jps window"] = 1
-	settingsTable["jphistory visible"] = 0
-	settingsTable["show slider update"] = 0
-	settingsTable["show latency"] = 0
-	settingsTable["show current cast"] = 0
-	settingsTable["keep focus"] = 0
-	settingsTable["show ttd"] = 0
-	settingsTable["dismount in combat"] = 0
-	settingsTable["gcd activation"] = 0
+	settingsTable["rotation dropdown visible"] = true
+	settingsTable["timetodie frame visible"] = false
+	settingsTable["show jps window"] = true
+	settingsTable["jphistory visible"] = false
+	settingsTable["show slider update"] = false
+	settingsTable["show latency"] = false
+	settingsTable["show current cast"] = false
+	settingsTable["keep focus"] = false
+	settingsTable["show ttd"] = false
+	settingsTable["dismount in combat"] = false
+	settingsTable["gcd activation"] = false
 
 	for key,val in pairs(settingsTable) do 
 		if jps.settings[string.lower(key)] == nil then

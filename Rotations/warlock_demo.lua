@@ -51,7 +51,7 @@ function wl.shouldMouseoverDoom()
 	local usable, nomana = IsUsableSpell(wl.spells.metaDoom) -- usable, nomana = IsUsableSpell("spellName" or spellID)
 	if not usable then return false end
 	if nomana then return false end
-	if jps.SpellHasRange(wl.spells.doom) and not jps.IsSpellInRange(wl.spells.doom,"mouseover") then return false end
+	if not jps.IsSpellInRange(wl.spells.doom,"mouseover") then return false end
 	return true
 end
 

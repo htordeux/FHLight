@@ -1,4 +1,4 @@
---gig3m
+
 jps.registerStaticTable("WARRIOR","ARMS",
 {
 
@@ -29,7 +29,7 @@ jps.registerStaticTable("WARRIOR","ARMS",
 	{ "Sweeping Strikes", ' jps.MultiTarget and jps.rage() >= 30'},
 	{ "Whirlwind", 'jps.MultiTarget and IsShiftKeyDown() ~= nil and jps.rage() >= 30'},
 	{ "Dragon Roar", 'jps.MultiTarget and IsShiftKeyDown() ~= nil'},
-	{ "Bladestorm", ' jps.MultiTarget and IsShiftKeyDown() ~= nil'},
+	{ "Bladestorm", 'jps.MultiTarget and IsShiftKeyDown() ~= nil'},
 
 	-- Cooldowns
 	{ "Bloodbath", 'jps.UseCDs '},

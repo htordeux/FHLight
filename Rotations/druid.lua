@@ -1,6 +1,9 @@
 druid = {}
 
-local function toSpellName(id) name = GetSpellInfo(id); return name end
+local function toSpellName(id)
+	local name = GetSpellInfo(id)
+	return name
+end
 
 druid.spells = {}
 druid.spells.aquaticForm = toSpellName(1066)
@@ -259,9 +262,9 @@ druid.energy = function()
 	return UnitMana("player")
 end
 
-if AffDots == nil then 
-	print("install Affdots druid");
-end
+--if AffDots == nil then 
+--	print("install Affdots druid");
+--end
 
 jps.dotPower = function(dotID)
 	if AffDots == nil then 

@@ -1,6 +1,10 @@
 hunter = {}
 
-local function toSpellName(id) name = GetSpellInfo(id); return name end
+local function toSpellName(id)
+	local name = GetSpellInfo(id)
+	return name
+end
+
 hunter.spells = {}
 hunter.spells["explosiveShot"] = toSpellName(53301)
 hunter.spells["glaiveToss"] = toSpellName(117050)

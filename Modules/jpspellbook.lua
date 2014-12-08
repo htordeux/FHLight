@@ -22,7 +22,7 @@ local GetGlyphLink = GetGlyphLink
 function jps.talentInfo(talent)
 	local talentname = nil
 	if type(talent) == "string" then talentname = talent end
-	if type(talent) == "number" then talentname = tostring(select(1,GetSpellInfo(talent))) end
+	if type(talent) == "number" then talentname = GetSpellInfo(talent) end
 	local numTalents = GetNumTalents();
 	for t = 1, numTalents do
 		local name, iconTexture, tier, column, rank, maxRank, isExceptional, meetsPrereq, previewRank, meetsPreviewPrereq = GetTalentInfo(t);
@@ -60,19 +60,20 @@ local jps_IsSpellKnown = function(spell)
 	local name, texture, offset, numSpells, isGuild = GetSpellTabInfo(2)
 	local booktype = "spell"
 	local mySpell = nil
-		local spellname = nil
-		if type(spell) == "string" then spellname = spell end
-		if type(spell) == "number" then spellname = tostring(select(1,GetSpellInfo(spell))) end
-			for index = offset+1, numSpells+offset do
-				-- Get the Global Spell ID from the Player's spellbook
-				local spellID = select(2,GetSpellBookItemInfo(index, booktype))
-				local slotType = select(1,GetSpellBookItemInfo(index, booktype))
-				local name = select(1,GetSpellBookItemName(index, booktype))
-				if ((spellname:lower() == name:lower()) or (spellname == name)) and slotType ~= "FUTURESPELL" then
-					mySpell = spellname
-					break -- Breaking out of the for/do loop, because we have a match
-				end
-			end
+	local spellname = nil
+	if type(spell) == "string" then spellname = spell end
+	if type(spell) == "number" then spellname = GetSpellInfo(spell) end
+
+	for index = offset+1, numSpells+offset do
+		-- Get the Global Spell ID from the Player's spellbook
+		local spellID = select(2,GetSpellBookItemInfo(index, booktype))
+		local slotType = select(1,GetSpellBookItemInfo(index, booktype))
+		local name = select(1,GetSpellBookItemName(index, booktype))
+		if ((spellname:lower() == name:lower()) or (spellname == name)) and slotType ~= "FUTURESPELL" then
+			mySpell = spellname
+			break -- Breaking out of the for/do loop, because we have a match
+		end
+	end
 	return mySpell
 end
 

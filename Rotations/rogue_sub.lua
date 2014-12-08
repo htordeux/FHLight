@@ -11,7 +11,7 @@ jps.registerRotation("ROGUE","SUBTLETY",function()
 	local energy = UnitPower("player")
 	local snd_duration = jps.buffDuration(5171) 
 	local rupt_duration = jps.myDebuffDuration(1943) -- "Rupture" 1943
-	local snd_spell = tostring(select(1,GetSpellInfo(5171))) -- 5171 "Slice and Dice"
+	local snd_spell = GetSpellInfo(5171) -- 5171 "Slice and Dice"
 	
 	----------
 	--- Rotation

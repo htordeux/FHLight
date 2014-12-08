@@ -225,7 +225,7 @@ end
 jphistory.createAllCastFrames()
 
 function jps.historyToggle(status)
-	if status == 1 then
+	if status == true then
 		jphistory.frame:Show() -- HIDE
 		jphistory.titleFrame:Show()
 		jphistory.spellTitle:Show()

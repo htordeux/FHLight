@@ -19,7 +19,7 @@ local function canCastDebug(spell,unit)
 	if unit == nil then unit = "target" end
 	local spellname = nil
 	if type(spell) == "string" then spellname = spell end
-	if type(spell) == "number" then spellname = tostring(select(1,GetSpellInfo(spell))) end
+	if type(spell) == "number" then spellname = GetSpellInfo(spell) end
 	
 	if spellname == nil then print("spell is nil") end
 	if jps.PlayerIsBlacklisted(unit) then print("blacklisted unit") end
@@ -29,13 +29,8 @@ local function canCastDebug(spell,unit)
 	if not usable then print("spell is not usable") end
 	if nomana then return print("failed mana test") end
 	if (jps.cooldown(spellname) > 0) then print("cooldown not finished") end
-	if jps.SpellHasRange(spell) and not jps.IsSpellInRange(spell,unit) then print("not in range") end
 	if jps[spellname] ~= nil and jps[spellname] == false then print("not spellname") end -- need spellname
 	print("passes all tests")
-end
-
-local function spelltoName(spellID)
-	return tostring(select(1,GetSpellInfo(spellID)))
 end
 
 local GlobalCooldown = function()

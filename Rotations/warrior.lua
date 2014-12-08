@@ -27,7 +27,11 @@ function warrior.minColossusSmash()
 	return jps.debuffDuration("Colossus Smash") >= 5
 end
 
-local function toSpellName(id) name = GetSpellInfo(id); return name end
+local function toSpellName(id)
+	local name = GetSpellInfo(id)
+	return name
+end
+
 warrior.spells = {}
 warrior.spells["Pummel"] = toSpellName(6552) -- "Pummel" 6552 "Volée de coups"
 warrior.spells["DisruptingShout"] = toSpellName(102060) -- "Disrupting Shout" 102060 "Cri perturbant"

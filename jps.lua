@@ -22,7 +22,7 @@
 local L = MyLocalizationTable
 jps = {}
 setmetatable(jps, { __mode = 'k' }) -- jps is now weak
-jps.Version = "1.4"
+jps.Version = "1.5"
 jps.Rotation = nil
 jps.UpdateInterval = 0.05
 jps.Enabled = false
@@ -113,36 +113,31 @@ end
 
 local GetHarmfulSpell = function()
 	local HarmSpell = nil
-	local HarmSpell40 = {}
-	local HarmSpell30 = {}
-	local HarmSpell20 = {}
+	local HarmSpellTable = {}
 	local _, _, offset, numSpells, _ = GetSpellTabInfo(2)
 	local booktype = "spell"
 	for index = offset+1, numSpells+offset do
 		-- Get the Global Spell ID from the Player's spellbook
-		-- local spellname,rank,icon,cost,isFunnel,powerType,castTime,minRange,maxRange = GetSpellInfo(spellID)
+		-- name, rank, icon, castTime, minRange, maxRange, spellId = GetSpellInfo(spellId or spellName)
+		
 		local name = select(1,GetSpellBookItemName(index, booktype))
 		local spellID = select(2,GetSpellBookItemInfo(index, booktype))
-		local maxRange = select(9,GetSpellInfo(spellID))
-		local minRange = select(8,GetSpellInfo(spellID))
+		local minRange = select(5,GetSpellInfo(spellID))
+		local maxRange = select(6,GetSpellInfo(spellID))
 		local harmful = IsHarmfulSpell(index, booktype)
 		
 		if minRange ~= nil and maxRange ~= nil and harmful ~= nil then
-			if (maxRange > 39) and (harmful == 1) and (minRange == 0) then
-				table.insert(HarmSpell40,name)
-			elseif (maxRange > 29) and (harmful == 1) and (minRange == 0) then
-				table.insert(HarmSpell30,name)
-			elseif (maxRange > 19) and (harmful == 1) and (minRange == 0) then
-				table.insert(HarmSpell20,name)
+			if (maxRange > 39) and (harmful) and (minRange == 0) then
+				table.insert(HarmSpellTable,name)
+			elseif (maxRange > 29) and (harmful) and (minRange == 0) then
+				table.insert(HarmSpellTable,name)
+			elseif (maxRange > 19) and (harmful) and (minRange == 0) then
+				table.insert(HarmSpellTable,name)
 			end
 		end
 	end
-	if HarmSpell40[1] then
-		HarmSpell = HarmSpell40[1]
-	elseif HarmSpell30[1] then
-		HarmSpell = HarmSpell30[1]
-	else 
-		HarmSpell = HarmSpell20[1]
+	if HarmSpellTable[1] then
+		HarmSpell = HarmSpellTable[1]
 	end
 	
 	return HarmSpell
@@ -326,11 +321,12 @@ local function GetSpellInfo(a)
 end
 
 -- set's jps.NextSpell if user manually uses a spell/item
+-- name, rank, icon, castTime, minRange, maxRange, spellId = GetSpellInfo(spellId or spellName)
 hooksecurefunc("UseAction", function(...)
-	if jps.Enabled and (select(3, ...) ~= nil) and InCombatLockdown() == 1 then
+	if jps.Enabled and (select(3, ...) ~= nil) and InCombatLockdown() == true then
 		local stype,id,_ = GetActionInfo(select(1, ...))
 		if stype == "spell" then
-			local name = select(1,GetSpellInfo(id))
+			local name = GetSpellInfo(id)
 			if jps.NextSpell ~= name and not jps.shouldSpellBeIgnored(name) then
 				jps.NextSpell = name
 				write("Set",name,"for next cast.")
@@ -361,7 +357,7 @@ function jps.Cycle()
 	else jps.Casting = false end
 
 	-- STOP Combat
-	if (IsMounted() == 1 and jps.getConfigVal("dismount in combat") == 0) or UnitIsDeadOrGhost("player")==1 or jps.buff(L["Drink"],"player") then return end
+	if (IsMounted() == true and jps.getConfigVal("dismount in combat") == false) or UnitIsDeadOrGhost("player") == true or jps.buff(L["Drink"],"player") then return end
 	
 	-- GCD -- if too small value we can't get spellstopcasting
 	local cdStart,duration,_ = GetSpellCooldown(61304)
@@ -379,7 +375,7 @@ function jps.Cycle()
 		if jps.NextSpell ~= nil then
 			if jps.NextSpell and jps.NextSpell ~= jps.SentCast then
 				jps.Cast(jps.NextSpell,jps.Target)
-				if (jps.cooldown(jps.NextSpell) > 0) then -- or jps.NextSpell == jps.SentCast
+				if jps.cooldown(jps.NextSpell) > 0 then -- or jps.NextSpell == jps.SentCast
 					write("|cFFFF0000Next Spell "..jps.NextSpell.. " was casted")
 					jps.NextSpell = nil
 				end

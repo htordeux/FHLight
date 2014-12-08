@@ -45,7 +45,8 @@ end
 function jps.IsCastingSpell(spell,unit) -- WORKS FOR CASTING SPELL NOT CHANNELING SPELL
 	local spellname = nil
 	if type(spell) == "string" then spellname = spell end
-	if type(spell) == "number" then spellname = tostring(select(1,GetSpellInfo(spell))) end
+	if type(spell) == "number" then spellname = GetSpellInfo(spell) end
+	if spellname == nil then return false end
 	if unit == nil then unit = "player" end
 	local name, _, _, _, startTime, endTime, _, _, interrupt = UnitCastingInfo(unit)
 	if not name then return false end
@@ -56,7 +57,8 @@ end
 function jps.IsChannelingSpell(spell,unit) -- WORKS FOR CHANNELING SPELL NOT CASTING SPELL
 	local spellname = nil
 	if type(spell) == "string" then spellname = spell end
-	if type(spell) == "number" then spellname = tostring(select(1,GetSpellInfo(spell))) end
+	if type(spell) == "number" then spellname = GetSpellInfo(spell) end
+	if spellname == nil then return false end
 	if unit == nil then unit = "player" end
 	local name, _, _, _, startTime, endTime, _, interrupt = UnitChannelInfo(unit)
 	if not name then return false end
@@ -72,7 +74,8 @@ end
 function jps.cooldown(spell) -- start, duration, enable = GetSpellCooldown("name") or GetSpellCooldown(id)
 	local spellname = nil
 	if type(spell) == "string" then spellname = spell end
-	if type(spell) == "number" then spellname = tostring(select(1,GetSpellInfo(spell))) end
+	if type(spell) == "number" then spellname = GetSpellInfo(spell) end
+	if spellname == nil then return 0 end
 	local start,duration,_ = GetSpellCooldown(spellname)
 	-- if spell is unknown start is nil and cd is 0 => set it to 999 if the spell is unknown
 	if start == nil then return 999 end
@@ -88,8 +91,8 @@ end
 function jps.castEverySeconds(spell, seconds)
 	local spellname = nil
 	if type(spell) == "string" then spellname = spell end
-	if type(spell) == "number" then spellname = tostring(select(1,GetSpellInfo(spell))) end
-	
+	if type(spell) == "number" then spellname = GetSpellInfo(spell) end
+	if spellname == nil then return false end
 	if not jps.TimedCasting[string.lower(spellname)] then
 		return true
 	end

@@ -75,16 +75,6 @@ priest.Spell.heal = 2050;
 priest.Spell.weakenedSoul = 6788;
 priest.Spell.arcaneTorrent = 28730;
 
-
-priest.Spell["SpiritShell"] = tostring(select(1,GetSpellInfo(114908))) -- buff target Spirit Shell 114908
-priest.Spell["PrayerOfHealing"] = tostring(select(1,GetSpellInfo(596))) -- "Prière de soins" 596
-priest.Spell["NaaruGift"] = tostring(select(1,GetSpellInfo(59544))) -- NaaruGift 59544
-priest.Spell["Desesperate"] = tostring(select(1,GetSpellInfo(19236))) -- "Prière du désespoir" 19236
-priest.Spell["BindingHeal"] = tostring(select(1,GetSpellInfo(32546))) -- "Soins de lien" 32546
-priest.Spell["Grace"] = tostring(select(1,GetSpellInfo(77613))) -- Grâce 77613
-priest.Spell["DivineAegis"] =  tostring(select(1,GetSpellInfo(47753))) -- Egide Divine 47515
-priest.Spell["DispelMagic"] =  tostring(select(1,GetSpellInfo(528))) -- Dispel Magic 528
-
 --local InterruptTable = {
 --	{priest.Spell.flashHeal, 0.75, jps.buffId(priest.Spell.spiritShellBuild) or jps.buffId(priest.Spell.innerFocus) },
 --	{priest.Spell.greaterHeal, 0.95, jps.buffId(priest.Spell.spiritShellBuild) },
@@ -103,7 +93,7 @@ priest.ShouldInterruptCasting = function ( InterruptTable, AvgHealthLoss, CountI
 	
 	for key, healSpellTable  in pairs(InterruptTable) do
 		local breakpoint = healSpellTable[2]
-		local spellName = tostring(select(1,GetSpellInfo(healSpellTable[1]))) 
+		local spellName = GetSpellInfo(healSpellTable[1])
 		if (spellName:lower() == spellCasting:lower()) and healSpellTable[3] == false then
 			if TargetHpct >= breakpoint then
 				SpellStopCasting()
@@ -150,10 +140,11 @@ end
 ------------------------------------
 -- FUNCTIONS ENEMY UNIT
 ------------------------------------
-local BerserkerRage = tostring(select(1,GetSpellInfo(18499)))
+
 priest.canFear = function (rangedTarget)
 	if not jps.canDPS(rangedTarget) then return false end
 	local canFear = false
+	local BerserkerRage = GetSpellInfo(18499)
 	if jps.buff(BerserkerRage,rangedTarget) then return false end
 	if jps.canDPS(rangedTarget) then
 		if (CheckInteractDistance(rangedTarget,3) == 1) then canFear = true end
@@ -249,58 +240,3 @@ jps.listener.registerEvent("UNIT_SPELLCAST_SUCCEEDED", function(unitID,spellname
 		jps.createTimer("Chastise",30)
 	end
 end)
-
--------------------
--- FIREHACK FUNCTIONS
--------------------
-
-priest.unitForMassDispelFriend = function () -- Mass Dispel on PLAYER
-	local parseMassDispell = { 32375, false , "player" , "MassDispel_Friend" }
-	if not FireHack then return parseMassDispell end
-	if jps.Moving then return parseMassDispell end
-	if jps.cooldown(32375) > 0 then return parseMassDispell end
-	if not jps.canDispel("player",{"Magic"}) then return parseMassDispell end
-	
-	local debuffcount = 0
-	local PlayerGuid = UnitGUID("player")
-	local PlayerObject = GetObjectFromGUID(PlayerGuid)
-	local NearbyPlayers = PlayerObject:GetNearbyPlayers (8)
-	if jps.tableLength(NearbyPlayers) == 0 then return parseMassDispell end
-	
-	for _,UnitObject in ipairs(NearbyPlayers) do
-		local UnitObject_name = UnitObject:GetName()
-		if jps.canDispel(UnitObject_name,{"Magic"}) then
-			debuffcount = debuffcount + 1
-		end
-		if debuffcount > 2 then
-			parseMassDispell[2] = true
-		break end
-	end
-	return parseMassDispell
-end
-
-local iceblock = tostring(select(1,GetSpellInfo(45438))) -- ice block mage
-local divineshield = tostring(select(1,GetSpellInfo(642))) -- divine shield paladin
-priest.unitForMassDispelEnemy = function () -- Mass Dispel on TARGET
-	local parseMassDispell = { 32375, false , "target" , "MassDispel_Enemy" }
-	if not FireHack then return parseMassDispell end
-	if jps.Moving then return parseMassDispell end
-	if jps.cooldown(32375) > 0 then return parseMassDispell end
-	
-	local PlayerGuid = UnitGUID("player")
-	local PlayerObject = GetObjectFromGUID(PlayerGuid)
-	local NearbyEnemies = PlayerObject:GetNearbyEnemies (30)
-	if jps.tableLength(NearbyEnemies) == 0 then return parseMassDispell end
-
-	for _,UnitObject in ipairs(NearbyEnemies) do
-		if UnitObject:GetAura (divineshield) then
-			UnitObject:Target()
-			parseMassDispell[2] = true
-		break end
-		if UnitObject:GetAura (iceblock) then
-			UnitObject:Target()
-			parseMassDispell[2] = true
-		break end
-	end
-	return parseMassDispell
-end

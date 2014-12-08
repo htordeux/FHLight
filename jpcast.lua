@@ -64,18 +64,22 @@ end
 --------------------------
 -- Functions CAST
 --------------------------
--- GetSpellInfo -- name, rank, icon, cost, isFunnel, powerType, castTime, minRange, maxRange = GetSpellInfo(spellId or spellName)
+
+--Pre-6.0:
+-- name, rank, icon, cost, isFunnel, powerType, castTime, minRange, maxRange = GetSpellInfo(spellId or spellName)
+--6.0:
+-- name, rank, icon, castTime, minRange, maxRange, spellId = GetSpellInfo(spellId or spellName)
+
 -- IsHarmfulSpell(spellname) -- IsHelpfulSpell(spellname)) returns 1 or nil -- USELESS SOMES SPELLS RETURNS NIL AS OUBLI, SPIRIT SHELL
 -- IsSpellInRange(spellID, spellType, unit) -- spellType String, "spell" or "pet"
 -- IsSpellInRange(spellName, unit) -- returns 0 if out of range, 1 if in range, or nil if the unit is invalid.
 local jps_IsSpellInRange = function(spell,unit)
-	if spell == nil then return false end
 	if unit == nil then unit = "target" end
 	local spellname = nil
 	if type(spell) == "string" then spellname = spell end
-	if type(spell) == "number" then spellname = tostring(select(1,GetSpellInfo(spell))) end
+	if type(spell) == "number" then spellname = GetSpellInfo(spell) end
 
-	local inRange = IsSpellInRange(spellname, unit)
+	local inRange = IsSpellInRange(spellname, unit) -- returns 1,0,nil
 
 	if inRange == nil then
 		local myIndex = nil
@@ -106,27 +110,27 @@ local jps_IsSpellInRange = function(spell,unit)
 		if myIndex then
 			inRange = IsSpellInRange(myIndex, booktype, unit)
 		end
-		return inRange
 	end
 	return inRange
 end
 
-function jps.IsSpellInRange(spell,unit)
-	if spell == nil then return false end
-	if jps_IsSpellInRange(spell,unit)==0 then return false end
+
+jps.IsSpellInRange = function(spell,unit)
+	local inrange = jps_IsSpellInRange(spell,unit)
+	if inrange == 0 then return false end
 	return true
 end
 
 -- Collecting the Spell GLOBAL SpellID, not to be confused with the SpellID
 -- Matching the Spell Name and the GLOBAL SpellID will give us the Spellbook index of the Spell
 -- With the Spellbook index, we can then proceed to do a proper IsSpellInRange with the index.
-local jps_SpellHasRange = function(spell)
+jps.SpellHasRange = function(spell)
 	if spell == nil then return false end
 	local spellname = nil
 	if type(spell) == "string" then spellname = spell end
-	if type(spell) == "number" then spellname = tostring(select(1,GetSpellInfo(spell))) end
+	if type(spell) == "number" then spellname = GetSpellInfo(spell) end
 
-	local hasRange = SpellHasRange(spellname)
+	local hasRange = SpellHasRange(spellname) -- True/False
 
 	if hasRange == nil then
 		local myIndex = nil
@@ -144,22 +148,15 @@ local jps_SpellHasRange = function(spell)
 		if myIndex then
 			hasRange= SpellHasRange(myIndex, booktype)
 		end
-		return hasRange
 	end
 	return hasRange
 end
 
-function jps.SpellHasRange(spell)
-	if spell == nil then return false end
-	if jps_SpellHasRange(spell)~=1 then return false end
-	return true
-end
-
 function jps.UnitExists(unit)
 	if unit == nil then return false end
-	if UnitExists(unit)~=1 then return false end
-	if UnitIsVisible(unit)~=1 then return false end
-	if UnitIsDeadOrGhost(unit)==1 then return false end
+	if not UnitExists(unit) then return false end
+	if not UnitIsVisible(unit) then return false end
+	if UnitIsDeadOrGhost(unit) then return false end
 	return true
 end
 
@@ -171,25 +168,24 @@ function jps.canHeal(unit)
 	if GetUnitName("player") == GetUnitName(unit) then return true end
 	if not select(1,UnitInRange(unit)) then return false end 
 	-- return FALSE when not in a party/raid reason why to be true for player GetUnitName("player") == GetUnitName(unit)
-	if UnitCanAssist("player",unit)~=1 then return false end 
-	-- UnitCanAssist(unitToAssist, unitToBeAssisted) return 1 if the unitToAssist can assist the unitToBeAssisted, nil otherwise. PNJ returns 1 or nil (Vendors) with UnitCanAssist
-	if UnitIsFriend("player",unit)~=1 then return false end 
-	-- UnitIsFriend("unit","otherunit") return 1 if otherunit is friendly to unit, nil otherwise. PNJ returns 1 with UnitIsFriend
-	if UnitInVehicle(unit)==1 then return false end -- inVehicle - 1 if the unit is in a vehicle, otherwise nil
+	if not UnitCanAssist("player",unit) then return false end
+	if not UnitIsFriend("player",unit) then return false end 
+	if UnitInVehicle(unit) then return false end
 	if jps.PlayerIsBlacklisted(unit) then return false end
 	return true
 end
 
 local buffImmune = {
-tostring(select(1,GetSpellInfo(45438))), -- ice block mage
-tostring(select(1,GetSpellInfo(642))), -- divine shield paladin
-tostring(select(1,GetSpellInfo(23920))), -- Spell Reflection 23920 -- Spell Reflection Reflects a spell cast on you -- Dispel type n/a
-tostring(select(1,GetSpellInfo(110617))), -- Deterrence 110617 -- reduces the chance ranged attacks will hit you by 100% and grants a 100% chance to deflect spells -- Dispel type	n/a
-tostring(select(1,GetSpellInfo(48707))), -- Anti-Magic Shell 48707 -- Absorbing up to 75 magic damage. Immune to magic debuffs -- Dispel type	n/a
+	45438, 	-- ice block mage
+	642, 	-- divine shield paladin
+	23920, 	-- Spell Reflection 23920 -- Spell Reflection Reflects a spell cast on you -- Dispel type n/a
+	110617, -- Deterrence 110617 -- reduces the chance ranged attacks will hit you by 100% and grants a 100% chance to deflect spells -- Dispel type	n/a
+	48707, 	-- Anti-Magic Shell 48707 -- Absorbing up to 75 magic damage. Immune to magic debuffs -- Dispel type	n/a
 }
 local UnitHasImmuneBuff = function(unit)
 	for _,buff in ipairs(buffImmune) do
-		if jps.buff(buff,unit) then return true end
+		local unitbuff = GetSpellInfo(buff)
+		if unitbuff ~= nil and jps.buff(buff,unit) then return true end
 	end
 	return false
 end
@@ -200,24 +196,23 @@ end
 function jps.canDPS(unit)
 	if not jps.UnitExists(unit) then return false end
 	if jps.PvP and UnitHasImmuneBuff(unit) then return false end
-
-	-- if UnitIsEnemy("player",unit)~=1 then return false end
 	-- WARNING a unit is hostile to you or not Returns either 1 ot nil -- Raider's Training returns nil with UnitIsEnemy
-	if UnitCanAttack("player", unit)~=1 then return false end-- UnitCanAttack(attacker, attacked) return 1 if the attacker can attack the attacked, nil otherwise.
+	if not UnitCanAttack("player", unit) then return false end
 	if jps.PlayerIsBlacklisted(unit) then return false end
 	if not jps.IsSpellInRange(jps.HarmSpell,unit) then return false end
 	return true
 end
 
 local battleRezSpells = {
-tostring(select(1,GetSpellInfo(20484))), -- Druid: Rebirth
-tostring(select(1,GetSpellInfo(61999))), -- DK: Raise Ally
-tostring(select(1,GetSpellInfo(20707))), -- Warlock: Soulstone
-tostring(select(1,GetSpellInfo(126393))) -- Hunter: Eternal Guardian
+	20484, -- Druid: Rebirth
+	61999, -- DK: Raise Ally
+	20707, -- Warlock: Soulstone
+	126393 -- Hunter: Eternal Guardian
 }
 local isBattleRez = function (spell)
-    for _,v in ipairs(battleRezSpells) do
-        if v == spell then return true end
+    for _,buff in ipairs(battleRezSpells) do
+    	local unitbuff = GetSpellInfo(buff)
+        if unitbuff ~= nil and unitbuff == spell then return true end
     end
     return false
 end
@@ -232,7 +227,7 @@ function jps.canCast(spell,unit)
 	if unit == nil then unit = "target" end
 	local spellname = nil
 	if type(spell) == "string" then spellname = spell end
-	if type(spell) == "number" then spellname = tostring(select(1,GetSpellInfo(spell))) end
+	if type(spell) == "number" then spellname = GetSpellInfo(spell) end
 	
 	if spellname == nil then return false end
 	if jps.PlayerIsBlacklisted(unit) then return false end
@@ -242,7 +237,7 @@ function jps.canCast(spell,unit)
 	if not usable then return false end
 	if nomana then return false end
 	if jps.cooldown(spellname) > 0 then return false end
-	if jps.SpellHasRange(spell) and not jps.IsSpellInRange(spell,unit) then return false end
+	if not jps.IsSpellInRange(spell,unit) then return false end
 	if jps[spellname] ~= nil and jps[spellname] == false then return false end -- need spellname
 	return true
 end
@@ -281,11 +276,13 @@ end
 local spellNeedSelectTable = {126135,121536,108921,30283,88685,724,32375,43265,62618,2120,104233,118022,114158,73921,88747, 13813, 13809, 34600, 1499, 115313, 115460, 114203, 114192, 6544, 33395, 116011, 5740}
 function jps.spellNeedSelect(spell)
 	local spellname = nil
-	if type(spell) == "string" then spellname = string.lower(spell) end
-	if type(spell) == "number" then spellname = string.lower(tostring(select(1,GetSpellInfo(spell)))) end
+	if type(spell) == "string" then spellname = spell end
+	if type(spell) == "number" then spellname = GetSpellInfo(spell) end
+	if spellname == nil then return false end
 
 	for i,j in ipairs (spellNeedSelectTable) do
-		if spellname == string.lower(tostring(select(1,GetSpellInfo(j)))) then return true end 
+		local selectSpell = GetSpellInfo(j)
+		if selectSpell ~= nil and spellname:lower() == selectSpell:lower() then return true end 
 	end
 	return false
 end
@@ -316,21 +313,20 @@ local UserInitiatedSpellsToIgnore = {
 function jps.isRecast(spell,unit)
 	local spellname = nil
 	if type(spell) == "string" then spellname = spell end
-	if type(spell) == "number" then spellname = tostring(select(1,GetSpellInfo(spell))) end
-	
+	if type(spell) == "number" then spellname = GetSpellInfo(spell) end
+	if spellname == nil then return false end
 	if unit==nil then unit = "target" end
-	
 	return jps.LastCast==spellname and UnitGUID(unit)==jps.LastTargetGUID
 end
 
 function jps.shouldSpellBeIgnored(spell)
 	if type(spell) == "string" then spellname = spell end
-	if type(spell) == "number" then spellname = tostring(select(1,GetSpellInfo(spell))) end
-	if not spellname then return false end
-	spellname = spellname:lower()
-	local result = false
+	if type(spell) == "number" then spellname = GetSpellInfo(spell) end
+	if spellname == nil then return false end
+
 	for _, v in pairs(UserInitiatedSpellsToIgnore) do
-		if spellname == string.lower(tostring(select(1,GetSpellInfo(v)))) then
+		local name = GetSpellInfo(v)
+		if name ~= nil and spellname:lower() == name:lower() then
 			return true
 		end
 	end
@@ -344,8 +340,8 @@ end
 function jps_canHeal_debug(unit)
 	if not jps.UnitExists(unit) then write("not Unit") return false end
 	if GetUnitName("player") == GetUnitName(unit) then write("Player") return true end
-	if UnitCanAssist("player",unit)~=1 then write("not Friend") return false end
-	if UnitInVehicle(unit)==1 then write("in Vehicle") return false end
+	if not UnitCanAssist("player",unit) then write("not Friend") return false end
+	if UnitInVehicle(unit) then write("in Vehicle") return false end
 	if jps.PlayerIsBlacklisted(unit) then write("Blacklist") return false end
 	if not select(1,UnitInRange(unit)) then write("not inRange") return false end
 	write("Passed all tests canHeal".."|cffa335ee"..unit)
@@ -361,9 +357,8 @@ function jps_canCast_debug(spell,unit) -- NEED A SPELLNAME
 	if not usable then LOG.info("spell is not usable  %s @ $s", spell, unit) return false end
 	if nomana then LOG.info("failed mana test  %s @ $s", spell, unit) return false end
 	if jps.cooldown(spell) > 0 then LOG.info("cooldown not finished  %s @ $s", spell, unit) return false end
-	if jps_SpellHasRange(spell)~=1 then LOG.info("spellhasRange check failed  %s @ $s", spell, unit) return false end
 
-	if jps_IsSpellInRange(spell,unit)~=1 then LOG.info("not in range  %s @ $s", spell, unit) return false end
+	if not jps.IsSpellInRange(spell,unit) then LOG.info("not in range  %s @ $s", spell, unit) return false end
 	LOG.info("Passed all tests  %s @ $s", spell, unit)
 	return true
 end
@@ -397,7 +392,7 @@ end
 
 function jps.groundClick(spellname)
 	SetCVar("deselectOnClick", "0") --	jps.Macro("/console deselectOnClick 0")
-	if jps.UnitExists("mouseover") then CastSpellByName(spellname) end
+	CastSpellByName(spellname)
 	SetCVar("deselectOnClick", "1") --	jps.Macro("/console deselectOnClick 1")
 end
 
@@ -420,11 +415,11 @@ end
 function jps.Cast(spell) -- "number" "string"
 	local spellname = nil
 	if type(spell) == "string" then spellname = spell end
-	if type(spell) == "number" then spellname = tostring(select(1,GetSpellInfo(spell))) end
-	
+	if type(spell) == "number" then spellname = GetSpellInfo(spell) end
+	if spellname == nil then return false end
 	if jps.Target == nil then jps.Target = "target" end
-
-	if jps.spellNeedSelect(spellname) and SpellIsTargeting() then
+	
+	if jps.spellNeedSelect(spellname) then
 		if FireHack then
 			fh.groundClick(spellname,jps.target)
 		else
@@ -452,10 +447,9 @@ end
 
 function jps.myLastCast(spell)
 	if type(spell) == "string" then spellname = spell end
-	if type(spell) == "number" then spellname = tostring(select(1,GetSpellInfo(spell))) end
-	if not spellname then return false end
+	if type(spell) == "number" then spellname = GetSpellInfo(spell) end
+	if spellname == nil then return false end
 	if jps.CurrentCastInterrupt == spellname then return false end
-	
 	if jps.CurrentCast == spellname then return true end
 	if jps.LastCast == spellname then return true end
 	if jps.SentCast == spellname then return true end

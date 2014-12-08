@@ -10,7 +10,10 @@ wl.dottableUnits = {
 	"boss4",
 }
 
-local function toSpellName(id) name = GetSpellInfo(id); return name end
+local function toSpellName(id)
+	local name = GetSpellInfo(id)
+	return name
+end
 
 wl.spells = {}
 -- All Specs

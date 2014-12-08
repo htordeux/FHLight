@@ -368,6 +368,7 @@ jps.listener.registerEvent("PLAYER_ENTERING_WORLD", function()
 	reset_healtable()
 	UpdateRaidStatus()
 	EnemyHealer = {} -- keep healer enemy table during all RBG time?
+	jps.Timers = {} -- keep Holy Word: Chastise 88625 Cooldown
 end)
 
 -- INSPECT_READY
@@ -422,9 +423,9 @@ local leaveCombat = function()
 	jps.Combat = false
 	jps.gui_toggleCombat(false)
 	jps.combatStart = 0
+	jps.NextSpell = nil
 
 	-- nil all tables
-	--jps.Timers = {} -- keep Holy Word: Chastise 88625 Cooldown
 	EnemyDamager = {}
 	RaidTimeToDie = {}
 	Healtable = {}
@@ -510,12 +511,13 @@ end)
 -- "UNIT_SPELLCAST_SENT"
 local sendTime = 0
 local GetTime = GetTime
+local Shield = GetSpellInfo(17)
 jps.listener.registerEvent("UNIT_SPELLCAST_SENT", function(unitID,spellname,_,spelltarget,_)
 	if unitID == "player" then
 		jps.SentCast = spellname
 		sendTime = GetTime()
 		jps.CurrentCastInterrupt = nil
-		if spellname == tostring(select(1,GetSpellInfo(17))) then jps.createTimer("ShieldTimer", 12 ) end
+		if spellname == Shield then jps.createTimer("ShieldTimer", 12 ) end
 	end
 end)
 
@@ -920,8 +922,8 @@ end
 getaverage_heal = function(spell)
 	local spellname = nil
 	if type(spell) == "string" then spellname = spell end
-	if type(spell) == "number" then spellname = tostring(select(1,GetSpellInfo(spell))) end
-	
+	if type(spell) == "number" then spellname = GetSpellInfo(spell) end
+	if spellname == nil then return 0 end
  	if Healtable[spellname] == nil then
 		return 0
  	else

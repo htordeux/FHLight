@@ -29,6 +29,7 @@ jps.registerRotation("WARRIOR","ARMS",function()
 	local dmgBlock = jps.buff("ice block",rangedTarget) or jps.buff("devine shield",rangedTarget) or jps.buff("hand of protection",rangedTarget)
 	local kick = jps.ShouldKick(rangedTarget) or jps.IsCastingPoly(rangedTarget)
 	local kickFocus = jps.ShouldKick("focus") or jps.IsCastingPoly("focus")
+
 ------------------------
 -- LOCAL FUNCTIONS -----
 ------------------------
@@ -74,7 +75,7 @@ jps.registerRotation("WARRIOR","ARMS",function()
 		{
 		-- { "nested", jps.LastCast("mirror image",rangedTarget) , parse_multitarget() },
 		{ "shattering throw", dmgBlock , rangedTarget },
-		{ "intimidating shout", not iceBlock and CheckInteractDistance("target",3)==1 , rangedTarget },
+		{ "intimidating shout", CheckInteractDistance("target",3)==1 , rangedTarget },
 		{ "mortal strike", not jps.debuff("deep wounds",rangedTarget) , rangedTarget },
 		{ "mass spell reflection", jps.cooldown("bladestorm",player) > 0 and jps.debuff("frost nova",player) or jps.debuff("freeze",player) , player },
 		{ "mass spell reflection", noMelee and isHarmSpell and not jps.IsCastingPoly(rangedTarget) , player },
@@ -301,7 +302,7 @@ jps.registerRotation("WARRIOR","ARMS",function()
 		{ "intimidating shout", kick and noMelee and CheckInteractDistance(rangedTarget,3)==1 , rangedTarget },
 		{ "throw", noMelee and jps.cooldown("heroic throw") > 0 , rangedTarget },
 		-- Survival, Heals, etc.
-		{ {"macro","/use "..14}, jps.useTrinket(1) and stance==2 and playerhealth_pct < 0.30 , "player", "Trinket14_"..tostring(jps.useTrinket(1)) },
+		{ {"macro","/use "..14}, jps.useTrinket(1) and stance==2 and playerhealth_pct < 0.30 , "player" },
 		-- Healthstone 5512
 		{ {"macro","/use item:5512"}, UnitAffectingCombat(player)==1 and select(1,IsUsableItem(5512))==1 and jps.itemCooldown(5512) == 0 and (playerhealth_pct < 0.50) , player , "UseItem" },
 		{ "lifeblood", playerhealth_pct < 0.90, player },
@@ -342,7 +343,7 @@ jps.registerRotation("WARRIOR","ARMS",function()
 		{ "avatar", jps.UseCDs and melee and targethealth_pct < 0.30 and jps.TimeToDie(rangedTarget) > 23 , player },
 		{ "avatar", jps.UseCDs and melee and jps.buff("recklessness") or jps.buff("skull banner") and targethealth_pct < 0.30  and jps.TimeToDie(rangedTarget) > 23 , player },
 		{ "skull banner", jps.UseCDs and jps.buff("avatar") or jps.buff("recklessness") , player },
-		-- { "demoralizing banner", playerhealth_pct < 0.30, "player", jps.groundClick() or IsShiftKeyDown() ~= nil , player },
+		-- { "demoralizing banner", playerhealth_pct < 0.30, "player", jps.groundClick() , player },
 		-- { "alliance battle standard", playerhealth_pct < 0.30 and not jps.debuff("demoralizing banner"), jps.groundClick() , player },
 		------------------------
 		-- ATTACKS -------------
@@ -365,4 +366,4 @@ jps.registerRotation("WARRIOR","ARMS",function()
 
 	local spell,target = parseSpellTable(spellTable)
 	return spell,target
-end, "Default", false, true)
+end, "Default PvP", false, true)

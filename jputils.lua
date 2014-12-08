@@ -160,6 +160,7 @@ jps.SpellControl = {
 	----------------
 
 	[117526] = "CC",			-- Binding Shot
+	[109248] = "CC",			-- Binding Shot
 	[3355]   = "CC",			-- Freezing Trap
 	[13809] = "Snare",			-- Ice Trap 1
 	[19386]  = "CC",			-- Wyvern Sting

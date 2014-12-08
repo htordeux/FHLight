@@ -160,7 +160,6 @@ function jps.removeTableKey(table, key)
     return element
 end
 
---get table length
 function jps.tableLength(table)
 	if table == nil then return 0 end
     local count = 0
@@ -305,6 +304,10 @@ if guid then
 end
    return guid
 end
+
+------------------------------
+-- KEYS
+------------------------------
 
 keyDownMapper = {}
 keyDownMapper["shift"] = IsShiftKeyDown

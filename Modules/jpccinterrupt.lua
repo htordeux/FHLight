@@ -304,36 +304,3 @@ function jps.ShouldKickDelay(unit)
 	end
 	return false
 end
-
-local interruptDelay = 0
-local interruptDelaySpellUnit = ""
-local interruptDelayTimestamp = GetTime()
-
-function jps.KickDelay(unit)
-	if not canDPS(unit) then return false end
-	if jps.IsCasting(unit) then
-		local castLeft, spellName = jps.CastTimeLeft(unit) or jps.ChannelTimeLeft(unit)
-		if castLeft < 2 then return true end
-
-		if (GetTime() - interruptDelayTimestamp) > 5 or  interruptDelaySpellUnit ~= (spellName..unit) then -- recalc delay value
-			maxDelay = castLeft-2
-			if(castLeft <= 2.5) then maxDelay = castLeft - 0.5 end
-			minDelay = 0.5
-			interruptDelay = Math.random(minDelay,maxDelay)
-			interruptDelaySpellUnit = spellName..unit
-			interruptDelayTimestamp = GetTime()
-		end
-
-		if interruptDelay <= castLeft and  interruptDelaySpellUnit == spellName..unit then
-			interruptDelaySpellUnit = ""
-			interruptDelay = 0
-			return true
-		end
-		return false
-	end
-	if interruptDelaySpellUnit ~= "" then
-		interruptDelaySpellUnit = ""
-		interruptDelay = 0
-	end
-	return true
-end

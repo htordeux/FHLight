@@ -66,10 +66,6 @@ function jps.IsChannelingSpell(spell,unit) -- WORKS FOR CHANNELING SPELL NOT CAS
 	return false
 end
 
-function jps.spellCastTime(spell)
-	return select(7, GetSpellInfo(spell)) /1000
-end
-
 -- returns cooldown off a spell
 function jps.cooldown(spell) -- start, duration, enable = GetSpellCooldown("name") or GetSpellCooldown(id)
 	local spellname = nil
@@ -132,4 +128,22 @@ function jps.PlayerIsFacing(unit,alpha) -- alpha is angle value between 10-180
 	else facing = true
 	end
 	return facing, radian
+end
+
+-- posX, posY, posZ, terrainMapID = UnitPosition("unit");
+-- Does not work with all unit types. Works with "player", "partyN" or "raidN" as unit type.
+-- It does not work on pets or any unit not in your group.
+
+-- distanceSquared, checkedDistance = UnitDistanceSquared("unit")
+-- Returns the squared distance from you to a unit in the player's group -- math.sqrt(100) = 10
+-- (x2-x1)^2 + (y2-y1)^2
+
+-- When a given unit has no valid returns:
+-- UnitDistanceSquared returns 0
+-- UnitPosition returns nil
+
+function jps.Distance(unit)
+	local dist = math.sqrt(UnitDistanceSquared(unit))
+	if dist == 0 and UnitPosition(unit) == nil then dist = 100 end
+	return dist
 end

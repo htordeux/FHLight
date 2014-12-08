@@ -639,7 +639,6 @@ end)
 -- Group/Raid Update
 -- RAID_ROSTER_UPDATE's pre-MoP functionality was moved to the new event GROUP_ROSTER_UPDATE
 jps.listener.registerEvent("GROUP_ROSTER_UPDATE", UpdateRaidStatus)
-jps.listener.registerEvent("ARENA_TEAM_ROSTER_UPDATE", UpdateRaidStatus)
 
 -----------------------
 -- UPDATE ENEMY TABLE

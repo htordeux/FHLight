@@ -42,7 +42,6 @@ jps.registerRotation("DRUID","BALANCE", function()
 		{ "sunfire", jps.Moving },
 		{ "starsurge", jps.Moving and jps.buff("shooting stars") },
 		{ "incarnation", sEclipse or lEclipse },
-		{ "celestial alignment", jps.UseCDs and ((Direction=="moon" and Energy <= 0) or (Direction=="sun" and Energy >= 0)) and (not select(5,GetTalentInfo(11,"player")) or jps.buff("Incarnation: Chosen of Elune")) },
 		{ "wrath", Energy <= -70 and Direction == "moon" },
 		{ "starfire", Energy >= 60 and Direction == "sun" },
 		{ "moonfire", mfDuration <= 1.5 },

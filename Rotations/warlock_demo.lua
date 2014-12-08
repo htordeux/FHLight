@@ -368,7 +368,7 @@ jps.registerRotation("WARLOCK","DEMONOLOGY",function()
 	----------------------------------
 	---------- talent spy ------------
 	----------------------------------
-	local dpsMoving = jps.talentInfo("Kil'jaeden's Cunning")
+	local dpsMoving = jps.IsSpellKnown("Kil'jaeden's Cunning")
 	-------------------
 	-- trinket stack -
 	-------------------

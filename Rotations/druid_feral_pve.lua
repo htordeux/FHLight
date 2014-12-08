@@ -237,8 +237,8 @@ local spellTable = {
 			{druid.spells.ravage, 'jps.buff(druid.spells.stealthed)' },
 			{druid.spells.ferociousBite, 'jps.myDebuff(druid.spells.rip) and jps.myDebuffDuration(druid.spells.rip) <= 3 and jps.hp("target") <= 0.25' },
 			{druid.spells.faerieFire, 'jps.debuffStacks(druid.spells.weakenedArmor) < 3' },
-			{druid.spells.healingTouch, 'jps.talentInfo(druid.spells.dreamOfCenarius) and jps.buff(druid.spells.predatorySwiftness) and not jps.buff(druid.spells.dreamOfCenarius) and jps.buffDuration(druid.spells.predatorySwiftness) < 1.5' },
-			{druid.spells.healingTouch, 'jps.talentInfo(druid.spells.dreamOfCenarius) and jps.buff(druid.spells.predatorySwiftness) and not jps.buff(druid.spells.dreamOfCenarius) and druid.cp() >= 4' },
+			{druid.spells.healingTouch, 'jps.IsSpellKnown(druid.spells.dreamOfCenarius) and jps.buff(druid.spells.predatorySwiftness) and not jps.buff(druid.spells.dreamOfCenarius) and jps.buffDuration(druid.spells.predatorySwiftness) < 1.5' },
+			{druid.spells.healingTouch, 'jps.IsSpellKnown(druid.spells.dreamOfCenarius) and jps.buff(druid.spells.predatorySwiftness) and not jps.buff(druid.spells.dreamOfCenarius) and druid.cp() >= 4' },
 			{druid.spells.savageRoar, 'not jps.buff(druid.spells.savageRoar)' },
 		}
 	},

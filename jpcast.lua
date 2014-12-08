@@ -320,6 +320,7 @@ function jps.isRecast(spell,unit)
 end
 
 function jps.shouldSpellBeIgnored(spell)
+	local spellname = nil
 	if type(spell) == "string" then spellname = spell end
 	if type(spell) == "number" then spellname = GetSpellInfo(spell) end
 	if spellname == nil then return false end
@@ -446,6 +447,7 @@ function jps.Cast(spell) -- "number" "string"
 end
 
 function jps.myLastCast(spell)
+	local spellname = nil
 	if type(spell) == "string" then spellname = spell end
 	if type(spell) == "number" then spellname = GetSpellInfo(spell) end
 	if spellname == nil then return false end

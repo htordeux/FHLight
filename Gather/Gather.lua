@@ -140,7 +140,7 @@ function Gather ()
 		SetFlyHack(false);
 	end
 
-	local Flying = (IsFlying() == 1 or IsSwimming() == 1);
+	local Flying = (IsFlying() == true or IsSwimming() == true);
 	if Flying and GetTerrainCollision() then
 		SetM2Collision(false);
 		SetWMOCollision(false);

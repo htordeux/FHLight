@@ -319,7 +319,7 @@ end)
 
 --- COMBAT_LOG_EVENT_UNFILTERED Handler
 jps.listener.registerEvent("COMBAT_LOG_EVENT_UNFILTERED", function(timeStamp, event, ...)
-	if jps.Enabled and UnitAffectingCombat("player") == 1 and combatLogEventTable[event] then
+	if jps.Enabled and UnitAffectingCombat("player") == true and combatLogEventTable[event] then
 		--LOG.debug("CombatLogEventUntfiltered: %s", event)
 		if enableUnfilteredProfiling and enableProfiling then startProfileMemory("COMBAT_LOG_EVENT_UNFILTERED::"..event) end
 		for _,fn in pairs(combatLogEventTable[event]) do
@@ -665,7 +665,7 @@ end
 --local GetNumGroupMembers = GetNumGroupMembers
 --local isArena, _ = IsActiveBattlefieldArena() -- isArena - 1 if player is in an Arena match; otherwise nil
 --local UpdateScoreFrequency = function()
---	if isArena == 1 then scoreFrequency  = 0.2
+--	if isArena == true then scoreFrequency  = 0.2
 --	elseif GetNumGroupMembers() <= 10 then scoreFrequency  = 0.4
 --	else scoreFrequency  = 0.8 end
 --end

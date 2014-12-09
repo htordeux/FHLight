@@ -121,7 +121,7 @@ local function GetBobber()
 end
 
 function LookupFishing ()
-	if (FishUntil > GetTime()) or (InCombatLockdown == 1) then return end
+	if (FishUntil > GetTime()) or (InCombatLockdown == true) then return end
 	if (not fh.Fishing) or (fh.SlotBag == 0) then RemoveTimerCallback(LookupFishing) return end
 	local MyHatLure = HatLure()
 	local CdMyHatLure = fh.itemCooldown(MyHatLure)

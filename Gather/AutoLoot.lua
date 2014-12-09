@@ -23,7 +23,7 @@ function OnUpdate(self, elapsed)
 end
  
 function LootArea()
-	if GetUnitSpeed("player") > 0 or UnitAffectingCombat("player")~=nil or IsMounted() ~= nil then return; end
+	if GetUnitSpeed("player") > 0 or UnitAffectingCombat("player") == true or IsMounted() == true then return; end
 
 	local Total = GetTotalObjects()
 	

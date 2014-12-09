@@ -16,7 +16,7 @@ local GetSpellInfo = GetSpellInfo
 
 function jps.buffId(spellId,unit)
 	local spellname = nil
-	if type(spellId) == "number" then spellname = GetSpellInfo(spell) end
+	if type(spellId) == "number" then spellname = GetSpellInfo(spellId) end
 	if spellname == nil then return false end
 	if unit == nil then unit = "player" end
 	local auraName, _, _, count, _, duration, expirationTime, castBy, _, _, buffId
@@ -193,7 +193,7 @@ local raidBuffs = {
 
 
 -- functions for raid buffs
-jps.staminaBuffs = {"Power Word: Fortitude", "Commanding Shout", "Qiraji Fortitude", "Dark Intent"}
+jps.staminaBuffs = {"Power Word: Fortitude", "Commanding Shout", "Qiraji Fortitude"}
 function jps.hasStaminaBuff(unit)
 	return jps.buffLooper(jps.staminaBuffs, unit)
 end
@@ -237,6 +237,12 @@ function jps.hasSpellPowerCritBuff(unit)
 	return jps.hasCritBuff(unit) and jps.hasSpellPowerBuff(unit)
 end
 
+
+jps.multistrikeBuffs = {"Dark Intent"}
+function jps.hasMultistrikeBuff(unit)
+	return jps.buffLooper(jps.multistrikeBuffs, unit)
+end
+
 -- type of raid buffs to functions
 jps.raidBuffFunctions = { 
 	["stamina"] = jps.hasStaminaBuff,
@@ -246,16 +252,27 @@ jps.raidBuffFunctions = {
 	["spellHaste"] = jps.hasSpellHasteBuff,
 	["crit"] = jps.hasCritBuff,
 	["spellPower"] = jps.hasSpellPowerBuff,
-	["mastery"] = jps.hasMasteryBuff
+	["mastery"] = jps.hasMasteryBuff,
+	["multistrike"] = jps.hasMultistrikeBuff
 }
 
 -- checks wheter a unit have a similarbuff ( e.G. arcane brilliance = still water)
 function jps.hasSimilarBuff(buffName, unit)
-	local buffType = Ternary(raidBuffs[buffname] ~= nil, raidBuffs[buffname], nil)
+	local buffType = Ternary(raidBuffs[buffName] ~= nil, raidBuffs[buffname], nil)
 	if buffType ~= nil then
 		if jps.raidBuffFunctions[buffType] ~= nil then
 			return pcall(jps.raidBuffFunctions[buffType], unit)
 		end
 	end
 	return false
+end
+
+-- checks if our whole(valid) raid is buffed with a specific buff
+function jps.raidIsBuffed(buff) 
+	for unit, _ in pairs(jps.RaidStatus) do
+		if jps.UnitExists(unit) then
+			if not jps.hasSimilarBuff(buff, unit) then return false end
+		end
+	end
+	return true
 end

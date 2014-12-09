@@ -35,6 +35,14 @@ function jps.ChannelTimeLeft(unit)
 	return ((endTime - (GetTime() * 1000 ) )/1000), spellName
 end
 
+function jps.spellCastTime(spell)
+	local spellname = nil
+	if type(spell) == "string" then spellname = spell end
+	if type(spell) == "number" then spellname = tostring(select(1,GetSpellInfo(spell))) end
+	castTime = select(4, GetSpellInfo(spellname)) 
+	return (castTime/1000) or 0
+end
+
 function jps.IsCasting(unit)
 	if unit == nil then unit = "player" end
 	if jps.CastTimeLeft(unit) > 0 or jps.ChannelTimeLeft(unit) > 0 then

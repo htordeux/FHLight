@@ -329,7 +329,7 @@ end
 ---------------------------
 
 function jps.TimeToDieToggle(key, status)
-	if status == true then -- and InCombatLockdown() == 1
+	if status == true then -- and InCombatLockdown() == true
 		JPSTextInfoFrame:Show()
 	else
 		JPSTextInfoFrame:Hide()

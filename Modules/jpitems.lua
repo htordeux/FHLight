@@ -35,7 +35,7 @@ function jps.useBagItem(itemName)
 				local start, dur, isNotBlocked = GetItemCooldown(itemId) -- maybe we should use GetContainerItemCooldown() will test it
 				local cdDone = Ternary((start + dur ) > GetTime(), false, true)
 				local hasNoCD = Ternary(dur == 0, true, false)
-				if (cdDone or hasNoCD) and isNotBlocked == 1 then -- cd is done and item is not blocked (like potions infight even if CD is finished)
+				if (cdDone or hasNoCD) and isNotBlocked == true then -- cd is done and item is not blocked (like potions infight even if CD is finished)
 					if not useBagItemMacros[itemName] then useBagItemMacros[itemName] = { "macro", "/use "..itemName } end
 					return useBagItemMacros[itemName]
 				end

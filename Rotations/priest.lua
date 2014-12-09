@@ -65,20 +65,16 @@ priest.Spell.bindingHeal = 32546;
 priest.Spell.naaruGift = 59544;
 priest.Spell.desperatePrayer = 19236;
 priest.Spell.innerWill = 73413;
-priest.Spell.innerFire = 588;
 priest.Spell.penance = 47540;
 priest.Spell.shadowfiend = 34433;
-priest.Spell.voidShift = 108968;
 priest.Spell.painsup = 33206;
 priest.Spell.holyFire = 14914;
-priest.Spell.heal = 2050;
 priest.Spell.weakenedSoul = 6788;
 priest.Spell.arcaneTorrent = 28730;
 
 --local InterruptTable = {
 --	{priest.Spell.flashHeal, 0.75, jps.buffId(priest.Spell.spiritShellBuild) or jps.buffId(priest.Spell.innerFocus) },
 --	{priest.Spell.greaterHeal, 0.95, jps.buffId(priest.Spell.spiritShellBuild) },
---	{priest.Spell.heal, 1 , jps.buffId(priest.Spell.spiritShellBuild) },
 --	{priest.Spell.prayerOfHealing, 0.95, jps.buffId(priest.Spell.spiritShellBuild) or jps.MultiTarget}
 --}
 
@@ -98,9 +94,6 @@ priest.ShouldInterruptCasting = function ( InterruptTable, AvgHealthLoss, CountI
 			if TargetHpct >= breakpoint then
 				SpellStopCasting()
 				DEFAULT_CHAT_FRAME:AddMessage("STOPCASTING OverHeal"..spellName.." , unit "..jps.LastTarget.. " has enough hp!",0, 0.5, 0.8)
-			elseif healSpellTable[1] == priest.Spell.heal and TargetHpct < 0.75 and jps.mana() > 0.20 then
-				SpellStopCasting()
-				DEFAULT_CHAT_FRAME:AddMessage("STOPCASTING "..spellName.." important unit goes critical",0, 0.5, 0.8)
 			elseif healSpellTable[1] == priest.Spell.prayerOfHealing and AvgHealthLoss >= breakpoint then
 				SpellStopCasting()
 				DEFAULT_CHAT_FRAME:AddMessage("STOPCASTING avgHP"..spellName.." , raid has enough hp!",0, 0.5, 0.8)
@@ -147,7 +140,7 @@ priest.canFear = function (rangedTarget)
 	local BerserkerRage = GetSpellInfo(18499)
 	if jps.buff(BerserkerRage,rangedTarget) then return false end
 	if jps.canDPS(rangedTarget) then
-		if (CheckInteractDistance(rangedTarget,3) == 1) then canFear = true end
+		if (CheckInteractDistance(rangedTarget,3) == true) then canFear = true end
 		local knownTypes = {[0]="player", [1]="world object", [3]="NPC", [4]="pet", [5]="vehicle"}
 		local rangedTargetGuid = UnitGUID(rangedTarget)
 		if FireHack and rangedTargetGuid ~= nil then

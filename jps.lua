@@ -48,7 +48,7 @@ jps.Target = nil
 jps.Casting = false
 jps.ThisCast = nil
 jps.Moving = false
-jps.HarmSpell = nil
+jps.HarmSpell = ""
 jps.CurrentCast = nil
 jps.CurrentCastInterrupt = nil
 jps.SentCast = nil
@@ -137,10 +137,8 @@ local GetHarmfulSpell = function()
 		end
 	end
 	if HarmSpellTable[1] then
-		HarmSpell = HarmSpellTable[1]
+		jps.HarmSpell = HarmSpellTable[1]
 	end
-	
-	return HarmSpell
 end
 
 local getDPSRacial = function()
@@ -175,7 +173,7 @@ function jps.detectSpec()
 	jps.Tooltip = ""
 	jps.ToggleRotationName = {"No Rotations"}
 	rotationDropdownHolder:Hide()
-	jps.HarmSpell = GetHarmfulSpell()
+	GetHarmfulSpell()
 	jps.initializedRotation = false
 
 	jps.Race = UnitRace("player")
@@ -197,6 +195,7 @@ function jps.detectSpec()
 				jps.Spec = name
 				if jps.Spec then
 					write("Online for your",jps.Spec,jps.Class)
+					write("HarmfulSpell "..jps.HarmSpell)
 				end
 			end
 		end
@@ -208,7 +207,6 @@ function jps.detectSpec()
 	if jps.initializedRotation == false then
 		jps.Cycle()
 	end
-	write("HarmfulSpell "..jps.HarmSpell)
 end
 
 ------------------------

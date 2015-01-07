@@ -45,14 +45,18 @@ function jps_Test()
 
 	jps.LookupEnemyDamager()
 	jps.LookupEnemyHealer()
-
+	write("***************************")
 	print("Stun:|cff0070dd ",jps.checkTimer("PlayerStun"))
 	print("Interrupt:|cff0070dd ",jps.checkTimer("PlayerInterrupt"))
 	print("Shield:|cff0070dd ",jps.checkTimer("ShieldTimer"))
 	print("Aggro:|cff0070dd ",jps.FriendAggro("player"))
 	print("LoseControl:|cff0070dd ",jps.LoseControl("player"))
 	print("ChastiseCd:|cff0070dd ",jps.checkTimer("Chastise"))
-	write("GCD: ",jps.GCD)
+	print("ttd: ",jps.TimeToDie("target"))
+	print("Facing: ",jps.PlayerIsFacing("target",30))
+	print("GCD: ",jps.GCD)
+	write("***************************")
+	jps.printIsSpellFailed()
 
 -- GetMastery() the value returns by GetMastery is not your final Mastery value
 -- To find your true Mastery, and the multiplier factor used to calculate it, see GetMasteryEffect.
@@ -66,12 +70,9 @@ function jps_Test()
 --	local friendtableaggro = jps.FriendAggroTable()
 --	print("friendtableaggro: ",friendtableaggro)
 
-	local Lowest = jps.LowestImportantUnit() 
-	local face,angle = jps.PlayerIsFacing(Lowest)
-	write("Facing: ",face," Radians: ",angle," Name: ",GetUnitName(Lowest))
-	
-	local test = jps.FriendHealerInRange()
-	print("HealerInRange: ",test)
+--	local Lowest = jps.LowestImportantUnit() 
+--	local face,angle = jps.PlayerIsFacing(Lowest)
+--	write("Facing: ",face," Radians: ",angle," Name: ",GetUnitName(Lowest))
 
 end
 

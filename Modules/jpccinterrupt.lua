@@ -273,18 +273,20 @@ function jps.DispelOffensive(unit)
 	return false
 end
 
+-- name, nameSubtext, text, texture, startTime, endTime, isTradeSkill, castID, notInterruptible = UnitCastingInfo("unit")
+-- name, nameSubtext, text, texture, startTime, endTime, isTradeSkill, notInterruptible = UnitCastingInfo("unit")
 function jps.ShouldKick(unit)
 	if unit == nil then unit = "target" end
 	if not canDPS(unit) then return false end
 	local casting = select(1,UnitCastingInfo(unit))
-	local interrupt = select(9,UnitCastingInfo(unit))
+	local notinterruptible = select(9,UnitCastingInfo(unit)) --  if true, indicates that this cast cannot be interrupted 
 	local channelling = select(1,UnitChannelInfo(unit))
-	local interruptible = select(9,UnitChannelInfo(unit))
+	local not_interruptible = select(8,UnitChannelInfo(unit)) -- if true, indicates that this cast cannot be interrupted
 	if casting == L["Release Aberrations"] then return false end
 
-	if casting and not interrupt then
+	if casting and notinterruptible == false then
 		return true
-	elseif channelling then
+	elseif channelling and not_interruptible == false then
 		return true
 	end
 	return false

@@ -239,6 +239,7 @@ function jps.canCast(spell,unit)
 	if jps.cooldown(spellname) > 0 then return false end
 	if not jps.IsSpellInRange(spell,unit) then return false end
 	if jps[spellname] ~= nil and jps[spellname] == false then return false end -- need spellname
+	--if jps.IsSpellFailed(spellname) then return false end
 	return true
 end
 
@@ -309,15 +310,6 @@ local UserInitiatedSpellsToIgnore = {
 	12051, 	--evocation
 	
 }
-
-function jps.isRecast(spell,unit)
-	local spellname = nil
-	if type(spell) == "string" then spellname = spell end
-	if type(spell) == "number" then spellname = GetSpellInfo(spell) end
-	if spellname == nil then return false end
-	if unit==nil then unit = "target" end
-	return jps.LastCast==spellname and UnitGUID(unit)==jps.LastTargetGUID
-end
 
 function jps.shouldSpellBeIgnored(spell)
 	local spellname = nil
@@ -433,7 +425,7 @@ function jps.Cast(spell) -- "number" "string"
 	jps.TimedCasting[string.lower(spellname)] = math.ceil(GetTime())
 	jps.LastCast = spellname
 	jps.LastTarget = jps.Target
-	jps.LastTargetGUID = UnitGUID(jps.Target)
+	jps.LastTargetGUID = UnitGUID(jps.LastTarget)
 	tinsert(jps.LastMessage,1,jps.Message)
 	
 	if (jps.IconSpell ~= spellname) then
@@ -455,6 +447,12 @@ function jps.myLastCast(spell)
 	if jps.CurrentCast == spellname then return true end
 	if jps.LastCast == spellname then return true end
 	if jps.SentCast == spellname then return true end
+	return false
+end
+
+function jps.isRecast(spell,unit)
+	if unit == nil then unit = "target" end
+	if jps.myLastCast(spell) and UnitGUID(unit)==jps.LastTargetGUID then return true end
 	return false
 end
 

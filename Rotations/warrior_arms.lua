@@ -5,10 +5,11 @@
 -- Glyphs: Unending Rage, Bull Rush, Sweeping Strikes, Subtle Defender
 
 jps.registerStaticTable("WARRIOR","ARMS", {
+
 -- Interrupts
 {"nested","jps.Interrupts",{
-	{"spell reflection", 'UnitThreatSituation("player","target") == 3 and (UnitCastingInfo("target") or UnitChannelInfo("target"))'},
-	{"pummel", 'not jps.targetIsRaidBoss() and jps.shouldKick()'},
+	{ warrior.spells["MassSpellReflection"] , 'UnitThreatSituation("player","target") == 3 and jps.IsCasting("target")' },
+	{ warrior.spells["Pummel"] , 'jps.shouldKick()' },
 }},
 
 -- Damage Mitigation

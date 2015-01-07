@@ -386,7 +386,7 @@ local spellTable = {
 	{ 47788, jps.FriendAggro(LowestImportantUnit) and LowestImportantUnitHpct < 0.40 , LowestImportantUnit },
 	-- "Holy Word: Serenity" 88684 -- Chakra: Serenity 81208
 	{ {"macro",macroSerenity}, jps.cooldown(88684) == 0 and jps.buffId(81208) and (LowestImportantUnitHealth > priest.AvgAmountGreatHeal) , LowestImportantUnit , "Serenity_"..LowestImportantUnit },
-	-- "Soins rapides" 2061 "From Darkness, Comes Light" 109186 gives buff -- "Vague de Lumière" 114255 "Surge of Light"
+	-- "Soins rapides" 2061 "Vague de Lumière" 109186 gives buff -- "Vague de Lumière" 114255 "Surge of Light"
 	{ 2061, jps.buff(114255) and (LowestImportantUnitHealth > priest.AvgAmountFlashHeal) , LowestImportantUnit , "SoinsRapides_Light_"..LowestImportantUnit },
 	{ 2061, jps.buff(114255) and (jps.buffDuration(114255) < 4) , LowestImportantUnit , "SoinsRapides_Light_"..LowestImportantUnit },
 
@@ -410,7 +410,7 @@ local spellTable = {
 	{ "nested", playerAggro and jps.hp("player") < 0.85 ,
 		{
 			-- "Pierre de soins" 5512
-			{ {"macro","/use item:5512"}, select(1,IsUsableItem(5512))== true and jps.itemCooldown(5512)==0 , "player" },
+			{ {"macro","/use item:5512"}, select(1,IsUsableItem(5512)) == true and jps.itemCooldown(5512)==0 , "player" },
 			-- "Prière du désespoir" 19236
 			{ 19236, jps.IsSpellKnown(19236) , "player" },
 			-- "Prière de guérison" 33076
@@ -424,7 +424,7 @@ local spellTable = {
 				{
 					-- "Holy Word: Serenity" 88684 -- Chakra: Serenity 81208
 					{ {"macro",macroSerenity}, jps.cooldown(88684) == 0 and jps.buffId(81208) , "player" , "Aggro_Serenity_Player" },
-					-- "Soins rapides" 2061 "From Darkness, Comes Light"
+					-- "Soins rapides" 2061 "Vague de Lumière"
 					{ 2061, jps.buff(114255) , "player" },
 					-- "Circle of Healing" 34861
 					{ 34861, true , "player" , "Aggro_COH_Player" },
@@ -531,46 +531,3 @@ local spellTable = {
 end
 
 jps.registerRotation("PRIEST","HOLY", priestHoly, "Holy Priest Default" )
-
--- Haste at least 12.51% (4721) preferably up to 16.66% (7082) cap
--- to ensure we get additional ticks from HW: Sanctuary and the Glyphed Renew.
-
--- Chakra: Serenity 81208
--- Increases the healing done by your single-target healing spells by 25%
--- causes them to refresh the duration of your Renew on the target, and transforms your Holy Word: Chastise spell into Holy Word: Serenity.
--- "Holy Word: Serenity" 88684
--- Instantly heals the target for 12367 to 14517 (+ 130% of Spell power)
--- "Holy Word: Serenity" increases the critical effect chance of your healing spells on the target by 25% for 6 sec. 10 sec cooldown.
-
--- Chakra: Sanctuary 81206
--- Increases the healing done by your area of effect healing spells by 25% -- Prayer of Mending, Circle of Healing, Divine Star, Cascade, Halo, Divine Hymn
--- reduces the cooldown of your Circle of Healing spell by 2 sec, and transforms your Holy Word: Chastise spell into Holy Word: Sanctuary
--- Holy Word: Sanctuary 88685
--- Blesses the ground with divine light, healing all within it for 461 to 547 (+ 5.83% of Spell power) every 2 sec for 30 sec.
--- Only one Sanctuary can be active at a time  Healing effectiveness diminishes for each player beyond 6 within the area.
-
--- Chakra: Chastise 81209
--- Increases the damage done by your Shadow and Holy spells by 50%, grants a 10% chance for Smite to reset the cooldown of Holy Word: Chastise
--- reduces the mana cost of Smite and Holy Fire by 90%, and transforms your Holy Word spell back into Holy Word: Chastise
--- Holy Word: Chastise 88625
--- Chastise the target for 627 to 702 (+ 61.4% of Spell power) Holy damage, and disorients them for 3 sec -- 30 sec cooldown.
-
--- "Serendipity" 63735
--- When you heal with Binding Heal or Flash Heal, the cast time of your next Greater Heal or Prayer of Healing spell is reduced by 20% 
--- and mana cost reduced by 20%. Stacks up to 2 times. Lasts 20 sec.
-
--- "Guardian Spirit" 47788
--- Calls a guardian spirit to watch over the friendly target. The spirit increases the healing received by the target by 60%
--- and also prevents the target from dying by sacrificing. Lasts 10 sec. Castable while stunned.
-
--- "Lightwell" This spell can be used while Tanking, Kiting, Blinded, Stunned, Disoriented, Sapped, Casting another heal or spell
-
--- "Holy Spark" 131567 (Priest PvP Healing 2P Bonus Holy Spark). When you cast Prayer of Mending, the initial target is blessed with a Holy Spark
--- increasing the healing done by your next Flash Heal, Greater Heal or Holy Word: Serenity by 50% for 10 sec.
--- 1.Serenity -- 2.PoM -- 3.Greater Heal which uses your HOLY SPARK buff proc the greater heal which is also likely to crit due to Serenity buff
-
--- From Darkness, Comes Light has been buffed this patch increasing it's procs when using Renew, Circle of Healing, Prayer of Mending, and Prayer of Healing
-
--- "Divine Insight" 109175
--- When you cast Greater Heal or Prayer of Healing, there is a 40% chance
--- your next Prayer of Mending will not trigger its cooldown, and will jump to each target instantly.

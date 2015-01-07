@@ -88,7 +88,7 @@ function jps.createMinimap()
 	button:SetScript('OnLeave', onLeave)
 
 	minimap.button = button
-	minimap.position = -60
+	minimap.position = 195
 	reposition()
 	minimap.button:Show()
 end

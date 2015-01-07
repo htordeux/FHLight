@@ -175,7 +175,7 @@ function jps.detectSpec()
 	jps.Tooltip = ""
 	jps.ToggleRotationName = {"No Rotations"}
 	rotationDropdownHolder:Hide()
-	
+	jps.HarmSpell = GetHarmfulSpell()
 	jps.initializedRotation = false
 
 	jps.Race = UnitRace("player")
@@ -203,12 +203,12 @@ function jps.detectSpec()
 	end
 	if jps.Spec == L["Discipline"] or jps.Spec == L["Holy"] or jps.Spec == L["Restoration"] or jps.Spec == L["Mistweaver"] then jps.isHealer = true end
 	if jps.Spec == L["Blood"] or jps.Spec == L["Protection"] or jps.Spec == L["Brewmaster"] or jps.Spec == L["Guardian"] then jps.isTank = true end
-	jps.HarmSpell = GetHarmfulSpell()
 	setClassCooldowns()
 	jps_VARIABLES_LOADED()
 	if jps.initializedRotation == false then
 		jps.Cycle()
 	end
+	write("HarmfulSpell "..jps.HarmSpell)
 end
 
 ------------------------
@@ -373,16 +373,14 @@ function jps.Cycle()
 
 	if not jps.Casting and jps.ThisCast ~= nil then
 		if jps.NextSpell ~= nil then
-			if jps.NextSpell and jps.NextSpell ~= jps.SentCast then
+			if jps.NextSpell ~= jps.SentCast then
 				jps.Cast(jps.NextSpell,jps.Target)
-				if jps.cooldown(jps.NextSpell) > 0 then -- or jps.NextSpell == jps.SentCast
-					write("|cFFFF0000Next Spell "..jps.NextSpell.. " was casted")
-					jps.NextSpell = nil
-				end
 			else
+				write("|cFFFF0000Next Spell "..jps.NextSpell.. " was casted")
 				jps.NextSpell = nil
 				jps.Cast(jps.ThisCast)
 			end
+			if jps.cooldown(jps.NextSpell) > 1 then jps.NextSpell = nil end
 		else
 			jps.Cast(jps.ThisCast)
 		end

@@ -214,7 +214,7 @@ local InterruptTable = {
 		
 	-- TRINKETS -- jps.useTrinket(0) est "Trinket0Slot" est slotId  13 -- "jps.useTrinket(1) est "Trinket1Slot" est slotId  14
 	{ jps.useTrinket(1), jps.useTrinketBool(1) and playerIsStun , "player" },
-	-- "Soins rapides" 2061 "From Darkness, Comes Light" 109186 gives buff -- "Vague de Lumière" 114255 "Surge of Light"
+	-- "Soins rapides" 2061 -- "Vague de Lumière" 114255 "Surge of Light"
 	{ 2061, jps.buff(114255) and (LowestImportantUnitHealth > priest.AvgAmountFlashHeal) , LowestImportantUnit , "SoinsRapides_Light_"..LowestImportantUnit },
 	{ 2061, jps.buff(114255) and (jps.buffDuration(114255) < 4) , LowestImportantUnit , "SoinsRapides_Light_"..LowestImportantUnit },
 	-- "Suppression de la douleur" 33206 "Pain Suppression"
@@ -286,12 +286,8 @@ local InterruptTable = {
 			{ 17, not jps.buff(17,LowestImportantUnit) and jps.buffId(123266,"player") , LowestImportantUnit , "Emergency_DivineShield_"..LowestImportantUnit  },
 			-- "Pénitence" 47540
 			{ 47540, true , LowestImportantUnit , "Emergency_Penance_"..LowestImportantUnit },
-			-- "Soins rapides" 2061 "Borrowed" 59889
-			{ 2061, not jps.Moving and jps.buff(59889,"player") and (LowestImportantUnitHpct < 0.40) , LowestImportantUnit , "Emergency_SoinsRapides_Borrowed_"..LowestImportantUnit },
 			-- "Prière de guérison" 33076 -- buff 4P pvp aug. 50% soins -- "Holy Spark" 131567 "Etincelle sacrée"
 			{ 33076, (type(MendingTarget) == "string") , MendingTarget , "Emergency_MendingTarget" },
-			-- "Soins supérieurs" 2060 "Borrowed" 59889
-			{ 2060, not playerAggro and not jps.Moving and jps.buff(59889,"player") and (LowestImportantUnitHpct > 0.40) , LowestImportantUnit , "Emergency_SoinsSup_Borrowed_"..LowestImportantUnit  },
 			-- "Soins rapides" 2061
 			{ 2061, not jps.Moving and (LowestImportantUnitHpct < 0.40) , LowestImportantUnit , "Emergency_SoinsRapides_40%_"..LowestImportantUnit },
 			-- Dispell -- "Glyph of Purify" 55677 Your Purify spell also heals your target for 5% of maximum health
@@ -336,7 +332,7 @@ local InterruptTable = {
 	{ 34433, jps.mana("player") < 0.75 and priest.canShadowfiend(rangedTarget) , rangedTarget },
 	{ 123040, jps.mana("player") < 0.75 and priest.canShadowfiend(rangedTarget) , rangedTarget },
 	-- "Infusion de puissance" 10060 
-	{ 10060, not jps.buffId(10060,"player") and UnitAffectingCombat("player") == true, "player" , "POWERINFUSION_" },
+	{ 10060, not jps.buffId(10060,"player") and UnitAffectingCombat("player") == true , "player" , "POWERINFUSION_" },
 	-- "Archange" 81700 -- "Evangélisme" 81661 buffStacks == 5
 	{ 81700, (LowestImportantUnitHpct < 0.85) and (jps.buffStacks(81661) == 5) , "player", "ARCHANGE_" },
 	-- "Don des naaru" 59544
@@ -353,47 +349,3 @@ local InterruptTable = {
 end
 
 jps.registerRotation("PRIEST","DISCIPLINE", priestDisc , "Disc Priest Default" )
-
--- Divine Star belong to schools that are not used by any of the class's other spells. When these spells are instant cast, this means that it is not possible for that spell to be locked down.
--- Spirit Shell(SS) se cumule avec Divine Aegis(DA) Bouclier protecteur si soins critiques
--- sous SS Les soins critiques de Focalisation ne donnent plus DA pour Soins Rapides, Sup, POH. Seul Penance sous SS peut donner DA
--- SS Max Absorb = 60% UnitHealthMax("player") -- SS is affected by Archangel -- SS Scales with Grace
--- "Borrowed" 59889 -- After casting Power Word: Shield reducing the cast time or channel time of your next Priest spell within 6 sec by 15%.
--- "Focused Will" 45243 -- victim of any damage greater than 10% of your total health or critically hit reducing all damage taken by 15% lasting for 8 sec. Stacks up to 2 times.
-
--- "Divine Insight" 109175 Penance, gives 100% chance your next Power Word: Shield will both ignore and not cause the Weakened Soul effect. Gives buff "Divine Insight" 123266
--- "Leap of Faith" -- "Saut de foi" 
--- "Mass Dispel"  -- Dissipation de masse 32375
--- "Psyfiend" -- "Démon psychique" 108921
--- "Archange" 81700
--- "Borrowed" "Sursis" 59889 
--- "Divine Aegis" "Egide divine" 47753 "
--- "Spirit Shell" -- Carapace spirituelle -- Pendant les prochaines 15 s, vos Soins, Soins rapides, Soins supérieurs, et Prière de soins ne soignent plus mais créent des boucliers d’absorption qui durent 15 s
--- "Holy Fire" -- Flammes sacrées
--- "Archangel" -- Archange -- Consomme votre Evangelisme, ce qui augmente les soins que vous prodiguez de 5% par charge d'Evangelisme consommée pendant 18 s.
--- "Evangelism" -- Evangélisme -- dégâts directs avec Flammes sacrées ou Fouet mental, vous bénéficiez d'Evangélisme. Cumulable jusqu'à 5 fois. Dure 20 s
--- "Atonement" -- Expiation -- dmg avec Châtiment, Flammes sacrées ou Pénitence, vous rendez instantanément à un membre du groupe ou du raid proche qui a peu de points de vie et qui se trouve à moins de 15 mètres de la cible ennemie un montant de points de vie égal à 100% des dégâts infligés.
--- "Borrowed Time" -- Sursis -- Votre prochain sort bénéficie d'un bonus de 15% à la hâte des sorts quand vous lancez Mot de pouvoir : Bouclier. Dure 6 s.
--- "Divine Hymn" -- Hymne divin
--- "Dispel Magic" -- Purifier
--- "Inner Fire" -- Feu intérieur
--- "Serendipity" -- Heureux hasard -- vous soignez avec Soins de lien ou Soins rapides, le temps d'incantation de votre prochain sort Soins supérieurs ou Prière de soins est réduit de 20% et son coût en mana de 10%.
--- "Power Word: Fortitude" -- Mot de pouvoir : Robustesse
--- "Fear Ward" -- Gardien de peur
--- "Chakra: Serenity" -- Chakra : Sérénité
--- "Chakra" -- Chakra
--- "Heal" -- Soins
--- "Flash Heal" -- Soins rapides
--- "Binding Heal" -- Soins de lien
--- "Greater Heal" -- Soins supérieurs
--- "Renew" -- Rénovation
--- "Circle of Healing" -- Cercle de soins
--- "Prayer of Healing" -- Prière de soins
--- "Prayer of Mending" -- Prière de guérison
--- "Guardian Spirit" -- Esprit gardien
--- "Cure Disease" -- Purifier
--- "Desperate Prayer" -- Prière du désespoir
--- "Surge of light" -- Vague de Lumière
--- "Holy Word: Serenity" -- Mot sacré : Sérénité SpellID 88684
--- "Power Word: Shield" -- Mot de pouvoir : Bouclier 
--- "Weakened Soul" -- "Ame affaiblie"

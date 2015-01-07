@@ -31,7 +31,6 @@ setmetatable(priest.Disc, { __mode = 'k' }) -- priest.Disc is now weak
 priest.Spell.arcaneTorrent = 28730;
 priest.Spell.bloodFury = 33702;
 priest.Spell.bloodlust = 2825;	
-priest.Spell.borrowedTime = 59889;
 priest.Spell.cascade = 121135;
 priest.Spell.divineStar = 110744;
 priest.Spell.flashHeal = 2061;
@@ -114,18 +113,15 @@ priest.tableForFlash = function ( Lowest )
 	local LowestHealth = jps.hp(Lowest,"abs") -- UnitHealthMax(unit) - UnitHealth(unit)
 	local AvgHeal = priest.AvgAmountFlashHeal
 
-	-- "From Darkness, Comes Light" 109186 gives buff -- "Vague de Lumière" 114255 "Surge of Light"
+	-- "Vague de Lumière" 109186 gives buff -- "Vague de Lumière" 114255 "Surge of Light"
 	if jps.buff(114255) and (LowestHealth >= AvgHeal) then
 		Table = {2061, true, Lowest, "FlashSurgeOfLight_fn "..Lowest }
-	-- "From Darkness, Comes Light" 109186 gives buff -- "Vague de Lumière" 114255 "Surge of Light"
+	-- "Vague de Lumière" 109186 gives buff -- "Vague de Lumière" 114255 "Surge of Light"
 	elseif jps.buff(114255) and (jps.buffDuration(114255) < 4) then
 		Table = {2061, true, Lowest, "FlashSurgeOfLight_fn "..Lowest }		
 	-- "Focalisation intérieure" 96267 Immune to Silence, Interrupt and Dispel effects 5 seconds remaining
 	elseif jps.buffId(96267) and (jps.buffDuration(96267,"player") > 1.5) and (LowestHealth >= AvgHeal) then
 		Table = {2061, true, Lowest, "FlashImmune_fn "..Lowest }
-	-- "Borrowed" 59889 -- After casting Power Word: Shield reducing the cast time or channel time of your next Priest spell within 6 sec by 15%.
-	elseif jps.buff(59889,"player") and (LowestHpct < 0.35) then
-		Table = {2061, true, Lowest, "FlashBorrowed_fn "..Lowest }
 	end
 	return Table
 end
@@ -151,7 +147,6 @@ priest.canFear = function (rangedTarget)
 				if jps.FaceTarget then rangedTargetObject:Target() end
 			end
 		end
-		--if jps.FaceTarget then jps.Macro("/target "..rangedTarget) end
 	end
 	return canFear
 end
@@ -171,7 +166,6 @@ priest.canShadowWordDeath = function (rangedTarget)
 	return false
 end
 
-
 ------------------------------------
 -- FUNCTIONS FRIEND UNIT
 ------------------------------------
@@ -180,7 +174,6 @@ priest.unitForShield = function (unit)
 	if unit == nil then return false end
 	if not jps.FriendAggro(unit) then return false end
 	if jps.buff(17,unit) then return false end
-	-- "Clairvoyance divine" 109175 gives buff "Divine Insight" 123266 10 sec
 	if jps.debuff(6788,unit) and not jps.buffId(123266,"player") then return false end
 	if jps.checkTimer("ShieldTimer") > 0 then return false end
 	return true
@@ -215,7 +208,6 @@ end
 -- EVENT FUNCTIONS
 -------------------
 
--- "Shield" 17 "Clairvoyance divine" 109175 gives buff "Divine Insight" 123266 gives buff "Shield" 123258 
 jps.listener.registerCombatLogEventUnfiltered("SPELL_CAST_SUCCESS", function(...)
 	local sourceGUID = select(4,...)
 	local spellID =  select(12,...)

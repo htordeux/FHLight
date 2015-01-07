@@ -40,6 +40,10 @@ local canDPS = jps.canDPS
 local UpdateRaidStatus = jps.UpdateRaidStatus
 local GetUnitName = GetUnitName
 local pairs = pairs
+local tinsert = table.insert
+local tremove = table.remove
+-- Table for failed spells
+local SpellFailedTable = {}
 
 --------------------------
 -- (UN)REGISTER FUNCTIONS 
@@ -426,6 +430,7 @@ local leaveCombat = function()
 	jps.NextSpell = nil
 
 	-- nil all tables
+	SpellFailedTable = {}
 	EnemyDamager = {}
 	RaidTimeToDie = {}
 	Healtable = {}
@@ -533,7 +538,7 @@ jps.listener.registerEvent("UNIT_SPELLCAST_START", function(unitID,spellname,_,_
 end)
 
 jps.listener.registerEvent("UNIT_SPELLCAST_CHANNEL_START", function(unitID,spellname,_,_,spellID)
-		if unitID == "player" and spellID ~= nil then
+		if unitID == "player" and type(spellname) == "string" then
 			jps.CurrentCast = spellname
 			jps.Latency = GetTime() - sendTime
 			jps.GCD = GlobalCooldown()
@@ -550,7 +555,7 @@ end)
 --end)
 
 jps.listener.registerEvent("UNIT_SPELLCAST_INTERRUPTED", function(unitID,spellname,_,_,spellID)
-	if unitID == "player" and spellID ~= nil then
+	if unitID == "player" and type(spellname) == "string" then
 		jps.CurrentCastInterrupt = spellname
 		--jps.Casting = false
 		--print("INTERRUPTED: ",unitID,"spellname:",spellname,": ",spellID)
@@ -690,6 +695,42 @@ end
 
 -- HealerBlacklist Update
 jps.registerOnUpdate(UpdateIntervalRaidStatus)
+
+
+--------------------------
+-- COMBAT_LOG_EVENT_UNFILTERED FUNCTIONS
+-- SPELL_FAILED
+--------------------------
+
+-- table.insert(table, [ position, ] valeur) -- table.insert(t, 1, "element") insert an element at the start
+-- table.insert called without a position, it inserts the element in the last position of the array (and, therefore, moves no elements)
+-- table.remove called without a position, it removes the last element of the array.
+
+jps.listener.registerCombatLogEventUnfiltered("SPELL_CAST_FAILED", function(...)
+	local sourceGUID = select(4,...)
+	local spellID =  select(12,...)
+	local failedType = select(15,...)
+	local spellname = select(13, ...)
+	if sourceGUID == UnitGUID("player") and type(failedType) == "string" then
+		--print("SPELL_CAST_FAILED "..spellID.."_"..spellname.."_"..failedType)
+		tinsert(SpellFailedTable,1,{spellname,failedType})
+	end
+end)
+
+
+jps.IsSpellFailed = function(spellname)
+	if jps.tableLength(SpellFailedTable) == 0 then return false end
+	for i,j in ipairs(SpellFailedTable) do
+		if j[1] == spellname and j[2] == "Invulnérable" then return true end
+	end
+	return false
+end
+
+jps.printIsSpellFailed = function()
+	for i,j in ipairs(SpellFailedTable) do
+		print(i,"-",j[1],"-",j[2])
+	end
+end
 
 --------------------------
 -- COMBAT_LOG_EVENT_UNFILTERED FUNCTIONS

@@ -116,19 +116,19 @@ local spellTable = {
 	{ dk.spells["HowlingBlast"] , jps.buff(dk.spells["FreezingFog"]) , rangedTarget , "HowlingBlast_FreezingFog" },
 	{ dk.spells["HowlingBlast"] , jps.myDebuffDuration(55095,rangedTarget) < 6 , rangedTarget , "HowlingBlast_Debuff" },
 	-- "Plague Strike" 45462 "Frappe de peste" -- gives debuff Blood Plague 55078
-	{ dk.spells["PlagueStrike"] , jps.myDebuffDuration(55078,rangedTarget) < 9 and dk.rune("dk.oneUr "), rangedTarget , "PlagueStrike_Debuff" },
+	{ dk.spells["PlagueStrike"] , jps.myDebuffDuration(55078,rangedTarget) < 9 and dk.rune("oneUr"), rangedTarget , "PlagueStrike_Debuff" },
 	-- "Frost Strike" 49143 "Frappe de givre"
 	{ dk.spells["FrostStrike"] , jps.runicPower() > 75 , rangedTarget , "FrostStrike_RunicPower" },
 	{ dk.spells["FrostStrike"] , jps.runicPower() > 25 and jps.buff(dk.spells["KillingMachine"]) , rangedTarget , "FrostStrike_KillingMachine" },
 
-	-- "BloodTap" 45529 -- "Drain sanglant"
-	{ dk.spells["BloodTap"] , jps.buffStacks(dk.spells["BloodCharge"]) > 9 , rangedTarget , "_DrainSanglant_10" },
+	-- "BloodTap" 45529 -- "Drain sanglant" 114851
+	{ dk.spells["BloodTap"] , jps.buffStacks(114851) > 9 and not dk.rune("twoDr") and not dk.rune("twoFr") and not dk.rune("twoUr") , rangedTarget , "DrainSanglant_10_Ur" },
 	
 	-- "Obliterate" 49020 "Anéantissement" -- With "KillingMachine" for Two-Hand DPS
 	{ dk.spells["Obliterate"] , jps.buff(dk.spells["KillingMachine"]) , rangedTarget , "KillingMachine_Obliterate" },
-	{ dk.spells["Obliterate"] , dk.rune("twoDr") , rangedTarget , "_Obliterate_twoDr" },
-	{ dk.spells["Obliterate"] , dk.rune("twoFr") , rangedTarget , "_Obliterate_twoFr" },
-	{ dk.spells["Obliterate"] , dk.rune("twoUr") , rangedTarget , "_Obliterate_twoUr" },
+	{ dk.spells["Obliterate"] , dk.rune("twoDr") , rangedTarget , "Obliterate_twoDr" },
+	{ dk.spells["Obliterate"] , dk.rune("twoFr") , rangedTarget , "Obliterate_twoFr" },
+	{ dk.spells["Obliterate"] , dk.rune("twoUr") , rangedTarget , "Obliterate_twoUr" },
 
 
 	{"nested", jps.MultiTarget or EnemyCount >= 3 ,{
@@ -141,7 +141,7 @@ local spellTable = {
 		-- "Death and Decay" 43265 "Mort et decomposition"
 		{ dk.spells["DeathAndDecay"] , dk.rune("twoUr") }, -- Unholy runes
 		-- "Plague Leech" 123693 "Parasite de peste"
-		{ dk.spells["PlagueLeech"] , dk.canCastPlagueLeech(3) , rangedTarget , "_Parasite de peste" },
+		{ dk.spells["PlagueLeech"] , dk.canCastPlagueLeech(3) , rangedTarget , "Parasite_Peste" },
 
 	}},
 	

@@ -84,9 +84,6 @@
 	dk.spells["AntiMagicZone"] = 48707 
 
 
-
-
-
 	dk.darkSimSpells = {
 	-- siege of orgrimmar
 	"Froststorm Bolt","Arcane Shock","Rage of the Empress","Chain Lightning",
@@ -125,13 +122,14 @@
 		return false
 	end
 
+-- start, duration, runeReady = GetRuneCooldown(id)
 	function dk.updateRunes()
-		dk.dr1 = select(3,GetRuneCooldown(1)) -- blood rune
-		dk.dr2 = select(3,GetRuneCooldown(2))
-		dk.ur1 = select(3,GetRuneCooldown(3)) -- unholy rune
-		dk.ur2 = select(3,GetRuneCooldown(4))
-		dk.fr1 = select(3,GetRuneCooldown(5)) -- frost rune
-		dk.fr2 = select(3,GetRuneCooldown(6))
+		dk.dr1 = select(3,GetRuneCooldown(1)) -- 1 Leftmost -- blood rune or death rune
+		dk.dr2 = select(3,GetRuneCooldown(2)) -- 2 Second from left -- blood rune or death rune
+		dk.ur1 = select(3,GetRuneCooldown(3)) -- 3 Fifth from left (second from right) -- unholy rune
+		dk.ur2 = select(3,GetRuneCooldown(4)) -- 4 Sixth from left (rightmost) -- unholy rune
+		dk.fr1 = select(3,GetRuneCooldown(5)) -- 5 Third from left -- frost rune
+		dk.fr2 = select(3,GetRuneCooldown(6)) -- 6 Fourth from left -- frost rune
 		dk.oneDr = dk.dr1 or dk.dr2
 		dk.twoDr = dk.dr1 and dk.dr2
 		dk.oneFr = dk.fr1 or dk.fr2
@@ -151,7 +149,7 @@
 
 	function dk.rune(name)
 		dk.updateRunes()
-		if dk[name] ~= nil then
+		if dk[name] then
 			return true
 		end
 		return false

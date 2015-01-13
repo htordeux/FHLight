@@ -75,19 +75,6 @@ jps.UpdateRaidStatus = function ()
 		RaidStatus[unit]["health"] = unitHealth(unit,inrange)
 		RaidStatus[unit]["inrange"] = inrange
 	end
-
--- Role in Raid -- with UnitGUID
--- local role = UnitGroupRolesAssigned(unit) -- works only for friendly unit in raid -- return "NONE" if not in raid	
-	table.wipe(RaidStatusRole)
-	for unit,_ in pairs(RaidStatus) do
-		local unitguid = UnitGUID(unit)
-		if RaidStatusRole[unitguid] == nil then RaidStatusRole[unitguid] = {} end
-		local role = UnitGroupRolesAssigned(unit)
-		local class = select(2,UnitClass(unit))
-		RaidStatusRole[unitguid]["role"] = role
-		RaidStatusRole[unitguid]["class"] = class
-	end
-
 end
 
 -- Unit is INRANGE
@@ -107,6 +94,8 @@ end
 -- IsInGroup() Boolean - returns true if the player is in a some kind of group, otherwise false
 -- leader = UnitIsRaidOfficer("unit") -- 1 if the unit is a raid assistant; otherwise nil or false if not in raid
 -- leader = UnitIsGroupLeader("unit") -- true if the unit is a raid assistant; otherwise false (bool)
+-- name, rank, subgroup, level, class, fileName, zone, online, isDead, role, isML, combatRole = GetRaidRosterInfo(raidIndex);
+-- combatRole Returns the combat role of the player if one is selected "DAMAGER", "TANK" or "HEALER". Returns "NONE" otherwise.
 
 local IsRaidLeader = function()
 	for i=1,MAX_RAID_MEMBERS do
@@ -129,37 +118,22 @@ end
 -- CLASS SPEC RAIDROSTER
 --------------------------
 
--- "DAMAGER" , "HEALER" , "TANK" , "NONE"
+-- local role = UnitGroupRolesAssigned(unit) -- works only for friendly unit in raid TANK, HEALER, DAMAGER, NONE -- return "NONE" if not in raid
+jps.UpdateRaidRole = function ()
+	table.wipe(RaidStatusRole)
+	for unit,_ in pairs(RaidStatus) do
+		local role = UnitGroupRolesAssigned(unit)
+		local class = select(2,UnitClass(unit))
+		if RaidStatusRole[unit] == nil then RaidStatusRole[unit] = {} end
+		RaidStatusRole[unit]["role"] = role
+		RaidStatusRole[unit]["class"] = class
+	end
+end
+
+-- "DAMAGER" , "HEALER" , "TANK" , "NONE -- works only for RaidStatus units
 jps.RoleInRaid = function (unit)
-	local unitguid = UnitGUID(unit)
-	if RaidStatusRole[unitguid] then return RaidStatusRole[unitguid]["role"] end
+	if RaidStatusRole[unit] then return RaidStatusRole[unit]["role"] end
 	return "NONE"
-end
-
--- "DAMAGER" , "HEALER" , "TANK" , "NONE"
-local findTanksInRaid = function(unit)
-	local foundTank = false
-	if UnitGroupRolesAssigned(unit) == "TANK" then
-		foundTank = true
-	end
-	if foundTank == false and jps.buff(L["Bear Form"],unit) then
-		foundTank = true
-	end
-	if foundTank == false and jps.buff(L["Blood Presence"],unit) then
-		foundTank = true
-	end
-	if foundTank == false and jps.buff(L["Righteous Fury"],unit) then
-		foundTank = true
-	end
-	return foundTank
-end
-
-function jps.findTanksInRaid()
-	local myTanks = {}
-	for unit,index in pairs(RaidStatus) do
-		if findTanksInRaid(unit) then tinsert(myTanks, unit) end
-	end
-	return myTanks
 end
 
 function jps.FriendHealerInRange()
@@ -167,6 +141,14 @@ function jps.FriendHealerInRange()
 		if jps.RoleInRaid(unit) == "HEALER" and index.inrange then return true end
 	end
 	return false
+end
+
+function jps.findTanksInRaid()
+	local myTanks = {}
+	for unit,index in pairs(RaidStatus) do
+		if jps.RoleInRaid(unit) == "TANK" then tinsert(myTanks, unit) end
+	end
+	return myTanks
 end
 
 ----------------------
@@ -248,24 +230,6 @@ jps.LowestFriendly = function()
 		end
 	end
 	return lowestUnit
-end
-
--- AVG RAID PERCENTAGE in RaidStatus without aberrations
-jps.avgRaidHP = function()
-	local raidHP = 0
-	local unitCount = 0
-	local avgHP = 1
-	for unit, unitTable in pairs(RaidStatus) do
-		if unitTable["inrange"] then
-			local unitHP = unitTable["hpct"]
-			if unitHP then
-				raidHP = raidHP + unitHP
-				unitCount = unitCount + 1
-			end
-		end
-	end
-	if unitCount >= 1 then avgHP = raidHP / unitCount end
-	return avgHP
 end
 
 local myTanks = { "player","focus","target","targettarget","mouseover" }

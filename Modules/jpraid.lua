@@ -14,7 +14,6 @@ local UnitManaMax = UnitManaMax
 
 local canDPS = jps.canDPS
 local UnitThreatSituation = UnitThreatSituation
-local findTanksInRaid = jps.findTanksInRaid
 local UnitPlayerControlled = UnitPlayerControlled
 local LowestTarget = jps.LowestTarget -- include canDPS
 -- local rangedTarget, EnemyUnit, TargetCount = jps.LowestTarget()
@@ -140,7 +139,7 @@ function jps.playerInLFR()
 	return false
 end
 
-local allTanks = findTanksInRaid()
+local allTanks = jps.findTanksInRaid()
 function jps.findMeAggroTank(targetUnit)
 	local highestThreat = 0
 	local aggroTank = "player"
@@ -151,9 +150,6 @@ function jps.findMeAggroTank(targetUnit)
 			highestThreat = unitThreat
 			aggroTank = possibleTankUnit
 		end
-	end
-	if aggroTank == "player" and jps.tableLength(allTanks) > 0 and targetUnit ~= nil then --yeah nobody is tanking our target :):D so just return "a" tank
-		return jps.findMeAggroTank()
 	end
 	return aggroTank
 end

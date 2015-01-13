@@ -37,7 +37,6 @@ local GetTime = GetTime
 -- RaidStatus
 local canHeal = jps.canHeal
 local canDPS = jps.canDPS
-local UpdateRaidStatus = jps.UpdateRaidStatus
 local GetUnitName = GetUnitName
 local pairs = pairs
 local tinsert = table.insert
@@ -370,7 +369,8 @@ end)
 jps.listener.registerEvent("PLAYER_ENTERING_WORLD", function()
 	jps.detectSpec()
 	reset_healtable()
-	UpdateRaidStatus()
+	jps.UpdateRaidStatus()
+	jps.UpdateRaidRole()
 	EnemyHealer = {} -- keep healer enemy table during all RBG time?
 	jps.Timers = {} -- keep Holy Word: Chastise 88625 Cooldown
 end)
@@ -410,7 +410,8 @@ jps.listener.registerEvent("PLAYER_REGEN_DISABLED", function()
 	jps.Combat = true
 	jps.gui_toggleCombat(true)
 	jps.combatStart = GetTime()
-	UpdateRaidStatus()
+	jps.UpdateRaidStatus()
+	jps.UpdateRaidRole()
 end)
 
 -- LOOT_OPENED
@@ -438,7 +439,8 @@ local leaveCombat = function()
 	jps.TimeToDieData = {}
 	jps.TimedCasting = {}
 	jps.HealerBlacklist = {} 
-	UpdateRaidStatus()
+	jps.UpdateRaidStatus()
+	jps.UpdateRaidRole()
 
 	collectgarbage()
 end
@@ -643,7 +645,8 @@ end)
 
 -- Group/Raid Update
 -- RAID_ROSTER_UPDATE's pre-MoP functionality was moved to the new event GROUP_ROSTER_UPDATE
-jps.listener.registerEvent("GROUP_ROSTER_UPDATE", UpdateRaidStatus)
+jps.listener.registerEvent("GROUP_ROSTER_UPDATE", jps.UpdateRaidStatus)
+jps.listener.registerEvent("GROUP_ROSTER_UPDATE", jps.UpdateRaidRole)
 
 -----------------------
 -- UPDATE ENEMY TABLE
@@ -684,10 +687,7 @@ local UpdateIntervalRaidStatus = function()
 	scoreLastUpdate = curTime
 	jps.UpdateHealerBlacklist()
 	updateEnemyDamager()
-	-- Update RaidStatus if not jps.isHealer
-	if not jps.isHealer then
-		UpdateRaidStatus()
-	end
+	jps.UpdateRaidStatus()
 	if #jps.LastMessage > 2 then
 		for i=3,#jps.LastMessage do jps.LastMessage[i] = nil end
 	end
@@ -695,7 +695,6 @@ end
 
 -- HealerBlacklist Update
 jps.registerOnUpdate(UpdateIntervalRaidStatus)
-
 
 --------------------------
 -- COMBAT_LOG_EVENT_UNFILTERED FUNCTIONS
@@ -717,11 +716,10 @@ jps.listener.registerCombatLogEventUnfiltered("SPELL_CAST_FAILED", function(...)
 	end
 end)
 
-
 jps.IsSpellFailed = function(spellname)
 	if jps.tableLength(SpellFailedTable) == 0 then return false end
 	for i,j in ipairs(SpellFailedTable) do
-		if j[1] == spellname and j[2] == "Invulnérable" then return true end
+		if j[1] == spellname and j[2] == "Insensible" then return true end
 	end
 	return false
 end

@@ -59,18 +59,7 @@ local CountInRange, AvgHealthLoss, FriendUnit = jps.CountInRaidStatus(1)
 local playerhealth =  jps.hp("player","abs")
 local playerhealthpct = jps.hp("player")
 local playermana = jps.roundValue(UnitPower("player",0)/UnitPowerMax("player",0),2)
-	
-----------------------
--- HELPER
-----------------------
-
 local Orbs = UnitPower("player",13) -- SPELL_POWER_SHADOW_ORBS 	13
-local NaaruGift = tostring(select(1,GetSpellInfo(59544))) -- NaaruGift 59544
-local Desesperate = tostring(select(1,GetSpellInfo(19236))) -- "Prière du désespoir" 19236
-local MindBlast = tostring(select(1,GetSpellInfo(8092))) -- "Mind Blast" 8092
-local VampTouch = tostring(select(1,GetSpellInfo(34914)))
-local ShadowPain = tostring(select(1,GetSpellInfo(589)))
-local MindSear = tostring(select(1,GetSpellInfo(48045)))
 
 ---------------------
 -- TIMER

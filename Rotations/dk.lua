@@ -124,18 +124,32 @@
 
 -- start, duration, runeReady = GetRuneCooldown(id)
 	function dk.updateRunes()
-		dk.dr1 = select(3,GetRuneCooldown(1)) -- 1 Leftmost -- blood rune or death rune
-		dk.dr2 = select(3,GetRuneCooldown(2)) -- 2 Second from left -- blood rune or death rune
-		dk.ur1 = select(3,GetRuneCooldown(3)) -- 3 Fifth from left (second from right) -- unholy rune
-		dk.ur2 = select(3,GetRuneCooldown(4)) -- 4 Sixth from left (rightmost) -- unholy rune
-		dk.fr1 = select(3,GetRuneCooldown(5)) -- 5 Third from left -- frost rune
-		dk.fr2 = select(3,GetRuneCooldown(6)) -- 6 Fourth from left -- frost rune
-		dk.oneDr = dk.dr1 or dk.dr2
-		dk.twoDr = dk.dr1 and dk.dr2
-		dk.oneFr = dk.fr1 or dk.fr2
-		dk.twoFr = dk.fr1 and dk.fr2
-		dk.oneUr = dk.ur1 or dk.ur2
-		dk.twoUr = dk.ur1 and dk.ur2
+		local dr1 = select(3,GetRuneCooldown(1)) -- 1 Leftmost -- blood rune or death rune
+		local dr2 = select(3,GetRuneCooldown(2)) -- 2 Second from left -- blood rune or death rune
+		local ur1 = select(3,GetRuneCooldown(3)) -- 3 Fifth from left (second from right) -- unholy rune
+		local ur2 = select(3,GetRuneCooldown(4)) -- 4 Sixth from left (rightmost) -- unholy rune
+		local fr1 = select(3,GetRuneCooldown(5)) -- 5 Third from left -- frost rune
+		local fr2 = select(3,GetRuneCooldown(6)) -- 6 Fourth from left -- frost rune
+		-- only tworunes
+		dk.twoDr = Ternary(dr1 and dr2, true, false)
+		dk.twoFr = Ternary(fr1 and fr2, true, false)
+		dk.twoUr = Ternary(ur1 and ur2, true, false)
+		-- only one not two
+		dk.oneDr = Ternary(dr1 or dr2,Ternary(dr1 and dr2,false,true),false) 
+		dk.oneFr = Ternary(fr1 or fr2,Ternary(fr1 and fr2,false,true),false)
+		dk.oneUr = Ternary(ur1 or ur2,Ternary(ur1 and ur2,false,true),false)
+		-- one or two runes
+		dk.twoneDr = Ternary(dr1 or dr2, true, false)
+		dk.twoneFr = Ternary(fr1 or fr2, true, false)
+		dk.twoneUr = Ternary(ur1 or ur2, true, false)
+	end
+	
+	function dk.rune(name)
+		dk.updateRunes()
+		if dk[name] then
+			return true
+		end
+		return false
 	end
 
 	function dk.hasGhoul()
@@ -145,14 +159,6 @@
 			if select(1,GetTotemInfo(1)) == false then return false end
 		end
 		return true
-	end
-
-	function dk.rune(name)
-		dk.updateRunes()
-		if dk[name] then
-			return true
-		end
-		return false
 	end
 
 	function dk.totalAttackPower()

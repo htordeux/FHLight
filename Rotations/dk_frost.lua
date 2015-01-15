@@ -78,12 +78,14 @@ local spellTable = {
 
 	-- HEAL
 	-- "Death Pact" 48743 "Pacte mortel"
-	{ dk.spells["DeathPact"] , jps.IsSpellKnown(48743) and jps.hp() < 0.5 },
+	{ dk.spells["DeathPact"] , jps.IsSpellKnown(48743) and jps.hp() < 0.50 },
 	-- "Icebound Fortitude" 61999 "Robustesse glaciale"
 	{ dk.spells["Icebound"] , jps.hp() < 0.75 },
-	-- "Death Strike" 49998 "Frappe de Mort"
+	-- "Death Strike" 49998 "Frappe de Mort" -- 1 Unholy, 1 Frost
+	-- "Dark Succor" 101568 "Sombre secours" Buff -- Your next Death Strike in Frost or Unholy Presence is free and its healing is increased by 100%.
+	-- "Dark Succor" 178819 "Sombre secours" Spell -- En Présence de givre ou impie, lorsque vous tuez un ennemi qui rapporte de l’expérience ou de l’honneur, votre prochaine Frappe de mort dans les 15 s ne coûte rien et rend 100% de points de vie supplémentaires.
 	{ dk.spells["DeathStrike"] , jps.buff(101568) and jps.hp() < 0.9 , rangedTarget, "DeathStrike_buff" },
-	-- "Dark Succor" 101568 "Sombre secours" -- Your next Death Strike in Frost or Unholy Presence is free and its healing is increased by 100%.
+	{ dk.spells["DeathStrike"] , dk.rune("twoneDr") and dk.rune("twoneFr") and jps.hp() < 0.9 , rangedTarget, "DeathStrike_buff" },
 	-- "Stoneform" 20594 "Forme de pierre"
 	{ 20594 , playerAggro and jps.hp() < 0.9 , "player" , "_Stoneform" },
 	-- 108196 "Siphon mortel"
@@ -117,12 +119,14 @@ local spellTable = {
 	{ dk.spells["HowlingBlast"] , jps.myDebuffDuration(55095,rangedTarget) < 6 , rangedTarget , "HowlingBlast_Debuff" },
 	-- "Plague Strike" 45462 "Frappe de peste" -- gives debuff Blood Plague 55078
 	{ dk.spells["PlagueStrike"] , jps.myDebuffDuration(55078,rangedTarget) < 9 and dk.rune("oneUr"), rangedTarget , "PlagueStrike_Debuff" },
+	{ dk.spells["PlagueStrike"] , jps.myDebuffDuration(55078,rangedTarget) < 9 and dk.rune("twoUr"), rangedTarget , "PlagueStrike_Debuff" },
 	-- "Frost Strike" 49143 "Frappe de givre"
 	{ dk.spells["FrostStrike"] , jps.runicPower() > 75 , rangedTarget , "FrostStrike_RunicPower" },
 	{ dk.spells["FrostStrike"] , jps.runicPower() > 25 and jps.buff(dk.spells["KillingMachine"]) , rangedTarget , "FrostStrike_KillingMachine" },
 
 	-- "BloodTap" 45529 -- "Drain sanglant" 114851
-	{ dk.spells["BloodTap"] , jps.buffStacks(114851) > 9 and not dk.rune("twoDr") and not dk.rune("twoFr") and not dk.rune("twoUr") , rangedTarget , "DrainSanglant_10_Ur" },
+	{ dk.spells["BloodTap"] , jps.buffStacks(114851) > 9 and dk.rune("oneDr") and dk.rune("oneFr") and dk.rune("oneUr") , rangedTarget , "DrainSanglant_10_Ur" },
+	{ dk.spells["BloodTap"] , jps.buffStacks(114851) > 9 and dk.rune("oneFr") and dk.rune("oneUr") and not dk.rune("twoDr") , rangedTarget , "DrainSanglant_10_Ur" },
 	
 	-- "Obliterate" 49020 "Anéantissement" -- With "KillingMachine" for Two-Hand DPS
 	{ dk.spells["Obliterate"] , jps.buff(dk.spells["KillingMachine"]) , rangedTarget , "KillingMachine_Obliterate" },

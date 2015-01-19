@@ -77,7 +77,7 @@
 	-- "Death Pact" 48743 "Pacte mortel" -- Heals the Death Knight for 50% of max health, and absorbs incoming healing equal to 25% of max health for 15 sec.
 	dk.spells["DeathPact"] = 48743
 	-- "Remorseless Winter" 108200 "Hiver impitoyable" -- Surrounds the Death Knight with a swirling tempest targets' movement speed by 15% for 3 sec, stacking up to 5 times
-	dk.spells["DeathPact"] = 108200
+	dk.spells["RemorselessWinter"] = 108200
 	-- "Death Siphon" 108196 "Siphon mortel" -- Deals (60.2064% of Attack power) Shadowfrost damage to an enemy, healing the Death Knight for 335% of damage dealt.
 	dk.spells["DeathSiphon"] = 108196
 	-- "Anti-Magic Shell" 48707 "Carapace anti-magie" -- Anti-Magic Shell for 5 sec, absorbing 75% of all magical damage

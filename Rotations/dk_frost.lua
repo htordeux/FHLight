@@ -6,6 +6,14 @@ local UnitClass = UnitClass
 
 jps.registerRotation("DEATHKNIGHT","FROST", function()
 
+---------------------
+-- TIMER
+---------------------
+
+local playerAggro = jps.FriendAggro("player")
+local playerIsStun = jps.StunEvents(2) --- return true/false ONLY FOR PLAYER > 2 sec
+local playerIsInterrupt = jps.InterruptEvents() -- return true/false ONLY FOR PLAYER
+
 ----------------------
 -- TARGET ENEMY
 ----------------------
@@ -68,7 +76,8 @@ if canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
 ------------------------
 
 local oneDr,twoDr,oneFr,twoFr,oneUr,twoUr = dk.updateRunes()
-local DepletedRunes = (not oneDr and not twoDr) or (not oneUr and not twoUr) or (not oneFr and not twoFr) 
+local DepletedRunes = (not oneDr and not twoDr) or (not oneUr and not twoUr) or (not oneFr and not twoFr)
+
 ------------------------
 -- SPELL TABLE ---------
 ------------------------
@@ -76,8 +85,10 @@ local DepletedRunes = (not oneDr and not twoDr) or (not oneUr and not twoUr) or 
 local spellTable = {
 
 	-- "FrostPresence" 48266 "Présence de givre"
-	{ dk.spells["FrostPresence"] , jps.hp() > 0.55 and not jps.buff(dk.spells["FrostPresence"]) },
-	{ dk.spells["HornOfWinter"] , not jps.buff(dk.spells["HornOfWinter"]) },
+	{ dk.spells["FrostPresence"] , jps.hp() > 0.50 and not jps.buff(dk.spells["FrostPresence"]) , "player" },
+	{ dk.spells["HornOfWinter"] , not jps.buff(dk.spells["HornOfWinter"]) , "player" },
+	-- "Blood Presence" 48263 --  increasing Stamina by 20%, base armor by 30%, and reducing damage taken by 10%. Threat generation is significantly increased.
+	{ 48263 , jps.hp() < 0.50 and not jps.buff(48263) , "player" },
 
 	-- Battle Rezz
 	--{ dk.spells["RaiseAlly"] , UnitIsDeadOrGhost("focus") == 1 and UnitPlayerControlled("focus") and jps.UseCds, "focus" },
@@ -87,15 +98,12 @@ local spellTable = {
 	-- "Stoneform" 20594 "Forme de pierre"
 	{ 20594 , playerAggro and jps.hp() < 0.90 , "player" , "_Stoneform" },
 	-- "Death Siphon" 108196 "Siphon mortel"
-	{ dk.spells["DeathSiphon"] , jps.IsSpellKnown(108196) and jps.hp() < 0.55 },
+	{ dk.spells["DeathSiphon"] , jps.IsSpellKnown(108196) and jps.hp() < 0.55 , rangedTarget, "_DeathSiphon" },
 	-- "Death Pact" 48743 "Pacte mortel"
-	{ dk.spells["DeathPact"] , jps.IsSpellKnown(48743) and jps.hp() < 0.55 },
-	
-	-- "Blood Presence" 48263 --  increasing Stamina by 20%, base armor by 30%, and reducing damage taken by 10%. Threat generation is significantly increased.
-	{ 48263 , jps.hp() < 0.50 and not jps.buff(48263) },
+	{ dk.spells["DeathPact"] , jps.IsSpellKnown(48743) and jps.hp() < 0.55 , "player" , "_DeathPact" },
 	
 	-- "Icebound Fortitude" 61999 "Robustesse glaciale"
-	{ dk.spells["Icebound"] , jps.hp() < 0.85 },
+	{ dk.spells["Icebound"] , jps.hp() < 0.85 , "player" , "_Icebound" },
 	-- "Death Strike" 49998 "Frappe de Mort" -- 1 Unholy, 1 Frost
 	-- "Dark Succor" 101568 "Sombre secours" Buff -- Your next Death Strike in Frost or Unholy Presence is free and its healing is increased by 100%.
 	-- "Dark Succor" 178819 "Sombre secours" Spell -- En Présence de givre ou impie, lorsque vous tuez un ennemi qui rapporte de l’expérience ou de l’honneur, votre prochaine Frappe de mort dans les 15 s ne coûte rien et rend 100% de points de vie supplémentaires.
@@ -103,6 +111,8 @@ local spellTable = {
 	{ dk.spells["DeathStrike"] , twoDr and jps.hp() < 0.85 , rangedTarget, "DeathStrike_buff" },
 	{ dk.spells["DeathStrike"] , oneDr and oneUr and jps.hp() < 0.85 , rangedTarget, "DeathStrike_buff" },
 	{ dk.spells["DeathStrike"] , oneDr and oneFr and jps.hp() < 0.85 , rangedTarget, "DeathStrike_buff" },
+	-- "Remorseless Winter" 108200 "Hiver impitoyable"
+	{ dk.spells["RemorselessWinter"] , playerAggro and jps.hp() < 0.90 , "player" , "_Icebound" },
 
 	-- Interrupts
 	-- "Mind Freeze" 47528 "Gel de l'esprit"

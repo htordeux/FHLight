@@ -362,8 +362,8 @@ local spellTable = {
 	{ 589, type(PainEnemyTarget) == "string" , PainEnemyTarget , "Pain_MultiUnit_" },
 	{ 589, not jps.buff(132573) and fnPainEnemyTarget("mouseover") and not jps.UnitIsUnit("target","mouseover") , "mouseover" , "Pain_MOUSEOVER_ORBS" },
 	-- "Vampiric Touch" 34914 -- "Shadow Word: Insanity" buff 132573
-	{ 34914, not jps.buff(132573) and fnVampEnemyTarget("mouseover") and not jps.UnitIsUnit("target","mouseover") , "mouseover" , "Vamp_MOUSEOVER_ORBS" },
 	{ 34914, type(VampEnemyTarget) == "string" , VampEnemyTarget , "Vamp_MultiUnit_" },
+	{ 34914, not jps.buff(132573) and fnVampEnemyTarget("mouseover") and not jps.UnitIsUnit("target","mouseover") , "mouseover" , "Vamp_MOUSEOVER_ORBS" },
 
 	-- MULTITARGET
 	-- "Divine Star" Holy 110744 Shadow 122121
@@ -383,9 +383,9 @@ local spellTable = {
 	{ 123040, priest.canShadowfiend(rangedTarget) , rangedTarget },
 	
 	-- "Shadow Word: Pain" 589 Keep up
-	{ 589, jps.myDebuffDuration(589,rangedTarget) < jps.GCD and not jps.isRecast(589,rangedTarget) , rangedTarget , "Pain_Target_" },
+	{ 589, jps.myDebuff(589,rangedTarget) and jps.myDebuffDuration(589,rangedTarget) < jps.GCD and not jps.isRecast(589,rangedTarget) , rangedTarget , "Pain_Target_" },
 	-- "Vampiric Touch" 34914 Keep up
-	{ 34914, not jps.Moving and jps.myDebuffDuration(34914,rangedTarget) < jps.GCD and not jps.isRecast(34914,rangedTarget) , rangedTarget , "VT_Target_" },
+	{ 34914, not jps.Moving and jps.myDebuff(34914,rangedTarget) and jps.myDebuffDuration(34914,rangedTarget) < jps.GCD and not jps.isRecast(34914,rangedTarget) , rangedTarget , "VT_Target_" },
 
 	-- "Leap of Faith" 73325 -- "Saut de foi"
 	{ 73325 , type(LeapFriendFlag) == "string" , LeapFriendFlag , "|cff1eff00Leap_MultiUnit_" },
@@ -395,8 +395,8 @@ local spellTable = {
 	{ 528, jps.castEverySeconds(528,10) and type(DispelOffensiveTarget) == "string"  , DispelOffensiveTarget , "|cff1eff00Dispel_Offensive_MultiUnit_" },
 	
 	-- "Power Infusion" "Infusion de puissance" 10060
-	{ 10060, UnitAffectingCombat("player") == true , "player" },
-	-- "Gardien de peur" 6346 -- FARMING OR PVP -- NOT PVE
+	{ 10060, jps.combatStart > 0 , "player" },
+	-- "Gardien de peur" 634
 	{ 6346, not jps.buff(6346,"player") , "player" },
 	-- "Mind Flay" 15407
 	{ 15407, true , rangedTarget , "Fouet_Mental" },

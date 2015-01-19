@@ -132,9 +132,11 @@ function jps.isDPSHPSTrinket(trinket)
 	return false
 end
 
-function jps.itemCooldown(item) -- start, duration, enable = GetItemCooldown(itemID) or GetItemCooldown("itemName")
+function jps.itemCooldown(item)
 	if item == nil then return 999 end
-	local start,duration,isNotBlocked = GetItemCooldown(item) -- GetItemCooldown(ItemID)
+	local start,duration,isNotBlocked = GetItemCooldown(item) -- GetItemCooldown(ItemID) you MUST pass in the itemID.
+	local usable = select(1,IsUsableItem(item))
+	if not usable then return 999 end
 	local cd = start+duration-GetTime()
 	if isNotBlocked == 0 then return 999 end -- 1 if the item is ready or on cooldown, 0 if the item is used, but the cooldown didn't start yet 
 	if cd < 0 then return 0 end

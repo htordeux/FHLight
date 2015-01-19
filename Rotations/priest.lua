@@ -28,53 +28,45 @@ priest.Disc = {}
 priest.Spell = {}
 setmetatable(priest.Disc, { __mode = 'k' }) -- priest.Disc is now weak
 
-priest.Spell.arcaneTorrent = 28730;
-priest.Spell.bloodFury = 33702;
-priest.Spell.bloodlust = 2825;	
-priest.Spell.cascade = 121135;
-priest.Spell.divineStar = 110744;
-priest.Spell.flashHeal = 2061;
-priest.Spell.grace = 77613;
-priest.Spell.greaterHeal = 2060;
-priest.Spell.halo = 120517;
-priest.Spell.archangel = 81700;
-priest.Spell.evangelism = 81662;
-priest.Spell.hymnOfHope = 64901;
-priest.Spell.innerFocus = 89485;
-priest.Spell.innerFocusImmune = 96267
-priest.Spell.jadeSerpentPotion = 105702;
-priest.Spell.manaPotion = 76098;
-priest.Spell.mindbender = 123040;
-priest.Spell.powerInfusion = 10060;
-priest.Spell.powerWordShield = 17;
-priest.Spell.powerWordSolace = 129250;
-priest.Spell.rapture = 47536;
-priest.Spell.renew = 139; 
-priest.Spell.shadowWordDeath = 32379;
-priest.Spell.smite = 585;
-priest.Spell.surgeOfLight = 114255;
-priest.Spell.twistOfFate = 109142; 
-priest.Spell.purify = 527;
-priest.Spell.spiritShell = 114908;
-priest.Spell.spiritShellBuild = 109964;
-priest.Spell.prayerOfHealing = 596;
-priest.Spell.prayerOfMending = 33076;
-priest.Spell.divineAegis = 47753;
-priest.Spell.bindingHeal = 32546;
-priest.Spell.naaruGift = 59544;
-priest.Spell.desperatePrayer = 19236;
-priest.Spell.innerWill = 73413;
-priest.Spell.penance = 47540;
-priest.Spell.shadowfiend = 34433;
-priest.Spell.painsup = 33206;
-priest.Spell.holyFire = 14914;
-priest.Spell.weakenedSoul = 6788;
-priest.Spell.arcaneTorrent = 28730;
+priest.Spell.Archangel = 81700;
+priest.Spell.Smite = 585;
+priest.Spell.ClarityOfWill = 152118
+priest.Spell.Cascade = 121135;
+priest.Spell.DivineStar = 110744;
+priest.Spell.Halo = 120517;
+priest.Spell.PowerWordShield = 17;
+priest.Spell.PowerWordSolace = 129250;
+priest.Spell.Heal = 2060;
+priest.Spell.FlashHeal = 2061;
+priest.Spell.BindingHeal = 32546;
+priest.Spell.Penance = 47540;
+
+priest.Spell.PowerInfusion = 10060;
+priest.Spell.Evangelism = 81662;
+priest.Spell.Mindbender = 123040;
+priest.Spell.DesperatePrayer = 19236;
+priest.Spell.Grace = 77613;
+priest.Spell.Rapture = 47536;
+priest.Spell.Renew = 139; 
+priest.Spell.SurgeOfLight = 114255;
+priest.Spell.TwistOfFate = 109142; 
+priest.Spell.Purify = 527;
+priest.Spell.SpiritShell = 114908;
+priest.Spell.SpiritShellBuild = 109964;
+priest.Spell.PrayerOfHealing = 596;
+priest.Spell.PrayerOfMending = 33076;
+priest.Spell.DivineAegis = 47753;
+priest.Spell.NaaruGift = 59544;
+
+priest.Spell.Shadowfiend = 34433;
+priest.Spell.PainSuppression = 33206;
+priest.Spell.HolyFire = 14914;
+priest.Spell.WeakenedSoul = 6788;
 
 --local InterruptTable = {
---	{priest.Spell.flashHeal, 0.75, jps.buffId(priest.Spell.spiritShellBuild) or jps.buffId(priest.Spell.innerFocus) },
---	{priest.Spell.greaterHeal, 0.95, jps.buffId(priest.Spell.spiritShellBuild) },
---	{priest.Spell.prayerOfHealing, 0.95, jps.buffId(priest.Spell.spiritShellBuild) or jps.MultiTarget}
+--	{priest.Spell.FlashHeal, 0.75, jps.buffId(priest.Spell.SpiritShellBuild) },
+--	{priest.Spell.Heal, 0.95, jps.buffId(priest.Spell.SpiritShellBuild) },
+--	{priest.Spell.PrayerOfHealing, 0.95, jps.buffId(priest.Spell.SpiritShellBuild) or jps.MultiTarget}
 --}
 
 priest.ShouldInterruptCasting = function ( InterruptTable, AvgHealthLoss, CountInRaid )
@@ -93,7 +85,7 @@ priest.ShouldInterruptCasting = function ( InterruptTable, AvgHealthLoss, CountI
 			if TargetHpct >= breakpoint then
 				SpellStopCasting()
 				DEFAULT_CHAT_FRAME:AddMessage("STOPCASTING OverHeal"..spellName.." , unit "..jps.LastTarget.. " has enough hp!",0, 0.5, 0.8)
-			elseif healSpellTable[1] == priest.Spell.prayerOfHealing and AvgHealthLoss >= breakpoint then
+			elseif healSpellTable[1] == priest.Spell.PrayerOfHealing and AvgHealthLoss >= breakpoint then
 				SpellStopCasting()
 				DEFAULT_CHAT_FRAME:AddMessage("STOPCASTING avgHP"..spellName.." , raid has enough hp!",0, 0.5, 0.8)
 			end
@@ -105,7 +97,6 @@ end
 -- FUNCTABLES
 ----------------------
 
--- priest.Spell.flashHeal = 2061	
 priest.tableForFlash = function ( Lowest )
 	local Table = { 2061, false, Lowest, "" }
 	if Lowest == nil then return Table end

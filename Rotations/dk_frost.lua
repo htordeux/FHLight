@@ -64,12 +64,19 @@ end
 if canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
 
 ------------------------
+-- UPDATE RUNES ---------
+------------------------
+
+local oneDr,twoDr,oneFr,twoFr,oneUr,twoUr = dk.updateRunes()
+local DepletedRunes = (not oneDr and not twoDr) or (not oneUr and not twoUr) or (not oneFr and not twoFr) 
+------------------------
 -- SPELL TABLE ---------
 ------------------------
 
 local spellTable = {
-	-- Buffs
-	{ dk.spells["FrostPresence"] , not jps.buff(dk.spells["FrostPresence"]) },
+
+	-- "FrostPresence" 48266 "Présence de givre"
+	{ dk.spells["FrostPresence"] , jps.hp() > 0.55 and not jps.buff(dk.spells["FrostPresence"]) },
 	{ dk.spells["HornOfWinter"] , not jps.buff(dk.spells["HornOfWinter"]) },
 
 	-- Battle Rezz
@@ -77,20 +84,25 @@ local spellTable = {
 	--{ dk.spells["RaiseAlly"] , UnitIsDeadOrGhost("target") == 1 and UnitPlayerControlled("target") and jps.UseCds, "target" },
 
 	-- HEAL
+	-- "Stoneform" 20594 "Forme de pierre"
+	{ 20594 , playerAggro and jps.hp() < 0.90 , "player" , "_Stoneform" },
+	-- "Death Siphon" 108196 "Siphon mortel"
+	{ dk.spells["DeathSiphon"] , jps.IsSpellKnown(108196) and jps.hp() < 0.55 },
 	-- "Death Pact" 48743 "Pacte mortel"
-	{ dk.spells["DeathPact"] , jps.IsSpellKnown(48743) and jps.hp() < 0.50 },
+	{ dk.spells["DeathPact"] , jps.IsSpellKnown(48743) and jps.hp() < 0.55 },
+	
+	-- "Blood Presence" 48263 --  increasing Stamina by 20%, base armor by 30%, and reducing damage taken by 10%. Threat generation is significantly increased.
+	{ 48263 , jps.hp() < 0.50 and not jps.buff(48263) },
+	
 	-- "Icebound Fortitude" 61999 "Robustesse glaciale"
-	{ dk.spells["Icebound"] , jps.hp() < 0.75 },
+	{ dk.spells["Icebound"] , jps.hp() < 0.85 },
 	-- "Death Strike" 49998 "Frappe de Mort" -- 1 Unholy, 1 Frost
 	-- "Dark Succor" 101568 "Sombre secours" Buff -- Your next Death Strike in Frost or Unholy Presence is free and its healing is increased by 100%.
 	-- "Dark Succor" 178819 "Sombre secours" Spell -- En Présence de givre ou impie, lorsque vous tuez un ennemi qui rapporte de l’expérience ou de l’honneur, votre prochaine Frappe de mort dans les 15 s ne coûte rien et rend 100% de points de vie supplémentaires.
-	{ dk.spells["DeathStrike"] , jps.buff(101568) and jps.hp() < 0.9 , rangedTarget, "DeathStrike_buff" },
-	{ dk.spells["DeathStrike"] , dk.rune("twoneDr") and dk.rune("twoneFr") and jps.hp() < 0.9 , rangedTarget, "DeathStrike_buff" },
-	-- "Stoneform" 20594 "Forme de pierre"
-	{ 20594 , playerAggro and jps.hp() < 0.9 , "player" , "_Stoneform" },
-	-- 108196 "Siphon mortel"
-	{ dk.spells["DeathSiphon"] , jps.IsSpellKnown(108196) and jps.hp() < 0.8 },
-
+	{ dk.spells["DeathStrike"] , jps.buff(101568) and jps.hp() < 0.85 , rangedTarget, "DeathStrike_buff" },
+	{ dk.spells["DeathStrike"] , twoDr and jps.hp() < 0.85 , rangedTarget, "DeathStrike_buff" },
+	{ dk.spells["DeathStrike"] , oneDr and oneUr and jps.hp() < 0.85 , rangedTarget, "DeathStrike_buff" },
+	{ dk.spells["DeathStrike"] , oneDr and oneFr and jps.hp() < 0.85 , rangedTarget, "DeathStrike_buff" },
 
 	-- Interrupts
 	-- "Mind Freeze" 47528 "Gel de l'esprit"
@@ -109,52 +121,59 @@ local spellTable = {
 	--{ jps.useTrinket(0), jps.useTrinketBool(0) and jps.UseCDs},
 	--{ jps.useTrinket(1), jps.useTrinketBool(1) and jps.UseCDs},
 
-
-	-- "Faucheur d'âme" 130735 "Faucheur d’âme"
-	{ dk.spells["SoulReaper"] , jps.hp(rangedTarget) <= 0.35 , rangedTarget , "_SoulReaper" },
+	-- "Plague Leech" 123693 "Parasite de peste"
+	{ dk.spells["PlagueLeech"] , dk.canCastPlagueLeech(9) and DepletedRunes , rangedTarget , "Parasite_Peste" },
 	-- "Outbreak" 77575 "Poussée de fièvre" -- 30 yd range -- Poussée de fièvre gives both debuff Frost Fever 55095 Blood Plague 55078 1 min cd
 	{ dk.spells["OutBreak"] , jps.myDebuffDuration(55078,rangedTarget) < 9 , rangedTarget , "_OutBreak" },
-	-- "Howling Blast" 49184 "Rafale hurlante" -- gives debuff Frost Fever 55095
-	{ dk.spells["HowlingBlast"] , jps.buff(dk.spells["FreezingFog"]) , rangedTarget , "HowlingBlast_FreezingFog" },
-	{ dk.spells["HowlingBlast"] , jps.myDebuffDuration(55095,rangedTarget) < 6 , rangedTarget , "HowlingBlast_Debuff" },
+	-- "Faucheur d'âme" 130735 "Faucheur d’âme"
+	{ dk.spells["SoulReaper"] , jps.hp(rangedTarget) < 0.35 , rangedTarget , "_SoulReaper" },
+
+	-- "Howling Blast" 49184 "Rafale hurlante" -- gives debuff Frost Fever 55095 -- 1 Frost
+	-- "Freezing Fog" 59052 "Brouillard Givrant" -- Your next Icy Touch or Howling Blast will consume no runes.
+	{ dk.spells["HowlingBlast"] , jps.buff(59052) , rangedTarget , "HowlingBlast_FreezingFog" },
+	{ dk.spells["HowlingBlast"] , not jps.myDebuff(55095,rangedTarget) , rangedTarget , "HowlingBlast_Debuff_1" },
+	{ dk.spells["HowlingBlast"] , jps.myDebuff(55095,rangedTarget) and jps.myDebuffDuration(55095,rangedTarget) < 6 and not jps.isRecast(49184,rangedTarget) , rangedTarget , "HowlingBlast_Debuff_2" },
 	-- "Plague Strike" 45462 "Frappe de peste" -- gives debuff Blood Plague 55078
-	{ dk.spells["PlagueStrike"] , jps.myDebuffDuration(55078,rangedTarget) < 9 and dk.rune("oneUr"), rangedTarget , "PlagueStrike_Debuff" },
-	{ dk.spells["PlagueStrike"] , jps.myDebuffDuration(55078,rangedTarget) < 9 and dk.rune("twoUr"), rangedTarget , "PlagueStrike_Debuff" },
-	-- "Frost Strike" 49143 "Frappe de givre"
-	{ dk.spells["FrostStrike"] , jps.runicPower() > 75 , rangedTarget , "FrostStrike_RunicPower" },
-	{ dk.spells["FrostStrike"] , jps.runicPower() > 25 and jps.buff(dk.spells["KillingMachine"]) , rangedTarget , "FrostStrike_KillingMachine" },
+	{ dk.spells["PlagueStrike"] , not jps.myDebuff(55078,rangedTarget) , rangedTarget , "PlagueStrike_Debuff_1" },
+	{ dk.spells["PlagueStrike"] , jps.myDebuff(55078,rangedTarget) and jps.myDebuffDuration(55078,rangedTarget) < 9 and not jps.isRecast(45462,rangedTarget) , rangedTarget , "PlagueStrike_Debuff_2" },
+
 
 	-- "BloodTap" 45529 -- "Drain sanglant" 114851
-	{ dk.spells["BloodTap"] , jps.buffStacks(114851) > 9 and dk.rune("oneDr") and dk.rune("oneFr") and dk.rune("oneUr") , rangedTarget , "DrainSanglant_10_Ur" },
-	{ dk.spells["BloodTap"] , jps.buffStacks(114851) > 9 and dk.rune("oneFr") and dk.rune("oneUr") and not dk.rune("twoDr") , rangedTarget , "DrainSanglant_10_Ur" },
+	{ dk.spells["BloodTap"] , jps.buffStacks(114851) > 9 and DepletedRunes , rangedTarget , "DrainSanglant_10" },
 	
-	-- "Obliterate" 49020 "Anéantissement" -- With "KillingMachine" for Two-Hand DPS
-	{ dk.spells["Obliterate"] , jps.buff(dk.spells["KillingMachine"]) , rangedTarget , "KillingMachine_Obliterate" },
-	{ dk.spells["Obliterate"] , dk.rune("twoDr") , rangedTarget , "Obliterate_twoDr" },
-	{ dk.spells["Obliterate"] , dk.rune("twoFr") , rangedTarget , "Obliterate_twoFr" },
-	{ dk.spells["Obliterate"] , dk.rune("twoUr") , rangedTarget , "Obliterate_twoUr" },
 
-
-	{"nested", jps.MultiTarget or EnemyCount >= 3 ,{
-		
-		-- "Howling Blast" 49184 "Rafale hurlante"
-		{ dk.spells["HowlingBlast"] , dk.rune("twoFr") , rangedTarget , "HowlingBlast_twoFr" }, -- Frost runes
-		{ dk.spells["HowlingBlast"] , dk.rune("twoDr") , rangedTarget , "HowlingBlast_twoDr" }, -- Death runes
-		-- "Blood Boil" 50842 "Furoncle sanglant"
-		{ dk.spells["BloodBoil"] , true },
-		-- "Death and Decay" 43265 "Mort et decomposition"
-		{ dk.spells["DeathAndDecay"] , dk.rune("twoUr") }, -- Unholy runes
-		-- "Plague Leech" 123693 "Parasite de peste"
-		{ dk.spells["PlagueLeech"] , dk.canCastPlagueLeech(3) , rangedTarget , "Parasite_Peste" },
-
-	}},
+	-- "Frost Strike" 49143 "Frappe de givre" -- 25 Runic Power -- Killing Machine next Obliterate or Frost Strike automatically critically strike.
+	-- "Frost Strike" With "KillingMachine" for Dual-Wield DPS
+	{ dk.spells["FrostStrike"] , jps.buff(dk.spells["KillingMachine"]) , rangedTarget , "FrostStrike_KillingMachine" },
+	{ dk.spells["FrostStrike"] , jps.runicPower() > 75 , rangedTarget , "FrostStrike_RunicPower" },
 	
-	-- MULTITARGET
-
+	-- "Obliterate" 49020 "Anéantissement" -- 45% chance to cause your next Howling Blast or Icy Touch to consume no runes
+	-- "Obliterate" With "KillingMachine" for Two-Hand DPS -- 1 Unholy, 1 Frost
+	{ dk.spells["Obliterate"] , jps.buff(dk.spells["KillingMachine"]) , rangedTarget , "KillingMachine_Obliterate" }, 
+	{ dk.spells["Obliterate"] , twoDr , rangedTarget , "Obliterate_twoDr" },
+	{ dk.spells["Obliterate"] , twoFr , rangedTarget , "Obliterate_twoFr" },
+	{ dk.spells["Obliterate"] , twoUr , rangedTarget , "Obliterate_twoUr" },
+	{ dk.spells["Obliterate"] , oneUr and oneDr , rangedTarget , "Obliterate_oneUr" },
 
 	-- 47568 -- Renforcer l'arme runique
-	{ dk.spells["EmpowerRuneWeapon"] , jps.runicPower() <= 25 and not dk.rune("twoDr") and not dk.rune("twoFr") and not dk.rune("twoUr") },
-	
+	{ dk.spells["EmpowerRuneWeapon"] , jps.runicPower() < 25 and not twoDr and not twoFr and not twoUr },
+
+	-- MULTITARGET	
+	{"nested", jps.MultiTarget ,{
+		
+		-- "Howling Blast" 49184 "Rafale hurlante" -- 1 Frost
+		{ dk.spells["HowlingBlast"] , twoFr , rangedTarget , "HowlingBlast_Fr" }, -- Frost runes
+		{ dk.spells["HowlingBlast"] , twoDr , rangedTarget , "HowlingBlast_Dr" }, -- Death runes
+		-- "Blood Boil" 50842 "Furoncle sanglant"
+		{ dk.spells["BloodBoil"] , true },
+		-- "Death and Decay" 43265 "Mort et decomposition" -- 1 Unholy
+		{ dk.spells["DeathAndDecay"] , oneUr },
+		{ dk.spells["DeathAndDecay"] , oneDr },
+		-- "Plague Leech" 123693 "Parasite de peste"
+		{ dk.spells["PlagueLeech"] , dk.canCastPlagueLeech(4) , rangedTarget , "Parasite_Peste" },
+
+	}},
+
 }
 	
 	
@@ -163,8 +182,7 @@ local spellTable = {
 	spell,target = parseSpellTable(spellTable)
 	return spell,target
 	
-end, "PVE 2H Simcraft")
-
+end, "PVE Frost Default")
 
 --[[
 

@@ -150,14 +150,13 @@ local priestHoly = function()
 		end	
 	end
 
+	-- priest.unitForLeap includes jps.FriendAggro and jps.LoseControl
 	local LeapFriendFlag = nil 
 	for _,unit in ipairs(FriendUnit) do
 		if priest.unitForLeap(unit) and jps.hp(unit) < 0.50 then
-			if jps.buff(23335,unit) or jps.buff(23333,unit) then -- 23335/alliance-flag -- 23333/horde-flag 
+			if jps.RoleInRaid(unit) == "HEALER" then
 				LeapFriendFlag = unit
-			elseif jps.RoleInRaid(unit) == "HEALER" then
-				LeapFriendFlag = unit
-			end
+			break end
 		end
 	end
 	
@@ -249,9 +248,9 @@ local priestHoly = function()
 ----------------------------------------------------------
 
 	local InterruptTable = {
-		{priest.Spell.flashHeal, 0.70 , jps.buff(27827) },
-		{priest.Spell.greaterHeal, 0.85 , jps.buff(27827) },
-		{priest.Spell.prayerOfHealing, 0.85, jps.MultiTarget or jps.buffId(81206) or jps.buff(27827) }
+		{priest.Spell.FlashHeal, 0.70 , jps.buff(27827) },
+		{priest.Spell.Heal, 0.85 , jps.buff(27827) },
+		{priest.Spell.PrayerOfHealing, 0.85, jps.MultiTarget or jps.buffId(81206) or jps.buff(27827) }
 	}
 
 -- Avoid interrupt Channeling

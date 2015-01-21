@@ -6,7 +6,6 @@ local canDPS = jps.canDPS
 local strfind = string.find
 local UnitClass = UnitClass
 local UnitChannelInfo = UnitChannelInfo
-local UnitGUID = UnitGUID
 local tinsert = table.insert
 
 local ClassEnemy = {
@@ -337,7 +336,6 @@ local spellTable = {
 	-- "Devouring Plague" 2944 now consumes 3 Shadow Orbs, you don't have the ability to use with less Orbs
 	{ 2944, Orbs > 2 and jps.hp(rangedTarget) < 0.20 , rangedTarget , "ORBS_LowHealth" },
 	-- "Devouring Plague" spell 2944 -- "Insanity" 139139 -- transforms your Mind Flay into Insanity for 2 sec per Shadow Orb consumed
-	{ 2944, jps.IsSpellKnown(139139) and Orbs > 2 and jps.cooldown(8092) > 6 , rangedTarget , "ORBS_Insanity" },
 	{ 2944, jps.IsSpellKnown(139139) and Orbs > 2 and jps.cooldown(8092) > 6 , rangedTarget , "ORBS_Insanity" },
 	-- "Mind Flay" 15407 -- "Shadow Word: Insanity" buff 132573
 	{ 15407, jps.buff(132573) , rangedTarget , "MINDFLAYORBS_" },

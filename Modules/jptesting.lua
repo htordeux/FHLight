@@ -43,6 +43,7 @@ end
 
 function jps_Test()
 
+	--jps.printIsSpellFailed()
 	jps.LookupEnemyDamager()
 	jps.LookupEnemyHealer()
 	write("***************************")
@@ -55,7 +56,16 @@ function jps_Test()
 	print("Facing: ",jps.PlayerIsFacing("target",30))
 	print("GCD: ",jps.GCD)
 	write("***************************")
-	jps.printIsSpellFailed()
+
+
+--	local oneDr,twoDr,oneFr,twoFr,oneUr,twoUr = dk.updateRunes()
+--	print("oneDr: ",oneDr)
+--	print("twoDr: ",twoDr)
+--	print("oneDr: ",oneFr)
+--	print("twoDr: ",twoFr)
+--	print("oneUr: ",oneUr)
+--	print("twoUr: ",twoUr)
+
 
 -- GetMastery() the value returns by GetMastery is not your final Mastery value
 -- To find your true Mastery, and the multiplier factor used to calculate it, see GetMasteryEffect.

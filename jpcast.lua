@@ -360,26 +360,13 @@ end
 -- PLUA PROTECTED
 ------------------------------
 
-local knownTypes = {[0]="player", [1]="world object", [3]="NPC", [4]="pet", [5]="vehicle"}
-jps.UnitType = function (unit)
-	if not jps.UnitExists(unit) then return false end
-	local UnitGuid = UnitGUID(unit)
-	local knownType = tonumber(UnitGuid:sub(5,5), 16) % 8
-	return knownTypes[knownType]
-end
-
 local fh = {}
 function fh.groundClick(spell,unit)
 	if unit == nil then unit = "player" end
 	local UnitGuid = UnitGUID(unit)
-	local knownTypes = {[0]="player", [1]="world object", [3]="NPC", [4]="pet", [5]="vehicle"}
-
 	if FireHack and UnitGuid ~= nil then
-		local knownType = tonumber(UnitGuid:sub(5,5), 16) % 8
-		if (knownTypes[knownType] ~= nil) then
-			local UnitObject = GetObjectFromGUID(UnitGuid)
-			UnitObject:CastSpellByName(spell)
-		end
+		local UnitObject = GetObjectFromGUID(UnitGuid)
+		UnitObject:CastSpellByName(spell)
 	end
 end
 
@@ -425,7 +412,7 @@ function jps.Cast(spell) -- "number" "string"
 	jps.TimedCasting[string.lower(spellname)] = math.ceil(GetTime())
 	jps.LastCast = spellname
 	jps.LastTarget = jps.Target
-	jps.LastTargetGUID = UnitGUID(jps.LastTarget)
+	jps.LastTargetGUID = jps.GUID(jps.LastTarget)
 	tinsert(jps.LastMessage,1,jps.Message)
 	
 	if (jps.IconSpell ~= spellname) then
@@ -452,7 +439,7 @@ end
 
 function jps.isRecast(spell,unit)
 	if unit == nil then unit = "target" end
-	if jps.myLastCast(spell) and UnitGUID(unit)==jps.LastTargetGUID then return true end
+	if jps.myLastCast(spell) and (jps.GUID(unit) == jps.LastTargetGUID) then return true end
 	return false
 end
 

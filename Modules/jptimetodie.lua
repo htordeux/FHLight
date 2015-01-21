@@ -6,9 +6,9 @@
 local timeToDieAlgorithm = "LeastSquared"  --  WeightedLeastSquares , LeastSquared , InitialMidpoints
 local maxTDDLifetime = 30 -- resetting time to die if there was no hp change withing 30 seconds
 jps.TimeToDieData = {}
-local UnitGUID = UnitGUID
 local UnitHealth = UnitHealth
 local UnitHealthMax = UnitHealthMax
+local UnitGUID = UnitGUID
 
 updateTimeToDie = function(elapsed, unit) -- jps.registerOnUpdate(updateTimeToDie) on jpevents.lua
 	if not unit then

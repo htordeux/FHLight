@@ -128,15 +128,11 @@ priest.canFear = function (rangedTarget)
 	if jps.buff(BerserkerRage,rangedTarget) then return false end
 	if jps.canDPS(rangedTarget) then
 		if (CheckInteractDistance(rangedTarget,3) == true) then canFear = true end
-		local knownTypes = {[0]="player", [1]="world object", [3]="NPC", [4]="pet", [5]="vehicle"}
 		local rangedTargetGuid = UnitGUID(rangedTarget)
 		if FireHack and rangedTargetGuid ~= nil then
 			local rangedTargetObject = GetObjectFromGUID(rangedTargetGuid)
-			local knownType = tonumber(rangedTargetGuid:sub(5,5), 16) % 8
-			if (knownTypes[knownType] ~= nil) then
-				if (rangedTargetObject:GetDistance() > 8) then canFear = false end
-				if jps.FaceTarget then rangedTargetObject:Target() end
-			end
+			if (rangedTargetObject:GetDistance() > 8) then canFear = false end
+			if jps.FaceTarget then rangedTargetObject:Target() end
 		end
 	end
 	return canFear

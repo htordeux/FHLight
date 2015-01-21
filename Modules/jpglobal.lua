@@ -272,37 +272,24 @@ end
 ------------------------------
 -- GUID
 ------------------------------
--- GUID is a string containing the hexadecimal representation of the unit's GUID, 
--- e.g. "0xF130C3030000037F2", or nil if the unit does not exist
--- className, classId, raceName, raceId, gender, name, realm = GetPlayerInfoByGUID("guid")
 
-function ParseGUID(unit)
-local guid = UnitGUID(unit)
-if guid then
-	local first3 = tonumber("0x"..strsub(guid, 5,5))
-	local known = tonumber(strsub(guid, 5,5))
-	
-	local unitType = bit.band(first3,0x7)
-	local knownType = tonumber(guid:sub(5,5), 16) % 8
-	
-   if (unitType == 0x000) then
-		local playerID = (strsub(guid,6))
-		print("Player, ID #", playerID)
-   elseif (unitType == 0x003) then
-      local creatureID = tonumber("0x"..strsub(guid,7,10))
-      local spawnCounter = tonumber("0x"..strsub(guid,11))
-      print("NPC, ID #",creatureID,"spawn #",spawnCounter)
-   elseif (unitType == 0x004) then
-      local petID = tonumber("0x"..strsub(guid,7,10))
-      local spawnCounter = tonumber("0x"..strsub(guid,11))
-      print("Pet, ID #",petID,"spawn #",spawnCounter)
-   elseif (unitType == 0x005) then
-      local creatureID = tonumber("0x"..strsub(guid,7,10))
-      local spawnCounter = tonumber("0x"..strsub(guid,11))
-      print("Vehicle, ID #",creatureID,"spawn #",spawnCounter)
-   end
-end
-   return guid
+-- local type, zero, server_id, instance_id, zone_uid, npc_id, spawn_uid = strsplit("-",guid);
+-- (Example: "Player-976-0002FD64")
+-- (Example: "Creature-0-976-0-11-31146-000136DF91")
+-- (Example: "Vignette-0-970-1116-7-0-0017CAE465")
+function jps.GUID(unit)
+
+	local guid = UnitGUID(unit)
+	if guid == nil then return 0 end
+	local objet = strsplit("-",guid);
+	local objet, idplayer, spawnplayer, _, _, idobjet, spawnobjet = strsplit("-",guid);
+
+	if objet == "Player" then
+		return spawnplayer, idplayer
+	else
+		return spawnobjet, idobjet
+	end
+
 end
 
 ------------------------------

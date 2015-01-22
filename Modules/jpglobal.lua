@@ -277,17 +277,17 @@ end
 -- (Example: "Player-976-0002FD64")
 -- (Example: "Creature-0-976-0-11-31146-000136DF91")
 -- (Example: "Vignette-0-970-1116-7-0-0017CAE465")
-function jps.GUID(unit)
+function jps.UnitGUID(unit)
 
 	local guid = UnitGUID(unit)
-	if guid == nil then return 0 end
+	if guid == nil then return nil end
 	local objet = strsplit("-",guid);
 	local objet, idplayer, spawnplayer, _, _, idobjet, spawnobjet = strsplit("-",guid);
 
 	if objet == "Player" then
-		return spawnplayer, idplayer
+		return "Player"..idplayer..spawnplayer
 	else
-		return spawnobjet, idobjet
+		return objet..idobjet..spawnobjet
 	end
 
 end

@@ -145,7 +145,7 @@ local PolymorphSpells = {
 	toSpellName(28271),	-- "Polymorph: Turtle" ,
 }
 
--- Enemy Casting Polymorph -- jps.UnitIsUnit(unit.."target","player")
+-- Enemy Casting Polymorph
 local latencyWorld = select(4,GetNetStats())/1000
 function jps.IsCastingPoly(unit)
 	if not canDPS(unit) then return false end

@@ -17,6 +17,8 @@
 	
 	-- "Icebound Fortitude" 61999 "Robustesse glaciale" -- Icebound Fortitude immune to Stun effects and reduce all damage taken by 20% for 8 sec.
 	dk.spells["Icebound"] = toSpellName(48792)
+	-- "BloodPresence" 48263 "Présence de sang" --  increasing Stamina by 20%, base armor by 30%, and reducing damage taken by 10%. Threat generation is significantly increased.
+	dk.spells["BloodPresence"] = 48263
 	-- "FrostPresence" 48266 "Présence de givre" -- Strengthens you with the presence of Frost, increasing Runic Power generation by 20%
 	dk.spells["FrostPresence"] = 48266
 	-- "Horn of Winter" 57330 "Cor de l’hiver" -- increasing attack power of all party and raid members within 100 yards by 10% for 1 hour.
@@ -63,9 +65,10 @@
 	dk.spells["RaiseAlly"] = 61999 
 	-- "Dark Simulacrum" 77606 "Sombre simulacre"
 	dk.spells["DarkSimulacrum"] = 77606
-	-- "Empower Rune Weapon" "Renforcer l'arme runique" -- immediately activating all your runes and generating 25 Runic Power.
+	-- "Empower Rune Weapon" 77606 "Renforcer l'arme runique" -- immediately activating all your runes and generating 25 Runic Power.
 	dk.spells["EmpowerRuneWeapon"] = 47568
-	
+	-- "Army of the Dead" 42650 "Armée des morts"
+	dk.spells["ArmyoftheDead"] = 42650
 	-- SPELLS TALENTS
 	
 	-- "Plague Leech" 123693 "Parasite de peste" -- Consumes your Blood Plague and Frost Fever on the target to activate up to two random fully-depleted runes as Death Runes.

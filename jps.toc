@@ -23,6 +23,7 @@ Modules\jpccinterrupt.lua
 Modules\jpitems.lua
 Modules\jpspellbook.lua
 Modules\jptimetodie.lua
+Modules\jpdots.lua
 Modules\jptesting.lua
 
 Lib\jpgui.lua

@@ -14,24 +14,7 @@ updateTimeToDie = function(elapsed, unit) -- jps.registerOnUpdate(updateTimeToDi
 	if not unit then
 		updateTimeToDie(elapsed, "target")
 		updateTimeToDie(elapsed, "focus")
-		updateTimeToDie(elapsed, "mouseover")
-		for id = 1, 4 do
-			updateTimeToDie(elapsed, "boss" .. id)
-		end
-		if jps.isHealer then
-			for id = 1, 4 do
-				updateTimeToDie(elapsed, "party" .. id)
-				updateTimeToDie(elapsed, "partypet" .. id)
-			end
-			for id = 1, 5 do
-				updateTimeToDie(elapsed, "arena" .. id)
-				updateTimeToDie(elapsed, "arenapet" .. id)
-			end
-			for id = 1, 40 do
-				updateTimeToDie(elapsed, "raid" .. id)
-				updateTimeToDie(elapsed, "raidpet" .. id)
-			end
-		end
+		updateTimeToDie(elapsed, "player")
 		return
 	end
 	if not UnitExists(unit) then return end

@@ -10,6 +10,7 @@ local UnitGetTotalAbsorbs = UnitGetTotalAbsorbs
 local UnitPower = UnitPower
 local UnitMana = UnitMana
 local UnitManaMax = UnitManaMax
+local UnitGUID = UnitGUID
 
 local canDPS = jps.canDPS
 local UnitThreatSituation = UnitThreatSituation
@@ -24,7 +25,7 @@ local LowestTarget = jps.LowestTarget -- include canDPS
 function jps.UnitIsUnit(unit1,unit2)
 	if unit2 == nil then unit2 = "player" end
 	if unit1 == nil then return false end
-	if jps.GUID(unit1) == jps.GUID(unit2) then return true end
+	if UnitGUID(unit1) == UnitGUID(unit2) then return true end
 	return false
 end
 

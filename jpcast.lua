@@ -412,7 +412,7 @@ function jps.Cast(spell) -- "number" "string"
 	jps.TimedCasting[string.lower(spellname)] = math.ceil(GetTime())
 	jps.LastCast = spellname
 	jps.LastTarget = jps.Target
-	jps.LastTargetGUID = jps.GUID(jps.LastTarget)
+	jps.LastTargetGUID = UnitGUID(jps.LastTarget)
 	tinsert(jps.LastMessage,1,jps.Message)
 	
 	if (jps.IconSpell ~= spellname) then
@@ -439,7 +439,7 @@ end
 
 function jps.isRecast(spell,unit)
 	if unit == nil then unit = "target" end
-	if jps.myLastCast(spell) and (jps.GUID(unit) == jps.LastTargetGUID) then return true end
+	if jps.myLastCast(spell) and (UnitGUID(unit) == jps.LastTargetGUID) then return true end
 	return false
 end
 

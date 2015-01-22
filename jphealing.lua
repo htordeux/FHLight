@@ -13,6 +13,7 @@ local UnitPower = UnitPower
 local UnitBuff = UnitBuff
 local UnitDebuff = UnitDebuff
 local MAX_RAID_MEMBERS = MAX_RAID_MEMBERS
+local UnitGUID = UnitGUID
 
 -- Localization
 local L = MyLocalizationTable
@@ -166,7 +167,7 @@ jps.LowestTarget = function()
 	
 	local hash = {}
 	for _,v in ipairs(RaidTarget) do -- { "playertarget" , "raid5target" , "raid4target" }
-		local targuid = jps.GUID(v)
+		local targuid = UnitGUID(v)
 		hash[targuid] = v -- hash = { [targuid1] = "playertarget" , [targuid2] = "raid5target"}
 	end
 

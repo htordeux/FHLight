@@ -57,7 +57,6 @@ function jps_Test()
 	print("GCD: ",jps.GCD)
 	write("***************************")
 
-
 --	local oneDr,twoDr,oneFr,twoFr,oneUr,twoUr = dk.updateRunes()
 --	print("oneDr: ",oneDr)
 --	print("twoDr: ",twoDr)

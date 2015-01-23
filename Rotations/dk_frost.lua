@@ -27,6 +27,9 @@ end
 
 jps.registerRotation("DEATHKNIGHT","FROST", function()
 
+local spell = nil
+local target = nil
+
 ---------------------
 -- TIMER
 ---------------------
@@ -166,10 +169,9 @@ local spellTable = {
 	-- "Frost Strike" With "KillingMachine" for Dual-Wield DPS
 	{ dk.spells["FrostStrike"] , jps.buff(dk.spells["KillingMachine"]) , rangedTarget , "FrostStrike_KillingMachine" },
 	{ dk.spells["FrostStrike"] , jps.runicPower() > 75 , rangedTarget , "FrostStrike_RunicPower" },
-	-- "Obliterate" 49020 "Anéantissement" -- 45% chance to cause your next Howling Blast or Icy Touch to consume no runes
+	-- "Obliterate" 49020 "Anéantissement" -- 1 Unholy, 1 Frost
+	-- 45% chance to cause your next Howling Blast or Icy Touch to consume no runes
 	{ dk.spells["Obliterate"] , jps.myDebuffDuration(55095,rangedTarget) > 10 and jps.myDebuffDuration(55078,rangedTarget) > 10 , rangedTarget , "Obliterate_Debuff" },
-	-- "Obliterate" With "KillingMachine" for Two-Hand DPS -- 1 Unholy, 1 Frost
-	{ dk.spells["Obliterate"] , jps.buff(dk.spells["KillingMachine"]) , rangedTarget , "KillingMachine_Obliterate" },
 
 
 	-- "Howling Blast" 49184 "Rafale hurlante" -- gives debuff Frost Fever 55095 -- 1 Frost
@@ -206,16 +208,43 @@ local spellTable = {
 	}},
 
 }
-	
-	
-	local spell = nil
-	local target = nil
+
 	spell,target = parseSpellTable(spellTable)
 	return spell,target
 	
-end, "PVE Frost Default")
+end, "Frost Dual-Wield")
 
 --[[
+
+Killing Machine is now uses critical strikes on Frost Strike and Obliterates depending on Deathknight's weapons.
+When using 2H Weapons, Killing Machine no longer gains critical strike from FROST STRIKES.
+When using Dual Wield, Killing Machine no longer gains critical strike from OBLITERATES.
+
+DW Frost doesn't rely on Oblit for most of its damage. Oblit is only used to keep unholy runes on CD. Howling blast and Frost Strike are your main abilites as DW
+
+don't prioritize Obliterate like you do with 2h. You only want to use your unholy runes on Obliterate and everything else you're just a Howling Blast spam machine. You should see a dps increase.
+
+The difference between dual wield and 2H comes down to Killing Machine procs. In 2H you prioritize Obliterate, so if you have a KM proc, but your runes aren't up yet, you can sit on that KM proc for a bit, or use Plague Leech or Empowered Runes to get those runes and get a big crit.
+
+In dual wield, if you get a KM proc and don't have Runic power for Frost Strike, you basically have to always waste that proc on an Obliterate, or try to spend runes on less than ideal strikes to generate RP, which is going to be a net loss. For me, it just doesn't play out as well as 2H does
+
+There is no rotation, make sure you are using as many runes on obliterate as possible and dont frost strike unless you are going to cap on runic power or all your runes are on cooldown and you cant obliterate. If you get a kill machine proc try not to frost strike unless your obliterate isnt going to be availble for around 3 seconds. Use rime procs on howling blast for damage or icy touch for dispelling
+
+http://www.skill-capped.com/forums/showthread.php?29889-Frost-Death-Knight-PvP-Guide-Warlords-of-Draenor
+
+Pillar of Frost increases our total strength by 20% and has a very short 1 minute cooldown. To get the most out of this ability you want to stack it with as many procs as you possibly can for maximum burst potential
+
+Frost Strike - This ability is used as your runic power dump. You will use this to get rid of excess runic power or when all your runes are on cooldown and you have nothing left to use.
+
+Your disease's are always a high priority as any death knight spec although they aren't as important for frost as they once were because of the change's that were made to obliterate and frost strike no longer gaining extra damage bonuses from having disease's up on your target. Because of this you won't be worrying so much about blood plague being active on the target all the time so you will want to maintain it via outbreak
+
+http://forums.elitistjerks.com/page/articles.html/_/world-of-warcraft/death-knight/60-dps-death-knight-603-%25E2%2580%2593-turtles-all-the-r112%2BKilling+Machine+no+longer+gains+critical+strike&rlz=1I7AURU_frFR503&safe=active&gws_rd=cr,ssl&safe=active&&ct=clnk
+
+Plague Leech Explained to be useable you are required to have both your blood plague/frost fever active on the target.
+For this ability to work you must have any 2 types of runes on cooldown at the same time as they must be depleted
+You can use plague leech when your getting low on HP and need the extra runes to death strike for a quick self heal
+
+]]--
 
 jps.registerStaticTable("DEATHKNIGHT","FROST",{
 
@@ -232,7 +261,6 @@ jps.registerStaticTable("DEATHKNIGHT","FROST",{
 	{"nested", IsSpellInRange("Obliterate","target") == 1,{
 		--CDs + Buffs
 		{ "Pillar of Frost",jps.UseCDs},
-	
 		{ jps.getDPSRacial(),jps.UseCDs},
 	
 	}},
@@ -284,6 +312,6 @@ jps.registerStaticTable("DEATHKNIGHT","FROST",{
 	{ "Empower Rune Weapon",IsSpellInRange("Obliterate","target") == 1 and jps.UseCDs and jps.runicPower() <= 25 and not dk.rune("twoDr") and not dk.rune("twoFr") and not dk.rune("twoUr")},
 	{ "Empower Rune Weapon",IsSpellInRange("Obliterate","target") == 1 and jps.UseCDs and jps.TimeToDie("target") < 60 and jps.buff("Potion of Mogu Power")},
 	{ "Empower Rune Weapon",IsSpellInRange("Obliterate","target") == 1 and jps.UseCDs and jps.bloodlusting()},
-}, "PVP 2H", false, true)
 
-]]--
+}, "PvP Frost Two-Hand", false, true)
+

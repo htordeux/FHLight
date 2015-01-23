@@ -269,6 +269,11 @@ function jps.roundValue(num, idp)
     else return math.ceil(num * mult - 0.5) / mult end
 end
 
+function jps.fallingFor()
+	if not jps.falling then return 0 end
+	return GetTime() - jps.startedFalling
+end
+
 ------------------------------
 -- GUID
 ------------------------------

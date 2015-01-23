@@ -39,6 +39,8 @@ local L = MyLocalizationTable
 do
 	if (GetLocale() == "frFR") then
 		MyLocalizationTable = setmetatable({
+	-- Mage
+		["Prismatic Crystal"] = "Cristal prismatique",
 	-- Tank buff
 		["Bear Form"] = "Forme d'ours",
 		["Blood Presence"] = "Présence de sang",

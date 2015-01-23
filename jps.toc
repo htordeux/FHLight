@@ -61,4 +61,6 @@ Rotations\dk_frost.lua
 Rotations\dk_blood.lua
 Rotations\dk_unholy.lua
 
+Rotations\mage_arcane.lua
+
 

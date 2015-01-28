@@ -116,8 +116,8 @@ local spellTable = {
 	
 	{"nested", jps.combatStart < 9 ,{
 		{ dk.spells["OutBreak"] , not jps.myDebuff(55078) or not jps.myDebuff(55095) },
-		{ dk.spells["DeathStrike"] , jps.myLastCast(50842) },
-		{ dk.spells["BloodBoil"] , dk.rune("Dr") > 0 }, -- "Blood Boil" 50842 "Furoncle sanglant"
+		{ dk.spells["DeathStrike"] , jps.myLastCast(50842) }, -- "Blood Boil" 50842 "Furoncle sanglant"
+		{ dk.spells["BloodBoil"] , dk.rune("Dr") > 0 }, 
 		{ dk.spells["DeathStrike"] , not DepletedRunes },
 	}},
 
@@ -163,7 +163,7 @@ local spellTable = {
 	-- "Vampiric Blood" 55233 "Sang vampirique" -- Augmente le maximum de points de vie de 15% et les soins reçus de 15% pendant 10 s.
 	{55233 , jps.hp() < 0.55 },
 	--"Death Siphon" 108196 "Siphon mortel" -- moved here, because we heal often more with Death Strike than Death Siphon
-	{dk.spells["DeathSiphon"] , jps.hp() < 0.60},
+	{dk.spells["DeathSiphon"] , jps.hp() < 0.60 },
 
 	-- RUNE MANAGEMENT
 	--"BloodTap" 45529 -- "Drain sanglant" 114851

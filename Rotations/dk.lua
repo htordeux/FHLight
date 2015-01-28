@@ -177,12 +177,12 @@
 		if jps.cooldown(dk.spells["OutBreak"]) > 0 then return false end
 		if not jps.myDebuff(dk.spells["FrostFever"]) then return false end
 		if not jps.myDebuff(dk.spells["BloodPlague"]) then return false end
-		if jps.myDebuffDuration(dk.spells["FrostFever"]) <= timeLeft then
-			return true
-		end
-		if jps.myDebuffDuration(dk.spells["BloodPlague"]) <= timeLeft then
-			return true
-		end
+--		if jps.myDebuffDuration(dk.spells["FrostFever"]) <= timeLeft then
+--			return true
+--		end
+--		if jps.myDebuffDuration(dk.spells["BloodPlague"]) <= timeLeft then
+--			return true
+--		end
 		return false
 	end
 

@@ -12,6 +12,27 @@ local GetInventorySlotInfo = GetInventorySlotInfo
 -- TRINKET
 --------------------------
 
+-- startTime, duration, enable = GetItemCooldown(itemID)
+-- enable : 1 if the item is ready or on cooldown, 0 if the item is used, but the cooldown didn't start yet (e.g. potion in combat).
+-- if the item is not equipped return 0,0,1
+
+-- isUsable, notEnoughMana = IsUsableItem(itemID) or IsUsableItem("itemName")
+-- isUsable - true if the item is usable; otherwise false (false if the item is not equipped)
+-- notEnoughMana - true if the player lacks the resources (e.g. mana, energy, runes) to use the item; otherwise false
+
+function jps.itemCooldown(item)
+	if item == nil then return 999 end
+	local start,duration,isNotBlocked = GetItemCooldown(item) -- GetItemCooldown(ItemID) you MUST pass in the itemID.
+	local usable = select(1,IsUsableItem(item))
+	if not usable then return 999 end
+	if isNotBlocked == 0 then return 999 end 
+	local cd = start+duration-GetTime()
+	if cd < 0 then return 0 end
+	return cd
+end
+
+
+
 function jps.glovesCooldown()
 	local start, duration, enabled = GetInventoryItemCooldown("player", 10)
 	if enabled==0 then return 999 end
@@ -45,9 +66,6 @@ function jps.useBagItem(itemName)
 	return nil
 end 
 
--- isUsable, notEnoughMana = IsUsableItem(itemID) or IsUsableItem("itemName")
--- isUsable - 1 if the item is usable; otherwise nil (1nil)
--- notEnoughMana - 1 if the player lacks the resources (e.g. mana, energy, runes) to use the item; otherwise nil (1nil)
 CreateFrame("GameTooltip", "ScanningTooltip", nil, "GameTooltipTemplate") -- Tooltip name cannot be nil
 ScanningTooltip:SetOwner( WorldFrame, "ANCHOR_NONE" )
 ScanningTooltip:ClearLines()
@@ -130,17 +148,6 @@ function jps.isDPSHPSTrinket(trinket)
 		end
 	end
 	return false
-end
-
-function jps.itemCooldown(item)
-	if item == nil then return 999 end
-	local start,duration,isNotBlocked = GetItemCooldown(item) -- GetItemCooldown(ItemID) you MUST pass in the itemID.
-	local usable = select(1,IsUsableItem(item))
-	if not usable then return 999 end
-	local cd = start+duration-GetTime()
-	if isNotBlocked == 0 then return 999 end -- 1 if the item is ready or on cooldown, 0 if the item is used, but the cooldown didn't start yet 
-	if cd < 0 then return 0 end
-	return cd
 end
 
 local useSlotMacros = {}

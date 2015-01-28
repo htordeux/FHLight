@@ -120,6 +120,12 @@ function jps.mana(unit,message)
 	end
 end
 
+function jps.fallingFor()
+	if not jps.falling then return 0 end
+	return GetTime() - jps.startedFalling
+end
+
+
 ----------------------
 -- Find TANK
 ----------------------

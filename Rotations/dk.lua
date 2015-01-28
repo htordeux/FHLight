@@ -15,7 +15,7 @@
 	dk.spells["FrostFever"] = toSpellName(55095) -- Fièvre de givre
 	dk.spells["BloodPlague"] = toSpellName(55078) -- Peste de sang
 	
-	-- "Icebound Fortitude" 61999 "Robustesse glaciale" -- Icebound Fortitude immune to Stun effects and reduce all damage taken by 20% for 8 sec.
+	-- "Icebound Fortitude" 48792 "Robustesse glaciale" -- Icebound Fortitude immune to Stun effects and reduce all damage taken by 20% for 8 sec.
 	dk.spells["Icebound"] = toSpellName(48792)
 	-- "BloodPresence" 48263 "Présence de sang" --  increasing Stamina by 20%, base armor by 30%, and reducing damage taken by 10%. Threat generation is significantly increased.
 	dk.spells["BloodPresence"] = 48263
@@ -47,7 +47,7 @@
 	dk.spells["HowlingBlast"] = 49184
 	-- "Plague Strike" 45462 "Frappe de peste" -- 1 Unholy -- infects the target with Blood Plague.
 	dk.spells["PlagueStrike"] = 45462
-	-- "Frost Strike" 49143 "Frappe de givre" -- 40 Runic Power
+	-- "Frost Strike" 49143 "Frappe de givre" -- 25 Runic Power
 	dk.spells["FrostStrike"] = 49143
 	-- "Obliterate" 49020 "Anéantissement" -- 1 Unholy, 1 Frost -- 45% de chances de permettre à votre prochaine Rafale hurlante ou votre prochain Toucher de glace de ne pas consommer de runes.
 	dk.spells["Obliterate"] = 49020
@@ -57,18 +57,19 @@
 	dk.spells["MindFreeze"] = 47528
 	-- "Blood Boil" 50842 "Furoncle sanglant" -- Shadow damage to all enemies within 10 yards, and spreads your existing diseases from your target to all other enemies hit
 	dk.spells["BloodBoil"] = 50842 
-
-
 	-- "Pillar of Frost" 51271 "Pilier de givre" -- The power of Frost increases the Death Knight's Strength by 15%, and grants immunity to external movement effects such as knockbacks.  Lasts 20 sec.
 	dk.spells["PillarOfFrost"] = 51271
 	-- "Raise Ally" 61999 "Réanimation d'un allié"
 	dk.spells["RaiseAlly"] = 61999 
 	-- "Dark Simulacrum" 77606 "Sombre simulacre"
 	dk.spells["DarkSimulacrum"] = 77606
-	-- "Empower Rune Weapon" 77606 "Renforcer l'arme runique" -- immediately activating all your runes and generating 25 Runic Power.
+	-- "Empower Rune Weapon" 47568 "Renforcer l'arme runique" -- immediately activating all your runes and generating 25 Runic Power.
 	dk.spells["EmpowerRuneWeapon"] = 47568
 	-- "Army of the Dead" 42650 "Armée des morts"
 	dk.spells["ArmyoftheDead"] = 42650
+	-- "Anti-Magic Shell" 48707 "Carapace anti-magie" -- Anti-Magic Shell for 5 sec, absorbing 75% of all magical damage
+	dk.spells["AntiMagicShell"] = 48707
+
 	-- SPELLS TALENTS
 	
 	-- "Plague Leech" 123693 "Parasite de peste" -- Consumes your Blood Plague and Frost Fever on the target to activate up to two random fully-depleted runes as Death Runes.
@@ -83,17 +84,75 @@
 	dk.spells["RemorselessWinter"] = 108200
 	-- "Death Siphon" 108196 "Siphon mortel" -- Deals (60.2064% of Attack power) Shadowfrost damage to an enemy, healing the Death Knight for 335% of damage dealt.
 	dk.spells["DeathSiphon"] = 108196
-	-- "Anti-Magic Shell" 48707 "Carapace anti-magie" -- Anti-Magic Shell for 5 sec, absorbing 75% of all magical damage
-	dk.spells["AntiMagicZone"] = 48707 
-
-
+	-- "Asphyxiate" 108194 "Asphyxier" -- étourdit pendant 5 s. La cible est réduite au silence.
+	dk.spells["Asphyxiate"] = 108194
+	-- "Unholy Blight" 115989 "Chancre impie" -- Insectes impies pendant 10 s. Ils piquent tous les ennemis à moins de 10 mètres, leur inoculant Peste de sang et Fièvre de givre.
+	dk.spells["UnholyBlight"] = 115989
+	-- "Anti-Magic Zone" 51052 "Zone anti-magie"
+	dk.spells["AntiMagicZone"] = 51052
+	-- "Defile" 152280 "Profanation" -- Remplace "Death and Decay" 43265 "Mort et decomposition"
+	dk.spells["Defile"] = 152280
+	
+	
 	dk.darkSimSpells = {
-	-- siege of orgrimmar
-	"Froststorm Bolt","Arcane Shock","Rage of the Empress","Chain Lightning",
 	-- pvp
-	"Hex","Mind Control","Cyclone","Polymorph","Pyroblast","Tranquility","Divine Hymn","Hymn of Hope","Ring of Frost","Entangling Roots"
+	"Hex","Mind Control","Cyclone","Polymorph","Pyroblast","Tranquility","Divine Hymn","Ring of Frost","Entangling Roots",
+	"Maléfice","Contrôle mental","Cyclone","Métamorphose","Explosion pyrotechnique","Tranquillité","Hymne divin","Anneau de givre","Sarments"
 	}
 	
+--------------------------------
+-- RUNES -----------------------
+--------------------------------
+	-- start, duration, runeReady = GetRuneCooldown(id)
+	
+	local GetRuneReady = function(id)
+		local _,_,ready = GetRuneCooldown(id)
+		if ready == true then return 1 end
+		return 0
+	end
+
+
+	function dk.updateRune()
+		local dr1 = GetRuneReady(1) -- 1 Leftmost -- blood rune or death rune
+		local dr2 = GetRuneReady(2) -- 2 Second from left -- blood rune or death rune
+		local ur1 = GetRuneReady(3) -- 3 Fifth from left (second from right) -- unholy rune
+		local ur2 = GetRuneReady(4) -- 4 Sixth from left (rightmost) -- unholy rune
+		local fr1 = GetRuneReady(5) -- 5 Third from left -- frost rune
+		local fr2 = GetRuneReady(6) -- 6 Fourth from left -- frost rune
+		
+		local Dr = dr1 + dr2
+		local Fr = fr1 + fr2
+		local Ur = ur1 + ur2
+
+		return Dr, Fr, Ur
+	end
+
+	local RuneType = { ["Dr"] = 2 , ["Fr"] = 2 , ["Ur"] = 2 }
+	function dk.updateRuneType()
+		local dr1 = GetRuneReady(1) -- 1 Leftmost -- blood rune or death rune
+		local dr2 = GetRuneReady(2) -- 2 Second from left -- blood rune or death rune
+		local ur1 = GetRuneReady(3) -- 3 Fifth from left (second from right) -- unholy rune
+		local ur2 = GetRuneReady(4) -- 4 Sixth from left (rightmost) -- unholy rune
+		local fr1 = GetRuneReady(5) -- 5 Third from left -- frost rune
+		local fr2 = GetRuneReady(6) -- 6 Fourth from left -- frost rune
+
+		local Dr = 0
+		local Fr = 0
+		local Ur = 0
+
+		RuneType["Dr"] = dr1 + dr2
+		RuneType["Fr"] = fr1 + fr2
+		RuneType["Ur"] = ur1 + ur2
+	end
+	
+	function dk.rune(name)
+		return RuneType[name]
+	end
+
+--------------------------------
+-- FUNCTIONS
+--------------------------------
+
 	function dk.shoulDarkSimUnit(unit)
 		local darkSimSpell = false
 		for index,spellName in pairs(dk.darkSimSpells) do
@@ -124,46 +183,6 @@
 		if jps.myDebuffDuration(dk.spells["BloodPlague"]) <= timeLeft then
 			return true
 		end
-		return false
-	end
-
-	-- start, duration, runeReady = GetRuneCooldown(id)
-	dk.Runes = {}
-	function dk.updateRunes()
-		for i=1,6 do
-			dk.Runes[i] = select(3,GetRuneCooldown(i))
-		end
-		local dr1 = dk.Runes[1] -- 1 Leftmost -- blood rune or death rune
-		local dr2 = dk.Runes[2] -- 2 Second from left -- blood rune or death rune
-		local ur1 = dk.Runes[3] -- 3 Fifth from left (second from right) -- unholy rune
-		local ur2 = dk.Runes[4] -- 4 Sixth from left (rightmost) -- unholy rune
-		local fr1 = dk.Runes[5] -- 5 Third from left -- frost rune
-		local fr2 = dk.Runes[6] -- 6 Fourth from left -- frost rune
-		
-		-- only two runes
-		local twoDr = Ternary(dr1 and dr2, true, false)
-		local twoFr = Ternary(fr1 and fr2, true, false)
-		local twoUr = Ternary(ur1 and ur2, true, false)
-		-- one or two runes
-		local oneDr = Ternary(dr1 or dr2, true, false)
-		local oneFr = Ternary(fr1 or fr2, true, false)
-		local oneUr = Ternary(ur1 or ur2, true, false)
-		
-		return oneDr,twoDr,oneFr,twoFr,oneUr,twoUr
-		
-	end
-	
-	local tablerune = {}
-	function dk.rune(name)
-		local oneDr,twoDr,oneFr,twoFr,oneUr,twoUr = dk.updateRunes()
-		tablerune["oneDr"] = oneDr
-		tablerune["twoDr"] = twoDr
-		tablerune["oneFr"] = oneFr
-		tablerune["twoFr"] = twoFr
-		tablerune["oneDr"] = oneUr
-		tablerune["twoUr"] = twoUr
-		
-		if tablerune[name] then return true end
 		return false
 	end
 

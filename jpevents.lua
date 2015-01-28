@@ -594,6 +594,18 @@ jps.listener.registerEvent("UNIT_SPELLCAST_SUCCEEDED", function(unitID,spellname
 end)
 
 ----------------------
+-- RUNES UPDATE
+----------------------
+
+--Fired when a rune's state switches from usable to un-usable or visa-versa.
+--arg1 the rune that it's referencing to
+--arg2 is the rune usable (if usable, it's not cooling, if not usable it's cooling) 
+
+jps.listener.registerEvent("RUNE_POWER_UPDATE", function()
+	dk.updateRuneType()
+end)
+
+----------------------
 -- LOSS_OF_CONTROL
 ----------------------
 

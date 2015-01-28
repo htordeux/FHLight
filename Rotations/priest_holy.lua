@@ -409,7 +409,7 @@ local spellTable = {
 	{ "nested", playerAggro and jps.hp("player") < 0.85 ,
 		{
 			-- "Pierre de soins" 5512
-			{ {"macro","/use item:5512"}, select(1,IsUsableItem(5512)) == true and jps.itemCooldown(5512)==0 , "player" },
+			{ {"macro","/use item:5512"}, jps.itemCooldown(5512)==0 , "player" },
 			-- "Prière du désespoir" 19236
 			{ 19236, jps.IsSpellKnown(19236) , "player" },
 			-- "Prière de guérison" 33076

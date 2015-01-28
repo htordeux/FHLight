@@ -4,9 +4,6 @@ jps.registerRotation("DEATHKNIGHT","UNHOLY",function()
 	-- Shift-key to cast Death and Decay
 	-- Set "focus" for dark simulacrum (duplicate spell) (this is optional, default is current target)
 	-- Automatically raise ghoul if dead
-	
-	local spell = nil
-	local target = nil
 
 	local rp = UnitPower("player") 
 
@@ -15,18 +12,9 @@ jps.registerRotation("DEATHKNIGHT","UNHOLY",function()
 	local siStacks = jps.buffStacks("shadow infusion","pet")
 	local superPet = jps.buff("dark transformation","pet")
 
-	local dr1 = select(3,GetRuneCooldown(1))
-	local dr2 = select(3,GetRuneCooldown(2))
-	local ur1 = select(3,GetRuneCooldown(3))
-	local ur2 = select(3,GetRuneCooldown(4))
-	local fr1 = select(3,GetRuneCooldown(5))
-	local fr2 = select(3,GetRuneCooldown(6))
-	local oneDr = dr1 or dr2
-	local twoDr = dr1 and dr2
-	local oneFr = fr1 or fr2
-	local twoFr = fr1 and fr2
-	local oneUr = ur1 or ur2
-	local twoUr = ur1 and ur2
+	local Dr,Fr,Ur = dk.updateRune()
+	local DepletedRunes = (Dr == 0) or (Ur == 0) or (Fr == 0)
+	local AllDepletedRunes = (Dr == 0) and (Ur == 0) and (Fr == 0)
 	local timeToDie = jps.TimeToDie("target")
 	
 	local spellTable =
@@ -72,12 +60,12 @@ jps.registerRotation("DEATHKNIGHT","UNHOLY",function()
 		
 		-- DOT CDs
 
-		{ "outbreak",				not jps.myDebuff("Frost Fever") or not jps.myDebuff("Blood Plague")},
+		{ "outbreak",				not jps.myDebuff("Frost Fever") or not jps.myDebuff("Blood Plague") },
 		{ "unholy blight",			not jps.myDebuff("Frost Fever") or not jps.myDebuff("Blood Plague") },
 		
 		
 		-- renew Dots
-		{ "plague strike",			bpDuration <= 0 or ffDuration <= 0},
+		{ "plague strike",			bpDuration <= 0 or ffDuration <= 0 },
 		
 		-- get Runes
 		{ "summon gargoyle" ,jps.UseCDs},
@@ -85,18 +73,20 @@ jps.registerRotation("DEATHKNIGHT","UNHOLY",function()
 		{ "dark transformation",	siStacks >= 5 and superPet == false },
 		{ "death coil",				siStacks < 5 },
 		-- 
-		{ "scourge strike",			twoUr and rp < 90 },
-		{ "festering strike",		twoDr and twoFr and rp < 90 },
-		{ "Blood Tap", jps.buffStacks("Blood Charge") >= 5},
+		{ "scourge strike",			Ur == 2 and rp < 90 },
+		{ "festering strike",		Dr == 2 and Fr == 2 and rp < 90 },
+		{ "Blood Tap", jps.buffStacks("Blood Charge") >= 5 },
 		{ "death coil",				rp > 90 },
 		{ "death coil",				jps.buff("sudden doom") },
-		{ "blood tap",            jps.buffStacks("blood charge") >= 5 and (not oneDr or not oneUr or not oneFr )},
+		{ "blood tap",            jps.buffStacks("blood charge") >= 5 and AllDepletedRunes },
 		{ "scourge strike" },
 		{ "festering strike" },
 		{ "death coil"},
 		{ "empower rune weapon" , jps.UseCDs},
 	}
 
+	local spell = nil
+	local target = nil
 	spell,target = parseSpellTable(spellTable) 
 	return spell,target
 end, "Default")

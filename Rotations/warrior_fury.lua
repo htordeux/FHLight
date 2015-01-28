@@ -121,7 +121,7 @@ if canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
 		{ warrior.spells["ImpendingVictory"] , jps.buffDuration(32216) < 4 , rangedTarget , "_ImpendingVictory" },
 		--{ warrior.spells["VictoryRush"] , playerhealth_pct <  0.85 , rangedTarget , "_VictoryRush" },
 		-- "Pierre de soins" 5512
-		{ {"macro","/use item:5512"} , UnitAffectingCombat("player") == true and select(1,IsUsableItem(5512)) == true and jps.itemCooldown(5512)==0 and (jps.hp("player") < 0.50) , "player" , "_UseItem"},
+		{ {"macro","/use item:5512"} , UnitAffectingCombat("player") == true and jps.itemCooldown(5512)==0 and (jps.hp("player") < 0.50) , "player" , "_UseItem"},
 		-- "Die by the Sword" 118038
 		{ warrior.spells["DieSword"] , playerAggro and playerhealth_pct < 0.7 , rangedTarget , "_DieSword" },
 	

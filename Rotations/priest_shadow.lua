@@ -268,7 +268,7 @@ local parseHeal = {
 	-- "Prière du désespoir" 19236
 	{ 19236, jps.IsSpellKnown(19236) , "player" },
 	-- "Pierre de soins" 5512
-	{ {"macro","/use item:5512"}, select(1,IsUsableItem(5512)) == true and jps.itemCooldown(5512)==0 , "player" , "_Item5512" },
+	{ {"macro","/use item:5512"}, jps.itemCooldown(5512)==0 , "player" , "_Item5512" },
 	-- "Power Word: Shield" 17	
 	{ 17, not jps.debuff(6788,"player") and not jps.buff(17,"player") , "player" },
 	-- "Prayer of Mending" "Prière de guérison" 33076 

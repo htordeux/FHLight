@@ -10,13 +10,35 @@ local parseShell = {}
 local parsePlayerShell = {}
 local parseControl = {}
 local parseDispel = {}
-
 local UnitIsUnit = UnitIsUnit
 local canDPS = jps.canDPS
 local UnitGroupRolesAssigned = UnitGroupRolesAssigned
 local ipairs = ipairs
-
 local UnitGetTotalAbsorbs = UnitGetTotalAbsorbs
+local strfind = string.find
+local UnitClass = UnitClass
+local UnitChannelInfo = UnitChannelInfo
+local tinsert = table.insert
+
+local ClassEnemy = {
+	["WARRIOR"] = "cac",
+	["PALADIN"] = "caster",
+	["HUNTER"] = "cac",
+	["ROGUE"] = "cac",
+	["PRIEST"] = "caster",
+	["DEATHKNIGHT"] = "cac",
+	["SHAMAN"] = "caster",
+	["MAGE"] = "caster",
+	["WARLOCK"] = "caster",
+	["MONK"] = "caster",
+	["DRUID"] = "caster"
+}
+
+local EnemyCaster = function(unit)
+	if not jps.UnitExists(unit) then return false end
+	local _, classTarget, classIDTarget = UnitClass(unit)
+	return ClassEnemy[classTarget]
+end
 
 ----------------------------
 -- ROTATION
@@ -144,7 +166,7 @@ local priestDisc = function()
 
 	local SilenceEnemyTarget = nil
 	for _,unit in ipairs(EnemyUnit) do
-		if jps.canCast(15487,unit) then
+		if jps.IsSpellInRange(15487,unit) then
 			if jps.ShouldKick(unit) then
 				SilenceEnemyTarget = unit
 			break end
@@ -190,10 +212,10 @@ local InterruptTable = {
 	}
 	
 	parseControl = {
+		-- "Silence" 15487
+		{ 15487, jps.IsSpellInRange(15487,rangedTarget) and EnemyCaster(rangedTarget) == "caster" , rangedTarget },
 		-- "Psychic Scream" "Cri psychique" 8122 -- FARMING OR PVP -- NOT PVE -- debuff same ID 8122
 		{ 8122, priest.canFear(rangedTarget) , rangedTarget },
-		-- "Psyfiend" 108921 Démon psychique
-		{ 108921, playerAggro and priest.canFear(rangedTarget) , rangedTarget },
 		-- "Void Tendrils" 108920 -- debuff "Void Tendril's Grasp" 114404
 		{ 108920, playerAggro and priest.canFear(rangedTarget) , rangedTarget },
 	}
@@ -259,32 +281,32 @@ local InterruptTable = {
 	-- Time out hearthstone use if not interrupted or cast timer expires
 	-- Alternate non-heal fake cast not in holy school?
 	
-	-- CONTROL -- "Psychic Scream" "Cri psychique" 8122 -- "Silence" 15487
+	-- CONTROL -- "Psychic Scream" 8122 "Cri psychique" -- "Silence" 15487
 	{ 15487, type(SilenceEnemyTarget) == "string" , SilenceEnemyTarget , "Silence_MultiUnit" },
 	{ "nested", not jps.LoseControl(rangedTarget) and canDPS(rangedTarget) , parseControl },
 
 	-- "Shield" 17 PlayerAggro
 	{ 17, playerAggro and not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Shield_Player" },
-	{ "nested", jps.hp() < 0.75 ,
+	{ "nested", jps.hp() < 0.85 and playerAggro ,
 		{
+			-- "Suppression de la douleur" 33206 "Pain Suppression"
+			{ 33206, jps.hp() < 0.40 , "player", "Aggro_Player_Pain" },
 			-- "Pierre de soins" 5512
-			{ {"macro","/use item:5512"}, jps.itemCooldown(5512)==0 and jps.hp() < 0.40 , "player" , "_Item5512" },
+			{ {"macro","/use item:5512"}, jps.itemCooldown(5512)==0 and jps.hp() < 0.60 , "player" , "Aggro_Player_Item5512" },
 			-- "Prière du désespoir" 19236
-			{ 19236, jps.IsSpellKnown(19236) and jps.hp() < 0.40 , "player" , "DESESPERATE" },
+			{ 19236, jps.IsSpellKnown(19236) and jps.hp() < 0.50 , "player" , "Aggro_Player_DESESPERATE" },
 			-- "Oubli" 586 -- Fantasme 108942 -- vous dissipez tous les effets affectant le déplacement sur vous-même
 			-- "Oubli" 586 -- Glyphe d'oubli 55684 -- Votre technique Oubli réduit à présent tous les dégâts subis de 10%.
-			{ 586, playerAggro and jps.IsSpellKnown(108942) , "player" , "Aggro_Oubli_" },
-			{ 586, playerAggro and jps.glyphInfo(55684) , "player" , "Aggro_Oubli_" },
-			-- "Divine Star" Holy 110744 Shadow 122121
-			{ 110744, playerIsInterrupt , "player" , "Interrupt_DivineStar_" },
+			{ 586, jps.IsSpellKnown(108942) , "player" , "Aggro_Player_Oubli" },
+			{ 586, jps.glyphInfo(55684) , "player" , "Aggro_Player_Oubli" },
 			-- "Glyph of Purify" 55677 Your Purify spell also heals your target for 5% of maximum health
-			{ 527, playerAggro and jps.canDispel("player",{"Magic"}) , "player" , "Aggro_Dispel_Player" },
+			{ 527, jps.canDispel("player",{"Magic"}) , "player" , "Aggro_Player_Dispel" },
 			-- "Pénitence" 47540
-			{ 47540, true , "player" , "Penance_Player" },
+			{ 47540, true , "player" , "Aggro_Player_Penance" },
 			-- "Don des naaru" 59544
-			{ 59544, true , "player" , "Naaru_Player" },
+			{ 59544, true , "player" , "Aggro_Player_Naaru" },
 			-- "Nova" 132157
-			{ 132157, playerAggro and jps.hp() < 0.40 , "player" , "Aggro_Nova_Player" },
+			{ 132157, jps.hp() < 0.40 , "player" , "Aggro_Nova_Player" },
 		},
 	},
 
@@ -296,9 +318,9 @@ local InterruptTable = {
 	-- "Pénitence" 47540
 	{ 47540, LowestImportantUnitHealth > priest.AvgAmountGreatHeal , "Penance_"..LowestImportantUnit },
 	-- "Flammes sacrées" 14914  -- "Evangélisme" 81661
-	{ 14914, LowestImportantUnitHpct > 0.40 and canDPS(rangedTarget) , rangedTarget , "|cFFFF0000Flammes_"..rangedTarget },
+	{ 14914, canDPS(rangedTarget) , rangedTarget , "|cFFFF0000Flammes_"..rangedTarget },
 	-- "Mot de pouvoir : Réconfort" -- "Power Word: Solace" 129250 -- REGEN MANA
-	{ 129250, LowestImportantUnitHpct > 0.40 and canDPS(rangedTarget) , rangedTarget, "|cFFFF0000Solace_"..rangedTarget },
+	{ 129250, canDPS(rangedTarget) , rangedTarget, "|cFFFF0000Solace_"..rangedTarget },
 	
 	-- "Carapace spirituelle" spell & buff "player" 109964 buff target 114908
 	{ "nested", jps.buffId(109964) and not jps.Moving , parseShell },
@@ -325,15 +347,15 @@ local InterruptTable = {
 			-- "Soins rapides" 2061 "Borrowed" 59889
 			{ 2061, not jps.Moving and jps.buff(59889,"player") and LowestImportantUnitHpct < 0.40 , LowestImportantUnit , "Emergency_SoinsRapides_Borrowed_"..LowestImportantUnit },
 			-- "Soins supérieurs" 2060 "Borrowed" 59889
-			{ 2060, not jps.Moving and not playerAggro and jps.buff(59889,"player") and LowestImportantUnitHpct > 0.40 , LowestImportantUnit , "Emergency_SoinsSup_Borrowed_"..LowestImportantUnit  },
+			{ 2060, not jps.Moving and jps.buff(59889,"player") and LowestImportantUnitHpct > 0.40 , LowestImportantUnit , "Emergency_SoinsSup_Borrowed_"..LowestImportantUnit  },
 			-- "Clarity of Will" 152118 shields with protective ward for 20 sec
 			{ 152118, not jps.Moving and not jps.buff(152118,LowestImportantUnit) , LowestImportantUnit , "Emergency_Clarity_"..LowestImportantUnit },
 			-- "Soins rapides" 2061
-			{ 2061, not jps.Moving and LowestImportantUnitHpct < 0.40 , LowestImportantUnit , "Emergency_SoinsRapides_40%_"..LowestImportantUnit },
+			{ 2061, not jps.Moving and LowestImportantUnitHpct < 0.40 , LowestImportantUnit , "Emergency_SoinsRapides_"..LowestImportantUnit },
 			-- "Purify" 522 -- "Glyph of Purify" 55677 Your Purify spell also heals your target for 5% of maximum health
 			{ 527, jps.canDispel(LowestImportantUnit,{"Magic"}) , LowestImportantUnit , "Emergency_Dispell"..LowestImportantUnit },
 			-- "Prière de guérison" 33076
-			{ 33076, (type(MendingTarget) == "string") , MendingTarget , "Emergency_MendingTarget" },
+			{ 33076, not jps.Moving and (type(MendingTarget) == "string") , MendingTarget , "Emergency_MendingTarget" },
 			-- "Don des naaru" 59544
 			{ 59544, jps.IsSpellKnown(59544) , LowestImportantUnit , "Emergency_Naaru_"..LowestImportantUnit },
 		},

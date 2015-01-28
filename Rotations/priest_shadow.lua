@@ -128,7 +128,7 @@ end
 
 local SilenceEnemyTarget = nil
 for _,unit in ipairs(EnemyUnit) do
-	if jps.canCast(15487,unit) then
+	if jps.IsSpellInRange(15487,unit) then
 		if jps.ShouldKick(unit) then
 			SilenceEnemyTarget = unit
 		break end
@@ -244,20 +244,20 @@ local parseControl = {
 	-- "Psychic Scream" "Cri psychique" 8122 -- FARMING OR PVP -- NOT PVE -- debuff same ID 8122
 	{ 8122, priest.canFear(rangedTarget) , rangedTarget },
 	-- "Silence" 15487
-	{ 15487, EnemyCaster(rangedTarget) == "caster" , rangedTarget },
+	{ 15487, jps.IsSpellInRange(15487,rangedTarget) and EnemyCaster(rangedTarget) == "caster" , rangedTarget },
 	-- "Psychic Horror" 64044 "Horreur psychique" -- 30 yd range
-	{ 64044, jps.canCast(64044,rangedTarget) and fnOrbs(rangedTarget) , rangedTarget },
+	{ 64044, jps.IsSpellInRange(64044,rangedTarget) and fnOrbs(rangedTarget) , rangedTarget },
 	-- "Void Tendrils" 108920 -- debuff "Void Tendril's Grasp" 114404
 	{ 108920, playerAggro and priest.canFear(rangedTarget) , rangedTarget },
 }
 
 local parseControlFocus = {
 	-- "Psychic Scream" "Cri psychique" 8122 -- FARMING OR PVP -- NOT PVE -- debuff same ID 8122
-	{ 8122, priest.canFear("focus") , "focus" , "Fear_".."focus" },
+	{ 8122, priest.canFear("focus") , "focus" , "Fear_focus" },
 	-- "Silence" 15487
-	{ 15487, EnemyCaster("focus") == "caster" , "focus" , "Silence_".."focus" },
+	{ 15487, jps.IsSpellInRange(15487,"focus") and EnemyCaster("focus") == "caster" , "focus" , "Silence_focus" },
 	-- "Psychic Horror" 64044 "Horreur psychique" -- 30 yd range
-	{ 64044, jps.canCast(64044,"focus") and fnOrbs("focus") , "focus" , "Horror_".."focus" },
+	{ 64044, jps.IsSpellInRange(64044,"focus") and fnOrbs("focus") , "focus" , "Horror_focus" },
 	-- "Void Tendrils" 108920 -- debuff "Void Tendril's Grasp" 114404
 	{ 108920, playerAggro and priest.canFear("focus") , "focus" },
 }
@@ -335,8 +335,6 @@ local spellTable = {
 	{ 2944, Orbs == 5 , rangedTarget , "ORBS_5" },
 	-- "Devouring Plague" 2944 now consumes 3 Shadow Orbs, you don't have the ability to use with less Orbs
 	{ 2944, Orbs > 2 and jps.hp(rangedTarget) < 0.20 , rangedTarget , "ORBS_LowHealth" },
-	-- "Devouring Plague" spell 2944 -- "Insanity" 139139 -- transforms your Mind Flay into Insanity for 2 sec per Shadow Orb consumed
-	{ 2944, jps.IsSpellKnown(139139) and Orbs > 2 and jps.cooldown(8092) > 6 , rangedTarget , "ORBS_Insanity" },
 	-- "Mind Flay" 15407 -- "Shadow Word: Insanity" buff 132573
 	{ 15407, jps.buff(132573) , rangedTarget , "MINDFLAYORBS_" },
 	

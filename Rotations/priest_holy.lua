@@ -268,22 +268,18 @@ local priestHoly = function()
 		{ 88625, jps.buffId(81209) , rangedTarget , "|cFFFF0000Chastise_Chakra_"..rangedTarget },
 		-- "Psychic Scream" "Cri psychique" 8122 -- FARMING OR PVP -- NOT PVE -- debuff same ID 8122
 		{ 8122, priest.canFear(rangedTarget) , rangedTarget },
-		-- "Psyfiend" 108921 Démon psychique
-		{ 108921, playerAggro and priest.canFear(rangedTarget) , rangedTarget },
 		-- "Void Tendrils" 108920 -- debuff "Void Tendril's Grasp" 114404
 		{ 108920, playerAggro and priest.canFear(rangedTarget) , rangedTarget },
 	}
 	
 	parseControlFocus = {
 		-- Chakra: Chastise 81209 -- Chakra: Sanctuary 81206 -- Chakra: Serenity 81208 -- Holy Word: Chastise 88625
-		{ 88625, not jps.buffId(81208) and not jps.buffId(81206) , "focus"  , "|cFFFF0000Chastise_NO_Chakra_".."focus" },
-		{ 88625, jps.buffId(81209) , "focus" , "|cFFFF0000Chastise_Chakra_".."focus" },
-		-- "Psychic Scream" "Cri psychique" 8122 -- FARMING OR PVP -- NOT PVE -- debuff same ID 8122
-		{ 8122, priest.canFear("focus") , "focus" , "Fear_".."focus" },
-		-- "Psyfiend" 108921 Démon psychique
-		{ 108921, EnemyCaster("focus") == "cac" and priest.canFear("focus") , "focus" },
+		{ 88625, not jps.buffId(81208) and not jps.buffId(81206) , "focus"  , "|cFFFF0000Chastise_NO_Chakra_focus" },
+		{ 88625, jps.buffId(81209) , "focus" , "|cFFFF0000Chastise_Chakra_focus" },
+		-- "Psychic Scream" "Cri psychique" 8122
+		{ 8122, priest.canFear("focus") , "focus" , "Fear_focus" },
 		-- "Void Tendrils" 108920 -- debuff "Void Tendril's Grasp" 114404
-		{ 108920, EnemyCaster("focus") == "cac" and priest.canFear("focus") , "focus" },
+		{ 108920, playerAggro and priest.canFear("focus") , "focus" },
 	}
 
 	

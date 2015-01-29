@@ -151,6 +151,27 @@ function jps.findTanksInRaid()
 	return myTanks
 end
 
+--status = UnitThreatSituation("unit"[, "otherunit"])
+--Without otherunit specified
+--nil = unit is not on any other unit's threat table.
+--0 = not tanking anything.
+--1 = not tanking anything, but have higher threat than tank on at least one unit.(Overnuking)
+--Overnuking is where a player deals so much damage (therefore generating excess threat) that it pulls aggro away from the tank.
+--2 = insecurely tanking at least one unit, but not securely tanking anything.
+--3 = securely tanking at least one unit.
+
+function jps.findAggroInRaid()
+	local TankUnit = {}
+	for unit,_ in pairs(RaidStatus) do
+		local Threat = UnitThreatSituation(unit)
+		if Threat then
+			if Threat == 1 then tinsert(TankUnit, unit)
+			elseif Threat == 3 then tinsert(TankUnit, unit) end
+		end
+	end
+	return TankUnit
+end
+
 ----------------------
 -- UPDATE RAIDTARGET
 ----------------------

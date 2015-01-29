@@ -21,7 +21,6 @@ local bonusHealing = math.ceil(GetSpellBonusHealing())
 local minCrit = math.ceil(GetSpellCritChance(2))/100 -- 2 - Holy
 priest.AvgAmountFlashHeal = (1+masteryValue)*(1+minCrit)*(14664+(1.314*bonusHealing))
 priest.AvgAmountGreatHeal = (1+masteryValue)*(1+minCrit)*(24430+(2.219*bonusHealing))
-priest.AvgAmountHeal = (1+masteryValue)*(1+minCrit)*(11443+(1.102*bonusHealing))
 
 
 priest.Disc = {}
@@ -93,30 +92,6 @@ priest.ShouldInterruptCasting = function ( InterruptTable, AvgHealthLoss, CountI
 	end
 end
 
-----------------------
--- FUNCTABLES
-----------------------
-
-priest.tableForFlash = function ( Lowest )
-	local Table = { 2061, false, Lowest, "" }
-	if Lowest == nil then return Table end
-	local LowestHpct = jps.hp(Lowest) -- UnitHealth(unit) / UnitHealthMax(unit)
-	local LowestHealth = jps.hp(Lowest,"abs") -- UnitHealthMax(unit) - UnitHealth(unit)
-	local AvgHeal = priest.AvgAmountFlashHeal
-
-	-- "Vague de Lumière" 109186 gives buff -- "Vague de Lumière" 114255 "Surge of Light"
-	if jps.buff(114255) and (LowestHealth >= AvgHeal) then
-		Table = {2061, true, Lowest, "FlashSurgeOfLight_fn "..Lowest }
-	-- "Vague de Lumière" 109186 gives buff -- "Vague de Lumière" 114255 "Surge of Light"
-	elseif jps.buff(114255) and (jps.buffDuration(114255) < 4) then
-		Table = {2061, true, Lowest, "FlashSurgeOfLight_fn "..Lowest }		
-	-- "Focalisation intérieure" 96267 Immune to Silence, Interrupt and Dispel effects 5 seconds remaining
-	elseif jps.buffId(96267) and (jps.buffDuration(96267,"player") > 1.5) and (LowestHealth >= AvgHeal) then
-		Table = {2061, true, Lowest, "FlashImmune_fn "..Lowest }
-	end
-	return Table
-end
-
 ------------------------------------
 -- FUNCTIONS ENEMY UNIT
 ------------------------------------
@@ -162,7 +137,7 @@ priest.unitForShield = function (unit)
 	if not jps.FriendAggro(unit) then return false end
 	if jps.buff(17,unit) then return false end
 	if jps.debuff(6788,unit) and not jps.buffId(123266,"player") then return false end
-	if jps.checkTimer("ShieldTimer") > 0 then return false end
+	--if UnitGetTotalAbsorbs(unit) > 0 then return false end
 	return true
 end
 

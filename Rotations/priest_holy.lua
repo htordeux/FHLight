@@ -109,7 +109,7 @@ local priestHoly = function()
 	local BindingHealTarget = nil
 	local BindingHealTargetHealth = 100
 	for _,unit in ipairs(FriendUnit) do
-		if priest.unitForBinding(unit) then -- Health < priest.AvgAmountFlashHeal
+		if priest.unitForBinding(unit) then
 			local unitHP = jps.hp(unit)
 			if unitHP < BindingHealTargetHealth then
 				BindingHealTarget = unit
@@ -118,8 +118,7 @@ local priestHoly = function()
 		end
 	end
 	
-	-- {"Magic", "Poison", "Disease", "Curse"}
-	--local DispelTarget = jps.FindMeDispelTarget( {"Magic"} )
+	-- {"Magic", "Poison", "Disease", "Curse"} jps.FindMeDispelTarget( {"Magic"} )
 	local DispelTargetRole = nil
 	for _,unit in ipairs(FriendUnit) do 
 		if jps.RoleInRaid(unit) == "HEALER" and jps.canDispel(unit,{"Magic"}) then
@@ -382,7 +381,7 @@ local spellTable = {
 	-- "Holy Word: Serenity" 88684 -- Chakra: Serenity 81208
 	{ {"macro",macroSerenity}, jps.cooldown(88684) == 0 and jps.buffId(81208) and (LowestImportantUnitHealth > priest.AvgAmountGreatHeal) , LowestImportantUnit , "Serenity_"..LowestImportantUnit },
 	-- "Soins rapides" 2061 "Vague de Lumière" 109186 gives buff -- "Vague de Lumière" 114255 "Surge of Light"
-	{ 2061, jps.buff(114255) and (LowestImportantUnitHealth > priest.AvgAmountFlashHeal) , LowestImportantUnit , "SoinsRapides_Light_"..LowestImportantUnit },
+	{ 2061, jps.buff(114255) and (LowestImportantUnitHealth > priest.AvgAmountGreatHeal) , LowestImportantUnit , "SoinsRapides_Light_"..LowestImportantUnit },
 	{ 2061, jps.buff(114255) and (jps.buffDuration(114255) < 4) , LowestImportantUnit , "SoinsRapides_Light_"..LowestImportantUnit },
 
 	-- "Prière de guérison" 33076 -- UnitAffectingCombat("player") == true

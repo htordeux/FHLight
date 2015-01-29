@@ -457,7 +457,6 @@ local updateAverageHeal = function()
 	local minCrit = math.ceil(GetSpellCritChance(2))/100 -- 2 - Holy
 	priest.AvgAmountFlashHeal = (1+masteryValue)*(1+minCrit)*(14664+(1.314*bonusHealing))
 	priest.AvgAmountGreatHeal = (1+masteryValue)*(1+minCrit)*(24430+(2.219*bonusHealing))
-	priest.AvgAmountHeal = (1+masteryValue)*(1+minCrit)*(11443+(1.102*bonusHealing))
 end
 
 jps.listener.registerEvent("UNIT_AURA", function(unitID)

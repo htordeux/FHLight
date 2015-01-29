@@ -57,12 +57,10 @@ function jps_Test()
 	print("GCD: ",jps.GCD)
 	write("***************************")
 	
-	local Dr,Fr,Ur = dk.updateRune()
-	print("Dr: ",Dr)
-	print("Fr: ",Fr)
-	print("Ur: ",Ur)
-
-
+--	local Dr,Fr,Ur = dk.updateRune()
+--	print("Dr: ",Dr)
+--	print("Fr: ",Fr)
+--	print("Ur: ",Ur)
 
 -- GetMastery() the value returns by GetMastery is not your final Mastery value
 -- To find your true Mastery, and the multiplier factor used to calculate it, see GetMasteryEffect.

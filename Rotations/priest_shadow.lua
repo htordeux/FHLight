@@ -264,7 +264,7 @@ local parseControlFocus = {
 
 local parseHeal = {
 	-- "Don des naaru" 59544
-	{ 59544, jps.IsSpellKnown(59544) , "player" , "Naaru_Player" },
+	{ 59544, true , "player" , "Naaru_Player" },
 	-- "Prière du désespoir" 19236
 	{ 19236, jps.IsSpellKnown(19236) , "player" },
 	-- "Pierre de soins" 5512

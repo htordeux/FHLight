@@ -61,7 +61,6 @@ local function fnParseMacro(macro, conditions, target)
                 macroSpell = select(3,string.find(macro,"%s(.*)")) -- {"macro","/cast Sanguinaire"}
             end
             if not jps.Casting then jps.Macro(macro) end -- Avoid interrupt Channeling with Macro
-            if jps.Debug then macrowrite(macroSpell,"|cff1eff00",target,"|cffffffff",jps.Message) end
             
         -- CASTSEQUENCE WORKS ONLY FOR INSTANT CAST SPELL
 		-- "#showtooltip\n/cast Frappe du colosse\n/cast Sanguinaire"
@@ -127,20 +126,14 @@ parseStaticSpellTable = function( hydraTable )
         jps.compileSpellTable(hydraTable)
         parser.compiledTables[tostring(hydraTable)] = true
     end
-    
-    local spell = nil
-	local conditions = nil
-	local target = nil
-	local message = ""
 
     for _, spellTable in pairs(hydraTable) do
 
         if type(spellTable) == "function" then spellTable = spellTable() end
-		spell = spellTable[1] 
-		conditions = fnConditionEval(spellTable[2])
-		target = fnTargetEval(spellTable[3])
-        message = fnMessageEval(spellTable[4])
-        if jps.Message ~= message then jps.Message = message end
+        local spell = nil
+		local conditions = nil
+		local target = nil
+		local message = ""
 
 		-- MACRO -- BE SURE THAT CONDITION TAKES CARE OF CANCAST -- TRUE or FALSE NOT NIL
 		if type(spellTable[1]) == "table" and spellTable[1][1] == "macro" then

@@ -90,35 +90,16 @@ jps.UnitInRaid = function(unit)
 	return false
 end
 
+--------------------------
+-- CLASS SPEC RAID ROSTER
+--------------------------
+
 -- IsInRaid() Boolean - returns true if the player is currently in a raid group, false otherwise
 -- IsInGroup() Boolean - returns true if the player is in a some kind of group, otherwise false
--- leader = UnitIsRaidOfficer("unit") -- 1 if the unit is a raid assistant; otherwise nil or false if not in raid
--- leader = UnitIsGroupLeader("unit") -- true if the unit is a raid assistant; otherwise false (bool)
 -- name, rank, subgroup, level, class, fileName, zone, online, isDead, role, isML, combatRole = GetRaidRosterInfo(raidIndex);
 -- combatRole Returns the combat role of the player if one is selected "DAMAGER", "TANK" or "HEALER". Returns "NONE" otherwise.
+-- role = UnitGroupRolesAssigned(unit) -- works only for friendly unit in raid TANK, HEALER, DAMAGER, NONE -- return "NONE" if not in raid
 
-local IsRaidLeader = function()
-	for i=1,MAX_RAID_MEMBERS do
-		-- if index is out of bounds, the function returns nil
-		if GetRaidRosterInfo(i) == nil then return 0 end
-		local rank = select(2,GetRaidRosterInfo(i))
-		local name = select(1,GetRaidRosterInfo(i))
-		if name == GetUnitName("player") then return rank end
-	end
-end
-
-function jps.PlayerIsLeader()
-	local RaidLeader = IsRaidLeader()
-	if IsInRaid() and RaidLeader > 0 then return true end
-	if not IsInRaid() and not IsInGroup() then return true end
-	return false
-end
-
---------------------------
--- CLASS SPEC RAIDROSTER
---------------------------
-
--- local role = UnitGroupRolesAssigned(unit) -- works only for friendly unit in raid TANK, HEALER, DAMAGER, NONE -- return "NONE" if not in raid
 jps.UpdateRaidRole = function ()
 	table.wipe(RaidStatusRole)
 	for unit,_ in pairs(RaidStatus) do
@@ -257,7 +238,11 @@ local myTanks = { "player","focus","target","targettarget","mouseover" }
 -- WARNING FOCUS RETURN FALSE IF NOT IN GROUP OR RAID BECAUSE OF UNITINRANGE(UNIT)
 jps.LowestImportantUnit = function()
 	local LowestImportantUnit = "player"
-	if jps.Defensive then 
+	if jps.Defensive then
+		local aggroTanks = jps.findAggroInRaid()
+		for i,j in ipairs(aggroTanks) do
+			table.insert(myTanks, j)
+		end
 		local lowestHP = 100 -- in case with Inc & Abs > 1
 		for _, unit in pairs(myTanks) do
 			local thisHP = jps.hp(unit)

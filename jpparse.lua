@@ -113,17 +113,17 @@ end
 
 parseSpellTable = function( hydraTable )
 	
-	local spell = nil
-	local conditions = nil
-	local target = nil
-	local message = ""
-
 --	proxy = setmetatable(hydraTable, {__index = function(t, index) return index end})
 --	proxy = setmetatable(hydraTable, proxy) -- sets proxy to be spellTable's metatable
 
 --	myListOfObjects = {}  
 --	setmetatable(myListOfObjects, { __mode = 'v' }) -- myListOfObjects is now weak  
 --	myListOfObjects = setmetatable({}, {__mode = 'v' }) -- creation of a weak table
+
+	local spell = nil
+	local conditions = nil
+	local target = nil
+	local message = ""
 
 	for i, spellTable in ipairs( hydraTable ) do
 
@@ -136,17 +136,16 @@ parseSpellTable = function( hydraTable )
 
 		-- MACRO -- BE SURE THAT CONDITION TAKES CARE OF CANCAST -- TRUE or FALSE NOT NIL
 		if type(spell) == "table" and spell[1] == "macro" then
-			fnParseMacro(spell[2], fnConditionEval(conditions), fnTargetEval(target))
+			fnParseMacro(spellTable[1][2], fnConditionEval(spellTable[2]), fnTargetEval(spellTable[3]))
 			
 		-- NESTED TABLE
 		elseif spell == "nested" and type(target) == "table" then
-			if fnConditionEval(conditions) then
+			if fnConditionEval(spellTable[2]) then
 				spell,target = parseSpellTable(target)
 			end
-
-		-- DEFAULT {spell[[, condition[, target]]}
 		end
 
+		-- DEFAULT {spell[[, condition[, target]]}
 		-- Return spell if conditions are true and spell is castable.
 		if spell ~= nil and conditions and canCast(spell,target) then
 			return spell,target

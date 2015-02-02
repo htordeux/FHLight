@@ -325,8 +325,8 @@ local spellTable = {
 			{ 596, (type(POHTarget) == "string") and jps.buffStacks(63735,"player") == 2 , POHTarget },
 			-- "Soins supérieurs" 2060
 			{ 2060, jps.buffStacks(63735,"player") == 2 , LowestImportantUnit  },
-			-- "Prière de guérison" 33076
-			{ 33076, not jps.buffTracker(33076) , LowestImportantUnit },
+			-- "Prière de guérison" 33076 -- Buff POM 41635
+			{ 33076, not jps.buffTracker(41635) , LowestImportantUnit },
 			-- "Soins rapides" 2061
 			{ 2061, LowestImportantUnitHpct < 0.85 , LowestImportantUnit },
 			-- "Renew" 139
@@ -384,8 +384,8 @@ local spellTable = {
 	{ 2061, jps.buff(114255) and (LowestImportantUnitHealth > priest.AvgAmountGreatHeal) , LowestImportantUnit , "SoinsRapides_Light_"..LowestImportantUnit },
 	{ 2061, jps.buff(114255) and (jps.buffDuration(114255) < 4) , LowestImportantUnit , "SoinsRapides_Light_"..LowestImportantUnit },
 
-	-- "Prière de guérison" 33076 -- UnitAffectingCombat("player") == true
-	{ 33076, not jps.buffTracker(33076) and jps.FriendAggro(LowestImportantUnit) , LowestImportantUnit , "Tracker_Mending_"..LowestImportantUnit },
+	-- "Prière de guérison" 33076 -- -- Buff POM 41635
+	{ 33076, not jps.buffTracker(41635) and jps.FriendAggro(LowestImportantUnit) , LowestImportantUnit , "Tracker_Mending_"..LowestImportantUnit },
 	-- "Holy Spark" 131567 "Etincelle sacrée"
 	{ "nested", jps.buffId(81208) and type(HolySparkTarget) == "string" and jps.hp(HolySparkTarget) < 0.70 , 
 		{
@@ -407,8 +407,8 @@ local spellTable = {
 			{ {"macro","/use item:5512"}, jps.itemCooldown(5512)==0 , "player" },
 			-- "Prière du désespoir" 19236
 			{ 19236, jps.IsSpellKnown(19236) , "player" },
-			-- "Prière de guérison" 33076
-			{ 33076, not jps.buff(33076) , "player" , "Aggro_Mending_Player" },
+			-- "Prière de guérison" 33076 -- Buff POM 41635
+			{ 33076, not jps.buff(41635) , "player" , "Aggro_Mending_Player" },
 			-- "Oubli" 586 -- Fantasme 108942 -- vous dissipez tous les effets affectant le déplacement sur vous-même et votre vitesse de déplacement ne peut être réduite pendant 5 s
 			-- "Oubli" 586 -- Glyphe d'oubli 55684 -- Votre technique Oubli réduit à présent tous les dégâts subis de 10%.
 			{ 586, jps.IsSpellKnown(108942) , "player" , "Aggro_Oubli" },
@@ -435,7 +435,7 @@ local spellTable = {
 			-- "Renew" 139 -- Haste breakpoints are 12.5 and 16.7%(Holy)
 			{ 139, not jps.buff(139,"player") , "player" ,"Aggro_Renew_Player" },
 			-- "Don des naaru" 59544
-			{ 59544, jps.IsSpellKnown(59544) , "player" , "Aggro_Naaru_Player" },
+			{ 59544, true , "player" , "Aggro_Naaru_Player" },
 			-- Dispel Player 527
 			{ 527, not playerIsStun and jps.canDispel("player",{"Magic"}) , "player" , "Aggro_Dispel_Player" },
 		},
@@ -499,7 +499,7 @@ local spellTable = {
 			{ 34861, AvgHealthLoss < 0.85 , LowestImportantUnit , "Emergency_COH_"..LowestImportantUnit },
 			{ 34861, CountInRange > 2 , LowestImportantUnit , "Emergency_COH_"..LowestImportantUnit },
 			-- "Don des naaru" 59544
-			{ 59544, jps.IsSpellKnown(59544) , LowestImportantUnit , "Emergency_Naaru_"..LowestImportantUnit },
+			{ 59544, true , LowestImportantUnit , "Emergency_Naaru_"..LowestImportantUnit },
 			-- "Renew" 139 -- Haste breakpoints are 12.5 and 16.7%(Holy)
 			{ 139, not jps.buff(139,LowestImportantUnit) , LowestImportantUnit , "Emergency_Renew_"..LowestImportantUnit },
 		},

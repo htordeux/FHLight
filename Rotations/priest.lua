@@ -137,7 +137,6 @@ priest.unitForShield = function (unit)
 	if not jps.FriendAggro(unit) then return false end
 	if jps.buff(17,unit) then return false end
 	if jps.debuff(6788,unit) and not jps.buffId(123266,"player") then return false end
-	--if UnitGetTotalAbsorbs(unit) > 0 then return false end
 	return true
 end
 
@@ -145,7 +144,7 @@ priest.unitForMending = function (unit)
 	if unit == nil then return false end
 	if not jps.FriendAggro(unit) then return false end
 	if (jps.cooldown(33076) > 0) then return false end
-	if jps.buff(33076,unit) then return false end
+	if jps.buff(41635,unit) then return false end
 	return true
 end
 

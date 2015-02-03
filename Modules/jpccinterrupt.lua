@@ -63,15 +63,8 @@ function jps.StunEvents(duration) -- ONLY FOR PLAYER
 	return false
 end
 
-function jps.InterruptEvents(duration) -- ONLY FOR PLAYER
-	if duration == nil then duration = 0 end
-	if jps.checkTimer("PlayerInterrupt") > duration then return true end
-	return false
-end
-
-function jps.SilenceEvents(duration) -- ONLY FOR PLAYER
-	if duration == nil then duration = 0 end
-	if jps.checkTimer("PlayerSilence") > duration then return true end
+function jps.InterruptEvents() -- ONLY FOR PLAYER
+	if jps.checkTimer("PlayerInterrupt") > 0 then return true end
 	return false
 end
 

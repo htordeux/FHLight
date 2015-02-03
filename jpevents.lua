@@ -613,15 +613,13 @@ end)
 -- eventIndex Number - index of the loss-of-control effect currently affecting your character to return information about, ascending from 1. 
 -- LossOfControlType : --STUN_MECHANIC --STUN --PACIFYSILENCE --SILENCE --FEAR --CHARM --PACIFY --CONFUSE --POSSESS --SCHOOL_INTERRUPT --DISARM --ROOT
 
-local stunTypeTable = {"STUN_MECHANIC", "STUN", "FEAR", "CHARM", "CONFUSE", "ROOT", "PACIFY", "CHARM" }
+local stunTypeTable = {"STUN_MECHANIC","STUN","FEAR","CHARM","CONFUSE","ROOT","PACIFY","CHARM" ,"SILENCE","PACIFYSILENCE"}
 jps.listener.registerEvent("LOSS_OF_CONTROL_ADDED", function ()
 	local i = C_LossOfControl.GetNumEvents()
     local locType, _, text, _, _, _, duration = C_LossOfControl.GetEventInfo(i)
     --print("CONTROL:", locType,"/",text,"/",duration)
     if text and duration then
     	if locType == "SCHOOL_INTERRUPT" then jps.createTimer("PlayerInterrupt",duration) return end
-    	if locType == "SILENCE" then jps.createTimer("PlayerSilence",duration) return end
-    	if locType == "PACIFYSILENCE" then jps.createTimer("PlayerSilence",duration) return end
 		for _, stuntype in ipairs(stunTypeTable) do
 			if locType == stuntype then 
 				jps.createTimer("PlayerStun",duration)

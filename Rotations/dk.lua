@@ -38,7 +38,9 @@
 	
 
 	-- SPELLS
-
+	
+	-- "Death Grip" 49576 "Poigne de la mort" -- 30 yd range
+	dk.spells["DeathGrip"] = 49576
 	-- "Outbreak" 77575 "Poussée de fièvre" -- 30 yd range -- Instantly applies Blood Plague and Frost Fever to the target enemy.
 	dk.spells["OutBreak"] = 77575
 	-- "Faucheur d'âme" 130735 "Faucheur d’âme"
@@ -69,6 +71,10 @@
 	dk.spells["ArmyoftheDead"] = 42650
 	-- "Anti-Magic Shell" 48707 "Carapace anti-magie" -- Anti-Magic Shell for 5 sec, absorbing 75% of all magical damage
 	dk.spells["AntiMagicShell"] = 48707
+	-- "Icy Touch" 45477 "Toucher de glace"
+	dk.spells["IcyTouch"] = 45477
+	-- "Dancing Rune Weapon" 49028 "Arme runique dansante"
+	dk.spells["DancingRune"] = 49028
 
 	-- SPELLS TALENTS
 	
@@ -183,7 +189,7 @@
 --		if jps.myDebuffDuration(dk.spells["BloodPlague"]) <= timeLeft then
 --			return true
 --		end
-		return false
+		return true
 	end
 
 	function dk.hasGhoul()

@@ -658,7 +658,7 @@ spellTable = {
 	-- "Suppression de la douleur" 33206 "Pain Suppression"
 	{ 33206, playerIsStun and jps.hp() < 0.40 , "player", "Stun_Pain" },
 	-- "Pierre de soins" 5512
-	{ {"macro","/use item:5512"}, jps.itemCooldown(5512) == 0 and jps.hp() < 0.60 , "player" , "Item5512" },
+	{ {"macro","/use item:5512"}, jps.itemCooldown(5512) == 0 and jps.hp() < 0.60 and not playerWasControl , "player" , "Item5512" },
 	-- "Prière du désespoir" 19236
 	{ 19236, jps.IsSpellKnown(19236) and jps.hp() < 0.60 , "player" , "Aggro_DESESPERATE" },
 

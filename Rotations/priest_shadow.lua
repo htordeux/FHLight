@@ -144,14 +144,14 @@ end
 
 local PainEnemyTarget = nil
 for _,unit in ipairs(EnemyUnit) do 
-	if fnPainEnemyTarget(unit) and not jps.UnitIsUnit("target",unit) then
+	if fnPainEnemyTarget(unit) then
 		PainEnemyTarget = unit
 	break end
 end
 
 local VampEnemyTarget = nil
 for _,unit in ipairs(EnemyUnit) do 
-	if fnVampEnemyTarget(unit) and not jps.UnitIsUnit("target",unit) then
+	if fnVampEnemyTarget(unit) then
 		VampEnemyTarget = unit
 	break end
 end
@@ -322,15 +322,6 @@ local spellTable = {
 	{ 73510, jps.buff(87160) and jps.hp(rangedTarget) < 0.20 , rangedTarget , "Spike_SurgeofDarkness_LowHealth" },
 	{ 73510, jps.buff(87160) and jps.buffDuration(87160) < 4 , rangedTarget , "Spike_SurgeofDarkness_GCD" },
 	
-	-- "Clarity of Power" 155246 "Clarté de pouvoir"
-	{ "nested", jps.IsSpellKnown(155246) and Orbs > 3 ,{
-		-- "Shadow Word: Pain" 589 with CoP
-		{ 589, not jps.myDebuff(589,rangedTarget) and not jps.isRecast(589,rangedTarget) , rangedTarget , "VT_On_ORBS_5" },
-		-- "Vampiric Touch" 34914 with CoP
-		{ 34914, not jps.Moving and not jps.myDebuff(34914,rangedTarget) and not jps.isRecast(34914,rangedTarget) , rangedTarget , "Pain_On_ORBS_5" },
-
-	}},
-	
 	-- "Devouring Plague" 2944 now consumes 3 Shadow Orbs, you don't have the ability to use with less Orbs
 	{ 2944, Orbs == 5 , rangedTarget , "ORBS_5" },
 	-- "Devouring Plague" 2944 now consumes 3 Shadow Orbs, you don't have the ability to use with less Orbs
@@ -353,13 +344,26 @@ local spellTable = {
 	{ 15286, AvgHealthLoss < 0.85 , "player" },
 	-- SELF HEAL
 	{ "nested", playerhealthpct < 0.70 , parseHeal },
+	
+
+	-- "Mindbender" "Torve-esprit" 123040 -- "Ombrefiel" 34433 "Shadowfiend"
+	{ 34433, priest.canShadowfiend(rangedTarget) , rangedTarget },
+	{ 123040, priest.canShadowfiend(rangedTarget) , rangedTarget },
+	
+	-- "Shadow Word: Pain" 589 -- "Shadow Word: Insanity" buff 132573
+	{ 589, not jps.buff(132573) and fnPainEnemyTarget("mouseover") and not jps.UnitIsUnit("target","mouseover") , "mouseover" , "Pain_MOUSEOVER_ORBS" },
+	-- "Vampiric Touch" 34914 -- "Shadow Word: Insanity" buff 132573
+	{ 34914, not jps.buff(132573) and fnVampEnemyTarget("mouseover") and not jps.UnitIsUnit("target","mouseover") , "mouseover" , "Vamp_MOUSEOVER_ORBS" },
+
+	-- "Power Infusion" "Infusion de puissance" 10060
+	{ 10060, jps.combatStart > 0 , "player" },
+	-- "Mind Spike" 73510 -- "Clarity of Power" 155246 "Clarté de pouvoir" -- "Devouring Plague" debuff 158831
+	{ 73510, not jps.Moving and jps.IsSpellKnown(155246) and Orbs <= 3 and not jps.myDebuff(158831,rangedTarget) and not jps.myDebuff(34914,rangedTarget) and not jps.myDebuff(589,rangedTarget) , rangedTarget , "Spike_CoP" },
 
 	-- "Shadow Word: Pain" 589 -- "Shadow Word: Insanity" buff 132573
 	{ 589, type(PainEnemyTarget) == "string" , PainEnemyTarget , "Pain_MultiUnit_" },
-	{ 589, not jps.buff(132573) and fnPainEnemyTarget("mouseover") and not jps.UnitIsUnit("target","mouseover") , "mouseover" , "Pain_MOUSEOVER_ORBS" },
 	-- "Vampiric Touch" 34914 -- "Shadow Word: Insanity" buff 132573
 	{ 34914, type(VampEnemyTarget) == "string" , VampEnemyTarget , "Vamp_MultiUnit_" },
-	{ 34914, not jps.buff(132573) and fnVampEnemyTarget("mouseover") and not jps.UnitIsUnit("target","mouseover") , "mouseover" , "Vamp_MOUSEOVER_ORBS" },
 
 	-- MULTITARGET
 	-- "Divine Star" Holy 110744 Shadow 122121
@@ -370,14 +374,6 @@ local spellTable = {
 	-- "MindSear" 48045
 	{ 48045, not jps.Moving and jps.MultiTarget and EnemyCount > 3 , rangedTarget  },
 
-	-- "Mind Spike" 73510 -- "Clarity of Power" 155246 "Clarté de pouvoir" -- "Devouring Plague" debuff 158831
-	-- Orbs < 5 permet d'executer les conditions suivantes à partir de 4 Orbs
-	{ 73510, not jps.Moving and jps.IsSpellKnown(155246) and Orbs < 5 and not jps.myDebuff(158831,rangedTarget) and not jps.myDebuff(34914,rangedTarget) and not jps.myDebuff(589,rangedTarget) , rangedTarget , "Spike_CoP" },
-
-	-- "Mindbender" "Torve-esprit" 123040 -- "Ombrefiel" 34433 "Shadowfiend"
-	{ 34433, priest.canShadowfiend(rangedTarget) , rangedTarget },
-	{ 123040, priest.canShadowfiend(rangedTarget) , rangedTarget },
-	
 	-- "Shadow Word: Pain" 589 Keep up
 	{ 589, jps.myDebuff(589,rangedTarget) and jps.myDebuffDuration(589,rangedTarget) < jps.GCD and not jps.isRecast(589,rangedTarget) , rangedTarget , "Pain_Target_" },
 	-- "Vampiric Touch" 34914 Keep up
@@ -389,9 +385,7 @@ local spellTable = {
 	-- Offensive Dispel -- "Dissipation de la magie" 528 -- includes canDPS
 	{ 528, jps.castEverySeconds(528,10) and jps.DispelOffensive(rangedTarget) , rangedTarget , "|cff1eff00Dispel_Offensive_"..rangedTarget },
 	{ 528, jps.castEverySeconds(528,10) and type(DispelOffensiveTarget) == "string"  , DispelOffensiveTarget , "|cff1eff00Dispel_Offensive_MultiUnit_" },
-	
-	-- "Power Infusion" "Infusion de puissance" 10060
-	{ 10060, jps.combatStart > 0 , "player" },
+
 	-- "Gardien de peur" 634
 	{ 6346, not jps.buff(6346,"player") , "player" },
 	-- "Mind Flay" 15407

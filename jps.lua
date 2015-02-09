@@ -61,6 +61,7 @@ jps.LastTargetGUID = nil
 jps.Latency = 0
 jps.NextSpell = nil
 jps.GCD = 1
+jps.startedFalling = 0
 
 -- Class
 jps.Class = nil
@@ -365,7 +366,8 @@ function jps.Cycle()
 	if jps.getConfigVal("gcd activation") and timeLeft > 0.5 then return end
 	
 	-- Movement
-	jps.Moving = select(1,GetUnitSpeed("player")) > 0 
+	jps.Moving = select(1,GetUnitSpeed("player")) > 0
+	if IsFalling() then jps.startedFalling = GetTime() end
 
 	-- Check spell usability -- ALLOW SPELLSTOPCASTING() IN JPS.ROTATION() TABLE
 	jps.ThisCast,jps.Target = jps.activeRotation().getSpell()

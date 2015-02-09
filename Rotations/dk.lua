@@ -75,6 +75,10 @@
 	dk.spells["IcyTouch"] = 45477
 	-- "Dancing Rune Weapon" 49028 "Arme runique dansante"
 	dk.spells["DancingRune"] = 49028
+	-- "Vampiric Blood" 55233 "Sang vampirique"
+	dk.spells["VampiricBlood"] = 49028
+	-- "Rune Tap" 48982 "Connexion runique"
+	dk.spells["RuneTap"] = 48982
 
 	-- SPELLS TALENTS
 	
@@ -98,18 +102,24 @@
 	dk.spells["AntiMagicZone"] = 51052
 	-- "Defile" 152280 "Profanation" -- Remplace "Death and Decay" 43265 "Mort et decomposition"
 	dk.spells["Defile"] = 152280
-	
-	
-	dk.darkSimSpells = {
-	-- pvp
-	"Hex","Mind Control","Cyclone","Polymorph","Pyroblast","Tranquility","Divine Hymn","Ring of Frost","Entangling Roots",
-	"Maléfice","Contrôle mental","Cyclone","Métamorphose","Explosion pyrotechnique","Tranquillité","Hymne divin","Anneau de givre","Sarments"
-	}
+	-- "Death Coil" 47541 "Voile mortel"
+	dk.spells["DeathCoil"] = 47541
+	-- "Lichborne" 49039 "Changeliche"
+	dk.spells["Lichborne"] = 49039
 	
 --------------------------------
 -- RUNES -----------------------
 --------------------------------
-	-- start, duration, runeReady = GetRuneCooldown(id)
+
+-- start, duration, runeReady = GetRuneCooldown(id)
+-- count = GetRuneCount(slot)
+-- Returns 1 if a rune is ready and 0 if a rune is on cooldown.
+-- runeType = GetRuneType(slot)
+-- Returns Type of the rune (number)
+-- 1 - Blood rune
+-- 2 - Unholy rune
+-- 3 - Frost rune
+-- 4 - Death rune
 	
 	local GetRuneReady = function(id)
 		local _,_,ready = GetRuneCooldown(id)
@@ -117,14 +127,13 @@
 		return 0
 	end
 
-
 	function dk.updateRune()
-		local dr1 = GetRuneReady(1) -- 1 Leftmost -- blood rune or death rune
-		local dr2 = GetRuneReady(2) -- 2 Second from left -- blood rune or death rune
-		local ur1 = GetRuneReady(3) -- 3 Fifth from left (second from right) -- unholy rune
-		local ur2 = GetRuneReady(4) -- 4 Sixth from left (rightmost) -- unholy rune
-		local fr1 = GetRuneReady(5) -- 5 Third from left -- frost rune
-		local fr2 = GetRuneReady(6) -- 6 Fourth from left -- frost rune
+		local dr1 = GetRuneCount(1) -- 1 Leftmost -- blood rune or death rune
+		local dr2 = GetRuneCount(2) -- 2 Second from left -- blood rune or death rune
+		local ur1 = GetRuneCount(3) -- 3 Fifth from left (second from right) -- unholy rune
+		local ur2 = GetRuneCount(4) -- 4 Sixth from left (rightmost) -- unholy rune
+		local fr1 = GetRuneCount(5) -- 5 Third from left -- frost rune
+		local fr2 = GetRuneCount(6) -- 6 Fourth from left -- frost rune
 		
 		local Dr = dr1 + dr2
 		local Fr = fr1 + fr2
@@ -133,35 +142,32 @@
 		return Dr, Fr, Ur
 	end
 
-	local RuneType = { ["Dr"] = 2 , ["Fr"] = 2 , ["Ur"] = 2 }
 	function dk.updateRuneType()
-		local dr1 = GetRuneReady(1) -- 1 Leftmost -- blood rune or death rune
-		local dr2 = GetRuneReady(2) -- 2 Second from left -- blood rune or death rune
-		local ur1 = GetRuneReady(3) -- 3 Fifth from left (second from right) -- unholy rune
-		local ur2 = GetRuneReady(4) -- 4 Sixth from left (rightmost) -- unholy rune
-		local fr1 = GetRuneReady(5) -- 5 Third from left -- frost rune
-		local fr2 = GetRuneReady(6) -- 6 Fourth from left -- frost rune
-
-		local Dr = 0
-		local Fr = 0
-		local Ur = 0
-
-		RuneType["Dr"] = dr1 + dr2
-		RuneType["Fr"] = fr1 + fr2
-		RuneType["Ur"] = ur1 + ur2
-	end
-	
-	function dk.rune(name)
-		return RuneType[name]
+		local DeathRuneCount = 0
+		for i=1,6 do
+			local DeathRune = GetRuneType(i)
+			local RuneReady = GetRuneCount(i)
+			if DeathRune == 4 then
+				if RuneReady == 1 then
+					DeathRuneCount = DeathRuneCount + 1
+				end
+			end
+		end
+		return DeathRuneCount
 	end
 
 --------------------------------
 -- FUNCTIONS
 --------------------------------
 
+	local darkSimSpells = {
+	-- pvp
+	"Hex","Mind Control","Cyclone","Polymorph","Pyroblast","Tranquility","Divine Hymn","Ring of Frost","Entangling Roots",
+	"Maléfice","Contrôle mental","Cyclone","Métamorphose","Explosion pyrotechnique","Tranquillité","Hymne divin","Anneau de givre","Sarments"
+	}
 	function dk.shoulDarkSimUnit(unit)
 		local darkSimSpell = false
-		for index,spellName in pairs(dk.darkSimSpells) do
+		for index,spellName in pairs(darkSimSpells) do
 			if jps.IsCastingSpell(spellName, unit) then 
 				darkSimSpell = true
 			elseif jps.IsChannelingSpell(spellName, unit) then 
@@ -180,15 +186,16 @@
 	end
 
 	function dk.canCastPlagueLeech(timeLeft)
+		if timeLeft == nil then timeLeft = 999 end
 		if jps.cooldown(dk.spells["OutBreak"]) > 0 then return false end
 		if not jps.myDebuff(dk.spells["FrostFever"]) then return false end
 		if not jps.myDebuff(dk.spells["BloodPlague"]) then return false end
---		if jps.myDebuffDuration(dk.spells["FrostFever"]) <= timeLeft then
---			return true
---		end
---		if jps.myDebuffDuration(dk.spells["BloodPlague"]) <= timeLeft then
---			return true
---		end
+		if jps.myDebuffDuration(dk.spells["FrostFever"]) <= timeLeft then
+			return true
+		end
+		if jps.myDebuffDuration(dk.spells["BloodPlague"]) <= timeLeft then
+			return true
+		end
 		return true
 	end
 

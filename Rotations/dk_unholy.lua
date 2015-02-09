@@ -26,12 +26,12 @@ jps.registerRotation("DEATHKNIGHT","UNHOLY",function()
 		{ "Strangulate",		jps.ShouldKick("focus") and jps.UseCDs and IsSpellInRange("mind freeze","focus")==0 and jps.LastCast ~= "mind freeze" , "focus" },
 		{ "Asphyxiate",			jps.ShouldKick() and jps.LastCast ~= "Mind Freeze" and jps.LastCast ~= "Strangulate" },
 		{ "Asphyxiate",			jps.ShouldKick() and jps.LastCast ~= "Mind Freeze" and jps.LastCast ~= "Strangulate", "focus" },
-		{ "Horn of Winter", not jps.buff("Horn of Winter")},
+		{ "Horn of Winter", 	not jps.buff("Horn of Winter")},
 		
 		-- Self heals
-		{ "Death Siphon", jps.hp() < .8 and jps.Defensive },
-		{ "Death Strike", jps.hp() < .7 and jps.Defensive },
-		{ "Death Pact", jps.UseCDs and jps.hp() < .6 and UnitExists("pet") == true },
+		{ "Death Siphon",	jps.hp() < .8 and jps.Defensive },
+		{ "Death Strike",	jps.hp() < .7 and jps.Defensive },
+		{ "Death Pact",		jps.UseCDs and jps.hp() < .6 and UnitExists("pet") == true },
 		
 		-- Battle Rezz
     	{ "Raise Ally", UnitIsDeadOrGhost("focus") == 1 and jps.UseCds, "focus" },
@@ -46,16 +46,16 @@ jps.registerRotation("DEATHKNIGHT","UNHOLY",function()
 		{"Dark Simulacrum ", dk.shouldDarkSimFocus() , "focus"},
 		
 		-- CDs
-		{ jps.getDPSRacial(), jps.UseCDs },
-		{ jps.useTrinket(0), jps.UseCDs },
-		{ jps.useTrinket(1), jps.UseCDs },
+		{ jps.getDPSRacial(),	jps.UseCDs },
+		{ jps.useTrinket(0),	jps.UseCDs },
+		{ jps.useTrinket(1),	jps.UseCDs },
 
 		-- rezz pet
 		{ "Raise Dead", jps.UseCDs and UnitExists("pet") == nil },
 		
 		
 		-- Execute
-		{ "soul reaper",			jps.hp("target") <= 0.35 },
+		{ "soul reaper", jps.hp("target") <= 0.35 },
 		
 		
 		-- DOT CDs
@@ -68,21 +68,21 @@ jps.registerRotation("DEATHKNIGHT","UNHOLY",function()
 		{ "plague strike",			bpDuration <= 0 or ffDuration <= 0 },
 		
 		-- get Runes
-		{ "summon gargoyle" ,jps.UseCDs},
+		{ "summon gargoyle" ,		jps.UseCDs},
 		
 		{ "dark transformation",	siStacks >= 5 and superPet == false },
 		{ "death coil",				siStacks < 5 },
 		-- 
 		{ "scourge strike",			Ur == 2 and rp < 90 },
 		{ "festering strike",		Dr == 2 and Fr == 2 and rp < 90 },
-		{ "Blood Tap", jps.buffStacks("Blood Charge") >= 5 },
+		{ "Blood Tap", 				jps.buffStacks("Blood Charge") >= 5 },
 		{ "death coil",				rp > 90 },
 		{ "death coil",				jps.buff("sudden doom") },
-		{ "blood tap",            jps.buffStacks("blood charge") >= 5 and AllDepletedRunes },
+		{ "blood tap",            	jps.buffStacks("blood charge") >= 5 and AllDepletedRunes },
 		{ "scourge strike" },
 		{ "festering strike" },
 		{ "death coil"},
-		{ "empower rune weapon" , jps.UseCDs},
+		{ "empower rune weapon" , 	jps.UseCDs},
 	}
 
 	local spell = nil

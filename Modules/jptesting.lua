@@ -29,16 +29,9 @@ local function canCastDebug(spell,unit)
 	if not usable then print("spell is not usable") end
 	if nomana then return print("failed mana test") end
 	if (jps.cooldown(spellname) > 0) then print("cooldown not finished") end
+	if not jps.IsSpellInRange(spell,unit) then print("spell is not inrange") end
 	if jps[spellname] ~= nil and jps[spellname] == false then print("not spellname") end -- need spellname
 	print("passes all tests")
-end
-
-local GlobalCooldown = function()
-	local cdStart,duration,_ = GetSpellCooldown(61304)
-	if cdStart == 0 then return 0 end
-	local timeLeft = duration - (GetTime() - cdStart )
-	if timeLeft < 0 then timeLeft = 0 end
-	return duration
 end
 
 function jps_Test()
@@ -56,14 +49,7 @@ function jps_Test()
 	print("Facing: ",jps.PlayerIsFacing("target",30))
 	print("GCD: ",jps.GCD)
 	write("***************************")
-	
---	local Dr,Fr,Ur = dk.updateRune()
---	print("Dr: ",Dr)
---	print("Fr: ",Fr)
---	print("Ur: ",Ur)
 
--- GetMastery() the value returns by GetMastery is not your final Mastery value
--- To find your true Mastery, and the multiplier factor used to calculate it, see GetMasteryEffect.
 --	local mastery = GetMasteryEffect()
 --	local masteryValue = math.ceil(mastery)/100
 --	local bonusHealing = math.ceil(GetSpellBonusHealing())

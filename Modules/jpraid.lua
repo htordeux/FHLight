@@ -121,7 +121,8 @@ function jps.mana(unit,message)
 end
 
 function jps.fallingFor()
-	if not jps.falling then return 0 end
+	local falling = IsFalling()
+	if not falling then return 0 end
 	return GetTime() - jps.startedFalling
 end
 

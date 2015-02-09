@@ -116,7 +116,7 @@ jps.registerRotation("MAGE","ARCANE", function()
 	if canDPS("target") then rangedTarget =  "target"
 	elseif canDPS("targettarget") then rangedTarget = "targettarget"
 	elseif canDPS("focustarget") then rangedTarget = "focustarget"
-	elseif canDPS("mouseover") then rangedTarget = "mouseover"
+	elseif canDPS("mouseover") and UnitAffectingCombat("mouseover") then rangedTarget = "mouseover"
 	end
 	-- if your target is friendly keep it as target
 	if canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end

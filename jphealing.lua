@@ -150,7 +150,8 @@ function jps.findAggroInRaid()
 			elseif Threat == 3 then tinsert(TankUnit, unit) end
 		end
 	end
-	return TankUnit
+	table.sort(TankUnit, function(a,b) return jps.hp(a) < jps.hp(b) end)
+	return TankUnit , TankUnit[1]
 end
 
 ----------------------

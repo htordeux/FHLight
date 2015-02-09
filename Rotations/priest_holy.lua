@@ -216,11 +216,11 @@ local priestHoly = function()
 	end
 
 	if canDPS("target") then rangedTarget =  "target"
-	elseif canDPS("focus") then rangedTarget =  "focus"
-	elseif canDPS("mouseover") then rangedTarget = "mouseover"
 	elseif canDPS("targettarget") then rangedTarget = "targettarget"
 	elseif canDPS("focustarget") then rangedTarget = "focustarget"
+	elseif canDPS("mouseover") and UnitAffectingCombat("mouseover") then rangedTarget = "mouseover"
 	end
+
 	-- if your target is friendly keep it as target
 	if not jps.canHeal("target") and canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
 

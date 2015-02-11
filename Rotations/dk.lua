@@ -35,6 +35,8 @@
 	dk.spells["DeathAndDecay"] = 43265
 	-- "Unwavering Might" 126582 "Puissance inebranlable" -- Strength increased by 522 for 20 sec.
 	dk.spells["UnwaveringMight"] = toSpellName(126582)
+	-- "Bone Shield" 49222 "Bouclier dos"
+	dk.spells["BoneShield"] = toSpellName(49222)
 	
 
 	-- SPELLS

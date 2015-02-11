@@ -367,7 +367,8 @@ function jps.Cycle()
 	
 	-- Movement
 	jps.Moving = select(1,GetUnitSpeed("player")) > 0
-	if IsFalling() then jps.startedFalling = GetTime() end
+	if IsFalling() and jps.startedFalling == 0 then jps.startedFalling = GetTime() end
+	if not IsFalling() and jps.startedFalling > 0 then jps.startedFalling = 0 end
 
 	-- Check spell usability -- ALLOW SPELLSTOPCASTING() IN JPS.ROTATION() TABLE
 	jps.ThisCast,jps.Target = jps.activeRotation().getSpell()

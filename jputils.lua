@@ -40,7 +40,6 @@ jps.HealerSpellID = {
 
         -- Priests
         -- [000017] = "PRIEST", -- Power word: Shield -- exists also for shadow priests
-        -- [000139] = "PRIEST", -- Renew -- exists also for shadow priests
         [047540] = "PRIEST", -- Penance
         [062618] = "PRIEST", -- Power word: Barrier
         [109964] = "PRIEST", -- Spirit shell

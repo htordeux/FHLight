@@ -54,6 +54,9 @@ end
 
 jps.registerRotation("PRIEST","SHADOW",function()
 
+local spell = nil
+local target = nil
+
 local CountInRange, AvgHealthLoss, FriendUnit = jps.CountInRaidStatus(1)
 local playerhealth =  jps.hp("player","abs")
 local playerhealthpct = jps.hp("player")
@@ -392,8 +395,6 @@ local spellTable = {
 	{ 15407, true , rangedTarget , "Fouet_Mental" },
 }
 
-	local spell = nil
-	local target = nil
 	spell,target = parseSpellTable(spellTable)
 	return spell,target
 end, "Shadow Priest Default" )

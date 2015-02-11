@@ -43,6 +43,7 @@ mage.runeOfPower = 116011;
 mage.supernova = 157980;
 mage.slowFall = 130;
 mage.aspecOfTheFox = 172106; -- Buff Hunt
+mage.iceblock = 45438
 
 mage.hasRune = function()
 	local hasOne,_ = GetTotemInfo(1)
@@ -77,8 +78,9 @@ mage.supernovaCharges = function()
 end
 
 mage.targetIsCrystal = function()
-	if not UnitExists("target") then return false end 
-	if UnitName("target") == mage.prismaticCrystal then
+	if not UnitExists("target") then return false end
+	local targetid,_ = jps.UnitGUID("target")
+	if targetid == mage.prismaticCrystal then
 		return true
 	end
 	return false
@@ -106,6 +108,20 @@ end
 
 jps.registerRotation("MAGE","ARCANE", function()
 
+	local spell = nil
+	local target = nil
+
+----------------------------
+-- LOWESTIMPORTANTUNIT
+----------------------------
+
+	local playerAggro = jps.FriendAggro("player")
+	local playerhealth =  jps.hp("player","abs")
+	local playerhealthpct = jps.hp("player")
+	local TankUnit, myTank  = jps.findAggroInRaid() -- return Table with UnitThreatSituation == 3 (tanking) or == 1 (Overnuking)
+	local TankTarget = "target"
+	if canHeal(myTank) then TankTarget = myTank.."target" end
+
 ---------------------
 -- ENEMY TARGET
 ---------------------
@@ -113,12 +129,12 @@ jps.registerRotation("MAGE","ARCANE", function()
 	-- rangedTarget returns "target" by default, sometimes could be friend
 	local rangedTarget, EnemyUnit, TargetCount = jps.LowestTarget()
 
-	if canDPS("target") then rangedTarget =  "target"
+	if canDPS(TankTarget) then rangedTarget = TankTarget
+	elseif canDPS("target") then rangedTarget =  "target"
 	elseif canDPS("targettarget") then rangedTarget = "targettarget"
 	elseif canDPS("focustarget") then rangedTarget = "focustarget"
 	elseif canDPS("mouseover") and UnitAffectingCombat("mouseover") then rangedTarget = "mouseover"
 	end
-	-- if your target is friendly keep it as target
 	if canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
 
 -----------------------------
@@ -126,6 +142,10 @@ jps.registerRotation("MAGE","ARCANE", function()
 -----------------------------
 
 spellTable = {
+
+	-- iceblock
+	{mage.iceblock, playerhealthpct < 0.25 and playerAggro },
+	
 	--interrupts
 	{mage.counterspell, jps.ShouldKick("target") },
 

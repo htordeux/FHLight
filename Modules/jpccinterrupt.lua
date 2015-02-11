@@ -135,35 +135,26 @@ local DispelTableRBG = {
 	[122] = toSpellName(122),		-- Frost Nova				-- Dispel type	Magic
 }
 
-local PolymorphSpells = {
+local ControlSpells = {
 	toSpellName(118),	-- "Polymorph" , -- Dispel type	Magic
-	toSpellName(61305),	-- "Polymorph: Black Cat" ,
-	toSpellName(28272),	-- "Polymorph: Pig" ,
-	toSpellName(61721),	-- "Polymorph: Rabbit" ,
-	toSpellName(61780),	-- "Polymorph: Turkey" ,
-	toSpellName(28271),	-- "Polymorph: Turtle" ,
+	toSpellName(61305),	-- "Polymorph: Black Cat"
+	toSpellName(28272),	-- "Polymorph: Pig"
+	toSpellName(61721),	-- "Polymorph: Rabbit"
+	toSpellName(61780),	-- "Polymorph: Turkey"
+	toSpellName(28271),	-- "Polymorph: Turtle"
+	toSpellName(51514),	-- "Hex"
+	toSpellName(33786),	-- "Cyclone"	
 }
 
--- Enemy Casting Polymorph
+-- Enemy Casting Polymorph,Hex,Cyclone
 local latencyWorld = select(4,GetNetStats())/1000
-function jps.IsCastingPoly(unit)
-	if not canDPS(unit) then return false end
-	local delay, spellname = jps.CastTimeLeft(unit)
-	for _,spell in ipairs(PolymorphSpells) do
-		if spellname == spell and delay > 0 then
-			if delay - (latencyWorld * 2) < 0 then return true end
-		end
-	end 
-	return false
-end
-
--- Enemy casting CrowdControl Spell
--- name, subText, text, texture, startTime, endTime, isTradeSkill, castID, notInterruptible = UnitCastingInfo("unit")
 function jps.IsCastingControl(unit)
 	if not canDPS(unit) then return false end
 	local delay, spellname = jps.CastTimeLeft(unit)
-	if DebuffToDispel[spellname] == "CC" and delay > 0 then
-		return true 
+	for _,spell in ipairs(ControlSpells) do
+		if spellname == spell and delay > 0 then
+			return true
+		end
 	end 
 	return false
 end

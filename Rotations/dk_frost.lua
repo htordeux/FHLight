@@ -46,6 +46,9 @@ end
 
 jps.registerRotation("DEATHKNIGHT","FROST", function()
 
+local spell = nil
+local target = nil
+
 ---------------------
 -- TIMER
 ---------------------
@@ -213,8 +216,7 @@ local spellTable = {
 	{ dk.spells["HowlingBlast"] , Dr == 2 }, -- Death runes
 
 }
-	local spell = nil
-	local target = nil
+
 	spell,target = parseSpellTable(spellTable)
 	return spell,target
 
@@ -250,6 +252,9 @@ http://forums.elitistjerks.com/page/articles.html/_/world-of-warcraft/death-knig
 ]]--
 
 jps.registerRotation("DEATHKNIGHT","FROST", function()
+
+local spell = nil
+local target = nil
 
 ---------------------
 -- TIMER
@@ -418,8 +423,7 @@ local spellTable = {
 	{ dk.spells["HowlingBlast"] , Dr == 2 }, -- Death runes
 
 }
-	local spell = nil
-	local target = nil
+
 	spell,target = parseSpellTable(spellTable)
 	return spell,target
 

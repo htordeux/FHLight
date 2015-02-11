@@ -281,13 +281,12 @@ function jps.UnitGUID(unit)
 
 	local guid = UnitGUID(unit)
 	if guid == nil then return nil end
-	local objet = strsplit("-",guid);
 	local objet, idplayer, spawnplayer, _, _, idobjet, spawnobjet = strsplit("-",guid);
 
 	if objet == "Player" then
-		return "Player"..idplayer..spawnplayer
+		return idplayer,spawnplayer
 	else
-		return objet..idobjet..spawnobjet
+		return idobjet,spawnobjet
 	end
 
 end

@@ -533,8 +533,7 @@ jps.listener.registerEvent("UNIT_SPELLCAST_START", function(unitID,spellname,_,_
 			jps.CurrentCast = spellname
 			jps.Latency = GetTime() - sendTime
 			jps.GCD = GlobalCooldown()
-			--jps.Casting = true
-			--print("SPELLCAST_START: ",unitID,"spellname: ",spellname,"",jps.Casting)
+			--print("SPELLCAST_START: ",unitID,"spellname: ",spellname,"spellID: ",spellID)
 		end
 end)
 
@@ -543,31 +542,28 @@ jps.listener.registerEvent("UNIT_SPELLCAST_CHANNEL_START", function(unitID,spell
 			jps.CurrentCast = spellname
 			jps.Latency = GetTime() - sendTime
 			jps.GCD = GlobalCooldown()
-			--jps.Casting = true
-			--print("CHANNEL_START: ",unitID,"spellname:",spellname,"",jps.Casting)
 		end
 end)
-
---jps.listener.registerEvent("UNIT_SPELLCAST_CHANNEL_STOP", function(unitID,spellname,_,_,spellID)
---	if unitID == "player" and spellID ~= nil then
---		jps.Casting = false
---		print("CHANNEL_STOP: ",unitID,"spellname:",spellname,"",jps.Casting)
---	end
---end)
 
 jps.listener.registerEvent("UNIT_SPELLCAST_INTERRUPTED", function(unitID,spellname,_,_,spellID)
 	if unitID == "player" and type(spellname) == "string" then
 		jps.CurrentCastInterrupt = spellname
 		jps.CurrentCastInterruptID = spellID
-		--jps.Casting = false
 		--print("INTERRUPTED: ",unitID,"spellname:",spellname,": ",spellID)
 	end
 end)
 
+--jps.listener.registerEvent("UNIT_SPELLCAST_CHANNEL_STOP", function(unitID,spellname,_,_,spellID)
+--	if unitID == "player" and spellID ~= nil then
+--		jps.Casting = false
+--		print("CHANNEL_STOP: ",unitID,"spellname:",spellname,"spellID: ",spellID)
+--	end
+--end)
+
 --jps.listener.registerEvent("UNIT_SPELLCAST_STOP", function(unitID,spellname,_,_,spellID)
 --	if unitID == "player" and spellID ~= nil then
 --		jps.Casting = false
---		print("SPELLCAST_STOP: ",unitID,"spellname:",spellname,"",jps.Casting)
+--		print("SPELLCAST_STOP: ",unitID,"spellname:",spellname,"spellID: ",spellID)
 --	end
 --end)
 
@@ -601,7 +597,7 @@ end)
 -- eventIndex Number - index of the loss-of-control effect currently affecting your character to return information about, ascending from 1. 
 -- LossOfControlType : --STUN_MECHANIC --STUN --PACIFYSILENCE --SILENCE --FEAR --CHARM --PACIFY --CONFUSE --POSSESS --SCHOOL_INTERRUPT --DISARM --ROOT
 
-local stunTypeTable = {"STUN_MECHANIC","STUN","FEAR","CHARM","CONFUSE","ROOT","PACIFY","CHARM" ,"SILENCE","PACIFYSILENCE"}
+local stunTypeTable = {"STUN_MECHANIC","STUN","FEAR","CHARM","CONFUSE","PACIFY","SILENCE","PACIFYSILENCE"}
 jps.listener.registerEvent("LOSS_OF_CONTROL_ADDED", function ()
 	local i = C_LossOfControl.GetNumEvents()
     local locType, _, text, _, _, _, duration = C_LossOfControl.GetEventInfo(i)

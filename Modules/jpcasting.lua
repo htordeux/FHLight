@@ -18,24 +18,25 @@ local GetSpellCooldown = GetSpellCooldown
 -- CASTING SPELL
 --------------------------
 
---name, subText, text, texture, startTime, endTime, isTradeSkill, notInterruptible = UnitChannelInfo("unit")
---name, subText, text, texture, startTime, endTime, isTradeSkill, castID, notInterruptible = UnitCastingInfo("unit")
+-- name, nameSubtext, text, texture, startTime, endTime, isTradeSkill, castID, notInterruptible = UnitCastingInfo("unit")
+-- name, nameSubtext, text, texture, startTime, endTime, isTradeSkill, notInterruptible = UnitCastingInfo("unit")
+
 
 function jps.CastTimeLeft(unit)
 	if unit == nil then unit = "player" end
 	local spellName,_,_,_,_,endTime,_,_,_ = UnitCastingInfo(unit)
 	if endTime == nil then return 0 end
-	return ((endTime - (GetTime() * 1000 ) )/1000), spellName
+	return ((endTime - (GetTime() * 1000 ) )/1000)
 end
 
 function jps.ChannelTimeLeft(unit)
 	if unit == nil then unit = "player" end
 	local spellName,_,_,_,_,endTime,_,_,_ = UnitChannelInfo(unit)
 	if endTime == nil then return 0 end
-	return ((endTime - (GetTime() * 1000 ) )/1000), spellName
+	return ((endTime - (GetTime() * 1000 ) )/1000)
 end
 
-function jps.spellCastTime(spell)
+function jps.SpellCastTime(spell)
 	local spellname = nil
 	if type(spell) == "string" then spellname = spell end
 	if type(spell) == "number" then spellname = tostring(select(1,GetSpellInfo(spell))) end

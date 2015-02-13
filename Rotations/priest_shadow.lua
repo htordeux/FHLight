@@ -32,7 +32,7 @@ end
 local DebuffUnitCyclone = function (unit)
 	local Cyclone = false
 	local i = 1
-	local auraName = select(1,UnitDebuff(unit, i)) -- UnitAura(unit,i,"HARMFUL")
+	local auraName = select(1,UnitDebuff(unit, i))
 	while auraName do
 		if strfind(auraName,L["Polymorph"]) then
 			Cyclone = true
@@ -43,7 +43,7 @@ local DebuffUnitCyclone = function (unit)
 		end
 		if Cyclone then break end
 		i = i + 1
-		auraName = select(1,UnitDebuff(unit, i)) -- UnitAura(unit,i,"HARMFUL") 
+		auraName = select(1,UnitDebuff(unit, i))
 	end
 	return Cyclone
 end

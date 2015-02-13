@@ -35,7 +35,7 @@ local DebuffUnitCyclone = function (unit)
 		end
 		if Cyclone then break end
 		i = i + 1
-		auraName = select(1,UnitDebuff(unit, i)) -- UnitAura(unit,i,"HARMFUL") 
+		auraName = select(1,UnitDebuff(unit, i))
 	end
 	return Cyclone
 end

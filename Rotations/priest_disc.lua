@@ -213,7 +213,7 @@ local priestDisc = function()
 	
 	parseControl = {
 		-- "Silence" 15487
-		{ 15487, type(SilenceEnemyTarget) == "string" , SilenceEnemyTarget , "Silence_MultiUnit" },
+		{ 15487, jps.IsCastingControl(rangedTarget) , rangedTarget , "Silence_"..rangedTarget },
 		-- "Psychic Scream" "Cri psychique" 8122 -- debuff same ID 8122
 		{ 8122, priest.canFear(rangedTarget) , rangedTarget },
 		-- "Void Tendrils" 108920 -- debuff "Void Tendril's Grasp" 114404
@@ -244,7 +244,7 @@ local InterruptTable = {
 ------------------------
 
 spellTable = {
-	
+
 	{"nested", not jps.Combat , {
 		-- "Gardien de peur" 6346
 		{ 6346, not jps.buff(6346,"player") , "player" },
@@ -295,6 +295,8 @@ spellTable = {
 		--{ 2061, jps.buff(114255) and jps.buffDuration(114255) < 4 , LowestImportantUnit , "FlashHeal_Light_"..LowestImportantUnit },
 		-- "Shield" 17
 		{ 17, not jps.buff(17,LowestImportantUnit) and not jps.debuff(6788,LowestImportantUnit) , LowestImportantUnit , "Emergency_Shield_"..LowestImportantUnit },
+		-- SNM Troll "Berserker" 26297 -- haste buff
+		{ 26297, true , "player" },
 		-- "Soins rapides" 2061 -- Buff "Borrowed" 59889 -- "Archange surpuissant" 172359  100 % critique POH or FH
 		{ 2061, not jps.Moving and jps.buff(59889,"player") , LowestImportantUnit , "Emergency_FlashHeal_Borrowed_"..LowestImportantUnit },
 		{ 2061, not jps.Moving and jps.buff(172359,"player") , LowestImportantUnit , "Emergency_FlashHeal_ARCHANGE_"..LowestImportantUnit },
@@ -305,7 +307,7 @@ spellTable = {
 		-- "Infusion de puissance" 10060 -- Buff "Pain Suppression" 33206
 		{ 10060, jps.buff(33206,LowestImportantUnit) , LowestImportantUnit , "Emergency_POWERINFUSION" },
 		-- "Soins rapides" 2061
-		{ 2061, not jps.Moving and LowestImportantUnitHpct < 0.25 , LowestImportantUnit , "Emergency_FlashHeal1_"..LowestImportantUnit },
+		{ 2061, not jps.Moving and LowestImportantUnitHpct < 0.35 , LowestImportantUnit , "Emergency_FlashHeal1_"..LowestImportantUnit },
 		-- "Prière de guérison" 33076 -- Buff POM 41635
 		{ 33076, not jps.Moving and not jps.buff(41635,LowestImportantUnit) , LowestImportantUnit , "Emergency_Mending_"..LowestImportantUnit },
 
@@ -430,12 +432,12 @@ jps.registerRotation("PRIEST","DISCIPLINE", priestDisc , "Disc Priest PVE" , tru
 
 local priestDiscPvP = function()
 
+	local spell = nil
+	local target = nil
+
 ----------------------------
 -- LOWESTIMPORTANTUNIT
 ----------------------------
-
-	local spell = nil
-	local target = nil
 
 	local CountInRange, AvgHealthLoss, FriendUnit = jps.CountInRaidStatus(1)
 	local LowestImportantUnit = jps.LowestImportantUnit()
@@ -472,6 +474,15 @@ local priestDiscPvP = function()
 	end
 	-- if your target is friendly keep it as target
 	if not canHeal("target") and canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
+	
+	local PlayerIsTargeted = false
+	for _,enemy in ipairs(EnemyUnit) do
+		if TargetCount > 0 then
+			if jps.UnitIsUnit(enemy.."target","player") then
+				PlayerIsTargeted = true
+			break end
+		end
+	end
 	
 ----------------------------
 -- LOCAL FUNCTIONS FRIENDS
@@ -537,7 +548,17 @@ local priestDiscPvP = function()
 	end
 
 	-- DISPEL --
-	local DispelFriend = jps.FindMeDispelTarget( {"Magic"} ) -- {"Magic", "Poison", "Disease", "Curse"}
+	local DispelFriend = nil
+	local DispelFriendHealth = 100
+	for _,unit in ipairs(FriendUnit) do
+		if jps.DispelFriendly(unit,2) then
+			local unitHP = jps.hp(unit)
+			if unitHP < DispelFriendHealth then
+				DispelFriend = unit
+				DispelFriendHealth = unitHP
+			end
+		end
+	end
 
 	local DispelFriendRole = nil
 	for _,unit in ipairs(TankUnit) do 
@@ -549,8 +570,6 @@ local priestDiscPvP = function()
 ------------------------
 -- LOCAL FUNCTIONS ENEMY
 ------------------------
-
-	-- jps.IsCastingControl(unit)
 
 	local SilenceEnemyTarget = nil
 	for _,unit in ipairs(EnemyUnit) do
@@ -583,7 +602,7 @@ local priestDiscPvP = function()
 	
 	parseControl = {
 		-- "Silence" 15487
-		{ 15487, type(SilenceEnemyTarget) == "string" , SilenceEnemyTarget , "Silence_MultiUnit" },
+		{ 15487, jps.IsCastingControl(rangedTarget) , rangedTarget , "Silence_"..rangedTarget },
 		-- "Psychic Scream" "Cri psychique" 8122 -- debuff same ID 8122
 		{ 8122, priest.canFear(rangedTarget) , rangedTarget },
 		-- "Void Tendrils" 108920 -- debuff "Void Tendril's Grasp" 114404
@@ -718,21 +737,20 @@ spellTable = {
 		{ 527, jps.canDispel("player",{"Magic"}) , "player" , "Aggro_Dispel" },
 		-- "Soins rapides" 2061
 		{ 2061, not jps.Moving and jps.hp() < 0.40 , "player" , "Aggro_FlashHeal" },
-		-- "Clarity of Will" 152118 shields with protective ward for 20 sec
-		{ 152118, not jps.Moving and ClarityFriendTarget("player") and jps.debuff(6788,"player") , "player" , "Aggro_Clarity" },
-		-- "Prière de guérison" 33076 -- Buff POM 41635
-		{ 33076, not jps.Moving and not jps.buff(41635,"player") , "player" , "Aggro_Mending_" },
 		-- SNM "Nova" 132157 -- "Words of Mending" 155362 "Mot de guérison"
 		{ 132157, jps.hp() < 0.40 , "player" , "Aggro_Nova" },
 		{ 132157, jps.IsSpellKnown(155362) and jps.buffStacks(155362) < 10 , "player" , "Aggro_Nova" },
-		
+		-- "Prière de guérison" 33076 -- Buff POM 41635
+		{ 33076, not jps.Moving and not jps.buff(41635,"player") , "player" , "Aggro_Mending_" },
+		-- "Clarity of Will" 152118 shields with protective ward for 20 sec
+		{ 152118, not jps.Moving and ClarityFriendTarget("player") and jps.debuff(6788,"player") , "player" , "Aggro_Clarity" },
 	},},
 
 	-- "Leap of Faith" 73325 -- "Saut de foi"
 	{ 73325, type(LeapFriend) == "string" , LeapFriend , "|cff1eff00Leap_MultiUnit_" },
 
 	-- SNM EMERGENCY FRIEND HEAL -- "Words of Mending" 155362 "Mot de guérison" -- buff same id
-	{ "nested", LowestImportantUnitHpct < 0.50 or jps.buffStacks(155362) == 10 ,{
+	{ "nested", LowestImportantUnitHpct < 0.50 ,{
 		-- "Suppression de la douleur" 33206 "Pain Suppression" -- Buff "Pain Suppression" 33206
 		{ 33206, LowestImportantUnitHpct < 0.35 , LowestImportantUnit , "Emergency_Pain_"..LowestImportantUnit },
 		-- "Soins rapides" 2061 -- "Vague de Lumière" 114255 "Surge of Light"
@@ -752,7 +770,7 @@ spellTable = {
 		-- "Infusion de puissance" 10060 -- Buff "Pain Suppression" 33206
 		{ 10060, jps.buff(33206,LowestImportantUnit) , LowestImportantUnit , "Emergency_POWERINFUSION" },
 		-- "Soins rapides" 2061
-		{ 2061, not jps.Moving and LowestImportantUnitHpct < 0.25 , LowestImportantUnit , "Emergency_FlashHeal1_"..LowestImportantUnit },
+		{ 2061, not jps.Moving and LowestImportantUnitHpct < 0.35 , LowestImportantUnit , "Emergency_FlashHeal1_"..LowestImportantUnit },
 		-- "Prière de guérison" 33076 -- Buff POM 41635
 		{ 33076, not jps.Moving and not jps.buff(41635,LowestImportantUnit) , LowestImportantUnit , "Emergency_Mending_"..LowestImportantUnit },
 

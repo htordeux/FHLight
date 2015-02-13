@@ -42,17 +42,18 @@ end
 --------------------------------------
 -- LOSS OF CONTROL CHECK
 --------------------------------------
--- name, rank, icon, count, dispelType, duration, expires, caster, isStealable, shouldConsolidate, spellID, canApplyAura, isBossDebuff, value1, value2, value3 = UnitDebuff("unit", index [, "filter"]) or UnitDebuff("unit", "name" [, "rank" [, "filter"]])
--- name, rank, icon, count, dispelType, duration, expires, caster, isStealable, shouldConsolidate, spellID, canApplyAura, isBossDebuff, value1, value2, value3 = UnitAura("unit", index [, "filter"]) or UnitAura("unit", "name" [, "rank" [, "filter"]])
+-- name, rank, icon, count, debuffType, duration, expirationTime, unitCaster, isStealable, shouldConsolidate, spellId, canApplyAura, isBossDebuff, value1, value2, value3 = UnitDebuff("unit", index or ["name", "rank"][, "filter"])
+-- name, rank, icon, count, debuffType, duration, expirationTime, unitCaster, isStealable, shouldConsolidate, spellId, canApplyAura, isBossDebuff, value1, value2, value3 = UnitBuff("unit", index or "name"[, "rank"[, "filter"]])
+-- name, rank, icon, count, debuffType, duration, expirationTime, unitCaster, canStealOrPurge, shouldConsolidate, spellId, canApplyAura, isBossDebuff, isCastByPlayer, ... = UnitAura("unit", index or "name"[, "rank"[, "filter"]])
+-- spellId of the spell or effect that applied the aura
 
--- Table of controls Spellnames by index
-local DebuffToDispel = {}
+local DebuffControl = {}
 for spellID,control in pairs(jps.SpellControl) do
-	DebuffToDispel[toSpellName(spellID)] = control
+	DebuffControl[toSpellName(spellID)] = control
 end
 
-printDebuffToDispel = function()
-	for i, j in pairs(DebuffToDispel) do
+printDebuffControl = function()
+	for i, j in pairs(DebuffControl) do
 		print(i,"/",j)
 	end
 end
@@ -76,11 +77,11 @@ function jps.LoseControl(unit, controlTable)
 	local timeControlled = 0
 	if controlTable == nil then controlTable = {"CC" , "Snare" , "Root" , "Silence" } end
 	-- Check debuffs
-	local auraName, debufftype, duration, expTime, spellId
+	local auraName, debuffType, duration, expTime, spellId
 	local i = 1
-	auraName, _, _, _, debufftype, duration, expTime, _, _, _, spellId = UnitAura(unit, i, "HARMFUL")
+	auraName, _, _, _, debuffType, duration, expTime, _, _, _, spellId, _ = UnitDebuff(unit,i)
 	while auraName do
-		local Priority = DebuffToDispel[auraName] -- jps.SpellControl[spellId]
+		local Priority = jps.SpellControl[spellId]
 		if Priority then
 			for _,control in ipairs(controlTable) do -- {"CC" , "Snare" , "Root" , "Silence" }
 				if Priority == control then
@@ -91,7 +92,7 @@ function jps.LoseControl(unit, controlTable)
 		end
 		if targetControlled == true and timeControlled > 1 then return true end
 		i = i + 1
-		auraName, _, _, _, debufftype, duration, expTime, _, _, _, spellId = UnitAura(unit, i, "HARMFUL")
+		auraName, _, _, _, debuffType, duration, expTime, _, _, _, spellId, _ = UnitDebuff(unit,i)
 	end
 	return targetControlled
 end
@@ -104,71 +105,53 @@ end
 -- DEBUFF RBG
 ---------------------------
 
-    -- 1499, 	-- Freezing Trap ? Dispel type	n/a
-    -- 2139,	-- Counterspell ? Dispel type	n/a
-    -- 113724,  -- Ring of Frost ? Dispel type	n/a
-    -- 5782,	-- "Fear"  -- Dispel type	n/a
-local DispelTableRBG = {
-	[2944] = toSpellName(2944),		-- Devouring Plague			-- Dispel type	Disease
-	[118] = toSpellName(2944),		-- Polymorph				-- Dispel type	Magic
-	[61305] = toSpellName(61305),	-- Polymorph: Black Cat
-	[28272] = toSpellName(28272),	-- Polymorph: Pig
-	[61721] = toSpellName(61721),	-- Polymorph: Rabbit
-	[61780] = toSpellName(61780),	-- Polymorph: Turkey
-	[28271] = toSpellName(28271),	-- Polymorph: Turtle
+local DebuffToDispel = {
+	toSpellName(2944),		-- Devouring Plague			-- Dispel type	Disease
+	toSpellName(2944),		-- Polymorph				-- Dispel type	Magic
+	toSpellName(61305),		-- Polymorph: Black Cat
+	toSpellName(28272),		-- Polymorph: Pig
+	toSpellName(61721),		-- Polymorph: Rabbit
+	toSpellName(61780),		-- Polymorph: Turkey
+	toSpellName(28271),		-- Polymorph: Turtle
 	
-    [8122] = toSpellName(8122),		-- "Psychic Scream"			-- Dispel type	Magic
-    [5484] = toSpellName(5484),		-- "Howl of Terror"			-- Dispel type	Magic
-    [3355] = toSpellName(3355),		-- Freezing Trap			-- Dispel type	Magic
-    [64044] = toSpellName(64044),	-- Psychic Horror			-- Dispel type	Magic
-    [10326] = toSpellName(10326),	-- Turn Evil				-- Dispel type	Magic
-    [44572] = toSpellName(44572),	-- Deep Freeze				-- Dispel type	Magic
-    [55021] = toSpellName(55021),	-- Improved Counterspell	-- Dispel type	Magic
-    [853] = toSpellName(853),		-- Hammer of Justice		-- Dispel type	Magic
-    [82691] = toSpellName(82691),	-- Ring of Frost			-- Dispel type	Magic
-    [20066] = toSpellName(20066),	-- Repentance				-- Dispel type	Magic
-    [47476] = toSpellName(47476),	-- Strangulate				-- Dispel type	Magic
-    [113792] = toSpellName(113792),	-- Psychic Terror (Psyfiend)-- Dispel type	Magic
-	[118699] = toSpellName(118699),	-- "Fear"					-- Dispel type	Magic
-	[130616] = toSpellName(130616),	-- "Fear" (Glyph of Fear)	-- Dispel type	Magic
-	[104045] = toSpellName(104045),	-- Sleep (Metamorphosis)	-- Dispel type	Magic
-	[122] = toSpellName(122),		-- Frost Nova				-- Dispel type	Magic
+	toSpellName(8122),		-- "Psychic Scream"			-- Dispel type	Magic
+	toSpellName(5484),		-- "Howl of Terror"			-- Dispel type	Magic
+	toSpellName(3355),		-- Freezing Trap			-- Dispel type	Magic
+	toSpellName(64044),		-- Psychic Horror			-- Dispel type	Magic
+	toSpellName(10326),		-- Turn Evil				-- Dispel type	Magic
+	toSpellName(44572),		-- Deep Freeze				-- Dispel type	Magic
+	toSpellName(55021),		-- Improved Counterspell	-- Dispel type	Magic
+	toSpellName(853),		-- Hammer of Justice		-- Dispel type	Magic
+	toSpellName(82691),		-- Ring of Frost			-- Dispel type	Magic
+	toSpellName(20066),		-- Repentance				-- Dispel type	Magic
+	toSpellName(47476),		-- Strangulate				-- Dispel type	Magic
+	toSpellName(113792),	-- Psychic Terror (Psyfiend)-- Dispel type	Magic
+	toSpellName(118699),	-- "Fear"					-- Dispel type	Magic
+	toSpellName(130616),	-- "Fear" (Glyph of Fear)	-- Dispel type	Magic
+	toSpellName(104045),	-- Sleep (Metamorphosis)	-- Dispel type	Magic
+	toSpellName(122),		-- Frost Nova				-- Dispel type	Magic
 }
 
-local ControlSpells = {
-	toSpellName(118),	-- "Polymorph" , -- Dispel type	Magic
-	toSpellName(61305),	-- "Polymorph: Black Cat"
-	toSpellName(28272),	-- "Polymorph: Pig"
-	toSpellName(61721),	-- "Polymorph: Rabbit"
-	toSpellName(61780),	-- "Polymorph: Turkey"
-	toSpellName(28271),	-- "Polymorph: Turtle"
-	toSpellName(51514),	-- "Hex"
-	toSpellName(33786),	-- "Cyclone"	
+local ControlDebuff = {
+	toSpellName(118),		-- "Polymorph" , -- Dispel type	Magic
+	toSpellName(61305),		-- "Polymorph: Black Cat"
+	toSpellName(28272),		-- "Polymorph: Pig"
+	toSpellName(61721),		-- "Polymorph: Rabbit"
+	toSpellName(61780),		-- "Polymorph: Turkey"
+	toSpellName(28271),		-- "Polymorph: Turtle"
+	toSpellName(51514),		-- "Hex"
+	toSpellName(33786),		-- "Cyclone"	
 }
 
 -- Enemy Casting Polymorph,Hex,Cyclone
 local latencyWorld = select(4,GetNetStats())/1000
 function jps.IsCastingControl(unit)
 	if not canDPS(unit) then return false end
-	local delay, spellname = jps.CastTimeLeft(unit)
-	for _,spell in ipairs(ControlSpells) do
-		if spellname == spell and delay > 0 then
+	for _,spell in ipairs(ControlDebuff) do
+		if jps.IsCastingSpell(spell,unit) then
 			return true
 		end
 	end 
-	return false
-end
-
--- Enemy casting Healing Spell
-function jps.IsCastingHeal(unit)
-	if not canDPS(unit) then return false end
-	local delay, spellname = jps.CastTimeLeft(unit)
-	for spellID,_ in pairs(jps.HealerSpellID) do
-		local name = toSpellName(spellID)
-		if spellname == name and delay > 0 then
-			return true
-		end
-	end
 	return false
 end
 
@@ -177,6 +160,7 @@ local DebuffNotDispel = {
 	toSpellName(31117), 	-- "Unstable Affliction"
 	toSpellName(34914), 	-- "Vampiric Touch"
 	}
+
 -- Don't dispel if friend is affected by "Unstable Affliction" or "Vampiric Touch" or "Lifebloom"
 local NotDispelFriendly = function(unit)
 	for _,debuff in ipairs(DebuffNotDispel) do
@@ -185,44 +169,34 @@ local NotDispelFriendly = function(unit)
 	return false
 end
 
--- Dispel all MAGIC debuff in the debuff table EXCEPT if unit is affected by some debuffs
+local findDebuffToDispel = function(name)
+	for _,debuff in ipairs(DebuffToDispel) do
+		if name == debuff then
+		return true end
+	end
+	return false
+end
+
+-- Dispel all MAGIC debuff in the debuff TABLE DebuffToDispel EXCEPT if unit is affected by some debuffs
 jps.DispelFriendly = function (unit,timed)
 	if not canHeal(unit) then return false end
 	if NotDispelFriendly(unit) then return false end
 	if timed == nil then timed = 0 end
 	local timeControlled = 0
-	local auraName, debufftype, duration, expTime, spellId
+	local auraName, debuffType, duration, expTime, spellId
 	local i = 1
-	auraName, _, _, _, debufftype, duration, expTime, _, _, _, spellId = UnitAura(unit, i, "HARMFUL")
+	auraName, _, _, _, debuffType, duration, expTime, _, _, _, spellId = UnitDebuff(unit, i)
 	while auraName do
-		if debufftype == "Magic" and DebuffToDispel[auraName] then
-			if expTime ~= nil then timeControlled = expTime - GetTime() end
-			if timeControlled > timed then
-			return true end
+		if debuffType == "Magic" then
+			if findDebuffToDispel(auraName) then
+				if expTime ~= nil then timeControlled = expTime - GetTime() end
+				if timeControlled > timed then
+					return true
+				end
+			end
 		end
 		i = i + 1
-		auraName, _, _, _, debufftype, duration, expTime, _, _, _, spellId = UnitAura(unit, i, "HARMFUL")
-	end
-	return false
-end
-
--- Dispel all MAGIC debuff in the debuff table EXCEPT if unit is affected by some debuffs
-jps.DispelFriendlyRBG = function (unit,timed)
-	if not canHeal(unit) then return false end
-	if NotDispelFriendly(unit) then return false end
-	if timed == nil then timed = 0 end
-	local timeControlled = 0
-	local auraName, debufftype, duration, expTime, spellId
-	local i = 1
-	auraName, _, _, _, debufftype, duration, expTime, _, _, _, spellId = UnitAura(unit, i, "HARMFUL")
-	while auraName do
-		if debufftype == "Magic" and DispelTableRBG[spellId] then
-			if expTime ~= nil then timeControlled = expTime - GetTime() end
-			if timeControlled > timed then
-			return true end
-		end
-		i = i + 1
-		auraName, _, _, _, debufftype, duration, expTime, _, _, _, spellId = UnitAura(unit, i, "HARMFUL")
+		auraName, _, _, _, debuffType, duration, expTime, _, _, _, spellId = UnitDebuff(unit, i)
 	end
 	return false
 end
@@ -265,6 +239,7 @@ end
 
 -- name, nameSubtext, text, texture, startTime, endTime, isTradeSkill, castID, notInterruptible = UnitCastingInfo("unit")
 -- name, nameSubtext, text, texture, startTime, endTime, isTradeSkill, notInterruptible = UnitCastingInfo("unit")
+
 function jps.ShouldKick(unit)
 	if unit == nil then unit = "target" end
 	if not canDPS(unit) then return false end

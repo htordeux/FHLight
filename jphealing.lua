@@ -398,6 +398,10 @@ end
 ---------------------------------
 -- DISPEL FUNCTIONS RAID STATUS
 ---------------------------------
+-- name, rank, icon, count, debuffType, duration, expirationTime, unitCaster, isStealable, shouldConsolidate, spellId, canApplyAura, isBossDebuff, value1, value2, value3 = UnitDebuff("unit", index or ["name", "rank"][, "filter"])
+-- name, rank, icon, count, debuffType, duration, expirationTime, unitCaster, isStealable, shouldConsolidate, spellId, canApplyAura, isBossDebuff, value1, value2, value3 = UnitBuff("unit", index or "name"[, "rank"[, "filter"]])
+-- name, rank, icon, count, debuffType, duration, expirationTime, unitCaster, canStealOrPurge, shouldConsolidate, spellId, canApplyAura, isBossDebuff, isCastByPlayer, ... = UnitAura("unit", index or "name"[, "rank"[, "filter"]])
+-- spellId of the spell or effect that applied the aura
 
 -- Don't Dispel if unit is affected by some debuffs
 local DebuffNotDispel = {
@@ -416,16 +420,16 @@ jps.canDispel = function (unit,dispelTable) -- {"Magic", "Poison", "Disease", "C
 	if not canHeal(unit) then return false end
 	if NotDispelFriendly(unit) then return false end
 	if dispelTable == nil then dispelTable = {"Magic"} end
-	local auraName, icon, count, debuffType, expirationTime, castBy
+	local auraName, debuffType, expirationTime, castBy, spellId
 	local i = 1
-	auraName, _, icon, count, debuffType, _, expirationTime, castBy, _, _, spellId = UnitDebuff(unit, i) -- UnitAura(unit,i,"HARMFUL") 
+	auraName, _, _, _, debuffType, _, expirationTime, castBy, _, _, spellId = UnitDebuff(unit, i) 
 	while auraName do
 		for _,dispeltype in ipairs(dispelTable) do
 			if debuffType == dispeltype then
 			return true end
 		end
 		i = i + 1
-		auraName, _, icon, count, debuffType, _, expirationTime, castBy, _, _, spellId = UnitDebuff(unit, i) -- UnitAura(unit,i,"HARMFUL") 
+		auraName, _, _, _, debuffType, _, expirationTime, castBy, _, _, spellId = UnitDebuff(unit, i)
 	end
 	return false
 end

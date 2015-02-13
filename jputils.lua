@@ -159,7 +159,6 @@ jps.SpellControl = {
 	----------------
 
 	[117526] = "CC",			-- Binding Shot
-	[109248] = "CC",			-- Binding Shot
 	[3355]   = "CC",			-- Freezing Trap
 	[13809] = "Snare",			-- Ice Trap 1
 	[19386]  = "CC",			-- Wyvern Sting
@@ -369,7 +368,7 @@ jps.SpellControl = {
 	[39965]  = "Root",		-- Frost Grenade
 	[55536]  = "Root",		-- Frostweave Net
 	[13099]  = "Root",		-- Net-o-Matic
-	[1604]   = "Snare",		-- Dazedl
+	[1604]   = "Snare",		-- Dazed
 }
 
 --------------------------------------------------------------------

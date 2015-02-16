@@ -139,8 +139,8 @@ local ControlDebuff = {
 	toSpellName(61721),		-- "Polymorph: Rabbit"
 	toSpellName(61780),		-- "Polymorph: Turkey"
 	toSpellName(28271),		-- "Polymorph: Turtle"
-	toSpellName(51514),		-- "Hex"
-	toSpellName(33786),		-- "Cyclone"	
+	toSpellName(51514),		-- "Hex"					-- Type de dissipation	Malédiction
+	toSpellName(33786),		-- "Cyclone"				-- Type de dissipation	n/d
 }
 
 -- Enemy Casting Polymorph,Hex,Cyclone

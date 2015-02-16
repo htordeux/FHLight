@@ -130,23 +130,12 @@ local priestHoly = function()
 	local DispelFriendlyTargetHealth = 100
 	for _,unit in ipairs(FriendUnit) do
 		local unitHP = jps.hp(unit)
-		if jps.DispelFriendlyRBG(unit) then
+		if jps.DispelFriendly(unit) then
 			if unitHP < DispelFriendlyTargetHealth then
 				DispelFriendlyTarget = unit
 				DispelFriendlyTargetHealth = unitHP
 			end
 		end
-	end
-	if DispelFriendlyTarget == nil then
-		for _,unit in ipairs(FriendUnit) do
-			local unitHP = jps.hp(unit)
-			if jps.DispelFriendly(unit,1) then
-				if unitHP < DispelFriendlyTargetHealth then
-					DispelFriendlyTarget = unit
-					DispelFriendlyTargetHealth = unitHP
-				end
-			end
-		end	
 	end
 
 	-- priest.unitForLeap includes jps.FriendAggro and jps.LoseControl

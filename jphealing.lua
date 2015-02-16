@@ -240,7 +240,7 @@ local myTanks = { "player","focus","target","targettarget","mouseover" }
 jps.LowestImportantUnit = function()
 	local LowestImportantUnit = "player"
 	if jps.Defensive then
-		local aggroTanks = jps.findAggroInRaid()
+		local aggroTanks,_ = jps.findAggroInRaid()
 		for i,j in ipairs(aggroTanks) do
 			table.insert(myTanks, j)
 		end

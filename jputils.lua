@@ -509,3 +509,455 @@ GameTooltip:HookScript("OnTooltipSetUnit", function(self)
 	end
 end)
 ]]
+
+jps.EnemyCds = {
+
+	--------------------------------------------------------------------------
+	--Misc
+	[28730] = 120,				--"Arcane Torrent",
+	[50613] = 120,				--"Arcane Torrent",
+	[80483] = 120,				--"Arcane Torrent",
+	[25046] = 120,				--"Arcane Torrent",
+	[69179] = 120,				--"Arcane Torrent",
+	[20572] = 120,				--"Blood Fury",
+	[33702] = 120,				--"Blood Fury",
+	[33697] = 120,				--"Blood Fury",
+	[59543] = 180,				--"Gift of the Naaru",
+	[69070] = 120,				--"Rocket Jump",
+	[26297] = 180,				--"Berserking",
+	[20594] = 120,				--"Stoneform",
+	[58984] = 120,				--"Shadowmeld",
+	[20589] = 90,				--"Escape Artist",
+	[59752] = 120,				--"Every Man for Himself",
+	[7744] = 120,				--"Will of the Forsaken",
+	[68992] = 120,				--"Darkflight",
+	[50613] = 120,				--"Arcane Torrent",
+	[11876] = 120,				--"War Stomp",
+	[69041] = 120,				--"Rocket Barrage",
+	[42292] = 120,				--"PvP Trinket",
+	[69070] = 120,				-- Goblin: Rocket Jump
+
+	--------------------------------------------------------------------------
+	--Pets(Death Knight)
+	[91797] = 60,				--"Monstrous Blow",
+	[91837] = 45,				--"Putrid Bulwark",
+	[91802] = 30,				--"Shambling Rush",
+	[47482] = 30,				--"Leap",
+	[91809] = 30,				--"Leap",
+	[91800] = 60,				--"Gnaw",
+	[47481] = 60,				--"Gnaw",
+
+	--------------------------------------------------------------------------
+	--Pets(Hunter)
+	[90339] = 60,				--"Harden Carapace",
+	[61685] = 25,				--"Charge",
+	[50519] = 60,				--"Sonic Blast",
+	[35290] = 10,				--"Gore",
+	[50245] = 40,				--"Pin",
+	[50433] = 10,				--"Ankle Crack",
+	[26090] = 30,				--"Pummel",
+	[93434] = 90,				--"Horn Toss",
+	[57386] = 15,				--"Stampede",
+	[50541] = 60, 				--"Clench",
+	[26064] = 60, 				--"Shell Shield",
+	[35346] = 15, 				--"Time Warp",
+	[93433] = 30,				--"Burrow Attack",
+	[91644] = 60,				--"Snatch",
+	[54644] = 10,				--"Frost Breath",
+	[34889] = 30,				--"Fire Breath",
+	[50479] = 40,				--"Nether Shock",
+	[50518] = 15,				--"Ravage",
+	[35387] = 6, 				--"Corrosive Spit",
+	[54706] = 40,				--"Vemom Web Spray",
+	[4167] = 40,				--"Web",
+	[50274] = 12,				--"Spore Cloud",
+	[24844] = 30, 				--"Lightning Breath",
+	[90355] = 360,				--"Ancient Hysteria",
+	[54680] = 8,				--"Monstrous Bite",
+	[90314] = 25,				--"Tailspin",
+	[50271] = 10, 				--"Tendon Rip",
+	[50318] = 60,				--"Serenity Dust",
+	[50498] = 6, 				--"Tear Armor",
+	[90361] = 40,				--"Spirit Mend",
+	[50285] = 40, 				--"Dust Cloud",
+	[56626] = 45,				--"Sting",
+	[24604] = 45,				--"Furious Howl",
+	[90309] = 45,				--"Terrifying Roar",
+	[24423] = 10,				--"Demoralizing Screech",
+	[93435] = 45,				--"Roar of Courage",
+	[58604] = 8,				--"Lava Breath",
+	[90327] = 40,				--"Lock Jaw",
+	[90337] = 60,				--"Bad Manner",
+	[53490] = 180,				--"Bullheaded",
+	[23145] = 32,				--"Dive",
+	[55709] = 480,				--"Heart of the Phoenix",
+	[53426] = 180,				--"Lick Your Wounds",
+	[53401] = 45, 				--"Rabid",
+	[53476] = 30,				--"Intervene",
+	[53480] = 60,				--"Roar of Sacrifice",
+	[53478] = 360,				--"Last Stand",
+	[53517] = 180,				--"Roar of Recovery",
+
+	--------------------------------------------------------------------------
+	--Pets(Warlock)
+	[19647] = 24,				--"Spell Lock",
+	[7812] = 60,				--"Sacrifice",
+	[89766] = 30,				--"Axe Toss"
+	[89751] = 45,				--"Felstorm",
+
+	--------------------------------------------------------------------------
+	--Pets(Mage)
+	[33395] = 25,				--"Freeze", --No way to tell which WE cast this still usefull to some degree.
+
+	--------------------------------------------------------------------------
+	--Death Knight
+	-- abilities
+	[49576] = 25,				--"Death Grip",	
+	[46584] = 120,				--"Raise Dead",
+	[47528] = 15,				--"Mind Freeze",
+	[47476] = 60,				--"Strangulate",
+	[43265] = 30,				--"Death and Decay",
+	[48792] = 180,				--"Icebound Fortitude",
+	[48707] = 45,				--"Anti-Magic Shell",
+	[47568] = 300,				--"Empower Rune Weapon",
+	[77606] = 60,				--"Dark Simulakrum",
+
+	-- talents
+	[51052] = 120,				--"Anti-Magic Zone",
+	[49039] = 120,				--"Lichborne",
+	[114556] = 180,				--"Purgatory",
+	[108194] = 60,				--"Asphyxiate",
+	[96268] = 30,				--"Death's Advance",
+	[48743] = 120,				--"Death Packt",
+	[108201] = 120,				--"Desecrated Ground",
+	[108199] = 60,				--"Gorefiend's Grasp",
+	[108200] = 60,				--"Remorseless Winter",
+
+	-- specialization
+	[49222] = 60,				--"Bone Shield",
+	[49028] = 90,				--"Dancing Rune Weapon",
+	[51271] = 60,				--"Pillar of Frost",
+	[49206] = 180,				--"Summon Gargoyle",
+	[49016] = 180,				--"Unholy Frenzy",
+	[55233] = 60,				--"Vampiric Blood",
+
+	--------------------------------------------------------------------------
+	--Druid
+	-- abilities
+	[102543] = 180,				-- Incarnation: King of the Jungle
+	[102558] = 180,				-- Incarnation: Son of Ursoc
+	[339] = 30,					-- Entangling Roots
+	[102560] = 180,				-- Incarnation: Chosen of Elune
+	[1850] = 180,				-- Dash
+	[22812] = 60,				-- Barkskin
+	[16689] = 60,				-- Nature's Grasp
+	[29116] = 180,				-- Innervate
+	[22842] = 90,				-- Frenzied Regeneration
+	[106922] = 180,				-- Might of Ursoc
+	[740] = 480,				-- Tranquility
+	[77761] = 120,				-- Stampeding Roar
+
+	-- talents
+	[102280] = 30,				-- Displacer Beast
+	[102401] = 15,				-- Wild Charge
+	[102351] = 30,				-- Cenarion Ward
+	[132158] = 60,				-- Nature's Swiftness
+	[108238] = 120,				-- Renewal
+	[102359] = 120,				-- Mass Entanglement
+	[132469] = 20,				-- Typhoon
+	[106737] = 60,				-- Force of Nature
+	[106731] = 180,				-- Incarnation
+	[99] = 30,					-- Disorienting Roar
+	[5211] = 50,				-- Mighty Bash
+	[102793] = 60,				-- Ursol's Vortex
+	[108288] = 360,				-- Heart of the Wild
+	[124974] = 300,				-- Nature's Vigil
+
+	-- specialization
+	[102795] = 60,				-- Bear Hug
+	[106952] = 180,				-- Berserk
+	[112071] = 180,				-- Celestial Alignment
+	[102342] = 120,				-- Ironbark
+	[88432] = 8,				-- Nature's Cure
+	[2782] = 8,					-- Remove Corruption
+	[106839] = 15,				-- Skull Bash
+	[78675] = 60,				-- Solar Beam
+	[48505] = 90,				-- Starfall
+	[78674] = 15,				-- Starsurge
+	[61336] = 180,				-- Survival Instincts
+
+	--------------------------------------------------------------------------
+	--Hunter
+	-- abilities
+	[781] = 25,					-- Disengage
+	[19503] = 30,				-- Scatter Shot
+	[1499] = 30,				-- Freezing Trap
+	[5384] = 30,				-- Feign Death
+	[1543] = 20,				-- Flare
+	[13809] = 30,				-- Ice Trap
+	[3045] = 180,				-- Rapid Fire
+	[23989] = 300,				-- Readiness
+	[34600] = 30,				-- Snake Trap
+	[53271] = 45,				-- Master's Call
+	[19263] = 120,				-- Deterrence
+	[51753] = 60,				-- Camouflage
+	[121818] = 300,				-- Stampede
+
+	-- talents
+	[109248] = 45,				-- Binding Shot
+	[34490] = 20,				-- Silencing Shot
+	[19386] = 60,				-- Wyvern Sting
+	[109304] = 120,				-- Exhilaration
+	[120679] = 30,				-- Dire Beast
+	[131894] = 120,				-- A Murder of Crows
+	[130392] = 20,				-- Blink Strike
+	[120679] = 90,				-- Lynx Rush
+	[120360] = 30,				-- Barrage
+	[109259] = 60,				-- Powershot
+
+	-- specialization
+	[19574] = 60,				-- Bestial Wrath
+	[19577] = 60,				-- Intimidation
+
+	--------------------------------------------------------------------------
+	--Mage
+	-- abilities
+	[1953] = 15,				-- Blink
+	[122] = 25,					-- Frost Nova
+	[2139] = 24,				-- Counterspell
+	[45438] = 300,				-- Ice Block
+	[475] = 8,					-- Remove Curse
+	[12051] = 120,				-- Evocation
+	[55342] = 180,				-- Mirror Image
+	[66] = 300,					-- Invisibility
+	[44572] = 30,				-- Deep Freeze
+	[120] = 8,                  -- Cone of Cold
+
+	-- talents
+	[108839] = 60,				-- Ice Floes
+	[12043] = 90,				-- Presence of Mind
+	[108843] = 25,				-- Blazing Speed
+	[11426] = 25,				-- Ice Barrier
+	[115610] = 25,				-- Temporal Shield
+	[102051] = 20,				-- Frostjaw
+	[113724] = 30,				-- Ring of Frost
+	[86949] = 120,				-- Cautarize
+	[11958] = 180,				-- Cold Snap
+	[110959] = 150,				-- Greater Invisibility
+	[112948] = 10,				-- Frost Bomb
+	[116011] = 6,				-- Rune of Power
+
+	-- specialization
+	[12042] = 90,				-- Arcane Power
+	[11129] = 45,				-- Combustion
+	[84714] = 60,				-- Frozen Orb
+	[12472] = 180,				-- Icy Veins
+	[31687] = 60,				-- Summon Water Elemental
+	[31661] = 20,				-- Dragon's Breath
+
+	--------------------------------------------------------------------------
+	--Paladin
+	-- abilities
+	[853] = 60,					-- Hammer of Justice
+	[642] = 300,				-- Divine Shield
+	[4987] = 8,					-- Cleanse
+	[498] = 60,					-- Divine Protection
+	[96231] = 15,				-- Rebuke
+	[1022] = 300,				-- Hand of Protection
+	[1044] = 25,				-- Hand of Freedom
+	[31821] = 180,				-- Devotion Aura
+	[31884] = 180,				-- Avenging Wrath
+	[6940] = 120,				-- Hand of Sacrifice
+	[115750] = 120,				-- Blinding Light
+
+	-- talents
+	[85499] = 45,				-- Speed of Light
+	[105593] = 30,				-- First of Justice
+	[20066] = 15,				-- Repentance
+	[114039] = 30,				-- Hand of Purity
+	[105809] = 120,				-- Holy Avenger
+
+	-- specialization
+	[31850] = 180, 				-- Ardent Defender
+	[31935] = 15,				-- Avenger's Shield
+	[54428] = 120,				-- Devine Plea
+
+	--------------------------------------------------------------------------
+	--Priest
+	-- abilities
+	[8122] = 30,				-- Psychic Scream
+	[528] = 8,					-- Dispel Magic
+	[586] = 30,					-- Fade
+	[34433] = 180,				-- Shadowfiend
+	[6346] = 180,				-- Fear Ward
+	[64901] = 360,				-- Hymn of Hope
+	[32375] = 15,				-- Mass Dispell
+	[73325] = 90,				-- Leap of Faith
+	[108968] = 360,				-- Void Shift
+
+	-- talents
+	[605] = 30,					-- Dominate Mind
+	[108921] = 45,				-- Psyfiend
+	[108920] = 30,				-- Void Tendrils
+	[123040] = 60,				-- Mindbender
+	[19236] = 120,				-- Desperate Prayer
+	[112883] = 30,				-- Spectral Guise
+	[10060] = 120,				-- Power Infusion
+
+	-- specialization
+	[47585] = 120,				-- Dispersion
+	[64843] = 180,				-- Devine Hymn
+	[47788] = 180,				-- Guardian Spirit
+	[88625] = 30,				-- Holy Word: Chastise
+	[89485] = 45,				-- Inner Focus
+	[724] = 180,				-- Light Well
+	[33206] = 180,				-- Pain Suppression
+	[62618] = 180,				-- Power Word: Barrier
+	[64044] = 45,				-- Psychic Horror
+	[527] = 8,					-- Purify
+	[15487] = 45,				-- Silence
+	[109964] = 60,				-- Spirit Shell
+
+	--------------------------------------------------------------------------
+	--Monk
+	-- abilities
+	[116705] = 15,		-- Spear Hand Strike
+	[115203] = 180,		-- Fortifying Brew
+	[101643] = 45,		-- Transcendence
+	[119996] = 25,		-- Transcendence: Transfer
+	[117368] = 60,		-- Grapple Weapon
+	[115078] = 15,		-- Paralysis
+	[137562] = 120,		-- Nimble Brew
+	-- talents
+	[116841] = 30,		-- Tiger's Lust
+	[115399] = 90,		-- Chi Brew
+	[116844] = 45,		-- Ring of Peace
+	[119392] = 30,		-- Charging Ox Wave
+	[119381] = 45,		-- Leg Sweep
+	[122278] = 90,		-- Dampen Harm
+	[122783] = 90,		-- Diffuse Magic
+	[116847] = 30,		-- Rushing Jade Wind
+	[123904] = 180,		-- Invoke Xuen, the White Tiger
+	-- specialization
+	[115288] = 60,		-- Energizing Brew
+	[122470] = 90,		-- Touch of Karma
+	[115176] = 180,		-- Zen Meditation
+	[113656] = 25,		-- Fists of Fury
+
+	--------------------------------------------------------------------------
+	--Rogue
+	-- abilities
+	[2094] = 180,				--"Blind",
+	[1766] = 15,				--"Kick",
+	[1776] = 10,				--"Gauge",
+	[2983] = 60,				--"Sprint",
+	[31224] = 120,				--"Cloak of Shadows",
+	[5938] = 10,				--"Shiv",
+	[1856] = 180,				--"Vanish",
+	[5277] = 180,				--"Evasion",
+	[408] = 20,					--"Kidney Shot",
+	[51722] = 60,				--"Dismantle",
+	[114842] = 60,				--"Shadow Walk",
+	[114018] = 300,				--"Shroud of Concealment",
+	[73981] = 60,				--"Redirect" (talented: w/o cooldown)
+	[76577] = 180,				--"Smoke Bomb",
+	[121471] = 180,				--"Shadow Blades",
+
+	-- talents
+	[14185] = 300,				--"Preparation", (sprint, vanish, cloak, evasion, dismantle)
+	[36554] = 24,				--"Shadowstep",
+	[74001] = 120,				--"Combat Readiness",
+	[31230] = 90,				--"Cheat Death",
+
+	-- specialization
+	[79140] = 120,				--"Vendetta",
+	[51690] = 120,				--"Killing Spree",
+	[51713] = 60, 				--"Shadow Dance",
+	[13750] = 180,				--"Adrenaline Rush",
+	[14183] = 20,				--"Premeditation",
+
+	--------------------------------------------------------------------------
+	--Shaman
+	-- abilities
+	[57994] = 12,				-- Wind Shear
+	[51886] = 8,				-- Cleanse Spirit
+	[8056] = 6,					-- Frost Shock
+	[8711] = 25,				-- Grounding Totem
+	[8143] = 60,				-- Tremor Totem
+	[51514] = 45,				-- Hex
+	[79206] = 120,				-- Spiritwalker's Grace
+	[114049] = 180,				-- Ascendance
+
+	-- talents
+	[108271] = 120,				-- Astral Shift
+	[51485] = 30,				-- Earthgrab Totem
+	[108273] = 60,				-- Windwalk Totem
+	[108285] = 180,				-- Call of the Elements
+	[16188] = 60,				-- Ancestral Swiftness
+	[16166] = 120,				-- Elemental Mastery
+	[108281] = 120,				-- Ancestral Guidance
+
+	-- specialization
+	[16190] = 180,				-- Mana Tide Totem
+	[77130] = 8,				-- Purify Spirit
+	[30823] = 60,				-- Shamanistic Rage
+	[98008] = 180,				-- Spirit Link Totem
+	[58875] = 120,				-- Spirit Walk
+	[51490] = 45,				-- Thunderstorm
+
+	--------------------------------------------------------------------------
+	--Warlock
+	-- talents
+	[103135] = 24,				-- Felhunter: Spell Lock
+	[48020] = 30,				-- Demonic Circle: Teleport
+	[48018] = 360,				-- Demonic Circle: Summon (this is not a cooldown, but the time the portal is alive)
+	[77801] = 120,				-- Dark Soul
+
+	-- abilities
+	[108359] = 120,				-- Dark Regeneration
+	[5484] = 40,				-- Howl of Terror
+	[6789] = 45,				-- Mortal Coil
+	[30283] = 30,				-- Shadowfury
+	[110913] = 180,				-- Dark Bargain
+	[108416] = 60,				-- Sacrificial Pact
+	[111397] = 10,				-- Blood Fear
+	[108482] = 60,				-- Unbound Will
+	[108503] = 120,				-- Grimoire of Sacrifice
+	[108501] = 120,				-- Grimoire of Service
+	[108505] = 120,				-- Archimonde's Vengeance
+	[119049] = 60,				-- Kil'jaeden's Cunning
+
+	-- specialization
+	[109151] = 10,				-- Demonic Leap
+
+	--------------------------------------------------------------------------
+	--Warrior
+	-- abilities
+	[100] = 13,					-- Charge
+	[57755] = 30,				-- Heroic Throw
+	[6552] = 15,				-- Pummel
+	[676] = 60,					-- Disarm
+	[871] = 300,				-- Shield Wall
+	[5246] = 60,				-- Intimidating Shout
+	[18499] = 30,				-- Berserker Rage
+	[1719] = 300,				-- Recklesness
+	[23920] = 25,				-- Spell Reflection
+	[3411] = 30,				-- Intervene
+	[64382] = 300,				-- Shattering Throw
+	[6544] = 45,				-- Heroic Leap
+
+	-- talents
+	[55694] = 60,				-- Enraged Regeneration
+	[102060] = 40,				-- Disrupting Shout
+	[107566] = 40,				-- Staggering Shout
+	[46924] = 90,				-- Bladestorm
+	[46968] = 20,				-- Shockwave
+	[114028] = 60,				-- Mass Spell Reflection
+	[114029] = 30,				-- Safeguard
+	[114030] = 120,				-- Vigilance
+	[107574] = 180,				-- Avatar
+	[107570] = 30,				-- Storm Bolt
+
+	-- specialization
+	[12975] = 180,				-- Last Stand
+}

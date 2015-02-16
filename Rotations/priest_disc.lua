@@ -44,9 +44,8 @@ end
 local ClarityFriendTarget = function(unit)
 	if not jps.UnitExists(unit) then return false end
 	if not jps.FriendAggro(unit) then return false end
-	if UnitGetTotalAbsorbs(unit) > 0 then return false end
+	--if UnitGetTotalAbsorbs(unit) > 0 then return false end
 	if jps.buff(152118,unit) then return false end
-
 	return true
 end
 
@@ -247,7 +246,7 @@ spellTable = {
 
 	{"nested", not jps.Combat , {
 		-- "Gardien de peur" 6346
-		{ 6346, not jps.buff(6346,"player") , "player" },
+		--{ 6346, not jps.buff(6346,"player") , "player" },
 		-- "Fortitude" 21562 Keep Fortitude up 
 		{ 21562, jps.buffMissing(21562) , "player" },
 		-- SNM "Levitate" 1706 -- try to keep buff for enemy dispel -- Buff "Lévitation" 111759
@@ -338,10 +337,10 @@ spellTable = {
 
 	-- ShieldTank
 	{ 17, type(ShieldTank) == "string" , ShieldTank , "Timer_ShieldTank" },
-	-- ClarityTank -- "Clarity of Will" 152118 shields with protective ward for 20 sec
-	{ 152118, LowestImportantUnitHpct > 0.80 and not jps.Moving and type(ClarityTank) == "string" , ClarityTank , "Timer_ClarityTank" },
 	-- PénitenceTank
 	{ 47540, canHeal(myTank) and jps.hp(myTank) < 0.80 , myTank , "Penance_myTank" },
+	-- ClarityTank -- "Clarity of Will" 152118 shields with protective ward for 20 sec
+	{ 152118, LowestImportantUnitHpct > 0.80 and not jps.Moving and type(ClarityTank) == "string" , ClarityTank , "Timer_ClarityTank" },
 
 	-- "Infusion de puissance" 10060
 	{ 10060, AvgHealthLoss < 0.75 and jps.combatStart > 0 , "player" , "HealthLoss_POWERINFUSION" },
@@ -368,12 +367,14 @@ spellTable = {
 		-- "Pénitence" 47540
 		{ 47540, true , LowestImportantUnit , "Emergency_Penance_"..LowestImportantUnit },
 		-- "Soins" 2060 -- Buff "Borrowed" 59889
-		{ 2060, not jps.Moving and jps.buff(59889,"player") , LowestImportantUnit , "Soins_"..LowestImportantUnit  },
-		-- "Clarity of Will" 152118 shields with protective ward for 20 sec
-		{ 152118, not jps.Moving and ClarityFriendTarget(LowestImportantUnit) and jps.debuff(6788,LowestImportantUnit) , LowestImportantUnit , "Emergency_Clarity_"..LowestImportantUnit },
+		{ 2060, not jps.Moving and jps.buff(59889) , LowestImportantUnit , "Soins_"..LowestImportantUnit  },
+		{ 2060, not jps.Moving and jps.buff(152118,LowestImportantUnit) , LowestImportantUnit , "Soins_"..LowestImportantUnit  },
+		{ 2060, not jps.Moving and jps.myLastCast(152118) , LowestImportantUnit , "Soins_"..LowestImportantUnit  },
 		-- "Don des naaru" 59544
 		{ 59544, true , LowestImportantUnit , "Naaru_"..LowestImportantUnit },
-		-- "Soins" 2060
+		-- "Clarity of Will" 152118 shields with protective ward for 20 sec
+		{ 152118, not jps.Moving and ClarityFriendTarget(LowestImportantUnit) and jps.debuff(6788,LowestImportantUnit) , LowestImportantUnit  , "Clarity_"..LowestImportantUnit  },
+		-- "Soins" 2060 -- Buff "Borrowed" 59889
 		{ 2060, not jps.Moving , LowestImportantUnit , "Soins_"..LowestImportantUnit  },
 	},},
 
@@ -392,7 +393,7 @@ spellTable = {
 		-- "Mot de l'ombre: Douleur" 589 -- Only if 1 targeted enemy 
 		{ 589, TargetCount == 1 and jps.myDebuffDuration(589,rangedTarget) == 0 , rangedTarget , "|cFFFF0000Douleur_"..rangedTarget },
 		-- "Châtiment" 585
-		{ 585, CountInRange > 0 and jps.castEverySeconds(585,2.5) , rangedTarget , "|cFFFF0000Chatiment_"..rangedTarget },
+		{ 585, CountInRange > 0 and jps.castEverySeconds(585,2) , rangedTarget , "|cFFFF0000Chatiment_"..rangedTarget },
 	},},
 
 	-- "Pénitence" 47540
@@ -754,8 +755,8 @@ spellTable = {
 		-- "Suppression de la douleur" 33206 "Pain Suppression" -- Buff "Pain Suppression" 33206
 		{ 33206, LowestImportantUnitHpct < 0.35 , LowestImportantUnit , "Emergency_Pain_"..LowestImportantUnit },
 		-- "Soins rapides" 2061 -- "Vague de Lumière" 114255 "Surge of Light"
-		--{ 2061, jps.buff(114255) and LowestImportantUnitHealth > priest.AvgAmountGreatHeal , LowestImportantUnit , "FlashHeal_Light_"..LowestImportantUnit },
-		--{ 2061, jps.buff(114255) and jps.buffDuration(114255) < 4 , LowestImportantUnit , "FlashHeal_Light_"..LowestImportantUnit },
+		{ 2061, jps.buff(114255) and LowestImportantUnitHealth > priest.AvgAmountGreatHeal , LowestImportantUnit , "FlashHeal_Light_"..LowestImportantUnit },
+		{ 2061, jps.buff(114255) and jps.buffDuration(114255) < 4 , LowestImportantUnit , "FlashHeal_Light_"..LowestImportantUnit },
 		-- "Shield" 17
 		{ 17, not jps.buff(17,LowestImportantUnit) and not jps.debuff(6788,LowestImportantUnit) , LowestImportantUnit , "Emergency_Shield_"..LowestImportantUnit },
 		-- SNM Troll "Berserker" 26297 -- haste buff
@@ -836,12 +837,13 @@ spellTable = {
 		-- "Pénitence" 47540
 		{ 47540, true , LowestImportantUnit , "Emergency_Penance_"..LowestImportantUnit },
 		-- "Soins" 2060 -- Buff "Borrowed" 59889
-		{ 2060, not jps.Moving and jps.buff(59889,"player") , LowestImportantUnit , "Soins_"..LowestImportantUnit  },
-		-- "Clarity of Will" 152118 shields with protective ward for 20 sec
-		{ 152118, not jps.Moving and ClarityFriendTarget(LowestImportantUnit) and jps.debuff(6788,LowestImportantUnit) , LowestImportantUnit , "Emergency_Clarity_"..LowestImportantUnit },
+		{ 2060, not jps.Moving and jps.buff(59889) , LowestImportantUnit , "Soins_"..LowestImportantUnit  },
+		{ 2060, not jps.Moving and jps.buff(152118,LowestImportantUnit) , LowestImportantUnit , "Soins_"..LowestImportantUnit  },
 		-- "Don des naaru" 59544
 		{ 59544, true , LowestImportantUnit , "Naaru_"..LowestImportantUnit },
-		-- "Soins" 2060
+		-- "Clarity of Will" 152118 shields with protective ward for 20 sec
+		{ 152118, not jps.Moving and ClarityFriendTarget(LowestImportantUnit) and jps.debuff(6788,LowestImportantUnit) , LowestImportantUnit  , "Clarity_"..LowestImportantUnit  },
+		-- "Soins" 2060 -- Buff "Borrowed" 59889
 		{ 2060, not jps.Moving , LowestImportantUnit , "Soins_"..LowestImportantUnit  },
 	},},
 
@@ -862,7 +864,7 @@ spellTable = {
 		-- "Mot de l'ombre: Douleur" 589 -- Only if 1 targeted enemy 
 		{ 589, TargetCount == 1 and jps.myDebuffDuration(589,rangedTarget) == 0 , rangedTarget , "|cFFFF0000Douleur_"..rangedTarget },
 		-- "Châtiment" 585
-		{ 585, CountInRange > 0 and jps.castEverySeconds(585,2.5) , rangedTarget , "|cFFFF0000Chatiment_"..rangedTarget },
+		{ 585, CountInRange > 0 and jps.castEverySeconds(585,2) , rangedTarget , "|cFFFF0000Chatiment_"..rangedTarget },
 	},},
 
 	-- "Pénitence" 47540

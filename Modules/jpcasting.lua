@@ -76,7 +76,8 @@ function jps.IsChannelingSpell(spell,unit) -- WORKS FOR CHANNELING SPELL NOT CAS
 end
 
 -- returns cooldown off a spell
-function jps.cooldown(spell) -- start, duration, enable = GetSpellCooldown("name") or GetSpellCooldown(id)
+-- start, duration, enable = GetSpellCooldown("name") or GetSpellCooldown(id)
+function jps.cooldown(spell)
 	local spellname = nil
 	if type(spell) == "string" then spellname = spell end
 	if type(spell) == "number" then spellname = GetSpellInfo(spell) end

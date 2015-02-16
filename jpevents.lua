@@ -29,6 +29,7 @@ local UnitGUID = UnitGUID
 -- TABLE ENEMIES IN COMBAT
 local EnemyDamager = {}
 local EnemyHealer = {}
+local EnemyCooldowns = {}
 -- HEALTABLE
 local Healtable = {}
 -- Timetodie based on incoming Damage
@@ -432,6 +433,7 @@ local leaveCombat = function()
 
 	-- nil all tables
 	SpellFailedTable = {}
+	EnemyCooldowns = {}
 	EnemyDamager = {}
 	RaidTimeToDie = {}
 	Healtable = {}
@@ -662,6 +664,40 @@ local updateEnemyDamager = function()
 	end
 end
 
+--------------------------
+-- TRACKING ENEMY COOLDOWNS
+--------------------------
+
+-- EnemyCooldowns[sourceGUID][spellId]
+local SpellTimer = function(unitGuid)
+	local dataset = EnemyCooldowns[unitGuid]
+	if not dataset then return end
+	for spell,index in pairs(dataset) do
+		local endSpell = index[1] --local start, duration, _ = GetSpellCooldown(spell)
+		local timeLeft = endSpell - GetTime() --local timeLeft = start + duration - GetTime()
+		EnemyCooldowns[unitGuid][spell][2] = timeLeft
+		if timeLeft < 1 then -- GCD 1 sec
+			EnemyCooldowns[unitGuid][spell] = nil
+		end 
+	end
+end
+
+function jps.enemyCooldownWatch(unit,spellId)
+	if not jps.UnitExists(unit) then return end
+	local unitGuid = UnitGUID(unit)
+	-- Update Table
+	SpellTimer(unitGuid)
+	-- Look for spellId CD
+	local dataset = EnemyCooldowns[unitGuid]
+	if not dataset then return 0 end
+	for spell,index in pairs(dataset) do
+		if spell == spellId then
+			return index[2]
+		end
+	end
+	return 0
+end
+
 -----------------------
 -- UPDATE HEALERBLACKLIST
 -----------------------
@@ -694,40 +730,6 @@ jps.registerOnUpdate(UpdateIntervalRaidStatus)
 
 --------------------------
 -- COMBAT_LOG_EVENT_UNFILTERED FUNCTIONS
--- SPELL_FAILED
---------------------------
-
--- table.insert(table, [ position, ] valeur) -- table.insert(t, 1, "element") insert an element at the start
--- table.insert called without a position, it inserts the element in the last position of the array (and, therefore, moves no elements)
--- table.remove called without a position, it removes the last element of the array.
-
-jps.listener.registerCombatLogEventUnfiltered("SPELL_CAST_FAILED", function(...)
-	local sourceGUID = select(4,...)
-	local spellID =  select(12,...)
-	local failedType = select(15,...)
-	local spellname = select(13, ...)
-	if sourceGUID == UnitGUID("player") and type(failedType) == "string" then
-		--print("SPELL_CAST_FAILED "..spellID.."_"..spellname.."_"..failedType)
-		tinsert(SpellFailedTable,1,{spellname,failedType})
-	end
-end)
-
-jps.IsSpellFailed = function(spellname)
-	if jps.tableLength(SpellFailedTable) == 0 then return false end
-	for i,j in ipairs(SpellFailedTable) do
-		if j[1] == spellname and j[2] == "Insensible" then return true end
-	end
-	return false
-end
-
-jps.printIsSpellFailed = function()
-	for i,j in ipairs(SpellFailedTable) do
-		print(i,"-",j[1],"-",j[2])
-	end
-end
-
---------------------------
--- COMBAT_LOG_EVENT_UNFILTERED FUNCTIONS
 --------------------------
 -- eventtable[4] == sourceGUID
 -- eventtable[5] == sourceName
@@ -748,6 +750,13 @@ local damageEvents = {
 local healEvents = {
         ["SPELL_HEAL"] = true,
         ["SPELL_PERIODIC_HEAL"] = true,
+}
+
+local spellEvents = {
+		["SPELL_CAST_SUCCESS"]= true,
+		["SPELL_AURA_APPLIED"] = true,
+		["SPELL_MISSED"] = true,
+		["SPELL_SUMMON"] = true,
 }
 
 -- UNIT_DIED destGUID and destName refer to the unit that died.
@@ -781,6 +790,17 @@ jps.listener.registerEvent("COMBAT_LOG_EVENT_UNFILTERED", function(...)
 	local isDestRaid = bitband(destFlags, RAID_AFFILIATION) > 0
 	local isSourceRaid = bitband(sourceFlags, RAID_AFFILIATION) > 0
 	local isSourceEnemy = bitband(sourceFlags, COMBATLOG_OBJECT_REACTION_HOSTILE) == COMBATLOG_OBJECT_REACTION_HOSTILE
+	
+--	if jps.Debug then
+--		print("COMBATLOG_OBJECT_TYPE_PLAYER =", COMBATLOG_OBJECT_TYPE_PLAYER,bitband(sourceFlags,COMBATLOG_OBJECT_TYPE_PLAYER),
+--		"COMBATLOG_OBJECT_AFFILIATION_MINE =", COMBATLOG_OBJECT_AFFILIATION_MINE,bitband(sourceFlags,COMBATLOG_OBJECT_AFFILIATION_MINE),
+--		"COMBATLOG_OBJECT_AFFILIATION_PARTY =", COMBATLOG_OBJECT_AFFILIATION_PARTY,bitband(sourceFlags,COMBATLOG_OBJECT_AFFILIATION_PARTY),
+--		"COMBATLOG_OBJECT_AFFILIATION_RAID =", COMBATLOG_OBJECT_AFFILIATION_RAID,bitband(sourceFlags,COMBATLOG_OBJECT_AFFILIATION_RAID),
+--		"COMBATLOG_OBJECT_REACTION_HOSTILE	=", COMBATLOG_OBJECT_REACTION_HOSTILE,bitband(sourceFlags,COMBATLOG_OBJECT_REACTION_HOSTILE),
+--		"COMBATLOG_OBJECT_REACTION_FRIENDLY =", COMBATLOG_OBJECT_REACTION_FRIENDLY,bitband(sourceFlags,COMBATLOG_OBJECT_REACTION_FRIENDLY),
+--		"COMBATLOG_OBJECT_AFFILIATION_OUTSIDER =", COMBATLOG_OBJECT_AFFILIATION_OUTSIDER,bitband(sourceFlags,COMBATLOG_OBJECT_AFFILIATION_OUTSIDER),
+--		"RAID_AFFILIATION =", RAID_AFFILIATION,bitband(sourceFlags,RAID_AFFILIATION))
+--	end
 
 -- HEAL TABLE -- contains the average value of healing spells
 	if sourceGUID and destGUID and healEvents[event] then
@@ -816,19 +836,23 @@ jps.listener.registerEvent("COMBAT_LOG_EVENT_UNFILTERED", function(...)
 		end
 	end
 
+-- Table ENEMYCOOLDOWNS to track some CD Spells depends of spellID in table jps.EnemyCds
+	if sourceGUID and destGUID and spellEvents[event] then
+
+			local spellId = select(12, ...)
+			local start, _, _ = GetSpellCooldown(spellId)
+			if start > 0 and jps.EnemyCds[spellId] then
+				if not EnemyCooldowns[sourceGUID] then EnemyCooldowns[sourceGUID] = {} end
+				if not EnemyCooldowns[sourceGUID][spellId] then
+					EnemyCooldowns[sourceGUID][spellId] = {start + jps.EnemyCds[spellId], 999}
+				end
+			end
+
+	end
+
 -- DAMAGE TABLE Note that for the SWING prefix, _DAMAGE starts at the 12th parameter
 	if sourceGUID and destGUID and damageEvents[event] then
-	
---	if jps.Debug then
---		print("COMBATLOG_OBJECT_TYPE_PLAYER =", COMBATLOG_OBJECT_TYPE_PLAYER,bitband(sourceFlags,COMBATLOG_OBJECT_TYPE_PLAYER),
---		"COMBATLOG_OBJECT_AFFILIATION_MINE =", COMBATLOG_OBJECT_AFFILIATION_MINE,bitband(sourceFlags,COMBATLOG_OBJECT_AFFILIATION_MINE),
---		"COMBATLOG_OBJECT_AFFILIATION_PARTY =", COMBATLOG_OBJECT_AFFILIATION_PARTY,bitband(sourceFlags,COMBATLOG_OBJECT_AFFILIATION_PARTY),
---		"COMBATLOG_OBJECT_AFFILIATION_RAID =", COMBATLOG_OBJECT_AFFILIATION_RAID,bitband(sourceFlags,COMBATLOG_OBJECT_AFFILIATION_RAID),
---		"COMBATLOG_OBJECT_REACTION_HOSTILE	=", COMBATLOG_OBJECT_REACTION_HOSTILE,bitband(sourceFlags,COMBATLOG_OBJECT_REACTION_HOSTILE),
---		"COMBATLOG_OBJECT_REACTION_FRIENDLY =", COMBATLOG_OBJECT_REACTION_FRIENDLY,bitband(sourceFlags,COMBATLOG_OBJECT_REACTION_FRIENDLY),
---		"COMBATLOG_OBJECT_AFFILIATION_OUTSIDER =", COMBATLOG_OBJECT_AFFILIATION_OUTSIDER,bitband(sourceFlags,COMBATLOG_OBJECT_AFFILIATION_OUTSIDER),
---		"RAID_AFFILIATION =", RAID_AFFILIATION,bitband(sourceFlags,RAID_AFFILIATION))
---	end
+
 
 		if isSourceEnemy and isDestRaid then
 			local dmgTTD = 0
@@ -1012,3 +1036,37 @@ end
 --			print("|cffa335ee","Guid_",unit,"/",i,"|cff1eff00","Time_",j[1],"|cff1eff00","Dmg_",j[2] )
 --		end
 --	end
+
+--------------------------
+-- COMBAT_LOG_EVENT_UNFILTERED FUNCTIONS
+-- SPELL_FAILED
+--------------------------
+
+-- table.insert(table, [ position, ] valeur) -- table.insert(t, 1, "element") insert an element at the start
+-- table.insert called without a position, it inserts the element in the last position of the array (and, therefore, moves no elements)
+-- table.remove called without a position, it removes the last element of the array.
+
+jps.listener.registerCombatLogEventUnfiltered("SPELL_CAST_FAILED", function(...)
+	local sourceGUID = select(4,...)
+	local spellID =  select(12,...)
+	local failedType = select(15,...)
+	local spellname = select(13, ...)
+	if sourceGUID == UnitGUID("player") and type(failedType) == "string" then
+		--print("SPELL_CAST_FAILED "..spellID.."_"..spellname.."_"..failedType)
+		tinsert(SpellFailedTable,1,{spellname,failedType})
+	end
+end)
+
+jps.IsSpellFailed = function(spellname)
+	if jps.tableLength(SpellFailedTable) == 0 then return false end
+	for i,j in ipairs(SpellFailedTable) do
+		if j[1] == spellname and j[2] == "Insensible" then return true end
+	end
+	return false
+end
+
+jps.printIsSpellFailed = function()
+	for i,j in ipairs(SpellFailedTable) do
+		print(i,"-",j[1],"-",j[2])
+	end
+end

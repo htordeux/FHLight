@@ -151,7 +151,7 @@ function jps.findAggroInRaid()
 		end
 	end
 	table.sort(TankUnit, function(a,b) return jps.hp(a) < jps.hp(b) end)
-	return TankUnit , TankUnit[1]
+	return TankUnit , TankUnit[1] or "focus"
 end
 
 ----------------------

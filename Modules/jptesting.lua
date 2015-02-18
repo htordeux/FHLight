@@ -49,6 +49,10 @@ function jps_Test()
 	print("Facing: ",jps.PlayerIsFacing("target",30))
 	print("GCD: ",jps.GCD)
 	write("***************************")
+	
+	local cdplayer = jps.enemyCooldownWatch("player")
+	local cdtarget = jps.enemyCooldownWatch("target")
+	print("cdplayer:",cdplayer,"cdtarget:",cdtarget)
 
 --	local mastery = GetMasteryEffect()
 --	local masteryValue = math.ceil(mastery)/100

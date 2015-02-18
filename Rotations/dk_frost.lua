@@ -93,6 +93,8 @@ elseif canDPS("mouseover") and not DebuffUnitCyclone("mouseover") and UnitAffect
 end
 if canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
 
+local TargetMoving = select(1,GetUnitSpeed(rangedTarget)) > 0
+
 ------------------------
 -- UPDATE RUNES ---------
 ------------------------
@@ -123,6 +125,10 @@ local spellTable = {
 		{ dk.spells["AntiMagicShell"] , jps.IsCasting("target") and jps.UnitIsUnit("targettarget","player") },
 		{ dk.spells["AntiMagicShell"] , jps.IsCasting("focus") and jps.UnitIsUnit("focustarget","player") },
 	}},
+	
+	-- "Death Grip" 49576 "Poigne de la mort"
+	{ dk.spells["DeathGrip"] , jps.PvP and not jps.IsSpellInRange(49998,"target") },
+	{ dk.spells["ChainsofIce"] , jps.PvP and TargetMoving and not jps.IsSpellInRange(49998,"target") },
 
 	-- HEALS --
 	-- "Pierre de soins" 5512
@@ -155,9 +161,6 @@ local spellTable = {
 		--"Frost Strike" 49143 "Frappe de givre" -- 25 Runic Power 
 		{ dk.spells["FrostStrike"] , true , rangedTarget , "FrostStrike_KillingMachine_1" },
 	}},
-	
-	-- "Death Grip" 49576 "Poigne de la mort"
-	{ dk.spells["DeathGrip"] , jps.PvP and not jps.IsSpellInRange(49998,"target") },
 
 	-- "Death Strike" 49998 "Frappe de Mort" -- 1 Unholy, 1 Frost
 	-- "Dark Succor" 101568 "Sombre secours" Buff -- Your next Death Strike in Frost or Unholy Presence is free and its healing is increased by 100%.

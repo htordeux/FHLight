@@ -107,77 +107,20 @@ local BloodBoilRunes = (Dr > 0)
 
 local parseHeal = {
 		-- "Pierre de soins" 5512
-		{ {"macro","/use item:5512"}, jps.hp("player") < 0.75 and jps.itemCooldown(5512)==0 , "player" , "_Item5512" },
+		{ {"macro","/use item:5512"}, jps.hp("player") < 0.70 and jps.itemCooldown(5512)==0 , "player" , "_Item5512" },
 		-- "Stoneform" 20594 "Forme de pierre"
-		{ 20594 , true , "player" , "_Stoneform" },
+		{ 20594 , jps.hp("player") < 0.70 , "player" , "_Stoneform" },
 		-- "Icebound Fortitude" 48792 "Robustesse glaciale"
-		{ dk.spells["Icebound"] , true , "player" , "_Icebound" },
+		{ dk.spells["Icebound"] ,jps.hp("player") < 0.70 , "player" , "_Icebound" },
 		-- "Rune Tap" 48982 "Connexion runique" -- "Rune Tap" Buff 171049 -- Consomme 1 rune de sang pour réduire tous les dégâts subis de 40% pendant 3 s.
-		{ dk.spells["RuneTap"] , jps.hp() < 0.75 and not jps.buff(171049) },
+		{ dk.spells["RuneTap"] , jps.hp() < 0.70 and not jps.buff(171049) , "target" , "_RuneTap" },
 		-- "Death Pact" 48743 "Pacte mortel" -- - Heals the Death Knight for 50% of max health, and absorbs incoming healing equal to 25% of max health for 15 sec.
 		{ dk.spells["DeathPact"] , jps.hp() < 0.50 , "target" , "_Death Pact" },
 		-- "Death Siphon" 108196 "Siphon mortel" -- moved here, because we heal often more with Death Strike than Death Siphon
-		{ dk.spells["DeathSiphon"] , jps.hp() < 0.50 }
-
+		{ dk.spells["DeathSiphon"] , jps.hp() < 0.50 , "target" , "_DeathSiphon" }
 }
 
-local spellTable = {
-	-- "BloodPresence" 48263 "Présence de sang"
-	{ dk.spells["BloodPresence"] , not jps.buff(48263) },
-	-- "Horn of Winter" 57330 "Cor de l’hiver"
-	{ dk.spells["HornOfWinter"] , not jps.buff(57330) },
-	-- "Bone Shield" 49222 "Bouclier dos" -- 1 min cd
-	{ dk.spells["BoneShield"] , not jps.buff(49822) },
-
-	-- "Army of the Dead" 42650 "Armée des morts"
-	{ dk.spells["ArmyoftheDead"] , IsLeftControlKeyDown() == true and GetCurrentKeyBoardFocus() == nil},
-	-- "Death Grip" 49576 "Poigne de la mort" -- "Death Strike" 49998 "Frappe de Mort"
-	{ dk.spells["DeathGrip"] , combatTime > 5 and not jps.IsSpellInRange(49998,"target") },
-
-	-- TRINKETS
-	{ jps.useTrinket(0), playerAggro and jps.useTrinketBool(0) and jps.UseCDs},
-	{ jps.useTrinket(1), playerAggro and jps.useTrinketBool(1) and jps.UseCDs},
-	
-	-- "Dark Command" 56222
-	{ 56222 , IsInGroup() and not jps.UnitIsUnit("targettarget","player") , "target", "_DarkCommand" },
-
-	-- DISEASES -- debuff Frost Fever 55095 -- debuff Blood Plague 55078
-	-- "Outbreak" 77575 "Poussée de fièvre" -- 30 yd range 
-	{ dk.spells["OutBreak"] , not jps.myDebuff(55078,"target") , "target" , "_OutBreak" },
-	{ dk.spells["OutBreak"] , not jps.myDebuff(55095,"target") , "target" , "_OutBreak" },
-	-- "Plague Strike" 45462 "Frappe de peste" -- 1 Unholy Rune
-	{ dk.spells["PlagueStrike"] , not jps.myDebuff(55078,"target") , "target" , "_PlagueStrike" },
-	-- "Icy Touch" 45477 "Toucher de glace" -- 1 Frost Rune
-	{ dk.spells["IcyTouch"] , not jps.myDebuff(55095,"target") , "target" , "_IcyTouch" },
-
-	-- "Crimson Scourge" buff 81141 "Fléau cramoisi"
-	--  your next Blood Boil or Death and Decay cost no runes.
-	{ dk.spells["BloodBoil"] , jps.buff(81141) ,"target" , "_OutBreak" },	
-	-- "Soul Reaper" 130735 "Faucheur d’âme"
-	{ dk.spells["SoulReaper"] , jps.hp("target") < 0.35 , "target" , "_SoulReaper " },
-	-- "Blood Boil" 50842 "Furoncle sanglant" -- 1 Blood
-	-- refreshing diseases to full duration. Also increases the healing from your next Death Strike by 20%
-	{ dk.spells["BloodBoil"] , BloodBoilRunes , "target" , "_BloodBoil" },
-	
-	-- "Vampiric Blood" 55233 "Sang vampirique" -- Augmente le maximum de points de vie de 15% et les soins reçus de 15% pendant 10 s.
-	-- Increase healing received from other healers and from Death Strike and Death Siphon.
-	{ dk.spells["VampiricBlood"] , jps.hp() < 0.75 , "target" , "_VampiricBlood" },
-	
-	-- "Death Strike" 49998 "Frappe de Mort" -- 1 Unholy, 1 Frost
-	-- "Scent of Blood" 50421 "Odeur du sang" -- jps.buffStacks(50421) max 5
-	-- "Blood Shield" 77535 "Bouclier de sang" 
-	-- The Runes spent DeathStrike will become Death Runes when they activate. Death Runes count as any type of Rune
-	{ dk.spells["DeathStrike"] , DeathStrikeRunes and jps.buffDuration(77535) < 2 , "target" , "_DeathStrike_BloodShield" },
-	{ dk.spells["DeathStrike"] , DeathRuneCount > 1 , "target" , "_DeathStrike_DeathRune" },
-	
-	-- HEALS --
-	{"nested", jps.hp() < 0.75 , parseHeal },
-
-	-- "Death Coil" 47541 "Voile mortel"
-	{ dk.spells["DeathCoil"] , jps.runicPower() > 60 , "target" , "_DeathCoil_RunicPower" },
-	{ dk.spells["DeathCoil"] , AllDepletedRunes , "target" , "_DeathCoil_DepletedRunes" },
-
-	-- CONTROL --
+local parseControl = {
 	-- "Lichborne" 49039 "Changeliche" -- vous rend insensible aux effets de charme, de peur et de sommeil pendant 10 s.
 	{ dk.spells["Lichborne"] , playerIsStun , rangedTarget , "_Lichborne" },
 	--"Strangulate" 47476 "Strangulation" -- 30 yd range
@@ -197,15 +140,76 @@ local spellTable = {
 	-- "Anti-Magic Shell" 48707 "Carapace anti-magie"
 	{ dk.spells["AntiMagicShell"] , jps.IsCasting("target") and jps.UnitIsUnit("targettarget","player") , "target" , "_AntiMagic" },
 	{ dk.spells["AntiMagicShell"] , jps.IsCasting("focus") and jps.UnitIsUnit("focustarget","player") , "focus" , "_AntiMagic" },
+}
+
+local spellTable = {
+	-- "BloodPresence" 48263 "Présence de sang"
+	{ dk.spells["BloodPresence"] , not jps.buff(48263) },
+	-- "Horn of Winter" 57330 "Cor de l’hiver"
+	{ dk.spells["HornOfWinter"] , not jps.buff(57330) },
+	-- "Bone Shield" 49222 "Bouclier dos" -- 1 min cd
+	{ dk.spells["BoneShield"] , not jps.buff(49822) },
+
+	-- "Army of the Dead" 42650 "Armée des morts"
+	{ dk.spells["ArmyoftheDead"] , IsLeftControlKeyDown() == true and GetCurrentKeyBoardFocus() == nil},
+	-- "Death Grip" 49576 "Poigne de la mort" -- "Death Strike" 49998 "Frappe de Mort"
+	{ dk.spells["DeathGrip"] , combatTime > 5 and not jps.IsSpellInRange(49998,"target") },
+	{ dk.spells["DeathGrip"] , jps.PvP and not jps.IsSpellInRange(49998,"target") },
+	{ dk.spells["ChainsofIce"] , jps.PvP and TargetMoving and not jps.IsSpellInRange(49998,"target") },
+	-- "Dark Command" 56222
+	{ 56222 , IsInGroup() and not jps.UnitIsUnit("targettarget","player") , "target", "_DarkCommand" },
+
+	-- TRINKETS
+	{ jps.useTrinket(0), playerAggro and jps.useTrinketBool(0) and jps.UseCDs},
+	{ jps.useTrinket(1), playerAggro and jps.useTrinketBool(1) and jps.UseCDs},
+
+	-- DISEASES -- debuff Frost Fever 55095 -- debuff Blood Plague 55078
+	-- "Outbreak" 77575 "Poussée de fièvre" -- 30 yd range 
+	{ dk.spells["OutBreak"] , not jps.myDebuff(55078,"target") , "target" , "_OutBreak" },
+	{ dk.spells["OutBreak"] , not jps.myDebuff(55095,"target") , "target" , "_OutBreak" },
+	-- "Plague Strike" 45462 "Frappe de peste" -- 1 Unholy Rune
+	{ dk.spells["PlagueStrike"] , not jps.myDebuff(55078,"target") , "target" , "_PlagueStrike" },
+	-- "Icy Touch" 45477 "Toucher de glace" -- 1 Frost Rune
+	{ dk.spells["IcyTouch"] , not jps.myDebuff(55095,"target") , "target" , "_IcyTouch" },
+
+	-- "Crimson Scourge" buff 81141 "Fléau cramoisi"
+	--  your next Blood Boil or Death and Decay cost no runes.
+	{ dk.spells["BloodBoil"] , jps.buff(81141) ,"target" , "_OutBreak" },	
+	-- "Soul Reaper" 130735 "Faucheur d’âme"
+	{ dk.spells["SoulReaper"] , jps.hp("target") < 0.35 , "target" , "_SoulReaper " },
+	-- "Blood Boil" 50842 "Furoncle sanglant" -- 1 Blood
+	-- refresh diseases to full duration. Also increases the healing from your next Death Strike by 20%
+	{ dk.spells["BloodBoil"] , BloodBoilRunes and jps.myDebuff(55095,"target") and jps.myDebuff(55078,"target") , "target" , "_BloodBoil" },
+	
+	-- "Vampiric Blood" 55233 "Sang vampirique" -- Augmente le maximum de points de vie de 15% et les soins reçus de 15% pendant 10 s.
+	-- Increase healing received from other healers and from Death Strike and Death Siphon.
+	{ dk.spells["VampiricBlood"] , jps.hp() < 0.75 , "target" , "_VampiricBlood" },
+	
+	-- "Death Strike" 49998 "Frappe de Mort" -- 1 Unholy, 1 Frost
+	-- "Scent of Blood" 50421 "Odeur du sang" -- jps.buffStacks(50421) max 5
+	-- "Blood Shield" 77535 "Bouclier de sang" 
+	-- The Runes spent DeathStrike will become Death Runes when they activate. Death Runes count as any type of Rune
+	{ dk.spells["DeathStrike"] , DeathStrikeRunes and jps.buffDuration(77535) < 2 , "target" , "_DeathStrike_BloodShield" },
+	{ dk.spells["DeathStrike"] , DeathRuneCount > 1 , "target" , "_DeathStrike_DeathRune" },
+	
+	-- HEALS --
+	{"nested", jps.hp() < 0.70 , parseHeal },
+
+	-- "Death Coil" 47541 "Voile mortel"
+	{ dk.spells["DeathCoil"] , jps.runicPower() > 60 , "target" , "_DeathCoil_RunicPower" },
+	{ dk.spells["DeathCoil"] , AllDepletedRunes , "target" , "_DeathCoil_DepletedRunes" },
+
+	-- CONTROL --
+	{"nested", true , parseControl },
 
 	-- RUNE MANAGEMENT --
 	-- "Plague Leech" 123693 "Parasite de peste"
-	{ dk.spells["PlagueLeech"] , dk.canCastPlagueLeech() and DepletedRunes },
+	{ dk.spells["PlagueLeech"] , dk.canCastPlagueLeech() and DepletedRunes , "target", "_PlagueLeech" },
 	--"BloodTap" 45529 -- "Drain sanglant" 114851
-	{ dk.spells["BloodTap"] , jps.buffStacks(114851) > 9 and DepletedRunes },
-	{ dk.spells["BloodTap"] , jps.buffStacks(114851) > 5 and AllDepletedRunes },
+	{ dk.spells["BloodTap"] , jps.buffStacks(114851) > 9 and DepletedRunes , "target", "_BloodTap9" },
+	{ dk.spells["BloodTap"] , jps.buffStacks(114851) > 5 and AllDepletedRunes , "target", "_BloodTap5" },
 	-- "Empower Rune Weapon" 47568 "Renforcer l'arme runique"
-	{ dk.spells["EmpowerRuneWeapon"] , jps.IsSpellInRange(49998,"target") and jps.runicPower() < 75 and AllDepletedRunes },
+	{ dk.spells["EmpowerRuneWeapon"] , jps.IsSpellInRange(49998,"target") and jps.runicPower() < 75 and AllDepletedRunes , "target", "_EmpowerRuneWeapon" },
 
 	-- MULTITARGET
 	{"nested", jps.MultiTarget and EnemyCount > 2 ,{
@@ -214,7 +218,7 @@ local spellTable = {
 		-- "Death and Decay" 43265 "Mort et decomposition" -- 1 Unholy
 		{ dk.spells["DeathAndDecay"] , jps.buff(81141) },
 		-- "Defile" 152280 "Profanation" -- 1 Unholy -- 30 s cd
-		{ dk.spells["Defile"] , true },
+		{ dk.spells["Defile"] , true , "target" , "_Defile_MultiTarget" },
 		-- "Blood Boil" 50842 "Furoncle sanglant" -- 1 Blood
 		{ dk.spells["BloodBoil"] , BloodBoilRunes , "target" , "_BloodBoil_MultiTarget" },
 		-- "Dancing Rune Weapon" 49028 "Arme runique dansante" -- Summons a second rune weapon for 8 sec granting an additional 20% parry chance.

@@ -37,6 +37,8 @@
 	dk.spells["UnwaveringMight"] = toSpellName(126582)
 	-- "Bone Shield" 49222 "Bouclier dos"
 	dk.spells["BoneShield"] = toSpellName(49222)
+	--"Chains of Ice" 45524 "Chaînes de glace"
+	dk.spells["ChainsofIce"] = toSpellName(45524)
 	
 
 	-- SPELLS

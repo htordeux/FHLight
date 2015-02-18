@@ -669,12 +669,13 @@ end
 --------------------------
 
 -- EnemyCooldowns[sourceGUID][spellId]
+-- jps.registerOnUpdate(SpellTimer) on jpevents.lua ?
 local SpellTimer = function(unitGuid)
 	local dataset = EnemyCooldowns[unitGuid]
 	if not dataset then return end
 	for spell,index in pairs(dataset) do
 		local endSpell = index[1] --local start, duration, _ = GetSpellCooldown(spell)
-		local timeLeft = endSpell - GetTime() --local timeLeft = start + duration - GetTime()
+		local timeLeft = math.ceil(endSpell - GetTime()) --local timeLeft = start + duration - GetTime()
 		EnemyCooldowns[unitGuid][spell][2] = timeLeft
 		if timeLeft < 1 then -- GCD 1 sec
 			EnemyCooldowns[unitGuid][spell] = nil
@@ -682,7 +683,7 @@ local SpellTimer = function(unitGuid)
 	end
 end
 
-function jps.enemyCooldownWatch(unit,spellId)
+function jps.enemyCooldownWatch(unit)
 	if not jps.UnitExists(unit) then return end
 	local unitGuid = UnitGUID(unit)
 	-- Update Table
@@ -691,11 +692,10 @@ function jps.enemyCooldownWatch(unit,spellId)
 	local dataset = EnemyCooldowns[unitGuid]
 	if not dataset then return 0 end
 	for spell,index in pairs(dataset) do
-		if spell == spellId then
-			return index[2]
-		end
+		local cooldown = index[2]
+		--print(spell,":",index[2])
+		if  cooldown > 0 then return cooldown end
 	end
-	return 0
 end
 
 -----------------------
@@ -703,7 +703,7 @@ end
 -----------------------
 
 --local GetNumGroupMembers = GetNumGroupMembers
---local isArena, _ = IsActiveBattlefieldArena() -- isArena - 1 if player is in an Arena match; otherwise nil
+--local isArena, _ = IsActiveBattlefieldArena()
 --local UpdateScoreFrequency = function()
 --	if isArena == true then scoreFrequency  = 0.2
 --	elseif GetNumGroupMembers() <= 10 then scoreFrequency  = 0.4
@@ -840,11 +840,11 @@ jps.listener.registerEvent("COMBAT_LOG_EVENT_UNFILTERED", function(...)
 	if sourceGUID and destGUID and spellEvents[event] then
 
 			local spellId = select(12, ...)
-			local start, _, _ = GetSpellCooldown(spellId)
+			local start, duration, _ = GetSpellCooldown(spellId)
 			if start > 0 and jps.EnemyCds[spellId] then
 				if not EnemyCooldowns[sourceGUID] then EnemyCooldowns[sourceGUID] = {} end
 				if not EnemyCooldowns[sourceGUID][spellId] then
-					EnemyCooldowns[sourceGUID][spellId] = {start + jps.EnemyCds[spellId], 999}
+					EnemyCooldowns[sourceGUID][spellId] = {start + duration, duration}
 				end
 			end
 

@@ -75,7 +75,7 @@ local priestDisc = function()
 	local LowestImportantUnitHpct = jps.hp(LowestImportantUnit) -- UnitHealth(unit) / UnitHealthMax(unit)
 	local POHTarget, groupToHeal, groupTableToHeal = jps.FindSubGroupTarget(0.75) -- Target to heal with POH in RAID with AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
 	local ShellTarget = jps.FindSubGroupAura(114908,LowestImportantUnit) -- buff target Spirit Shell 114908 need SPELLID
-	local TankUnit, myTank  = jps.findAggroInRaid() -- return Table with UnitThreatSituation == 3 (tanking) or == 1 (Overnuking) or "focus" default
+	local myTank,TankUnit = jps.findAggroInRaid() -- return Table with UnitThreatSituation == 3 (tanking) or == 1 (Overnuking) or "focus" default
 	local TankTarget = "target"
 	if canHeal(myTank) then TankTarget = myTank.."target" end
 
@@ -239,16 +239,6 @@ local InterruptTable = {
 ------------------------
 
 spellTable = {
-
-	{"nested", not jps.Combat , {
-		-- "Gardien de peur" 6346
-		--{ 6346, not jps.buff(6346,"player") , "player" },
-		-- "Fortitude" 21562 -- "Commanding Shout" 469 -- "Blood Pact" 166928
-		{ 21562, jps.buffMissing(21562) , "player" },
-		-- SNM "Levitate" 1706 -- try to keep buff for enemy dispel -- Buff "Lévitation" 111759
-		{ 1706, jps.fallingFor() > 1.5 and not jps.buff(111759) },
-		{ 1706, IsSwimming() and not jps.buff(111759) and not playerAggro },
-	},},
 
 	-- SNM "Chacun pour soi" 59752 "Every Man for Himself" -- Human
 	{ 59752, playerIsStun , "player" , "Every_Man_for_Himself" },
@@ -447,7 +437,7 @@ local priestDiscPvP = function()
 	local LowestImportantUnitHpct = jps.hp(LowestImportantUnit) -- UnitHealth(unit) / UnitHealthMax(unit)
 	local POHTarget, groupToHeal, groupTableToHeal = jps.FindSubGroupTarget(0.75) -- Target to heal with POH in RAID with AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
 	local ShellTarget = jps.FindSubGroupAura(114908,LowestImportantUnit) -- buff target Spirit Shell 114908 need SPELLID
-	local TankUnit, myTank  = jps.findAggroInRaid() -- return Table with UnitThreatSituation == 3 (tanking) or == 1 (Overnuking) or "focus" default
+	local myTank,TankUnit = jps.findAggroInRaid() -- return Table with UnitThreatSituation == 3 (tanking) or == 1 (Overnuking) or "focus" default
 	local TankTarget = "target"
 	if canHeal(myTank) then TankTarget = myTank.."target" end
 
@@ -462,7 +452,6 @@ local priestDiscPvP = function()
 
    -- SNM
    local playerTTD = jps.TimeToDie("player")
-   local isArena, _ = IsActiveBattlefieldArena()
    
 ---------------------
 -- ENEMY TARGET
@@ -654,19 +643,6 @@ local InterruptTable = {
 ------------------------
 
 spellTable = {
-
-	{"nested", not jps.Combat , {
-		-- "Gardien de peur" 6346
-		{ 6346, not jps.buff(6346,"player") , "player" },
-		-- SNM "Fortitude" 21562 -- "Commanding Shout" 469 -- "Blood Pact" 166928
-		{ 21562, jps.buffMissing(21562) and jps.buffMissing(469) and jps.buffMissing(166928) , "player" },
-		-- SNM "Levitate" 1706 -- try to keep buff for enemy dispel -- Buff "Lévitation" 111759
-		{ 1706, not jps.buff(111759) and isArena == true , "player" },
-		{ 1706, jps.fallingFor() > 1.5 and not jps.buff(111759) },
-		{ 1706, IsSwimming() and not jps.buff(111759) and not playerAggro },
-		-- SNM "Nova" 132157 -- keep buff "Words of Mending" 155362 "Mot de guérison" 
-		{ 132157, jps.IsSpellKnown(155362) and jps.buffStacks(155362) < 10 , "player" , "WoM_Nova_Player" },
-	},},
 
 	-- SNM "Levitate" 1706 -- "Dark Simulacrum" debuff 77606
 	{ 1706, jps.debuff(77606,"player") , "player" , "DarkSim_Levitate" },
@@ -880,6 +856,69 @@ spellTable = {
 end
 
 jps.registerRotation("PRIEST","DISCIPLINE", priestDiscPvP , "Disc Priest PVP" , false, true)
+
+
+jps.registerRotation("PRIEST","DISCIPLINE",function()
+
+	local playerIsSwimming = IsSwimming()
+	local isArena, _ = IsActiveBattlefieldArena()
+	local LowestImportantUnit = jps.LowestImportantUnit()
+	local LowestImportantUnitHpct = jps.hp(LowestImportantUnit) -- UnitHealth(unit) / UnitHealthMax(unit)
+	local myTank,TankUnit = jps.findAggroInRaid() -- return Table with UnitThreatSituation == 3 (tanking) or == 1 (Overnuking) 
+	-- rangedTarget returns "target" by default, sometimes could be friend
+	local rangedTarget, _, _ = jps.LowestTarget()
+
+	if canDPS("target") then rangedTarget =  "target"
+	elseif canDPS("targettarget") then rangedTarget = "targettarget"
+	elseif canDPS("focustarget") then rangedTarget = "focustarget"
+	end
+	-- if your target is friendly keep it as target
+	if not canHeal("target") and canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
+
+	local spellTableOOC = {
+	
+	{"nested", not jps.PvP , {
+		-- "Gardien de peur" 6346
+		--{ 6346, not jps.buff(6346,"player") , "player" },
+		-- "Fortitude" 21562 -- "Commanding Shout" 469 -- "Blood Pact" 166928
+		{ 21562, jps.buffMissing(21562) , "player" },
+		-- SNM "Levitate" 1706 -- try to keep buff for enemy dispel -- Buff "Lévitation" 111759
+		{ 1706, jps.fallingFor() > 1.5 and not jps.buff(111759) },
+		{ 1706, playerIsSwimming and not jps.buff(111759) },
+		-- "Soins" 2060
+		{ 2060, not jps.Moving and LowestImportantUnitHpct < 0.80 , LowestImportantUnit , "Soins_"..LowestImportantUnit  },
+
+	},},
+
+	{"nested", jps.PvP , {
+			-- "Gardien de peur" 6346
+			{ 6346, not jps.buff(6346,"player") , "player" },
+			-- SNM "Fortitude" 21562 -- "Commanding Shout" 469 -- "Blood Pact" 166928
+			{ 21562, jps.buffMissing(21562) and jps.buffMissing(469) and jps.buffMissing(166928) , "player" },
+			-- SNM "Levitate" 1706 -- try to keep buff for enemy dispel -- Buff "Lévitation" 111759
+			{ 1706, not jps.buff(111759) , "player" },
+			{ 1706, jps.fallingFor() > 1.5 and not jps.buff(111759) },
+			{ 1706, playerIsSwimming and not jps.buff(111759) },
+			-- "Soins" 2060
+			{ 2060, not jps.Moving and LowestImportantUnitHpct < 0.80 , LowestImportantUnit , "Soins_"..LowestImportantUnit  },
+			-- SNM "Nova" 132157 -- keep buff "Words of Mending" 155362 "Mot de guérison" 
+			{ 132157, jps.IsSpellKnown(155362) and jps.buffStacks(155362) < 10 , "player" , "WoM_Nova_Player" },
+		},},
+	
+	-- PénitenceTank
+	{ 47540, canHeal(myTank) and jps.hp(myTank) < 0.80 , myTank , "Penance_myTank" },
+	-- TIMER POM -- "Prière de guérison" 33076 -- Buff POM 41635
+	{ 33076, not jps.Moving and not jps.buffTracker(41635) and canHeal(myTank) and jps.hp(myTank) > 0.80 , myTank , "Tracker_Mending_Tank" },
+	-- "Mot de pouvoir : Réconfort" -- "Power Word: Solace" 129250 -- REGEN MANA
+	{ 129250, canDPS(rangedTarget) , rangedTarget, "|cFFFF0000Solace_"..rangedTarget },
+	-- "Flammes sacrées" 14914  -- "Evangélisme" 81661
+	{ 14914, canDPS(rangedTarget) , rangedTarget , "|cFFFF0000Flammes_"..rangedTarget },
+}
+
+	local spell,target = parseSpellTable(spellTableOOC)
+	return spell,target
+
+end,"OOC Disc Priest PVP",nil,nil,nil,true)
 
 -------------------
 -- SNM, MY TO DO --

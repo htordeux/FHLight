@@ -151,7 +151,7 @@ function jps.findAggroInRaid()
 		end
 	end
 	table.sort(TankUnit, function(a,b) return jps.hp(a) < jps.hp(b) end)
-	return TankUnit , TankUnit[1] or "focus"
+	return TankUnit[1] or "focus", TankUnit
 end
 
 ----------------------
@@ -240,7 +240,7 @@ local myTanks = { "player","focus","target","targettarget","mouseover" }
 jps.LowestImportantUnit = function()
 	local LowestImportantUnit = "player"
 	if jps.Defensive then
-		local aggroTanks,_ = jps.findAggroInRaid()
+		local _,aggroTanks = jps.findAggroInRaid()
 		for i,j in ipairs(aggroTanks) do
 			table.insert(myTanks, j)
 		end

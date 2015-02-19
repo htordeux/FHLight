@@ -124,7 +124,7 @@ jps.registerRotation("MAGE","ARCANE", function()
 	local playerAggro = jps.FriendAggro("player")
 	local playerhealth =  jps.hp("player","abs")
 	local playerhealthpct = jps.hp("player")
-	local TankUnit, myTank  = jps.findAggroInRaid() -- return Table with UnitThreatSituation == 3 (tanking) or == 1 (Overnuking)
+	local myTank,TankUnit = jps.findAggroInRaid() -- return Table with UnitThreatSituation == 3 (tanking) or == 1 (Overnuking)
 	local TankTarget = "target"
 	if canHeal(myTank) then TankTarget = myTank.."target" end
 

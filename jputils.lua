@@ -510,6 +510,14 @@ GameTooltip:HookScript("OnTooltipSetUnit", function(self)
 end)
 ]]
 
+
+---------------------------
+-- SPELLS COOLDOWNS -- Credits - Atemi Addon
+---------------------------
+
+-- All IDs with '--' infront of the spell ID will be commented out.
+-- If you wish to disable an ability tracker, put '--' infront of the ID.
+
 jps.EnemyCds = {
 
 	--------------------------------------------------------------------------

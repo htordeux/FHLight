@@ -135,8 +135,8 @@ jps.registerRotation("MAGE","ARCANE", function()
 	-- rangedTarget returns "target" by default, sometimes could be friend
 	local rangedTarget, EnemyUnit, TargetCount = jps.LowestTarget()
 
-	if canDPS(TankTarget) then rangedTarget = TankTarget
-	elseif canDPS("target") then rangedTarget =  "target"
+	if canDPS("target") then rangedTarget =  "target"
+	elseif canDPS(TankTarget) then rangedTarget = TankTarget 
 	elseif canDPS("targettarget") then rangedTarget = "targettarget"
 	elseif canDPS("focustarget") then rangedTarget = "focustarget"
 	elseif canDPS("mouseover") and UnitAffectingCombat("mouseover") then rangedTarget = "mouseover"

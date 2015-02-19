@@ -139,11 +139,11 @@ local priestHoly = function()
 	end
 
 	-- priest.unitForLeap includes jps.FriendAggro and jps.LoseControl
-	local LeapFriendFlag = nil 
+	local LeapFriend = nil 
 	for _,unit in ipairs(FriendUnit) do
-		if priest.unitForLeap(unit) and jps.hp(unit) < 0.50 then
+		if priest.unitForLeap(unit) and jps.hp(unit) < 0.25 then
 			if jps.RoleInRaid(unit) == "HEALER" then
-				LeapFriendFlag = unit
+				LeapFriend = unit
 			break end
 		end
 	end
@@ -276,7 +276,7 @@ local priestHoly = function()
 		{ 527, type(DispelTargetRole) == "string" , DispelTargetRole , "|cff1eff00DispelTargetRole_MultiUnit_" },
 		{ 527, type(DispelFriendlyTarget) == "string" , DispelFriendlyTarget , "|cff1eff00DispelFriendlyTarget_MultiUnit_" },
 		-- "Leap of Faith" 73325 -- "Saut de foi"
-		{ 73325 , type(LeapFriendFlag) == "string" , LeapFriendFlag , "|cff1eff00Leap_MultiUnit_" },
+		{ 73325 , type(LeapFriend) == "string" , LeapFriend , "|cff1eff00Leap_MultiUnit_" },
 	}
 	
 	parseDamage = {

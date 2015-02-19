@@ -50,9 +50,10 @@ function jps_Test()
 	print("GCD: ",jps.GCD)
 	write("***************************")
 	
-	local cdplayer = jps.enemyCooldownWatch("player")
+	--local cdplayer = jps.enemyCooldownWatch("player")
+	--print("cdplayer: ",cdplayer)
 	local cdtarget = jps.enemyCooldownWatch("target")
-	print("cdplayer:",cdplayer,"cdtarget:",cdtarget)
+	write("cdtarget: ",cdtarget)
 
 --	local mastery = GetMasteryEffect()
 --	local masteryValue = math.ceil(mastery)/100

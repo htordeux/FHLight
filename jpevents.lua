@@ -672,13 +672,12 @@ end
 -- jps.registerOnUpdate(SpellTimer) on jpevents.lua ?
 local SpellTimer = function(unitGuid)
 	local dataset = EnemyCooldowns[unitGuid]
-	if not dataset then return end
 	for spell,index in pairs(dataset) do
 		local endSpell = index[1] --local start, duration, _ = GetSpellCooldown(spell)
 		local timeLeft = math.ceil(endSpell - GetTime()) --local timeLeft = start + duration - GetTime()
 		EnemyCooldowns[unitGuid][spell][2] = timeLeft
 		if timeLeft < 1 then -- GCD 1 sec
-			EnemyCooldowns[unitGuid][spell] = nil
+			EnemyCooldowns[unitGuid][spell][2] = 0
 		end 
 	end
 end
@@ -686,16 +685,16 @@ end
 function jps.enemyCooldownWatch(unit)
 	if not jps.UnitExists(unit) then return end
 	local unitGuid = UnitGUID(unit)
-	-- Update Table
-	SpellTimer(unitGuid)
-	-- Look for spellId CD
 	local dataset = EnemyCooldowns[unitGuid]
 	if not dataset then return 0 end
+	-- Update Table
+	SpellTimer(unitGuid)
+	local cooldown = 999
 	for spell,index in pairs(dataset) do
-		local cooldown = index[2]
-		--print(spell,":",index[2])
-		if  cooldown > 0 then return cooldown end
+		if index[2] < cooldown then cooldown = index[2] end 
+		write(index[3],"-",spell,": ",index[2])
 	end
+	return cooldown
 end
 
 -----------------------
@@ -840,11 +839,15 @@ jps.listener.registerEvent("COMBAT_LOG_EVENT_UNFILTERED", function(...)
 	if sourceGUID and destGUID and spellEvents[event] then
 
 			local spellId = select(12, ...)
-			local start, duration, _ = GetSpellCooldown(spellId)
+			local spellname = select(13, ...)
+			local start, _, _ = GetSpellCooldown(spellId)
 			if start > 0 and jps.EnemyCds[spellId] then
+				local duration = jps.EnemyCds[spellId]
 				if not EnemyCooldowns[sourceGUID] then EnemyCooldowns[sourceGUID] = {} end
 				if not EnemyCooldowns[sourceGUID][spellId] then
-					EnemyCooldowns[sourceGUID][spellId] = {start + duration, duration}
+					EnemyCooldowns[sourceGUID][spellId] = {start + duration, duration, spellname}
+				elseif EnemyCooldowns[sourceGUID][spellId][2] == 0 then
+					EnemyCooldowns[sourceGUID][spellId] = {start + duration, duration, spellname}
 				end
 			end
 

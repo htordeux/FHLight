@@ -171,11 +171,11 @@ end
 ----------------------------
 
 -- priest.unitForLeap includes jps.FriendAggro and jps.LoseControl
-local LeapFriendFlag = nil 
+local LeapFriend = nil
 for _,unit in ipairs(FriendUnit) do
-	if priest.unitForLeap(unit) and jps.hp(unit) < 0.50 then
+	if priest.unitForLeap(unit) and jps.hp(unit) < 0.25 then
 		if jps.RoleInRaid(unit) == "HEALER" then
-			LeapFriendFlag = unit
+			LeapFriend = unit
 		break end
 	end
 end
@@ -347,7 +347,6 @@ local spellTable = {
 	{ 15286, AvgHealthLoss < 0.85 , "player" },
 	-- SELF HEAL
 	{ "nested", playerhealthpct < 0.70 , parseHeal },
-	
 
 	-- "Mindbender" "Torve-esprit" 123040 -- "Ombrefiel" 34433 "Shadowfiend"
 	{ 34433, priest.canShadowfiend(rangedTarget) , rangedTarget },
@@ -361,7 +360,7 @@ local spellTable = {
 	-- "Power Infusion" "Infusion de puissance" 10060
 	{ 10060, jps.combatStart > 0 , "player" },
 	-- "Mind Spike" 73510 -- "Clarity of Power" 155246 "Clarté de pouvoir" -- "Devouring Plague" debuff 158831
-	{ 73510, not jps.Moving and jps.IsSpellKnown(155246) and Orbs <= 3 and not jps.myDebuff(158831,rangedTarget) and not jps.myDebuff(34914,rangedTarget) and not jps.myDebuff(589,rangedTarget) , rangedTarget , "Spike_CoP" },
+	{ 73510, not jps.Moving and jps.IsSpellKnown(155246) and Orbs < 4 and not jps.myDebuff(158831,rangedTarget) and not jps.myDebuff(34914,rangedTarget) and not jps.myDebuff(589,rangedTarget) , rangedTarget , "Spike_CoP" },
 
 	-- "Shadow Word: Pain" 589 -- "Shadow Word: Insanity" buff 132573
 	{ 589, type(PainEnemyTarget) == "string" , PainEnemyTarget , "Pain_MultiUnit_" },
@@ -383,7 +382,7 @@ local spellTable = {
 	{ 34914, not jps.Moving and jps.myDebuff(34914,rangedTarget) and jps.myDebuffDuration(34914,rangedTarget) < jps.GCD and not jps.isRecast(34914,rangedTarget) , rangedTarget , "VT_Target_" },
 
 	-- "Leap of Faith" 73325 -- "Saut de foi"
-	{ 73325 , type(LeapFriendFlag) == "string" , LeapFriendFlag , "|cff1eff00Leap_MultiUnit_" },
+	{ 73325 , type(LeapFriend) == "string" , LeapFriend , "|cff1eff00Leap_MultiUnit_" },
 	
 	-- Offensive Dispel -- "Dissipation de la magie" 528 -- includes canDPS
 	{ 528, jps.castEverySeconds(528,10) and jps.DispelOffensive(rangedTarget) , rangedTarget , "|cff1eff00Dispel_Offensive_"..rangedTarget },

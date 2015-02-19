@@ -88,6 +88,9 @@ local priestDisc = function()
 	if playerIsStun then jps.createTimer("playerWasControl",2) end
 	if jps.checkTimer("playerWasControl") > 0 then playerWasControl = true end
 
+   -- SNM
+   local playerTTD = jps.TimeToDie("player")
+   
 ---------------------
 -- ENEMY TARGET
 ---------------------
@@ -255,7 +258,7 @@ spellTable = {
 	{ 19236, jps.IsSpellKnown(19236) and jps.hp() < 0.75 , "player" , "Aggro_DESESPERATE" },
 
 	{ "nested", playerAggro or playerIsTargeted ,{
-		-- "Shield" 17
+		-- "Power Word: Shield" 17
 		{ 17, not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Aggro_Shield" },
 		{ 17, type(ShieldFriend) == "string" and not jps.buff(59889,"player") , ShieldFriend , "Aggro_ShieldFriend_Borrowed" },
 		-- "Semblance spectrale" 112833
@@ -272,6 +275,8 @@ spellTable = {
 
 	-- "Leap of Faith" 73325 -- "Saut de foi"
 	--{ 73325, type(LeapFriend) == "string" , LeapFriend , "|cff1eff00Leap_MultiUnit_" },
+	-- "POH" 596
+	{ 596, not jps.Moving and (type(POHTarget) == "string") and canHeal(POHTarget) and jps.buff(59889,"player") and jps.buff(172359,"player") , POHTarget , "Emergency_POH_" },
 
 	-- EMERGENCY HEAL --
 	{ "nested", LowestImportantUnitHpct < 0.50 ,{
@@ -311,9 +316,12 @@ spellTable = {
 
 	-- DISPEL -- "Glyph of Purify" 55677 Your Purify spell also heals your target for 5% of maximum health
 	{ "nested", jps.Interrupts , parseDispel },
-	
+	-- OFFENSIVE Dispel -- "Dissipation de la magie" 528
+	--{ 528, jps.castEverySeconds(528,10) and jps.DispelOffensive(rangedTarget) , rangedTarget , "|cff1eff00DispelOffensive_"..rangedTarget },
+
 	-- CONTROL --
 	{ 15487, type(SilenceEnemyTarget) == "string" , SilenceEnemyTarget , "Silence_MultiUnit" },
+	--{ "nested", not jps.LoseControl(rangedTarget) and canDPS(rangedTarget) , parseControl },
 
 	-- "Mot de pouvoir : Réconfort" -- "Power Word: Solace" 129250 -- REGEN MANA
 	{ 129250, canDPS(rangedTarget) , rangedTarget, "|cFFFF0000Solace_"..rangedTarget },
@@ -373,6 +381,9 @@ spellTable = {
 	{ 34433, priest.canShadowfiend(rangedTarget) , rangedTarget },
 	{ 123040, priest.canShadowfiend(rangedTarget) , rangedTarget },
 	
+	-- TIMER POM -- "Prière de guérison" 33076 -- Buff POM 41635
+	{ 33076, not jps.Moving and not jps.buffTracker(41635) and type(MendingFriend) == "string" , MendingFriend , "Tracker_Mending_Friend" },
+
 	-- PROACTIVE BUBBLES --
 	-- "Power Word: Shield" 17 -- Keep Buff "Borrowed" 59889 always
 	{ 17, type(ShieldFriend) == "string" and not jps.buff(59889,"player") , ShieldFriend , "Timer_ShieldFriend" },
@@ -687,7 +698,7 @@ spellTable = {
 		-- SNM -- Uncomment Coz Spam Chat ^_^
 		--{ {"macro","/y Help! I'm a banana! PEEL ME!"}, jps.hp() < 0.50 and (playerIsStun or playerTTD < 6) and GetLocale() == "enUS" },
 		--{ {"macro","/y Help! Je suis une banane! PEEL MOI!"}, jps.hp() < 0.50 and (playerIsStun or playerTTD < 6) and GetLocale() == "frFR" },
-		-- "Shield" 17 -- Keep Buff "Borrowed" 59889 always
+		-- "Power Word: Shield" 17
 		{ 17, not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Aggro_Shield" },
 		{ 17, type(ShieldFriend) == "string" and not jps.buff(59889,"player") , ShieldFriend , "Aggro_ShieldFriend_Borrowed" },
 		-- "Semblance spectrale" 112833
@@ -704,21 +715,23 @@ spellTable = {
 		{ 59544, jps.hp() < 0.75 , "player" , "Aggro_Naaru" },
 		-- "Glyph of Purify" 55677 Your Purify spell also heals your target for 5% of maximum health
 		{ 527, jps.canDispel("player",{"Magic"}) , "player" , "Aggro_Dispel" },
-		-- "Power Word: Shield" 17 -- Keep Buff "Borrowed" 59889 always
+		-- "Power Word: Shield" 17
 		{ 17, type(ShieldFriend) == "string" and not jps.buff(59889,"player") , ShieldFriend , "Timer_ShieldFriend" },
 		-- "Soins rapides" 2061
 		{ 2061, not jps.Moving and jps.hp() < 0.40 , "player" , "Aggro_FlashHeal" },
+		-- "Prière de guérison" 33076 -- Buff POM 41635
+		{ 33076, not jps.Moving and not jps.buff(41635,"player") , "player" , "Aggro_Mending" },
 		-- SNM "Nova" 132157 -- "Words of Mending" 155362 "Mot de guérison"
 		{ 132157, jps.hp() < 0.40 , "player" , "Aggro_Nova" },
 		{ 132157, jps.IsSpellKnown(155362) and jps.buffStacks(155362) < 10 , "player" , "Aggro_Nova" },
-		-- "Prière de guérison" 33076 -- Buff POM 41635
-		{ 33076, not jps.Moving and not jps.buff(41635,"player") , "player" , "Aggro_Mending" },
 		-- "Clarity of Will" 152118 shields with protective ward for 20 sec
 		{ 152118, not jps.Moving and ClarityFriendTarget("player") and jps.debuff(6788,"player") , "player" , "Aggro_Clarity" },
 	},},
 
 	-- "Leap of Faith" 73325 -- "Saut de foi"
 	{ 73325, type(LeapFriend) == "string" , LeapFriend , "|cff1eff00Leap_MultiUnit_" },
+	-- "POH" 596
+	{ 596, not jps.Moving and (type(POHTarget) == "string") and canHeal(POHTarget) and jps.buff(59889,"player") and jps.buff(172359,"player") , POHTarget , "Emergency_POH_" },
 
 	-- EMERGENCY HEAL --
 	{ "nested", LowestImportantUnitHpct < 0.50 ,{
@@ -826,11 +839,12 @@ spellTable = {
 	{ 34433, priest.canShadowfiend(rangedTarget) , rangedTarget },
 	{ 123040, priest.canShadowfiend(rangedTarget) , rangedTarget },
 	
+	-- TIMER POM -- "Prière de guérison" 33076 -- Buff POM 41635
+	{ 33076, not jps.Moving and not jps.buffTracker(41635) and type(MendingFriend) == "string" , MendingFriend , "Tracker_Mending_Friend" },
+
 	-- PROACTIVE BUBBLES --
 	-- "Power Word: Shield" 17 -- Keep Buff "Borrowed" 59889 always
 	{ 17, type(ShieldFriend) == "string" and not jps.buff(59889,"player") , ShieldFriend , "Timer_ShieldFriend" },
-	-- if "Shadowfiend" 34433 exists, cast PW:S
-	{ 17, canHeal("pet") and not jps.buff(17,"pet") and not jps.debuff(6788,"pet"), "pet", "Shadowfiend_Shield" },
 
 	-- DAMAGE --
 	{ "nested", jps.FaceTarget and canDPS(rangedTarget) and LowestImportantUnitHpct > 0.80 ,{
@@ -857,6 +871,9 @@ end
 
 jps.registerRotation("PRIEST","DISCIPLINE", priestDiscPvP , "Disc Priest PVP" , false, true)
 
+----------------------------------------------------------------------------------------------------------------
+-------------------------------------------------- ROTATION OOC ------------------------------------------------
+----------------------------------------------------------------------------------------------------------------
 
 jps.registerRotation("PRIEST","DISCIPLINE",function()
 

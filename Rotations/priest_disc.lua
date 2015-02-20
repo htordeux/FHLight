@@ -44,7 +44,7 @@ end
 local ClarityFriendTarget = function(unit)
 	if not jps.UnitExists(unit) then return false end
 	if not jps.FriendAggro(unit) then return false end
-	--if UnitGetTotalAbsorbs(unit) > 0 then return false end
+	if jps.isRecast(152118,unit) then return false end
 	if jps.buff(152118,unit) then return false end
 	return true
 end
@@ -900,7 +900,7 @@ jps.registerRotation("PRIEST","DISCIPLINE",function()
 	-- "Soins" 2060
 	{ 2060, not jps.Moving and LowestImportantUnitHpct < 0.90 , LowestImportantUnit , "Soins_"..LowestImportantUnit  },
 	-- ClarityTank -- "Clarity of Will" 152118 shields with protective ward for 20 sec
-	{ 152118, not jps.Moving and canHeal(myTank) and not jps.buff(152118,myTank) , myTank , "Clarity_Tank" },
+	{ 152118, not jps.Moving and canHeal(myTank) and not jps.buff(152118,myTank) and not jps.isRecast(152118,rangedTarget) , myTank , "Clarity_Tank" },
 
 }
 

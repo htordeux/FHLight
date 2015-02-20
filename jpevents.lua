@@ -350,8 +350,10 @@ jps.registerOnUpdate(updateTimeToDie)
 
 -- Combat
 jps.registerOnUpdate(function()
-	if jps.Combat and jps.Enabled then
-    	jps.Cycle()
+	if jps.Enabled then
+    	if jps.Combat then jps.Cycle()
+    	elseif jps.hasOOCRotation() > 0 then jps.Cycle()
+    	end
 	end
 end)
 

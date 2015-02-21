@@ -8,9 +8,8 @@ jps.registerRotation("WARRIOR","FURY",function()
 
 	local spell = nil
 	local target = nil
-	local player = "player"
-	local playerhealth_deficiency =  jps.hp(player,"abs") -- UnitHealthMax(player) - UnitHealth(player)
-	local playerhealth_pct = jps.hp(player) 
+	local playerhealth_deficiency =  jps.hp("player","abs") -- UnitHealthMax(player) - UnitHealth(player)
+	local playerhealth_pct = jps.hp("player") 
 
 	local ClassEnemy = {
 		["WARRIOR"] = "cac",
@@ -114,7 +113,7 @@ if canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
 		-- "Battle Shout" 6673 "Cri de guerre"
 		{ warrior.spells["BattleShout"] , not jps.buff(6673) and playerhealth_pct > 0.75 , "player" , "_BattleShout" },
 		-- "Stoneform" 20594 "Forme de pierre"
-		{ warrior.spells["Stoneform"] , playerAggro and playerhealth_pct < 0.9 , "player" , "_Stoneform" },
+		{ warrior.spells["Stoneform"] , playerAggro and playerhealth_pct < 0.85 , "player" , "_Stoneform" },
 		-- "Impending Victory" 103840 "Victoire imminente" -- Talent Replaces Victory Rush.
 		{ warrior.spells["ImpendingVictory"] , playerhealth_pct < 0.85 , rangedTarget , "_ImpendingVictory" },
 		-- "Victory Rush" 34428 "Ivresse de la victoire" -- "Victorious" 32216 "Victorieux" -- Ivresse de la victoire activée.

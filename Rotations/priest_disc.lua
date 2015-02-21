@@ -13,7 +13,6 @@ local parseDispel = {}
 local UnitIsUnit = UnitIsUnit
 local canDPS = jps.canDPS
 local canHeal = jps.canHeal
-local UnitGroupRolesAssigned = UnitGroupRolesAssigned
 local ipairs = ipairs
 local UnitGetTotalAbsorbs = UnitGetTotalAbsorbs
 local strfind = string.find
@@ -73,7 +72,7 @@ local priestDisc = function()
 	local LowestImportantUnit = jps.LowestImportantUnit()
 	local LowestImportantUnitHealth = jps.hp(LowestImportantUnit,"abs") -- UnitHealthMax(unit) - UnitHealth(unit)
 	local LowestImportantUnitHpct = jps.hp(LowestImportantUnit) -- UnitHealth(unit) / UnitHealthMax(unit)
-	local POHTarget, groupToHeal, groupTableToHeal = jps.FindSubGroupTarget(0.75) -- Target to heal with POH in RAID with AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
+	local POHTarget, groupToHeal, groupTableToHeal = jps.FindSubGroupTarget(0.80) -- Target to heal with POH in RAID with AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
 	local ShellTarget = jps.FindSubGroupAura(114908,LowestImportantUnit) -- buff target Spirit Shell 114908 need SPELLID
 	local myTank,TankUnit = jps.findAggroInRaid() -- return Table with UnitThreatSituation == 3 (tanking) or == 1 (Overnuking) or "focus" default
 	local TankTarget = "target"
@@ -212,14 +211,12 @@ local priestDisc = function()
 	}
 
 	local parseGroup = {
-	
 		-- "Cascade" Holy 121135 Shadow 127632
-		{ 121135, not jps.Moving and AvgHealthLoss < 0.75 , LowestImportantUnit ,  "Emergency_Cascade_"..LowestImportantUnit },
+		{ 121135, not jps.Moving , LowestImportantUnit ,  "Emergency_Cascade_"..LowestImportantUnit },
 		-- "Prière de guérison" 33076 -- Buff POM 41635
 		{ 33076, not jps.Moving and not jps.buffTracker(41635) and not jps.buff(41635,LowestImportantUnit) , LowestImportantUnit , "Emergency_Mending_"..LowestImportantUnit },
 		-- "POH" 596
 		{ 596, not jps.Moving and (type(POHTarget) == "string") and canHeal(POHTarget) , POHTarget , "Emergency_POH_" },
-
 	}
 	
 ------------------------------------------------------
@@ -255,10 +252,9 @@ spellTable = {
 	-- "Prière du désespoir" 19236
 	{ 19236, jps.IsSpellKnown(19236) and jps.hp() < 0.75 , "player" , "Aggro_DESESPERATE" },
 
-	{ "nested", playerAggro or playerIsTargeted ,{
+	{ "nested", playerAggro or playerWasControl or playerIsTargeted ,{
 		-- "Power Word: Shield" 17
 		{ 17, not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Aggro_Shield" },
-		{ 17, type(ShieldFriend) == "string" and not jps.buff(59889,"player") , ShieldFriend , "Aggro_ShieldFriend_Borrowed" },
 		-- "Semblance spectrale" 112833
 		{ 112833, jps.IsSpellKnown(112833) , "player" , "Aggro_Spectral" },
 		-- "Oubli" 586 -- Fantasme 108942 -- vous dissipez tous les effets affectant le déplacement sur vous-même
@@ -276,6 +272,14 @@ spellTable = {
 	-- "POH" 596
 	{ 596, not jps.Moving and (type(POHTarget) == "string") and canHeal(POHTarget) and jps.buff(59889,"player") and jps.buff(172359,"player") , POHTarget , "Emergency_POH_" },
 
+	
+	{ "nested", jps.combatStart > 0 and (LowestImportantUnitHpct < 0.50 or AvgHealthLoss < 0.80) ,{
+		-- "Archange" 81700 -- Buff 81700 -- "Archange surpuissant" 172359  100 % critique POH or FH
+		{ 81700, jps.buffStacks(81661) == 5 , "player", "Emergency_ARCHANGE" },
+		-- "Infusion de puissance" 10060
+		{ 10060, true , LowestImportantUnit , "Emergency_POWERINFUSION" },
+	},},
+
 	-- EMERGENCY HEAL --
 	{ "nested", LowestImportantUnitHpct < 0.50 ,{
 		-- "Suppression de la douleur" 33206 "Pain Suppression" -- Buff "Pain Suppression" 33206
@@ -285,29 +289,25 @@ spellTable = {
 		{ 2061, jps.buff(114255) and jps.buffDuration(114255) < 4 , LowestImportantUnit , "FlashHeal_Light_"..LowestImportantUnit },
 		-- "Shield" 17
 		{ 17, not jps.buff(17,LowestImportantUnit) and not jps.debuff(6788,LowestImportantUnit) , LowestImportantUnit , "Emergency_Shield_"..LowestImportantUnit },
+		{ 17, type(ShieldFriend) == "string" and not jps.buff(59889,"player") , ShieldFriend , "Emergency_ShieldFriend_Borrowed" },
 		-- SNM Troll "Berserker" 26297 -- haste buff
 		{ 26297, true , "player" },
+		-- "Pénitence" 47540
+		{ 47540, true , LowestImportantUnit , "Emergency_Penance_"..LowestImportantUnit },
 		-- "Soins rapides" 2061 -- Buff "Borrowed" 59889 -- "Archange surpuissant" 172359  100 % critique POH or FH
 		{ 2061, not jps.Moving and jps.buff(59889,"player") , LowestImportantUnit , "Emergency_FlashHeal_Borrowed_"..LowestImportantUnit },
 		{ 2061, not jps.Moving and jps.buff(172359,"player") , LowestImportantUnit , "Emergency_FlashHeal_ARCHANGE_"..LowestImportantUnit },
-		-- "Pénitence" 47540
-		{ 47540, true , LowestImportantUnit , "Emergency_Penance_"..LowestImportantUnit },
-		-- "Archange" 81700 -- Buff 81700 -- "Archange surpuissant" 172359  100 % critique POH or FH
-		{ 81700, jps.buffStacks(81661) == 5 , "player", "Emergency_ARCHANGE" },
-		-- "Infusion de puissance" 10060 -- Buff "Pain Suppression" 33206
-		{ 10060, jps.buff(33206,LowestImportantUnit) , LowestImportantUnit , "Emergency_POWERINFUSION" },
-		-- "Soins rapides" 2061
-		{ 2061, not jps.Moving and LowestImportantUnitHpct < 0.35 and UnitGetTotalAbsorbs(LowestImportantUnit) == 0 , LowestImportantUnit , "Emergency_FlashHeal1_"..LowestImportantUnit },
+
 		-- GROUP HEAL
-		{ "nested", jps.hp(myTank) > 0.50 and LowestImportantUnitHpct < 0.50 and CountInRange > 2 , parseGroup },
+		{ "nested", AvgHealthLoss < 0.80 and CountInRange > 2 , parseGroup },
 		-- TIMER POM -- "Prière de guérison" 33076 -- Buff POM 41635
-		{ 33076, not jps.Moving and not jps.buffTracker(41635) and not jps.buff(41635,LowestImportantUnit) , LowestImportantUnit , "Mending_"..LowestImportantUnit },
+		{ 33076, not jps.Moving and not jps.buff(41635,LowestImportantUnit) , LowestImportantUnit , "Emergency_Mending_"..LowestImportantUnit },
 		-- "Soins rapides" 2061
-		{ 2061, not jps.Moving and LowestImportantUnitHpct < 0.35 , LowestImportantUnit , "Emergency_FlashHeal2_"..LowestImportantUnit },
+		{ 2061, not jps.Moving and LowestImportantUnitHpct < 0.35 , LowestImportantUnit , "Emergency_FlashHeal_35"..LowestImportantUnit },
 		-- "Clarity of Will" 152118 shields with protective ward for 20 sec
 		{ 152118, not jps.Moving and ClarityFriendTarget(LowestImportantUnit) and jps.debuff(6788,LowestImportantUnit) , LowestImportantUnit , "Emergency_Clarity" },
 		-- "Soins rapides" 2061
-		{ 2061, not jps.Moving , LowestImportantUnit , "Emergency_FlashHeal3_"..LowestImportantUnit },
+		{ 2061, not jps.Moving , LowestImportantUnit , "Emergency_FlashHeal_50"..LowestImportantUnit },
 	},},
 
 	-- DISPEL -- "Glyph of Purify" 55677 Your Purify spell also heals your target for 5% of maximum health
@@ -327,26 +327,21 @@ spellTable = {
 	-- ShieldTank
 	{ 17, canHeal(myTank) and not jps.buff(17,myTank) and not jps.debuff(6788,myTank) , myTank , "Timer_ShieldTank" },
 	-- PénitenceTank
-	{ 47540, canHeal(myTank) and jps.hp(myTank) < 0.85 , myTank , "Penance_myTank" },
+	{ 47540, canHeal(myTank) and jps.hp(myTank) < 0.90 , myTank , "Penance_myTank" },
 	-- TIMER POM -- "Prière de guérison" 33076 -- Buff POM 41635
 	{ 33076, not jps.Moving and not jps.buffTracker(41635) and canHeal(myTank) and jps.hp(myTank) > 0.80 , myTank , "Tracker_Mending_Tank" },
 	-- ClarityTank -- "Clarity of Will" 152118 shields with protective ward for 20 sec
-	{ 152118, not jps.Moving and canHeal(myTank) and LowestImportantUnitHpct > 0.85 and AvgHealthLoss > 0.75 and ClarityFriendTarget(myTank) , myTank , "Timer_ClarityTank" },
-
-	-- "Infusion de puissance" 10060
-	{ 10060, AvgHealthLoss < 0.75 and jps.combatStart > 0 , "player" , "HealthLoss_POWERINFUSION" },
-	-- "Archange" 81700 -- "Evangélisme" 81661 buffStacks == 5
-	{ 81700, AvgHealthLoss < 0.75 and jps.buffStacks(81661) == 5 and jps.combatStart > 0 , "player", "HealthLoss_ARCHANGE" },
+	{ 152118, not jps.Moving and canHeal(myTank) and LowestImportantUnitHpct > 0.90 and AvgHealthLoss > 0.80 and ClarityFriendTarget(myTank) , myTank , "Timer_ClarityTank" },
 
 	-- "Carapace spirituelle" spell & buff "player" 109964 buff target 114908
 	{ "nested", jps.buffId(109964) and not jps.Moving , parseShell },
 
 	-- GROUP HEAL --
 	-- "Cascade" Holy 121135 Shadow 127632
-	{ 121135, not jps.Moving and CountInRange > 2 and AvgHealthLoss < 0.75 , LowestImportantUnit ,  "Cascade_"..LowestImportantUnit },
+	{ 121135, not jps.Moving and CountInRange > 2 and AvgHealthLoss < 0.80 , LowestImportantUnit ,  "Cascade_"..LowestImportantUnit },
+	-- TIMER POM -- "Prière de guérison" 33076 -- Buff POM 41635
+	{ 33076, not jps.Moving and not jps.buffTracker(41635) and type(MendingFriend) == "string" , MendingFriend , "Tracker_Mending_Friend" },
 	{ "nested", (type(POHTarget) == "string") ,{
-		-- TIMER POM -- "Prière de guérison" 33076 -- Buff POM 41635
-		{ 33076, not jps.Moving and not jps.buffTracker(41635) and not jps.buff(41635,LowestImportantUnit) , LowestImportantUnit , "POH_Mending_" },
 		-- "Carapace spirituelle" spell & buff "player" 109964 buff target 114908
 		{ 109964, jps.IsSpellKnown(109964) , POHTarget , "Carapace_POH_" },
 		-- "Prière de soins" 596 "Prayer of Healing"
@@ -354,19 +349,20 @@ spellTable = {
 	},},
 
 	-- HEAL --
-	{ "nested", LowestImportantUnitHpct < 0.85 ,{
+	{ "nested", LowestImportantUnitHpct < 0.80 ,{
 		-- "Shield" 17
 		{ 17, not jps.buff(17,LowestImportantUnit) and not jps.debuff(6788,LowestImportantUnit) , LowestImportantUnit , "Shield_"..LowestImportantUnit },
 		-- "Pénitence" 47540
 		{ 47540, true , LowestImportantUnit , "Penance_"..LowestImportantUnit },
-		-- "Soins" 2060 -- Buff "Borrowed" 59889
-		{ 2060, not jps.Moving and jps.buff(59889) , LowestImportantUnit , "Soins_"..LowestImportantUnit  },
-		{ 2060, not jps.Moving and jps.buff(152118,LowestImportantUnit) , LowestImportantUnit , "Soins_"..LowestImportantUnit  },
-		{ 2060, not jps.Moving and jps.myLastCast(152118) , LowestImportantUnit , "Soins_"..LowestImportantUnit  },
-		-- TIMER POM -- "Prière de guérison" 33076 -- Buff POM 41635
-		{ 33076, not jps.Moving and not jps.buffTracker(41635) and not jps.buff(41635,LowestImportantUnit) , LowestImportantUnit , "Mending_"..LowestImportantUnit },
 		-- "Don des naaru" 59544
 		{ 59544, true , LowestImportantUnit , "Naaru_"..LowestImportantUnit },
+		-- "Soins" 2060 -- Buff "Borrowed" 59889 -- Buff "Clarity of Will" 152118
+		{ 2060, not jps.Moving and jps.buff(59889) , LowestImportantUnit , "Soins_Borrowed"..LowestImportantUnit  },
+		{ 2060, not jps.Moving and jps.buff(152118,LowestImportantUnit) , LowestImportantUnit , "Soins_Clarity"..LowestImportantUnit  },
+		-- TIMER POM -- "Prière de guérison" 33076 -- Buff POM 41635
+		{ 33076, not jps.Moving and not jps.buffTracker(41635) and not jps.buff(41635,LowestImportantUnit) , LowestImportantUnit , "Mending_"..LowestImportantUnit },
+		-- "Soins" 2060 -- Buff "Borrowed" 59889 -- Buff "Clarity of Will" 152118
+		{ 2060, not jps.Moving and UnitGetTotalAbsorbs(LowestImportantUnit) < priest.AvgAmountFlashHeal , LowestImportantUnit , "Soins_Absorbs"..LowestImportantUnit  },
 		-- "Clarity of Will" 152118 shields with protective ward for 20 sec
 		{ 152118, not jps.Moving and ClarityFriendTarget(LowestImportantUnit) and jps.debuff(6788,LowestImportantUnit) , LowestImportantUnit  , "Clarity_"..LowestImportantUnit  },
 		-- "Soins" 2060
@@ -376,9 +372,6 @@ spellTable = {
 	-- "Torve-esprit" 123040 -- "Ombrefiel" 34433 "Shadowfiend"
 	{ 34433, priest.canShadowfiend(rangedTarget) , rangedTarget },
 	{ 123040, priest.canShadowfiend(rangedTarget) , rangedTarget },
-	
-	-- TIMER POM -- "Prière de guérison" 33076 -- Buff POM 41635
-	{ 33076, not jps.Moving and not jps.buffTracker(41635) and type(MendingFriend) == "string" , MendingFriend , "Tracker_Mending_Friend" },
 
 	-- PROACTIVE BUBBLES --
 	-- "Power Word: Shield" 17 -- Keep Buff "Borrowed" 59889 always
@@ -397,7 +390,7 @@ spellTable = {
 	-- "Pénitence" 47540
 	{ 47540, LowestImportantUnitHealth > priest.AvgAmountGreatHeal , LowestImportantUnit },
 	-- "Soins" 2060
-	{ 2060, not jps.Moving and (LowestImportantUnitHealth > priest.AvgAmountGreatHeal) , LowestImportantUnit },
+	{ 2060, not jps.Moving and LowestImportantUnitHealth > priest.AvgAmountGreatHeal , LowestImportantUnit },
 	-- "Gardien de peur" 6346
 	--{ 6346, not jps.buff(6346,"player") , "player" },
 
@@ -442,7 +435,7 @@ local priestDiscPvP = function()
 	local LowestImportantUnit = jps.LowestImportantUnit()
 	local LowestImportantUnitHealth = jps.hp(LowestImportantUnit,"abs") -- UnitHealthMax(unit) - UnitHealth(unit)
 	local LowestImportantUnitHpct = jps.hp(LowestImportantUnit) -- UnitHealth(unit) / UnitHealthMax(unit)
-	local POHTarget, groupToHeal, groupTableToHeal = jps.FindSubGroupTarget(0.75) -- Target to heal with POH in RAID with AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
+	local POHTarget, groupToHeal, groupTableToHeal = jps.FindSubGroupTarget(0.80) -- Target to heal with POH in RAID with AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
 	local ShellTarget = jps.FindSubGroupAura(114908,LowestImportantUnit) -- buff target Spirit Shell 114908 need SPELLID
 	local myTank,TankUnit = jps.findAggroInRaid() -- return Table with UnitThreatSituation == 3 (tanking) or == 1 (Overnuking) or "focus" default
 	local TankTarget = "target"
@@ -591,14 +584,12 @@ local priestDiscPvP = function()
 	}
 
 	local parseGroup = {
-	
 		-- "Cascade" Holy 121135 Shadow 127632
-		{ 121135, not jps.Moving and AvgHealthLoss < 0.75 , LowestImportantUnit ,  "Emergency_Cascade_"..LowestImportantUnit },
+		{ 121135, not jps.Moving , LowestImportantUnit ,  "Emergency_Cascade_"..LowestImportantUnit },
 		-- "Prière de guérison" 33076 -- Buff POM 41635
 		{ 33076, not jps.Moving and not jps.buffTracker(41635) and not jps.buff(41635,LowestImportantUnit) , LowestImportantUnit , "Emergency_Mending_"..LowestImportantUnit },
 		-- "POH" 596
 		{ 596, not jps.Moving and (type(POHTarget) == "string") and canHeal(POHTarget) , POHTarget , "Emergency_POH_" },
-
 	}
 	
 ------------------------------------------------------
@@ -679,7 +670,7 @@ spellTable = {
 	-- TRINKETS -- jps.useTrinket(0) est "Trinket0Slot" est slotId  13 -- "jps.useTrinket(1) est "Trinket1Slot" est slotId  14
 	-- SNM dont blow trinket if not moving and rooted -- "ROOT" was removed of Stuntype
 	{ jps.useTrinket(0), jps.useTrinketBool(0) and not playerWasControl and playerAggro , "player" , "Trinket0"},
-	{ jps.useTrinket(1), jps.useTrinketBool(1) and playerIsStun and LowestImportantUnitHpct < 0.75 , "player" , "Trinket1"},
+	{ jps.useTrinket(1), jps.useTrinketBool(1) and playerIsStun and LowestImportantUnitHpct < 0.80 , "player" , "Trinket1"},
 
 	-- "Suppression de la douleur" 33206 "Pain Suppression"
 	{ 33206, playerIsStun and jps.hp() < 0.35 , "player", "Stun_Pain" },
@@ -689,9 +680,6 @@ spellTable = {
 	{ 19236, jps.IsSpellKnown(19236) and jps.hp() < 0.75 , "player" , "Aggro_DESESPERATE" },
 
 	{ "nested", playerAggro or playerWasControl or playerIsTargeted ,{
-		-- SNM -- Uncomment Coz Spam Chat ^_^
-		--{ {"macro","/y Help! I'm a banana! PEEL ME!"}, jps.hp() < 0.50 and (playerIsStun or playerTTD < 6) and GetLocale() == "enUS" },
-		--{ {"macro","/y Help! Je suis une banane! PEEL MOI!"}, jps.hp() < 0.50 and (playerIsStun or playerTTD < 6) and GetLocale() == "frFR" },
 		-- "Power Word: Shield" 17
 		{ 17, not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Aggro_Shield" },
 		{ 17, type(ShieldFriend) == "string" and not jps.buff(59889,"player") , ShieldFriend , "Aggro_ShieldFriend_Borrowed" },
@@ -703,10 +691,11 @@ spellTable = {
 		{ 586, jps.glyphInfo(55684) , "player" , "Aggro_Oubli" },
 		-- "Pénitence" 47540
 		{ 47540, jps.hp() < 0.75 , "player" , "Aggro_Penance" },
-		-- "Soins rapides" 2061 -- Buff "Borrowed" 59889 -- "Archange surpuissant" 172359  100 % critique POH or FH
-		{ 2061, not jps.Moving and jps.buff(59889) and jps.hp() < 0.75 , "player" , "Aggro_FlashHeal_Borrowed" },
 		-- "Don des naaru" 59544
 		{ 59544, jps.hp() < 0.75 , "player" , "Aggro_Naaru" },
+		-- "Soins rapides" 2061 -- Buff "Borrowed" 59889 -- "Archange surpuissant" 172359  100 % critique POH or FH
+		{ 2061, not jps.Moving and jps.buff(59889) and jps.hp() < 0.75 , "player" , "Aggro_FlashHeal_Borrowed" },
+		{ 2061, not jps.Moving and jps.buff(59889) and LowestImportantUnitHpct < 0.40 , LowestImportantUnit , "Aggro_FlashHeal_Borrowed_"..LowestImportantUnit },
 		-- "Glyph of Purify" 55677 Your Purify spell also heals your target for 5% of maximum health
 		{ 527, jps.canDispel("player",{"Magic"}) , "player" , "Aggro_Dispel" },
 		-- "Soins rapides" 2061
@@ -725,6 +714,14 @@ spellTable = {
 	-- "POH" 596
 	{ 596, not jps.Moving and (type(POHTarget) == "string") and canHeal(POHTarget) and jps.buff(59889,"player") and jps.buff(172359,"player") , POHTarget , "Emergency_POH_" },
 
+	
+	{ "nested", jps.combatStart > 0 and (LowestImportantUnitHpct < 0.50 or AvgHealthLoss < 0.80) ,{
+		-- "Archange" 81700 -- Buff 81700 -- "Archange surpuissant" 172359  100 % critique POH or FH
+		{ 81700, jps.buffStacks(81661) == 5 , "player", "Emergency_ARCHANGE" },
+		-- "Infusion de puissance" 10060
+		{ 10060, true , LowestImportantUnit , "Emergency_POWERINFUSION" },
+	},},
+
 	-- EMERGENCY HEAL --
 	{ "nested", LowestImportantUnitHpct < 0.50 ,{
 		-- "Suppression de la douleur" 33206 "Pain Suppression" -- Buff "Pain Suppression" 33206
@@ -734,29 +731,25 @@ spellTable = {
 		{ 2061, jps.buff(114255) and jps.buffDuration(114255) < 4 , LowestImportantUnit , "FlashHeal_Light_"..LowestImportantUnit },
 		-- "Shield" 17
 		{ 17, not jps.buff(17,LowestImportantUnit) and not jps.debuff(6788,LowestImportantUnit) , LowestImportantUnit , "Emergency_Shield_"..LowestImportantUnit },
+		{ 17, type(ShieldFriend) == "string" and not jps.buff(59889,"player") , ShieldFriend , "Emergency_ShieldFriend_Borrowed" },
 		-- SNM Troll "Berserker" 26297 -- haste buff
 		{ 26297, true , "player" },
+		-- "Pénitence" 47540
+		{ 47540, true , LowestImportantUnit , "Emergency_Penance_"..LowestImportantUnit },
 		-- "Soins rapides" 2061 -- Buff "Borrowed" 59889 -- "Archange surpuissant" 172359  100 % critique POH or FH
 		{ 2061, not jps.Moving and jps.buff(59889,"player") , LowestImportantUnit , "Emergency_FlashHeal_Borrowed_"..LowestImportantUnit },
 		{ 2061, not jps.Moving and jps.buff(172359,"player") , LowestImportantUnit , "Emergency_FlashHeal_ARCHANGE_"..LowestImportantUnit },
-		-- "Pénitence" 47540
-		{ 47540, true , LowestImportantUnit , "Emergency_Penance_"..LowestImportantUnit },
-		-- "Archange" 81700 -- Buff 81700 -- "Archange surpuissant" 172359  100 % critique POH or FH
-		{ 81700, jps.buffStacks(81661) == 5 , "player", "Emergency_ARCHANGE" },
-		-- "Infusion de puissance" 10060 -- Buff "Pain Suppression" 33206
-		{ 10060, jps.buff(33206,LowestImportantUnit) , LowestImportantUnit , "Emergency_POWERINFUSION" },
-		-- "Soins rapides" 2061
-		{ 2061, not jps.Moving and LowestImportantUnitHpct < 0.35 and UnitGetTotalAbsorbs(LowestImportantUnit) == 0 , LowestImportantUnit , "Emergency_FlashHeal1_"..LowestImportantUnit },
+
 		-- GROUP HEAL
-		{ "nested", jps.hp(myTank) > 0.50 and LowestImportantUnitHpct < 0.50 and CountInRange > 2 , parseGroup },
+		{ "nested", AvgHealthLoss < 0.80 and CountInRange > 2 , parseGroup },
 		-- TIMER POM -- "Prière de guérison" 33076 -- Buff POM 41635
-		{ 33076, not jps.Moving and not jps.buffTracker(41635) and not jps.buff(41635,LowestImportantUnit) , LowestImportantUnit , "Mending_"..LowestImportantUnit },
+		{ 33076, not jps.Moving and not jps.buff(41635,LowestImportantUnit) , LowestImportantUnit , "Emergency_Mending_"..LowestImportantUnit },
 		-- "Soins rapides" 2061
-		{ 2061, not jps.Moving and LowestImportantUnitHpct < 0.35 , LowestImportantUnit , "Emergency_FlashHeal2_"..LowestImportantUnit },
+		{ 2061, not jps.Moving and LowestImportantUnitHpct < 0.35 , LowestImportantUnit , "Emergency_FlashHeal_35"..LowestImportantUnit },
 		-- "Clarity of Will" 152118 shields with protective ward for 20 sec
 		{ 152118, not jps.Moving and ClarityFriendTarget(LowestImportantUnit) and jps.debuff(6788,LowestImportantUnit) , LowestImportantUnit , "Emergency_Clarity" },
 		-- "Soins rapides" 2061
-		{ 2061, not jps.Moving , LowestImportantUnit , "Emergency_FlashHeal3_"..LowestImportantUnit },
+		{ 2061, not jps.Moving , LowestImportantUnit , "Emergency_FlashHeal_50"..LowestImportantUnit },
 	},},
 
 	-- DISPEL -- "Glyph of Purify" 55677 Your Purify spell also heals your target for 5% of maximum health
@@ -776,29 +769,24 @@ spellTable = {
 	-- ShieldTank
 	{ 17, canHeal(myTank) and not jps.buff(17,myTank) and not jps.debuff(6788,myTank) , myTank , "Timer_ShieldTank" },
 	-- PénitenceTank
-	{ 47540, canHeal(myTank) and jps.hp(myTank) < 0.85 , myTank , "Penance_myTank" },
+	{ 47540, canHeal(myTank) and jps.hp(myTank) < 0.90 , myTank , "Penance_myTank" },
 	-- TIMER POM -- "Prière de guérison" 33076 -- Buff POM 41635
 	{ 33076, not jps.Moving and not jps.buffTracker(41635) and canHeal(myTank) and jps.hp(myTank) > 0.80 , myTank , "Tracker_Mending_Tank" },
 	-- ClarityTank -- "Clarity of Will" 152118 shields with protective ward for 20 sec
-	{ 152118, not jps.Moving and canHeal(myTank) and LowestImportantUnitHpct > 0.85 and AvgHealthLoss > 0.75 and ClarityFriendTarget(myTank) , myTank , "Timer_ClarityTank" },
+	{ 152118, not jps.Moving and canHeal(myTank) and LowestImportantUnitHpct > 0.90 and AvgHealthLoss > 0.80 and ClarityFriendTarget(myTank) , myTank , "Timer_ClarityTank" },
 
 	-- FAKE CAST -- 6948 -- "Hearthstone"
 	{ {"macro","/use item:6948"}, not jps.Moving and playerAggro and jps.itemCooldown(6948) == 0 and LowestImportantUnitHpct > 0.85 , "player" , "Aggro_FAKECAST" },
-
-	-- "Infusion de puissance" 10060
-	{ 10060, AvgHealthLoss < 0.75 and jps.combatStart > 0 , "player" , "HealthLoss_POWERINFUSION" },
-	-- "Archange" 81700 -- "Evangélisme" 81661 buffStacks == 5
-	{ 81700, AvgHealthLoss < 0.75 and jps.buffStacks(81661) == 5 and jps.combatStart > 0 , "player", "HealthLoss_ARCHANGE" },
 
 	-- "Carapace spirituelle" spell & buff "player" 109964 buff target 114908
 	{ "nested", jps.buffId(109964) and not jps.Moving , parseShell },
 
 	-- GROUP HEAL --
 	-- "Cascade" Holy 121135 Shadow 127632
-	{ 121135, not jps.Moving and CountInRange > 2 and AvgHealthLoss < 0.75 , LowestImportantUnit ,  "Cascade_"..LowestImportantUnit },
+	{ 121135, not jps.Moving and CountInRange > 2 and AvgHealthLoss < 0.80 , LowestImportantUnit ,  "Cascade_"..LowestImportantUnit },
+	-- TIMER POM -- "Prière de guérison" 33076 -- Buff POM 41635
+	{ 33076, not jps.Moving and not jps.buffTracker(41635) and type(MendingFriend) == "string" , MendingFriend , "Tracker_Mending_Friend" },
 	{ "nested", (type(POHTarget) == "string") ,{
-		-- TIMER POM -- "Prière de guérison" 33076 -- Buff POM 41635
-		{ 33076, not jps.Moving and not jps.buffTracker(41635) and not jps.buff(41635,LowestImportantUnit) , LowestImportantUnit , "POH_Mending_" },
 		-- "Carapace spirituelle" spell & buff "player" 109964 buff target 114908
 		{ 109964, jps.IsSpellKnown(109964) , POHTarget , "Carapace_POH_" },
 		-- "Prière de soins" 596 "Prayer of Healing"
@@ -806,19 +794,20 @@ spellTable = {
 	},},
 
 	-- HEAL --
-	{ "nested", LowestImportantUnitHpct < 0.85 ,{
+	{ "nested", LowestImportantUnitHpct < 0.80 ,{
 		-- "Shield" 17
 		{ 17, not jps.buff(17,LowestImportantUnit) and not jps.debuff(6788,LowestImportantUnit) , LowestImportantUnit , "Shield_"..LowestImportantUnit },
 		-- "Pénitence" 47540
 		{ 47540, true , LowestImportantUnit , "Penance_"..LowestImportantUnit },
-		-- "Soins" 2060 -- Buff "Borrowed" 59889
-		{ 2060, not jps.Moving and jps.buff(59889) , LowestImportantUnit , "Soins_"..LowestImportantUnit  },
-		{ 2060, not jps.Moving and jps.buff(152118,LowestImportantUnit) , LowestImportantUnit , "Soins_"..LowestImportantUnit  },
-		{ 2060, not jps.Moving and jps.myLastCast(152118) , LowestImportantUnit , "Soins_"..LowestImportantUnit  },
-		-- TIMER POM -- "Prière de guérison" 33076 -- Buff POM 41635
-		{ 33076, not jps.Moving and not jps.buffTracker(41635) and not jps.buff(41635,LowestImportantUnit) , LowestImportantUnit , "Mending_"..LowestImportantUnit },
 		-- "Don des naaru" 59544
 		{ 59544, true , LowestImportantUnit , "Naaru_"..LowestImportantUnit },
+		-- "Soins" 2060 -- Buff "Borrowed" 59889 -- Buff "Clarity of Will" 152118
+		{ 2060, not jps.Moving and jps.buff(59889) , LowestImportantUnit , "Soins_Borrowed"..LowestImportantUnit  },
+		{ 2060, not jps.Moving and jps.buff(152118,LowestImportantUnit) , LowestImportantUnit , "Soins_Clarity"..LowestImportantUnit  },
+		-- TIMER POM -- "Prière de guérison" 33076 -- Buff POM 41635
+		{ 33076, not jps.Moving and not jps.buffTracker(41635) and not jps.buff(41635,LowestImportantUnit) , LowestImportantUnit , "Mending_"..LowestImportantUnit },
+		-- "Soins" 2060 -- Buff "Borrowed" 59889 -- Buff "Clarity of Will" 152118
+		{ 2060, not jps.Moving and UnitGetTotalAbsorbs(LowestImportantUnit) < priest.AvgAmountFlashHeal , LowestImportantUnit , "Soins_Absorbs"..LowestImportantUnit  },
 		-- "Clarity of Will" 152118 shields with protective ward for 20 sec
 		{ 152118, not jps.Moving and ClarityFriendTarget(LowestImportantUnit) and jps.debuff(6788,LowestImportantUnit) , LowestImportantUnit  , "Clarity_"..LowestImportantUnit  },
 		-- "Soins" 2060
@@ -849,7 +838,7 @@ spellTable = {
 	-- "Pénitence" 47540
 	{ 47540, LowestImportantUnitHealth > priest.AvgAmountGreatHeal , LowestImportantUnit },
 	-- "Soins" 2060
-	{ 2060, not jps.Moving and (LowestImportantUnitHealth > priest.AvgAmountGreatHeal) , LowestImportantUnit },
+	{ 2060, not jps.Moving and LowestImportantUnitHealth > priest.AvgAmountGreatHeal , LowestImportantUnit },
 	-- "Gardien de peur" 6346
 	{ 6346, not jps.buff(6346,"player") , "player" },
 
@@ -871,9 +860,11 @@ jps.registerRotation("PRIEST","DISCIPLINE",function()
 	local isArena, _ = IsActiveBattlefieldArena()
 	local LowestImportantUnit = jps.LowestImportantUnit()
 	local LowestImportantUnitHpct = jps.hp(LowestImportantUnit) -- UnitHealth(unit) / UnitHealthMax(unit)
+	local CountInRange, AvgHealthLoss, FriendUnit = jps.CountInRaidStatus(1)
+	local POHTarget, groupToHeal, groupTableToHeal = jps.FindSubGroupTarget(0.80) -- Target to heal with POH in RAID with AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
+	-- myTank returns "focus" by default
 	local myTank,TankUnit = jps.findAggroInRaid() -- return Table with UnitThreatSituation == 3 (tanking) or == 1 (Overnuking) 
 	-- rangedTarget returns "target" by default
-	-- myTank returns "focus" by default
 	local rangedTarget, _, _ = jps.LowestTarget()
 
 	if canDPS("target") then rangedTarget =  "target"
@@ -884,10 +875,7 @@ jps.registerRotation("PRIEST","DISCIPLINE",function()
 	if not canHeal("target") and canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
 
 	local spellTableOOC = {
-	
 	{"nested", not jps.PvP , {
-		-- "Gardien de peur" 6346
-		--{ 6346, not jps.buff(6346,"player") , "player" },
 		-- "Fortitude" 21562 -- "Commanding Shout" 469 -- "Blood Pact" 166928
 		{ 21562, jps.buffMissing(21562) , "player" },
 		-- SNM "Levitate" 1706 -- try to keep buff for enemy dispel -- Buff "Lévitation" 111759
@@ -896,27 +884,33 @@ jps.registerRotation("PRIEST","DISCIPLINE",function()
 	},},
 
 	{"nested", jps.PvP , {
-			-- "Gardien de peur" 6346
-			{ 6346, not jps.buff(6346,"player") , "player" },
-			-- SNM "Fortitude" 21562 -- "Commanding Shout" 469 -- "Blood Pact" 166928
-			{ 21562, jps.buffMissing(21562) and jps.buffMissing(469) and jps.buffMissing(166928) , "player" },
-			-- SNM "Levitate" 1706 -- try to keep buff for enemy dispel -- Buff "Lévitation" 111759
-			{ 1706, not jps.buff(111759) , "player" },
-			{ 1706, jps.fallingFor() > 1.5 and not jps.buff(111759) },
-			{ 1706, playerIsSwimming and not jps.buff(111759) },
-			-- SNM "Nova" 132157 -- keep buff "Words of Mending" 155362 "Mot de guérison" 
-			{ 132157, jps.IsSpellKnown(155362) and jps.buffStacks(155362) < 10 , "player" , "WoM_Nova_Player" },
+		-- "Gardien de peur" 6346
+		{ 6346, not jps.buff(6346,"player") , "player" },
+		-- SNM "Fortitude" 21562 -- "Commanding Shout" 469 -- "Blood Pact" 166928
+		{ 21562, jps.buffMissing(21562) and jps.buffMissing(469) and jps.buffMissing(166928) , "player" },
+		-- SNM "Levitate" 1706 -- try to keep buff for enemy dispel -- Buff "Lévitation" 111759
+		{ 1706, not jps.buff(111759) , "player" },
+		{ 1706, jps.fallingFor() > 1.5 and not jps.buff(111759) },
+		{ 1706, playerIsSwimming and not jps.buff(111759) },
+		-- SNM "Nova" 132157 -- keep buff "Words of Mending" 155362 "Mot de guérison" 
+		{ 132157, jps.IsSpellKnown(155362) and jps.buffStacks(155362) < 10 , "player" , "WoM_Nova_Player" },
 		},},
-	
+		
+	-- "Shield" 17 "Body and Soul" 64129 -- figure out how to speed buff everyone as they move
+	{ 17, jps.Moving and jps.IsSpellKnown(64129) and not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Shield_BodySoul" },
 	-- PénitenceTank
 	{ 47540, canHeal(myTank) and jps.hp(myTank) < 0.80 , myTank , "Penance_myTank" },
-	-- TIMER POM -- "Prière de guérison" 33076 -- Buff POM 41635
-	{ 33076, not jps.Moving and not jps.buffTracker(41635) and canHeal(myTank) , myTank , "Mending_Tank" },
+	-- "Cascade" Holy 121135 Shadow 127632
+    { 121135, not jps.Moving and CountInRange > 2 and AvgHealthLoss < 0.80 , LowestImportantUnit ,  "Cascade_"..LowestImportantUnit },
+	-- "Prière de soins" 596 "Prayer of Healing"
+	{ 596, not jps.Moving and canHeal(POHTarget) , POHTarget , "POH_" },
 	-- "Soins" 2060
 	{ 2060, not jps.Moving and LowestImportantUnitHpct < 0.90 , LowestImportantUnit , "Soins_"..LowestImportantUnit  },
+	
+	-- TIMER POM -- "Prière de guérison" 33076 -- Buff POM 41635
+	{ 33076, not jps.Moving and not jps.buffTracker(41635) and canHeal(myTank) , myTank , "Mending_Tank" },
 	-- ClarityTank -- "Clarity of Will" 152118 shields with protective ward for 20 sec
 	{ 152118, not jps.Moving and canHeal(myTank) and not jps.buff(152118,myTank) and not jps.isRecast(152118,rangedTarget) , myTank , "Clarity_Tank" },
-
 }
 
 	local spell,target = parseSpellTable(spellTableOOC)

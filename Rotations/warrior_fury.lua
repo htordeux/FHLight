@@ -131,7 +131,7 @@ local spellTable = {
 	-- "Charge" 100
 	{ warrior.spells["Charge"], jps.UseCDs and jps.IsSpellInRange(100,rangedTarget) , rangedTarget , "_Charge"},
 	-- "Piercing Howl" 12323 "Hurlement percant"
-	{ warrior.spells["PiercingHowl"] , jps.PvP and not jps.debuff(12323,rangedTarget) , rangedTarget , "_PiercingHowl"},
+	--{ warrior.spells["PiercingHowl"] , not jps.debuff(12323,rangedTarget) , rangedTarget , "_PiercingHowl"},
 	-- "Intimidating Shout" 5246
 	{ warrior.spells["IntimidatingShout"] , not jps.debuff(5246,rangedTarget) and jps.hp(rangedTarget,"abs") > 500000 , rangedTarget , "_IntimidatingShout"},
 

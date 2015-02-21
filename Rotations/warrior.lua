@@ -32,8 +32,12 @@ warrior.spells = {}
 	
 -- BUFFS
 
--- Bloodsurge 46916 "Coup de sang" -- Your Bloodthirst hits have a 20% chance of making your next 2 Wild Strikes free and reducing their global cooldown to 1 sec.
-warrior.spells["46916"] = toSpellName(46916)
+-- "Defensive Stance" 71
+warrior.spells["DefensiveStance"] = toSpellName(71)
+-- "Battle Stance" 2457
+warrior.spells["BattleStance"] = toSpellName(2457)
+-- "Bloodsurge" 46916 "Coup de sang" -- Your Bloodthirst hits have a 20% chance of making your next 2 Wild Strikes free and reducing their global cooldown to 1 sec.
+warrior.spells["Bloodsurge"] = toSpellName(46916)
 -- "Stoneform" 20594 "Forme de pierre" -- Dissipe tous les effets d’empoisonnement, maladie, malédiction, magie et saignement et réduit tous les dégâts physiques subis de 10% pendant 8 s.
 warrior.spells["Stoneform"] = toSpellName(20594)
 -- "Battle Shout" 6673 "Cri de guerre" -- Augmente de 10% la puissance d’attaque de tous les membres du groupe ou raid
@@ -78,6 +82,8 @@ warrior.spells["HeroicThrow"] = toSpellName(57755)
 warrior.spells["Whirlwind"] = toSpellName(1680)
 -- "Die by the Sword" 118038 -- Increases your parry chance by 100% and reduces damage taken by 20% for 8 sec.
 warrior.spells["DieSword"] = toSpellName(118038)
+-- "Rend" 772 "Pourfendre"
+warrior.spells["Rend"] = toSpellName(772)
 
 -- SPELLS GLYPHS
 

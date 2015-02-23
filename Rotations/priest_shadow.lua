@@ -3,6 +3,7 @@
 
 local L = MyLocalizationTable
 local canDPS = jps.canDPS
+local canHeal = jps.canHeal
 local strfind = string.find
 local UnitClass = UnitClass
 local UnitChannelInfo = UnitChannelInfo
@@ -294,18 +295,8 @@ local parseAggro = {
 -----------------------------
 
 local spellTable = {
-
-	-- "Semblance spectrale" 112833 "Spectral Guise" gives buff 119032
-	{"nested", not jps.Combat and not jps.buff(119032,"player") , 
-		{
-			-- "Gardien de peur" 6346
-			{ 6346, not jps.buff(6346,"player") , "player" },
-			-- "Fortitude" 21562 Keep Inner Fortitude up 
-			{ 21562, jps.buffMissing(21562) , "player" },
-		},
-	},
 	
-	-- "Shadowform" 15473 -- UnitAffectingCombat("player") == true
+	-- "Shadowform" 15473
 	{ 15473, not jps.buff(15473) , "player" },
 	
 	-- TRINKETS -- jps.useTrinket(0) est "Trinket0Slot" est slotId  13 -- "jps.useTrinket(1) est "Trinket1Slot" est slotId  14
@@ -397,6 +388,66 @@ local spellTable = {
 	spell,target = parseSpellTable(spellTable)
 	return spell,target
 end, "Shadow Priest Default" )
+
+----------------------------------------------------------------------------------------------------------------
+-------------------------------------------------- ROTATION OOC ------------------------------------------------
+----------------------------------------------------------------------------------------------------------------
+
+jps.registerRotation("PRIEST","SHADOW",function()
+
+	local playerIsSwimming = IsSwimming()
+	local playerhealthpct = jps.hp("player")
+	-- rangedTarget returns "target" by default
+	local rangedTarget, _, _ = jps.LowestTarget()
+	local Orbs = UnitPower("player",13) -- SPELL_POWER_SHADOW_ORBS 	13
+
+	if canDPS("target") then rangedTarget =  "target"
+	elseif canDPS("targettarget") then rangedTarget = "targettarget"
+	elseif canDPS("focustarget") then rangedTarget = "focustarget"
+	end
+	-- if your target is friendly keep it as target
+	if not canHeal("target") and canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
+	
+	local ShadowForm = tostring(select(1,GetSpellInfo(15473)))
+	local macroCancelaura = "/cancelaura "..ShadowForm
+
+	local spellTableOOC = {
+	
+	-- "Don des naaru" 59544
+	{ 59544, playerhealthpct < 0.75 , "player" },
+	-- "Soins rapides" 2061
+	{ {"macro",macroCancelaura}, playerhealthpct < 0.75 , "player"  , "Cancelaura_" },
+	{ 2061, not jps.buff(15473) and not jps.Moving and playerhealthpct < 0.75 , "player" , "FlashHeal_" },
+	
+	-- "Semblance spectrale" 112833 "Spectral Guise" gives buff 119032
+	{"nested", jps.buff(119032) , {
+		-- "Devouring Plague" 2944 now consumes 3 Shadow Orbs, you don't have the ability to use with less Orbs
+		{ 2944, Orbs > 2 , rangedTarget , "ORBS_5" },
+		-- "Mind Blast" 8092
+		{ 8092, true , rangedTarget , "Blast_CD" },
+		-- "Mind Flay" 15407
+		{ 15407, true , rangedTarget , "Fouet_Mental" },
+	},},
+
+	-- "Gardien de peur" 6346
+	{ 6346, not jps.buff(6346,"player") , "player" },
+	-- "Fortitude" 21562 -- "Commanding Shout" 469 -- "Blood Pact" 166928
+	{ 21562, jps.buffMissing(21562) , "player" },
+	-- SNM "Levitate" 1706 -- try to keep buff for enemy dispel -- Buff "Lévitation" 111759
+	{ 1706, jps.fallingFor() > 1.5 and not jps.buff(111759) , "player" },
+	{ 1706, playerIsSwimming and not jps.buff(111759) , "player" },
+
+	-- "Shield" 17 "Body and Soul" 64129 -- figure out how to speed buff everyone as they move
+	{ 17, jps.Moving and jps.IsSpellKnown(64129) and not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Shield_BodySoul" },
+	-- "Shadowform" 15473
+	{ 15473, not jps.buff(15473) , "player" },
+
+}
+
+	local spell,target = parseSpellTable(spellTableOOC)
+	return spell,target
+
+end,"OOC Shadow Priest",nil,nil,nil,true)
 
 -- Surge of Darkness
 -- Your Vampiric Touch and Devouring Plague damage has a 10% chance to cause your next Mind Spike not to consume your damage over time effects

@@ -607,10 +607,14 @@ jps.listener.registerEvent("LOSS_OF_CONTROL_ADDED", function ()
     local locType, _, text, _, _, _, duration = C_LossOfControl.GetEventInfo(i)
     --print("CONTROL:", locType,"/",text,"/",duration)
     if text and duration then
-    	if locType == "SCHOOL_INTERRUPT" then jps.createTimer("PlayerInterrupt",duration) return end
+    	if locType == "SCHOOL_INTERRUPT" then
+    		jps.createTimer("PlayerInterrupt",duration)
+    		jps.createTimer("PlayerWasControl",duration + 2)
+    	return end
 		for _, stuntype in ipairs(stunTypeTable) do
 			if locType == stuntype then 
 				jps.createTimer("PlayerStun",duration)
+				jps.createTimer("PlayerWasControl",duration + 2)
 			break end
 		end
     end
@@ -1051,27 +1055,27 @@ end
 -- table.insert called without a position, it inserts the element in the last position of the array (and, therefore, moves no elements)
 -- table.remove called without a position, it removes the last element of the array.
 
-jps.listener.registerCombatLogEventUnfiltered("SPELL_CAST_FAILED", function(...)
-	local sourceGUID = select(4,...)
-	local spellID =  select(12,...)
-	local failedType = select(15,...)
-	local spellname = select(13, ...)
-	if sourceGUID == UnitGUID("player") and type(failedType) == "string" then
-		--print("SPELL_CAST_FAILED "..spellID.."_"..spellname.."_"..failedType)
-		tinsert(SpellFailedTable,1,{spellname,failedType})
-	end
-end)
-
-jps.IsSpellFailed = function(spellname)
-	if jps.tableLength(SpellFailedTable) == 0 then return false end
-	for i,j in ipairs(SpellFailedTable) do
-		if j[1] == spellname and j[2] == "Insensible" then return true end
-	end
-	return false
-end
-
-jps.printIsSpellFailed = function()
-	for i,j in ipairs(SpellFailedTable) do
-		print(i,"-",j[1],"-",j[2])
-	end
-end
+--jps.listener.registerCombatLogEventUnfiltered("SPELL_CAST_FAILED", function(...)
+--	local sourceGUID = select(4,...)
+--	local spellID =  select(12,...)
+--	local failedType = select(15,...)
+--	local spellname = select(13, ...)
+--	if sourceGUID == UnitGUID("player") and type(failedType) == "string" then
+--		--print("SPELL_CAST_FAILED "..spellID.."_"..spellname.."_"..failedType)
+--		tinsert(SpellFailedTable,1,{spellname,failedType})
+--	end
+--end)
+--
+--jps.IsSpellFailed = function(spellname)
+--	if jps.tableLength(SpellFailedTable) == 0 then return false end
+--	for i,j in ipairs(SpellFailedTable) do
+--		if j[1] == spellname and j[2] == "Insensible" then return true end
+--	end
+--	return false
+--end
+--
+--jps.printIsSpellFailed = function()
+--	for i,j in ipairs(SpellFailedTable) do
+--		print(i,"-",j[1],"-",j[2])
+--	end
+--end

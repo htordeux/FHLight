@@ -204,7 +204,7 @@ jps.CountInRaidStatus = function (lowHealthDef)
         end
 	end
 	table.sort(myFriends, function(a,b) return jps.hp(a) < jps.hp(b) end)
-	if countInRange >= 1 then avgHP = raidHP / countInRange end
+	if countInRange > 0 then avgHP = raidHP / countInRange end
 	return countInRange, avgHP, myFriends
 end
 

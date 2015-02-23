@@ -69,6 +69,12 @@ function jps.InterruptEvents() -- ONLY FOR PLAYER
 	return false
 end
 
+function jps.ControlEvents() -- ONLY FOR PLAYER
+	if jps.checkTimer("PlayerInterrupt") == 0 and jps.checkTimer("playerWasControl") > 0 then return true end
+	if jps.checkTimer("PlayerStun") == 0 and jps.checkTimer("playerWasControl") > 0 then return true end
+	return false
+end
+
 -- Check if unit loosed control
 -- { "CC" , "Snare" , "Root" , "Silence" , "Immune", "ImmuneSpell", "Disarm" }
 -- LoseControl could be FRIEND or ENEMY -- Time controlled set to 1 sec

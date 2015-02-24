@@ -287,7 +287,7 @@ end
 -- name, rank, subgroup, level, class, fileName, zone, online, isDead, role, isML, combatRole = GetRaidRosterInfo(raidIndex)
 -- raidIndex of raid member between 1 and MAX_RAID_MEMBERS (40). If you specify an index that is out of bounds, the function returns nil
 
-jps.FindSubGroupTarget = function(lowHealthDef)
+jps.FindSubGroupTarget = function(lowHealthDef,groupVal)
 	if lowHealthDef == nil then lowHealthDef = 1 end
 	local group = 0
 	local name = nil
@@ -302,9 +302,9 @@ jps.FindSubGroupTarget = function(lowHealthDef)
 			groupTable[group] = groupcount
 		end
 	end
-	
+
+	if groupVal == nil then groupVal = 2 end
 	local groupToHeal = 0
-	local groupVal = 2
 	local groupTableToHeal = {}
 	for i=1,#groupTable do
 		if groupTable[i] == nil then break end
@@ -343,9 +343,9 @@ jps.FindSubGroup = function()
 				groupTable[group] = groupcount
 			end
 		end
-		
+
+		if groupVal == nil then groupVal = 2 end
 		local groupToHeal = 0
-		local groupVal = 2
 		local groupTableToHeal = {}
 		for i=1,#groupTable do
 			if groupTable[i] == nil then break end

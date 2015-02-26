@@ -11,6 +11,7 @@ SimCraft 6.0.2
 -- IsShiftKeyDown	--> mage.prismaticCrystal
 -- jps.Defensive	--> mage.iceblock
 -- jps.UseCDs		--> mage.iceFloes -- Iceberg
+-- jps.MultiTarget	--> mage.netherTempest
 
 local L = MyLocalizationTable
 local spellTable = {}
@@ -172,18 +173,18 @@ spellTable = {
 	}},
 	
 	--prepare crsytal IsShiftKeyDown
-	{"nested",jps.cooldown(mage.prismaticCrystal) == 0 and IsShiftKeyDown(), {
+	{"nested", jps.cooldown(mage.prismaticCrystal) == 0 and IsShiftKeyDown(), {
 		{mage.prismaticCrystal, jps.debuffStacks(mage.arcaneCharge,"player") >= 4 and jps.cooldown(mage.arcanePower) < 0.5},
 		{mage.prismaticCrystal, jps.debuffStacks(mage.arcaneCharge,"player") >= 4 and jps.cooldown(mage.arcanePower) > 45 and jps.glyphInfo(62210)},
 	}},
 	
 	--crystal rotation
-	{"nested",mage.hasCrystal(),{
+	{"nested", jps.MultiTarget and mage.hasCrystal(),{
 		{mage.netherTempest,jps.debuffStacks(mage.arcaneCharge,"player") >= 4 and mage.crystalTimeLeft() > 8 and not jps.myDebuff(mage.netherTempest)}
 	}},
 
 	--aoe > 5 enemies
-	{"nested",jps.MultiTarget, {
+	{"nested", jps.MultiTarget, {
 		{mage.netherTempest,jps.debuffStacks(mage.arcaneCharge,"player") >= 4 and jps.myDebuffDuration(mage.netherTempest) < 3.5},
 		{mage.supernova},
 		{mage.arcaneBarrage, jps.debuffStacks(mage.arcaneCharge,"player") >= 4},
@@ -206,7 +207,7 @@ spellTable = {
 		{mage.supernova, jps.TimeToDie("target") < 8 or mage.supernovaCharges()==2  },
 		{mage.supernova, jps.cooldown(mage.prismaticCrystal) > 24 and jps.IsSpellKnown(mage.prismaticCrystal) },
 
-		{mage.netherTempest,jps.debuffStacks(mage.arcaneCharge,"player") >= 4 and jps.myDebuffDuration(mage.netherTempest) < 3.5},
+		{mage.netherTempest, jps.MultiTarget and jps.debuffStacks(mage.arcaneCharge,"player") >= 4 and jps.myDebuffDuration(mage.netherTempest) < 3.5},
 		{mage.arcaneOrb, jps.buffStacks(mage.arcaneCharge) < 4 },
 		{mage.supernova, mage.targetIsCrystal() },
 		{mage.presenceOfMind, jps.mana() > 0.96 and not jps.Moving },
@@ -225,7 +226,7 @@ spellTable = {
 	{mage.arcaneMissiles, jps.buff(mage.arcaneInstability) and jps.buffDuration(mage.arcaneInstability) < jps.SpellCastTime(mage.arcaneBlast) and jps.ChannelTimeLeft("player") == 0 },
 	{mage.arcaneMissiles, jps.buffStacks(mage.arcaneMissilesBuff) > 0 and mage.targetIsCrystal() },
 
-	{mage.netherTempest,jps.debuffStacks(mage.arcaneCharge,"player") >= 4 and jps.myDebuffDuration(mage.netherTempest) < 3.5},
+	{mage.netherTempest, jps.MultiTarget and jps.debuffStacks(mage.arcaneCharge,"player") >= 4 and jps.myDebuffDuration(mage.netherTempest) < 3.5},
 	{mage.supernova, jps.TimeToDie("target") < 8 },
 	{mage.supernova, jps.buff(mage.arcanePower) },
 	{mage.supernova, jps.cooldown(mage.prismaticCrystal) > 24 and jps.IsSpellKnown(mage.prismaticCrystal) },

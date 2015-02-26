@@ -151,7 +151,6 @@ end
 priest.unitForBinding = function (unit)
 	if unit == nil then return false end
 	if jps.UnitIsUnit(unit,"player") then return false end
-	if jps.myLastCast(32546) then return false end
 	if (jps.hp("player","abs") < priest.AvgAmountFlashHeal) then return false end
 	if (jps.hp(unit,"abs") < priest.AvgAmountFlashHeal) then return false end
 	return true

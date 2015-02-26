@@ -2,7 +2,6 @@
 -- jps.Defensive changes the LowestImportantUnit to table = { "player","focus","target","targettarget","mouseover" } with insert TankUnit  = jps.findAggroInRaid()
 -- jps.FaceTarget to DPSing
 
-
 local L = MyLocalizationTable
 local spellTable = {}
 local parseShell = {}
@@ -70,25 +69,24 @@ local priestDisc = function()
 	local LowestImportantUnit = jps.LowestImportantUnit()
 	local LowestImportantUnitHealth = jps.hp(LowestImportantUnit,"abs") -- UnitHealthMax(unit) - UnitHealth(unit)
 	local LowestImportantUnitHpct = jps.hp(LowestImportantUnit) -- UnitHealth(unit) / UnitHealthMax(unit)
-	local POHTarget, groupToHeal, groupTableToHeal = jps.FindSubGroupTarget(0.80) -- Target to heal with POH in RAID with AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
-	local ShellTarget = jps.FindSubGroupAura(114908,LowestImportantUnit) -- buff target Spirit Shell 114908 need SPELLID
+	local POHTarget, groupToHeal, groupTableToHeal = jps.FindSubGroupTarget(0.75) -- Target to heal with POH in RAID with AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
 	local myTank,TankUnit = jps.findAggroInRaid() -- return Table with UnitThreatSituation == 3 (tanking) or == 1 (Overnuking) or "focus" default
 	local TankTarget = "target"
 	if canHeal(myTank) then TankTarget = myTank.."target" end
 
 	local playerAggro = jps.FriendAggro("player")
-	local playerIsStun = jps.StunEvents(2) -- return true/false ONLY FOR PLAYER
+	local playerIsStun = jps.StunEvents(2) -- return true/false ONLY FOR PLAYER -- "ROOT" was removed of Stuntype
 	-- {"STUN_MECHANIC","STUN","FEAR","CHARM","CONFUSE","PACIFY","SILENCE","PACIFYSILENCE"}
 	local playerIsInterrupt = jps.InterruptEvents() -- return true/false ONLY FOR PLAYER
 	local playerWasControl = jps.ControlEvents() -- return true/false Player was interrupt or stun 2 sec ago ONLY FOR PLAYER
-	
+
 	-- SNM
 	local playerTTD = jps.TimeToDie("player")
 	local buffTrackerMending = jps.buffTracker(41635)
-	
+	local ShellTarget = jps.FindSubGroupAura(114908,LowestImportantUnit) -- buff target Spirit Shell 114908 need SPELLID
 	local EmergencyPOHTarget = nil
 	if type(POHTarget) == "string" then EmergencyPOHTarget,_,_ = jps.FindSubGroupTarget(0.60,5) end
-   
+
 ---------------------
 -- ENEMY TARGET
 ---------------------
@@ -113,13 +111,13 @@ local priestDisc = function()
 			break end
 		end
 	end
-	
+
 ----------------------------
 -- LOCAL FUNCTIONS FRIENDS
 ----------------------------
 
 	local MendingFriend = nil
-	local MendingFriendHealth = 1
+	local MendingFriendHealth = 100
 	for _,unit in ipairs(FriendUnit) do
 		if priest.unitForMending(unit) then
 			local unitHP = jps.hp(unit)
@@ -134,7 +132,7 @@ local priestDisc = function()
 	local LeapFriend = nil
 	for _,unit in ipairs(FriendUnit) do
 		if priest.unitForLeap(unit) and jps.hp(unit) < 0.25 then 
-			LeapFriend = unit
+			LeapFriend = unit -- if jps.RoleInRaid(unit) == "HEALER" then
 		break end
 	end
 	
@@ -157,7 +155,7 @@ local priestDisc = function()
 	local DispelFriendRole = nil
 	for _,unit in ipairs(TankUnit) do 
 		if jps.canDispel(unit,{"Magic"}) then
-			DispelFriendRole = unit
+			DispelFriendRole = unit -- if jps.RoleInRaid(unit) == "HEALER" then
 		break end
 	end
 	
@@ -178,6 +176,13 @@ local priestDisc = function()
 	for _,unit in ipairs(EnemyUnit) do 
 		if priest.canFear(unit) and not jps.LoseControl(unit) then
 			FearEnemyTarget = unit
+		break end
+	end
+
+	local DispelOffensiveEnemyTarget = nil
+	for _,unit in ipairs(EnemyUnit) do 
+		if jps.DispelOffensive(unit) and LowestImportantUnitHpct > 0.85 then
+			DispelOffensiveEnemyTarget = unit
 		break end
 	end
 
@@ -231,12 +236,11 @@ spellTable = {
 	-- SNM "Chacun pour soi" 59752 "Every Man for Himself" -- Human
 	{ 59752, playerIsStun , "player" , "Every_Man_for_Himself" },
 	-- TRINKETS -- jps.useTrinket(0) est "Trinket0Slot" est slotId  13 -- "jps.useTrinket(1) est "Trinket1Slot" est slotId  14
-	-- SNM dont blow trinket if not moving and rooted -- "ROOT" was removed of Stuntype
 	{ jps.useTrinket(0), jps.useTrinketBool(0) and not playerWasControl and jps.combatStart > 0 , "player" , "Trinket0"},
 	{ jps.useTrinket(1), jps.useTrinketBool(1) and not playerWasControl and jps.combatStart > 0 , "player" , "Trinket1"},
 
 	-- "Suppression de la douleur" 33206 "Pain Suppression"
-	{ 33206, playerIsStun and jps.hp() < 0.30 , "player", "Stun_Pain" },
+	{ 33206, playerIsStun and LowestImportantUnitHpct < 0.25 , LowestImportantUnit, "StunPain_"..LowestImportantUnit },
 	-- "Pierre de soins" 5512
 	{ {"macro","/use item:5512"}, jps.itemCooldown(5512) == 0 and jps.hp() < 0.75 , "player" , "Item5512" },
 	-- "Prière du désespoir" 19236
@@ -244,11 +248,12 @@ spellTable = {
 	-- "Don des naaru" 59544
 	{ 59544, jps.hp() < 0.75 , "player" , "Aggro_Naaru" },
 
+	-- PLAYER AGGRO
 	{ "nested", playerAggro or playerWasControl or playerIsTargeted ,{
 		-- "Power Word: Shield" 17
 		{ 17, not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Aggro_Shield" },
 		{ 17, type(ShieldFriend) == "string" and not jps.buff(59889,"player") and LowestImportantUnitHpct < 0.75 , ShieldFriend , "Aggro_ShieldFriend_Borrowed" },
-		-- "Semblance spectrale" 112833
+		-- "Spectral Guise" 112833 "Semblance spectrale"
 		{ 112833, jps.IsSpellKnown(112833) , "player" , "Aggro_Spectral" },
 		-- "Oubli" 586 -- Fantasme 108942 -- vous dissipez tous les effets affectant le déplacement sur vous-même
 		{ 586, jps.IsSpellKnown(108942) , "player" , "Aggro_Oubli" },
@@ -273,7 +278,7 @@ spellTable = {
 	{ 17, jps.Moving and jps.IsSpellKnown(64129) and not jps.buff(17,"player") and not jps.debuff(6788,"player")
 	and not jps.IsSpellInRange(17,myTank) and jps.hp(myTank) < 0.80 , "player" , "Shield_BodySoul" },
 	-- SHIELD TANK
-	{ 17, canHeal(myTank) and not jps.buff(17,myTank) and not jps.debuff(6788,myTank) , myTank , "Timer_ShieldTank" },
+	{ 17, canHeal(myTank) and not jps.buff(17,myTank) and not jps.debuff(6788,myTank) , myTank , "Timer_Shield_Tank" },
 	-- TIMER POM -- "Prière de guérison" 33076 -- Buff POM 41635
 	{ 33076, not jps.Moving and not buffTrackerMending and canHeal(myTank) , myTank , "Tracker_Mending_Tank" },
 	{ 33076, not jps.Moving and not buffTrackerMending and type(MendingFriend) == "string" , MendingFriend , "Tracker_Mending_Friend" },
@@ -341,8 +346,10 @@ spellTable = {
 	},},
 	
 	-- FOCUS PNJ "Soins" 2060
-	--{ 2060, not jps.Moving and jps.UnitExists("focus") and UnitCanAssist("player","focus")
-	--and jps.hp("focus") < 0.80 and jps.IsSpellInRange(2060,"focus") , "focus" , "Soins_Focus"  },
+	{ "nested", jps.UnitExists("focus") and UnitCanAssist("player","focus") and jps.hp("focus") < 0.80 and jps.IsSpellInRange(2060,"focus") ,{
+		{ 17, jps.hp("focus") < 0.50 and not jps.buff(17,"focus") and not jps.debuff(6788,"focus") , "focus" , "Shield_Focus" },
+		{ 2060, not jps.Moving , "focus" , "Soins_Focus" },
+	},},
 
 	-- HEAL --
 	{ "nested", LowestImportantUnitHpct < 0.80 ,{
@@ -428,25 +435,24 @@ local priestDiscPvP = function()
 	local LowestImportantUnit = jps.LowestImportantUnit()
 	local LowestImportantUnitHealth = jps.hp(LowestImportantUnit,"abs") -- UnitHealthMax(unit) - UnitHealth(unit)
 	local LowestImportantUnitHpct = jps.hp(LowestImportantUnit) -- UnitHealth(unit) / UnitHealthMax(unit)
-	local POHTarget, groupToHeal, groupTableToHeal = jps.FindSubGroupTarget(0.80) -- Target to heal with POH in RAID with AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
-	local ShellTarget = jps.FindSubGroupAura(114908,LowestImportantUnit) -- buff target Spirit Shell 114908 need SPELLID
+	local POHTarget, groupToHeal, groupTableToHeal = jps.FindSubGroupTarget(0.75) -- Target to heal with POH in RAID with AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
 	local myTank,TankUnit = jps.findAggroInRaid() -- return Table with UnitThreatSituation == 3 (tanking) or == 1 (Overnuking) or "focus" default
 	local TankTarget = "target"
 	if canHeal(myTank) then TankTarget = myTank.."target" end
 
 	local playerAggro = jps.FriendAggro("player")
-	local playerIsStun = jps.StunEvents(2) -- return true/false ONLY FOR PLAYER
+	local playerIsStun = jps.StunEvents(2) -- return true/false ONLY FOR PLAYER -- "ROOT" was removed of Stuntype
 	-- {"STUN_MECHANIC","STUN","FEAR","CHARM","CONFUSE","PACIFY","SILENCE","PACIFYSILENCE"}
 	local playerIsInterrupt = jps.InterruptEvents() -- return true/false ONLY FOR PLAYER
 	local playerWasControl = jps.ControlEvents() -- return true/false Player was interrupt or stun 2 sec ago ONLY FOR PLAYER
-	
+
 	-- SNM
 	local playerTTD = jps.TimeToDie("player")
 	local buffTrackerMending = jps.buffTracker(41635)
-	
+	local ShellTarget = jps.FindSubGroupAura(114908,LowestImportantUnit) -- buff target Spirit Shell 114908 need SPELLID
 	local EmergencyPOHTarget = nil
 	if type(POHTarget) == "string" then EmergencyPOHTarget,_,_ = jps.FindSubGroupTarget(0.60,5) end
-   
+
 ---------------------
 -- ENEMY TARGET
 ---------------------
@@ -471,13 +477,13 @@ local priestDiscPvP = function()
 			break end
 		end
 	end
-	
+
 ----------------------------
 -- LOCAL FUNCTIONS FRIENDS
 ----------------------------
 
 	local MendingFriend = nil
-	local MendingFriendHealth = 1
+	local MendingFriendHealth = 100
 	for _,unit in ipairs(FriendUnit) do
 		if priest.unitForMending(unit) then
 			local unitHP = jps.hp(unit)
@@ -492,7 +498,7 @@ local priestDiscPvP = function()
 	local LeapFriend = nil
 	for _,unit in ipairs(FriendUnit) do
 		if priest.unitForLeap(unit) and jps.hp(unit) < 0.25 then 
-			LeapFriend = unit
+			LeapFriend = unit -- if jps.RoleInRaid(unit) == "HEALER" then
 		break end
 	end
 	
@@ -525,7 +531,7 @@ local priestDiscPvP = function()
 	local DispelFriendRole = nil
 	for _,unit in ipairs(TankUnit) do 
 		if jps.canDispel(unit,{"Magic"}) then
-			DispelFriendRole = unit
+			DispelFriendRole = unit -- if jps.RoleInRaid(unit) == "HEALER" then
 		break end
 	end
 	
@@ -546,6 +552,13 @@ local priestDiscPvP = function()
 	for _,unit in ipairs(EnemyUnit) do 
 		if priest.canFear(unit) and not jps.LoseControl(unit) then
 			FearEnemyTarget = unit
+		break end
+	end
+
+	local DispelOffensiveEnemyTarget = nil
+	for _,unit in ipairs(EnemyUnit) do 
+		if jps.DispelOffensive(unit) and LowestImportantUnitHpct > 0.85 then
+			DispelOffensiveEnemyTarget = unit
 		break end
 	end
 
@@ -653,12 +666,11 @@ spellTable = {
 	-- SNM "Chacun pour soi" 59752 "Every Man for Himself" -- Human
 	{ 59752, playerIsStun , "player" , "Every_Man_for_Himself" },
 	-- TRINKETS -- jps.useTrinket(0) est "Trinket0Slot" est slotId  13 -- "jps.useTrinket(1) est "Trinket1Slot" est slotId  14
-	-- SNM dont blow trinket if not moving and rooted -- "ROOT" was removed of Stuntype
-	{ jps.useTrinket(0), jps.useTrinketBool(0) and not playerIsStun and jps.combatStart > 0 , "player" , "Trinket0"},
+	{ jps.useTrinket(0), jps.useTrinketBool(0) and not playerWasControl and jps.combatStart > 0 , "player" , "Trinket0"},
 	{ jps.useTrinket(1), jps.useTrinketBool(1) and playerIsStun and LowestImportantUnitHpct < 0.75 , "player" , "Trinket1"},
 
 	-- "Suppression de la douleur" 33206 "Pain Suppression"
-	{ 33206, playerIsStun and jps.hp() < 0.30 , "player", "Stun_Pain" },
+	{ 33206, playerIsStun and LowestImportantUnitHpct < 0.25 , LowestImportantUnit, "StunPain_"..LowestImportantUnit },
 	-- "Pierre de soins" 5512
 	{ {"macro","/use item:5512"}, jps.itemCooldown(5512) == 0 and jps.hp() < 0.75 , "player" , "Item5512" },
 	-- "Prière du désespoir" 19236
@@ -666,11 +678,12 @@ spellTable = {
 	-- "Don des naaru" 59544
 	{ 59544, jps.hp() < 0.75 , "player" , "Aggro_Naaru" },
 
+	-- PLAYER AGGRO
 	{ "nested", playerAggro or playerWasControl or playerIsTargeted ,{
 		-- "Power Word: Shield" 17
 		{ 17, not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Aggro_Shield" },
 		{ 17, type(ShieldFriend) == "string" and not jps.buff(59889,"player") and LowestImportantUnitHpct < 0.75 , ShieldFriend , "Aggro_ShieldFriend_Borrowed" },
-		-- "Semblance spectrale" 112833
+		-- "Spectral Guise" 112833 "Semblance spectrale"
 		{ 112833, jps.IsSpellKnown(112833) , "player" , "Aggro_Spectral" },
 		-- "Oubli" 586 -- Fantasme 108942 -- vous dissipez tous les effets affectant le déplacement sur vous-même
 		{ 586, jps.IsSpellKnown(108942) , "player" , "Aggro_Oubli" },
@@ -689,7 +702,7 @@ spellTable = {
 		{ 152118, not jps.Moving and ClarityFriendTarget("player") and jps.debuff(6788,"player") , "player" , "Aggro_Clarity" },
 		-- SNM "Nova" 132157 -- "Words of Mending" 155362 "Mot de guérison"
 		{ 132157, jps.hp() < 0.40 , "player" , "Aggro_Nova" },
-		{ 132157, jps.IsSpellKnown(155362) and jps.buffStacks(155362) < 10 , "player" , "Aggro_Nova" },
+		{ 132157, jps.IsSpellKnown(155362) and jps.buffStacks(155362) < 10 , "player" , "Aggro_Nova_WoM" },
 	},},
 
 	-- "Leap of Faith" 73325 -- "Saut de foi"
@@ -707,7 +720,7 @@ spellTable = {
 	{ 17, jps.Moving and jps.IsSpellKnown(64129) and not jps.buff(17,"player") and not jps.debuff(6788,"player")
 	and not jps.IsSpellInRange(17,myTank) and jps.hp(myTank) < 0.80 , "player" , "Shield_BodySoul" },
 	-- SHIELD TANK
-	{ 17, canHeal(myTank) and not jps.buff(17,myTank) and not jps.debuff(6788,myTank) , myTank , "Timer_ShieldTank" },
+	{ 17, canHeal(myTank) and not jps.buff(17,myTank) and not jps.debuff(6788,myTank) , myTank , "Timer_Shield_Tank" },
 	-- TIMER POM -- "Prière de guérison" 33076 -- Buff POM 41635
 	{ 33076, not jps.Moving and not buffTrackerMending and canHeal(myTank) , myTank , "Tracker_Mending_Tank" },
 	{ 33076, not jps.Moving and not buffTrackerMending and type(MendingFriend) == "string" , MendingFriend , "Tracker_Mending_Friend" },
@@ -805,12 +818,12 @@ spellTable = {
 
 	-- DAMAGE --
 	{ "nested", jps.FaceTarget and canDPS(rangedTarget) and LowestImportantUnitHpct > 0.80 ,{
+		-- "Châtiment" 585
+		{ 585, jps.castEverySeconds(585,2) , rangedTarget , "|cFFFF0000Chatiment_"..rangedTarget },
 		-- "Pénitence" 47540 -- jps.glyphInfo(119866) -- allows Penance to be cast while moving.
 		{ 47540, true , rangedTarget,"|cFFFF0000Penance_"..rangedTarget },
 		-- "Mot de l'ombre: Douleur" 589 -- Only if 1 targeted enemy 
 		{ 589, TargetCount == 1 and jps.myDebuffDuration(589,rangedTarget) == 0 and not IsInGroup() , rangedTarget , "|cFFFF0000Douleur_"..rangedTarget },
-		-- "Châtiment" 585
-		{ 585, jps.castEverySeconds(585,2) , rangedTarget , "|cFFFF0000Chatiment_"..rangedTarget },
 	},},
 
 	-- "Pénitence" 47540
@@ -838,7 +851,6 @@ jps.registerRotation("PRIEST","DISCIPLINE",function()
 	local isArena, _ = IsActiveBattlefieldArena()
 	local LowestImportantUnit = jps.LowestImportantUnit()
 	local LowestImportantUnitHpct = jps.hp(LowestImportantUnit) -- UnitHealth(unit) / UnitHealthMax(unit)
-	local CountInRange, AvgHealthLoss, FriendUnit = jps.CountInRaidStatus(1)
 	local POHTarget, groupToHeal, groupTableToHeal = jps.FindSubGroupTarget(0.60) -- Target to heal with POH in RAID with AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
 	-- myTank returns "focus" by default
 	local myTank,TankUnit = jps.findAggroInRaid() -- return Table with UnitThreatSituation == 3 (tanking) or == 1 (Overnuking) 
@@ -869,7 +881,7 @@ jps.registerRotation("PRIEST","DISCIPLINE",function()
 		-- SNM "Levitate" 1706 -- try to keep buff for enemy dispel -- Buff "Lévitation" 111759
 		{ 1706, not jps.buff(111759) , "player" },
 		-- SNM "Nova" 132157 -- keep buff "Words of Mending" 155362 "Mot de guérison" 
-		{ 132157, jps.IsSpellKnown(155362) and jps.buffStacks(155362) < 10 , "player" , "WoM_Nova_Player" },
+		{ 132157, jps.IsSpellKnown(155362) and jps.buffStacks(155362) < 10 , "player" , "Nova_WoM" },
 	},},
 		
 	-- "Shield" 17 "Body and Soul" 64129 -- figure out how to speed buff everyone as they move

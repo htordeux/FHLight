@@ -14,6 +14,7 @@ local UnitBuff = UnitBuff
 local UnitDebuff = UnitDebuff
 local MAX_RAID_MEMBERS = MAX_RAID_MEMBERS
 local UnitGUID = UnitGUID
+local GetTime = GetTime
 
 -- Localization
 local L = MyLocalizationTable
@@ -235,9 +236,10 @@ jps.LowestFriendly = function()
 	return lowestUnit
 end
 
-local myTanks = { "player","focus","target","targettarget","mouseover" }
+
 -- WARNING FOCUS RETURN FALSE IF NOT IN GROUP OR RAID BECAUSE OF UNITINRANGE(UNIT)
 jps.LowestImportantUnit = function()
+	local myTanks = { "player","focus","target","targettarget","mouseover" }
 	local LowestImportantUnit = "player"
 	if jps.Defensive then
 		local _,aggroTanks = jps.findAggroInRaid()
@@ -425,7 +427,7 @@ jps.canDispel = function (unit,dispelTable) -- {"Magic", "Poison", "Disease", "C
 	auraName, _, _, _, debuffType, _, expirationTime, castBy, _, _, spellId = UnitDebuff(unit, i) 
 	while auraName do
 		for _,dispeltype in ipairs(dispelTable) do
-			if debuffType == dispeltype then
+			if debuffType == dispeltype and expirationTime-GetTime() > 1 then
 			return true end
 		end
 		i = i + 1

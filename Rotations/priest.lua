@@ -81,12 +81,13 @@ priest.ShouldInterruptCasting = function ( InterruptTable, AvgHealthLoss, CountI
 		local breakpoint = healSpellTable[2]
 		local spellName = GetSpellInfo(healSpellTable[1])
 		if (spellName:lower() == spellCasting:lower()) and healSpellTable[3] == false then
-			if TargetHpct >= breakpoint then
-				SpellStopCasting()
-				DEFAULT_CHAT_FRAME:AddMessage("STOPCASTING OverHeal"..spellName.." , unit "..jps.LastTarget.. " has enough hp!",0, 0.5, 0.8)
-			elseif healSpellTable[1] == priest.Spell.PrayerOfHealing and AvgHealthLoss >= breakpoint then
+			if healSpellTable[1] == priest.Spell.PrayerOfHealing and AvgHealthLoss > breakpoint then
 				SpellStopCasting()
 				DEFAULT_CHAT_FRAME:AddMessage("STOPCASTING avgHP"..spellName.." , raid has enough hp!",0, 0.5, 0.8)
+			elseif TargetHpct > breakpoint then
+				SpellStopCasting()
+				DEFAULT_CHAT_FRAME:AddMessage("STOPCASTING OverHeal"..spellName.." , unit "..jps.LastTarget.. " has enough hp!",0, 0.5, 0.8)
+			
 			end
 		end
 	end

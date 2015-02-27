@@ -221,7 +221,7 @@ local priestDisc = function()
 local InterruptTable = {
 	{priest.Spell.FlashHeal, 0.75, jps.buffId(priest.Spell.SpiritShellBuild) },
 	{priest.Spell.Heal, 0.90, jps.buffId(priest.Spell.SpiritShellBuild) },
-	{priest.Spell.PrayerOfHealing, 0.85, jps.buffId(priest.Spell.SpiritShellBuild) or jps.buff(172359,"player") }, -- "Archange surpuissant" 172359  100 % critique POH or FH
+	{priest.Spell.PrayerOfHealing, 0.90, jps.buffId(priest.Spell.SpiritShellBuild) or jps.buff(172359,"player") }, -- "Archange surpuissant" 172359  100 % critique POH or FH
   }
   
 	-- AVOID OVERHEALING
@@ -232,6 +232,9 @@ local InterruptTable = {
 ------------------------
 
 spellTable = {
+
+	-- SNM "Levitate" 1706	
+	{ 1706, jps.fallingFor() > 1.5 and not jps.buff(111759) , "player" },
 
 	-- SNM "Chacun pour soi" 59752 "Every Man for Himself" -- Human
 	{ 59752, playerIsStun , "player" , "Every_Man_for_Himself" },
@@ -250,15 +253,14 @@ spellTable = {
 
 	-- PLAYER AGGRO
 	{ "nested", playerAggro or playerWasControl or playerIsTargeted ,{
-		-- "Power Word: Shield" 17
-		{ 17, not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Aggro_Shield" },
-		{ 17, type(ShieldFriend) == "string" and not jps.buff(59889,"player") and LowestImportantUnitHpct < 0.75 , ShieldFriend , "Aggro_ShieldFriend_Borrowed" },
 		-- "Spectral Guise" 112833 "Semblance spectrale"
 		{ 112833, jps.IsSpellKnown(112833) , "player" , "Aggro_Spectral" },
 		-- "Oubli" 586 -- Fantasme 108942 -- vous dissipez tous les effets affectant le déplacement sur vous-même
 		{ 586, jps.IsSpellKnown(108942) , "player" , "Aggro_Oubli" },
 		-- "Oubli" 586 -- Glyphe d'oubli 55684 -- Votre technique Oubli réduit à présent tous les dégâts subis de 10%.
 		{ 586, jps.glyphInfo(55684) , "player" , "Aggro_Oubli" },
+		-- "Power Word: Shield" 17
+		{ 17, jps.hp() < 0.80 and not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Aggro_Shield" },
 		-- "Glyph of Purify" 55677 Your Purify spell also heals your target for 5% of maximum health
 		{ 527, jps.canDispel("player",{"Magic"}) , "player" , "Aggro_Dispel" },
 	},},
@@ -273,6 +275,12 @@ spellTable = {
 	{ 129250, canDPS(rangedTarget) , rangedTarget, "|cFFFF0000Solace_"..rangedTarget },
 	-- "Flammes sacrées" 14914  -- "Evangélisme" 81661
 	{ 14914, canDPS(rangedTarget) , rangedTarget , "|cFFFF0000Flammes_"..rangedTarget },
+	
+	-- TODO for Boss
+	{ 17, canDPS("target") and UnitLevel("target") == -1 and jps.IsCasting("target") and not jps.buff(17,"targettarget")
+	and not jps.debuff(6788,"targettarget") , "targettarget" , "Shield_TargetTarget" },
+	{ 152118, canDPS("target") and UnitLevel("target") == -1 and jps.IsCasting("target") and jps.debuff(6788,"targettarget") and not jps.buff(152118,"targettarget")
+	and not jps.isRecast(152118,"targettarget") , "targettarget" , "Clarity_TargetTarget" },
 
 	-- "Shield" 17 "Body and Soul" 64129 -- figure out how to speed buff everyone as they move
 	{ 17, jps.Moving and jps.IsSpellKnown(64129) and not jps.buff(17,"player") and not jps.debuff(6788,"player")
@@ -302,6 +310,7 @@ spellTable = {
 		{ 33206, LowestImportantUnitHpct < 0.25 , LowestImportantUnit , "Emergency_Pain_"..LowestImportantUnit },
 		-- "Shield" 17
 		{ 17, not jps.buff(17,LowestImportantUnit) and not jps.debuff(6788,LowestImportantUnit) , LowestImportantUnit , "Emergency_Shield_"..LowestImportantUnit },
+		-- "Power Word: Shield" 17 -- Keep Buff "Borrowed" 59889 always
 		{ 17, type(ShieldFriend) == "string" and not jps.buff(59889,"player") , ShieldFriend , "Emergency_ShieldFriend_Borrowed" },
 		-- SNM Troll "Berserker" 26297 -- haste buff
 		{ 26297, true , "player" },
@@ -353,12 +362,14 @@ spellTable = {
 
 	-- HEAL --
 	{ "nested", LowestImportantUnitHpct < 0.80 ,{
-		-- "Shield" 17
-		{ 17, not jps.buff(17,LowestImportantUnit) and not jps.debuff(6788,LowestImportantUnit) , LowestImportantUnit , "Shield_"..LowestImportantUnit },
 		-- "Don des naaru" 59544
 		{ 59544, true , LowestImportantUnit , "Naaru_"..LowestImportantUnit },
 		-- "Pénitence" 47540
 		{ 47540, true , LowestImportantUnit , "Penance_"..LowestImportantUnit },
+		-- "Shield" 17
+		{ 17, not jps.buff(17,LowestImportantUnit) and not jps.debuff(6788,LowestImportantUnit) , LowestImportantUnit , "Shield_"..LowestImportantUnit },
+		-- "Power Word: Shield" 17 -- Keep Buff "Borrowed" 59889 always
+		{ 17, type(ShieldFriend) == "string" and not jps.buff(59889,"player") , ShieldFriend , "Timer_ShieldFriend" },
 		-- "Soins" 2060 -- Buff "Borrowed" 59889 -- Buff "Clarity of Will" 152118 -- 2.5 sec cast
 		{ 2060, not jps.Moving and jps.buff(152118,LowestImportantUnit) , LowestImportantUnit , "Soins_Clarity_"..LowestImportantUnit  },
 		{ 2060, not jps.Moving and jps.buff(17,LowestImportantUnit) , LowestImportantUnit , "Soins_Shield_"..LowestImportantUnit  },
@@ -373,16 +384,14 @@ spellTable = {
 	{ 34433, priest.canShadowfiend(rangedTarget) , rangedTarget },
 	{ 123040, priest.canShadowfiend(rangedTarget) , rangedTarget },
 
-	-- PROACTIVE BUBBLES --
-	-- "Power Word: Shield" 17 -- Keep Buff "Borrowed" 59889 always
-	{ 17, type(ShieldFriend) == "string" and not jps.buff(59889,"player") , ShieldFriend , "Timer_ShieldFriend" },
-
 	-- DAMAGE --
 	{ "nested", jps.FaceTarget and canDPS(rangedTarget) and LowestImportantUnitHpct > 0.80 ,{
 		-- "Châtiment" 585
-		{ 585, jps.castEverySeconds(585,2) , rangedTarget , "|cFFFF0000Chatiment_"..rangedTarget },
+		{ 585, jps.castEverySeconds(585,2) and not IsInGroup() , rangedTarget , "|cFFFF0000Chatiment_"..rangedTarget },
+		{ 585, jps.castEverySeconds(585,2) and IsInGroup() and jps.hp(myTank) < 0.95 , rangedTarget , "|cFFFF0000Chatiment_"..rangedTarget },
 		-- "Pénitence" 47540 -- jps.glyphInfo(119866) -- allows Penance to be cast while moving.
-		{ 47540, true , rangedTarget,"|cFFFF0000Penance_"..rangedTarget },
+		{ 47540, not IsInGroup() , rangedTarget,"|cFFFF0000Penance_"..rangedTarget },
+		{ 47540, IsInGroup() and jps.hp(myTank) < 0.95 , rangedTarget,"|cFFFF0000Penance_"..rangedTarget },
 		-- "Mot de l'ombre: Douleur" 589 -- Only if 1 targeted enemy 
 		{ 589, TargetCount == 1 and jps.myDebuffDuration(589,rangedTarget) == 0 and not IsInGroup() , rangedTarget , "|cFFFF0000Douleur_"..rangedTarget },
 	},},
@@ -640,6 +649,7 @@ spellTable = {
 
 	-- SNM "Levitate" 1706 -- "Dark Simulacrum" debuff 77606
 	{ 1706, jps.debuff(77606,"player") , "player" , "DarkSim_Levitate" },
+	{ 1706, jps.fallingFor() > 1.5 and not jps.buff(111759) , "player" },
 	
 	-- SNM RACIAL COUNTERS -- share 30s cd with trinket
 	{"nested", jps.UseCDs , {
@@ -682,7 +692,6 @@ spellTable = {
 	{ "nested", playerAggro or playerWasControl or playerIsTargeted ,{
 		-- "Power Word: Shield" 17
 		{ 17, not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Aggro_Shield" },
-		{ 17, type(ShieldFriend) == "string" and not jps.buff(59889,"player") and LowestImportantUnitHpct < 0.75 , ShieldFriend , "Aggro_ShieldFriend_Borrowed" },
 		-- "Spectral Guise" 112833 "Semblance spectrale"
 		{ 112833, jps.IsSpellKnown(112833) , "player" , "Aggro_Spectral" },
 		-- "Oubli" 586 -- Fantasme 108942 -- vous dissipez tous les effets affectant le déplacement sur vous-même
@@ -744,6 +753,7 @@ spellTable = {
 		{ 33206, LowestImportantUnitHpct < 0.25 , LowestImportantUnit , "Emergency_Pain_"..LowestImportantUnit },
 		-- "Shield" 17
 		{ 17, not jps.buff(17,LowestImportantUnit) and not jps.debuff(6788,LowestImportantUnit) , LowestImportantUnit , "Emergency_Shield_"..LowestImportantUnit },
+		-- "Power Word: Shield" 17 -- Keep Buff "Borrowed" 59889 always
 		{ 17, type(ShieldFriend) == "string" and not jps.buff(59889,"player") , ShieldFriend , "Emergency_ShieldFriend_Borrowed" },
 		-- SNM Troll "Berserker" 26297 -- haste buff
 		{ 26297, true , "player" },
@@ -792,12 +802,14 @@ spellTable = {
 
 	-- HEAL --
 	{ "nested", LowestImportantUnitHpct < 0.80 ,{
-		-- "Shield" 17
-		{ 17, not jps.buff(17,LowestImportantUnit) and not jps.debuff(6788,LowestImportantUnit) , LowestImportantUnit , "Shield_"..LowestImportantUnit },
 		-- "Don des naaru" 59544
 		{ 59544, true , LowestImportantUnit , "Naaru_"..LowestImportantUnit },
 		-- "Pénitence" 47540
 		{ 47540, true , LowestImportantUnit , "Penance_"..LowestImportantUnit },
+		-- "Shield" 17
+		{ 17, not jps.buff(17,LowestImportantUnit) and not jps.debuff(6788,LowestImportantUnit) , LowestImportantUnit , "Shield_"..LowestImportantUnit },
+		-- "Power Word: Shield" 17 -- Keep Buff "Borrowed" 59889 always
+		{ 17, type(ShieldFriend) == "string" and not jps.buff(59889,"player") , ShieldFriend , "Timer_ShieldFriend" },
 		-- "Soins" 2060 -- Buff "Borrowed" 59889 -- Buff "Clarity of Will" 152118 -- 2.5 sec cast
 		{ 2060, not jps.Moving and jps.buff(152118,LowestImportantUnit) , LowestImportantUnit , "Soins_Clarity_"..LowestImportantUnit  },
 		{ 2060, not jps.Moving and jps.buff(17,LowestImportantUnit) , LowestImportantUnit , "Soins_Shield_"..LowestImportantUnit  },
@@ -811,10 +823,6 @@ spellTable = {
 	-- "Torve-esprit" 123040 -- "Ombrefiel" 34433 "Shadowfiend"
 	{ 34433, priest.canShadowfiend(rangedTarget) , rangedTarget },
 	{ 123040, priest.canShadowfiend(rangedTarget) , rangedTarget },
-
-	-- PROACTIVE BUBBLES --
-	-- "Power Word: Shield" 17 -- Keep Buff "Borrowed" 59889 always
-	{ 17, type(ShieldFriend) == "string" and not jps.buff(59889,"player") , ShieldFriend , "Timer_ShieldFriend" },
 
 	-- DAMAGE --
 	{ "nested", jps.FaceTarget and canDPS(rangedTarget) and LowestImportantUnitHpct > 0.80 ,{
@@ -866,7 +874,8 @@ jps.registerRotation("PRIEST","DISCIPLINE",function()
 	if not canHeal("target") and canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
 
 	local spellTableOOC = {
-	
+
+	-- SNM "Levitate" 1706	
 	{ 1706, jps.fallingFor() > 1.5 and not jps.buff(111759) , "player" },
 	{ 1706, playerIsSwimming and not jps.buff(111759) , "player" },
 

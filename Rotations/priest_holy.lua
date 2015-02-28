@@ -1,5 +1,5 @@
 -- jps.Interrupts for Dispel
--- jps.Defensive Heal table is { "player","focus","target","targettarget","mouseover" }
+-- jps.Defensive changes the LowestImportantUnit to table = { "player","focus","target","targettarget","mouseover" } with insert TankUnit  = jps.findAggroInRaid()
 -- jps.FaceTarget to DPSing
 -- jps.MultiTarget for Chakra: Sanctuary 81206
 
@@ -72,7 +72,10 @@ local priestHoly = function()
 	local LowestImportantUnit = jps.LowestImportantUnit()
 	local LowestImportantUnitHealth = jps.hp(LowestImportantUnit,"abs") -- UnitHealthMax(unit) - UnitHealth(unit)
 	local LowestImportantUnitHpct = jps.hp(LowestImportantUnit) -- UnitHealth(unit) / UnitHealthMax(unit)
-	local POHTarget, groupToHeal, groupTableToHeal = jps.FindSubGroupTarget(0.75) -- Target to heal with POH in RAID with AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
+
+	--local POHTarget, groupToHeal = jps.FindSubGroupTarget(0.75) -- Target to heal with POH in RAID with AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
+	local POHTarget, groupToHeal, groupHealth = jps.FindSubGroupHeal(0.75) -- Target to heal with POH in RAID with AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
+
 	local myTank,TankUnit = jps.findAggroInRaid() -- return Table with UnitThreatSituation == 3 (tanking) or == 1 (Overnuking) or "focus" default
 	local TankTarget = "target"
 	if canHeal(myTank) then TankTarget = myTank.."target" end
@@ -88,7 +91,8 @@ local priestHoly = function()
 	local buffTrackerMending = jps.buffTracker(41635)
 	local PlayerIsFacingLowest = jps.PlayerIsFacing(LowestImportantUnit,30)	-- angle value between 10-180
 	local EmergencyPOHTarget = nil
-	if type(POHTarget) == "string" then EmergencyPOHTarget,_,_ = jps.FindSubGroupTarget(0.60,5) end
+	if type(POHTarget) == "string" then EmergencyPOHTarget,_,_ = jps.FindSubGroupHeal(0.50) end
+	--if type(POHTarget) == "string" then EmergencyPOHTarget,_ = jps.FindSubGroupTarget(0.50) end
 
 ---------------------
 -- ENEMY TARGET

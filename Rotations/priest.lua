@@ -61,6 +61,7 @@ priest.Spell.Shadowfiend = 34433;
 priest.Spell.PainSuppression = 33206;
 priest.Spell.HolyFire = 14914;
 priest.Spell.WeakenedSoul = 6788;
+priest.Spell.HolyCascade = 121135 -- "Cascade" Holy 121135 Shadow 127632
 
 --local InterruptTable = {
 --	{priest.Spell.FlashHeal, 0.75, jps.buffId(priest.Spell.SpiritShellBuild) },
@@ -69,7 +70,6 @@ priest.Spell.WeakenedSoul = 6788;
 --}
 
 priest.ShouldInterruptCasting = function ( InterruptTable, AvgHealthLoss, CountInRaid )
-	-- third parameter CountInRaid do nothing for instance
 	if jps.LastTarget == nil then return end
 	local spellCasting, _, _, _, _, endTime, _ = UnitCastingInfo("player")
 	if spellCasting == nil then return false end
@@ -81,13 +81,15 @@ priest.ShouldInterruptCasting = function ( InterruptTable, AvgHealthLoss, CountI
 		local breakpoint = healSpellTable[2]
 		local spellName = GetSpellInfo(healSpellTable[1])
 		if (spellName:lower() == spellCasting:lower()) and healSpellTable[3] == false then
-			if healSpellTable[1] == priest.Spell.PrayerOfHealing and AvgHealthLoss > breakpoint then
+			if healSpellTable[1] == priest.Spell.HolyCascade and AvgHealthLoss > breakpoint then
+				SpellStopCasting()
+				DEFAULT_CHAT_FRAME:AddMessage("STOPCASTING avgHP"..spellName.." , raid has enough hp!",0, 0.5, 0.8)
+			elseif healSpellTable[1] == priest.Spell.PrayerOfHealing and CountInRaid > breakpoint then
 				SpellStopCasting()
 				DEFAULT_CHAT_FRAME:AddMessage("STOPCASTING avgHP"..spellName.." , raid has enough hp!",0, 0.5, 0.8)
 			elseif TargetHpct > breakpoint then
 				SpellStopCasting()
 				DEFAULT_CHAT_FRAME:AddMessage("STOPCASTING OverHeal"..spellName.." , unit "..jps.LastTarget.. " has enough hp!",0, 0.5, 0.8)
-			
 			end
 		end
 	end

@@ -126,9 +126,8 @@ function jps.fallingFor()
 	return GetTime() - jps.startedFalling
 end
 
-
 ----------------------
--- Find TANK
+-- Find ENEMY TARGET
 ----------------------
 
 function jps.targetIsRaidBoss(target)
@@ -139,40 +138,6 @@ function jps.targetIsRaidBoss(target)
 	end
 	return false
 end
-
-function jps.playerInLFR()
-	local dungeon = jps.getInstanceInfo()
-	if dungeon.difficulty == "lfr25" then return true end
-	return false
-end
-
-local allTanks = jps.findTanksInRaid()
-function jps.findMeAggroTank(targetUnit)
-	local highestThreat = 0
-	local aggroTank = "player"
-	for _, possibleTankUnit in pairs(allTanks) do
-		local unitThreat = UnitThreatSituation(possibleTankUnit)
-		if canDPS(targetUnit) then unitThreat = UnitThreatSituation(possibleTankUnit, targetUnit) end
-		if unitThreat and unitThreat > highestThreat then
-			highestThreat = unitThreat
-			aggroTank = possibleTankUnit
-		end
-	end
-	return aggroTank
-end
-
-function jps.findMeATank()
-	if jps.tableLength(allTanks) == 0 then
-		if jps.UnitExists("focus") then return "focus" end
-	else
-		return allTanks[1]
-	end
-	return "player"
-end
-
-----------------------
--- Find ENEMY TARGET
-----------------------
 
 jps.findMeRangedTarget = function()
 	local rangedTarget = "target"

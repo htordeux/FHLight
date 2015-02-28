@@ -69,7 +69,10 @@ local priestDisc = function()
 	local LowestImportantUnit = jps.LowestImportantUnit()
 	local LowestImportantUnitHealth = jps.hp(LowestImportantUnit,"abs") -- UnitHealthMax(unit) - UnitHealth(unit)
 	local LowestImportantUnitHpct = jps.hp(LowestImportantUnit) -- UnitHealth(unit) / UnitHealthMax(unit)
-	local POHTarget, groupToHeal, groupTableToHeal = jps.FindSubGroupTarget(0.75) -- Target to heal with POH in RAID with AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
+
+	--local POHTarget, groupToHeal = jps.FindSubGroupTarget(0.75) -- Target to heal with POH in RAID with AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
+	local POHTarget, groupToHeal, groupHealth = jps.FindSubGroupHeal(0.75) -- Target to heal with POH in RAID with AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
+
 	local myTank,TankUnit = jps.findAggroInRaid() -- return Table with UnitThreatSituation == 3 (tanking) or == 1 (Overnuking) or "focus" default
 	local TankTarget = "target"
 	if canHeal(myTank) then TankTarget = myTank.."target" end
@@ -85,7 +88,8 @@ local priestDisc = function()
 	local buffTrackerMending = jps.buffTracker(41635)
 	local ShellTarget = jps.FindSubGroupAura(114908,LowestImportantUnit) -- buff target Spirit Shell 114908 need SPELLID
 	local EmergencyPOHTarget = nil
-	if type(POHTarget) == "string" then EmergencyPOHTarget,_,_ = jps.FindSubGroupTarget(0.60,5) end
+	if type(POHTarget) == "string" then EmergencyPOHTarget,_,_ = jps.FindSubGroupHeal(0.50) end
+	--if type(POHTarget) == "string" then EmergencyPOHTarget,_ = jps.FindSubGroupTarget(0.50) end
 
 ---------------------
 -- ENEMY TARGET
@@ -218,14 +222,17 @@ local priestDisc = function()
 -- OVERHEAL -- OPENING -- CANCELAURA -- STOPCASTING --
 ------------------------------------------------------
 
+-- "Archange surpuissant" 172359  100 % critique POH or FH
 local InterruptTable = {
-	{priest.Spell.FlashHeal, 0.75, jps.buffId(priest.Spell.SpiritShellBuild) },
+	{priest.Spell.FlashHeal, 0.75, jps.buffId(priest.Spell.SpiritShellBuild) or jps.buff(172359,"player") },
 	{priest.Spell.Heal, 0.90, jps.buffId(priest.Spell.SpiritShellBuild) },
-	{priest.Spell.PrayerOfHealing, 0.90, jps.buffId(priest.Spell.SpiritShellBuild) or jps.buff(172359,"player") }, -- "Archange surpuissant" 172359  100 % critique POH or FH
+	{priest.Spell.PrayerOfHealing, 0.80, jps.buffId(priest.Spell.SpiritShellBuild) or jps.buff(172359,"player") },
+	{priest.Spell.HolyCascade, 0.80 , false}
   }
   
 	-- AVOID OVERHEALING
-	priest.ShouldInterruptCasting( InterruptTable , AvgHealthLoss , CountInRange )
+	if groupHealth == nil then groupHealth = AvgHealthLoss end
+	priest.ShouldInterruptCasting(InterruptTable , AvgHealthLoss , groupHealth)
 
 ------------------------
 -- SPELL TABLE ---------
@@ -276,7 +283,7 @@ spellTable = {
 	-- "Flammes sacrées" 14914  -- "Evangélisme" 81661
 	{ 14914, canDPS(rangedTarget) , rangedTarget , "|cFFFF0000Flammes_"..rangedTarget },
 	
-	-- TODO for Boss
+	-- SHIELD BOSSTARGET
 	{ 17, canDPS("target") and UnitLevel("target") == -1 and jps.IsCasting("target") and not jps.buff(17,"targettarget")
 	and not jps.debuff(6788,"targettarget") , "targettarget" , "Shield_TargetTarget" },
 	{ 152118, canDPS("target") and UnitLevel("target") == -1 and jps.IsCasting("target") and jps.debuff(6788,"targettarget") and not jps.buff(152118,"targettarget")
@@ -388,10 +395,10 @@ spellTable = {
 	{ "nested", jps.FaceTarget and canDPS(rangedTarget) and LowestImportantUnitHpct > 0.80 ,{
 		-- "Châtiment" 585
 		{ 585, jps.castEverySeconds(585,2) and not IsInGroup() , rangedTarget , "|cFFFF0000Chatiment_"..rangedTarget },
-		{ 585, jps.castEverySeconds(585,2) and IsInGroup() and jps.hp(myTank) < 0.95 , rangedTarget , "|cFFFF0000Chatiment_"..rangedTarget },
+		{ 585, jps.castEverySeconds(585,2) and IsInGroup() and jps.hp(myTank) < 0.96 , rangedTarget , "|cFFFF0000Chatiment_"..rangedTarget },
 		-- "Pénitence" 47540 -- jps.glyphInfo(119866) -- allows Penance to be cast while moving.
 		{ 47540, not IsInGroup() , rangedTarget,"|cFFFF0000Penance_"..rangedTarget },
-		{ 47540, IsInGroup() and jps.hp(myTank) < 0.95 , rangedTarget,"|cFFFF0000Penance_"..rangedTarget },
+		{ 47540, IsInGroup() and jps.hp(myTank) < 0.96 , rangedTarget,"|cFFFF0000Penance_"..rangedTarget },
 		-- "Mot de l'ombre: Douleur" 589 -- Only if 1 targeted enemy 
 		{ 589, TargetCount == 1 and jps.myDebuffDuration(589,rangedTarget) == 0 and not IsInGroup() , rangedTarget , "|cFFFF0000Douleur_"..rangedTarget },
 	},},
@@ -444,7 +451,10 @@ local priestDiscPvP = function()
 	local LowestImportantUnit = jps.LowestImportantUnit()
 	local LowestImportantUnitHealth = jps.hp(LowestImportantUnit,"abs") -- UnitHealthMax(unit) - UnitHealth(unit)
 	local LowestImportantUnitHpct = jps.hp(LowestImportantUnit) -- UnitHealth(unit) / UnitHealthMax(unit)
-	local POHTarget, groupToHeal, groupTableToHeal = jps.FindSubGroupTarget(0.75) -- Target to heal with POH in RAID with AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
+
+	local POHTarget, groupToHeal = jps.FindSubGroupTarget(0.75) -- Target to heal with POH in RAID with AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
+	--local POHTarget, groupToHeal, groupHealth = jps.FindSubGroupHeal(0.75) -- Target to heal with POH in RAID with AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
+
 	local myTank,TankUnit = jps.findAggroInRaid() -- return Table with UnitThreatSituation == 3 (tanking) or == 1 (Overnuking) or "focus" default
 	local TankTarget = "target"
 	if canHeal(myTank) then TankTarget = myTank.."target" end
@@ -460,7 +470,8 @@ local priestDiscPvP = function()
 	local buffTrackerMending = jps.buffTracker(41635)
 	local ShellTarget = jps.FindSubGroupAura(114908,LowestImportantUnit) -- buff target Spirit Shell 114908 need SPELLID
 	local EmergencyPOHTarget = nil
-	if type(POHTarget) == "string" then EmergencyPOHTarget,_,_ = jps.FindSubGroupTarget(0.60,5) end
+	--if type(POHTarget) == "string" then EmergencyPOHTarget,_,_ = jps.FindSubGroupHeal(0.50) end
+	if type(POHTarget) == "string" then EmergencyPOHTarget,_ = jps.FindSubGroupTarget(0.50) end
 
 ---------------------
 -- ENEMY TARGET
@@ -603,14 +614,16 @@ local priestDiscPvP = function()
 -- OVERHEAL -- OPENING -- CANCELAURA -- STOPCASTING --
 ------------------------------------------------------
 
+-- "Archange surpuissant" 172359  100 % critique POH or FH
 local InterruptTable = {
-	{priest.Spell.FlashHeal, 0.75, jps.buffId(priest.Spell.SpiritShellBuild) },
+	{priest.Spell.FlashHeal, 0.75, jps.buffId(priest.Spell.SpiritShellBuild) or jps.buff(172359,"player") },
 	{priest.Spell.Heal, 0.90, jps.buffId(priest.Spell.SpiritShellBuild) },
-	{priest.Spell.PrayerOfHealing, 0.85, jps.buffId(priest.Spell.SpiritShellBuild) or jps.buff(172359,"player") }, -- "Archange surpuissant" 172359  100 % critique POH or FH
+	{priest.Spell.PrayerOfHealing, 0.80, jps.buffId(priest.Spell.SpiritShellBuild) or jps.buff(172359,"player") },
+	{priest.Spell.HolyCascade, 0.80 , false}
   }
   
 	-- AVOID OVERHEALING
-	priest.ShouldInterruptCasting( InterruptTable , AvgHealthLoss , CountInRange )
+	priest.ShouldInterruptCasting(InterruptTable , AvgHealthLoss , groupHealth)
 
 	-- FAKE CAST -- 6948 -- "Hearthstone"
 	local FakeCast = UnitCastingInfo("player")
@@ -859,9 +872,8 @@ jps.registerRotation("PRIEST","DISCIPLINE",function()
 	local isArena, _ = IsActiveBattlefieldArena()
 	local LowestImportantUnit = jps.LowestImportantUnit()
 	local LowestImportantUnitHpct = jps.hp(LowestImportantUnit) -- UnitHealth(unit) / UnitHealthMax(unit)
-	local POHTarget, groupToHeal, groupTableToHeal = jps.FindSubGroupTarget(0.60) -- Target to heal with POH in RAID with AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
-	-- myTank returns "focus" by default
-	local myTank,TankUnit = jps.findAggroInRaid() -- return Table with UnitThreatSituation == 3 (tanking) or == 1 (Overnuking) 
+	local POHTarget, _, _ = jps.FindSubGroupHeal(0.75) -- myTank returns "focus" by default
+	local myTank,_ = jps.findAggroInRaid() -- return Table with UnitThreatSituation == 3 (tanking) or == 1 (Overnuking) 
 	-- rangedTarget returns "target" by default
 	local rangedTarget, _, _ = jps.LowestTarget()
 	local buffTrackerMending = jps.buffTracker(41635)

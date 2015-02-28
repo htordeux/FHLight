@@ -48,14 +48,13 @@ function jps_Test()
 	print("ttd: ",jps.TimeToDie("target"))
 	print("Facing: ",jps.PlayerIsFacing("target",30))
 	print("GCD: ",jps.GCD)
+	print("Distance: ",jps.Distance("target"))
 	write("***************************")
 	
 	--local cdplayer = jps.enemyCooldownWatch("player")
 	--print("cdplayer: ",cdplayer)
 	local cdtarget = jps.enemyCooldownWatch("target")
 	write("cdtarget: ",cdtarget)
-	local dist = jps.Distance("target")
-	print("dist: ",dist)
 
 --	local mastery = GetMasteryEffect()
 --	local masteryValue = math.ceil(mastery)/100

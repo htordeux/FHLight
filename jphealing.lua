@@ -125,13 +125,9 @@ function jps.FriendHealerInRange()
 	return false
 end
 
-function jps.findTanksInRaid()
-	local myTanks = {}
-	for unit,index in pairs(RaidStatus) do
-		if jps.RoleInRaid(unit) == "TANK" then tinsert(myTanks, unit) end
-	end
-	return myTanks
-end
+--------------------------
+-- TANK
+--------------------------
 
 --status = UnitThreatSituation("unit"[, "otherunit"])
 --Without otherunit specified
@@ -141,6 +137,23 @@ end
 --Overnuking is where a player deals so much damage (therefore generating excess threat) that it pulls aggro away from the tank.
 --2 = insecurely tanking at least one unit, but not securely tanking anything.
 --3 = securely tanking at least one unit.
+
+function jps.findTankInRaid()
+	local myTanks = {}
+	for unit,index in pairs(RaidStatus) do
+		if jps.RoleInRaid(unit) == "TANK" then tinsert(myTanks,unit) end
+	end
+	local highestThreat = 0
+	local aggroTank = "focus"
+	for _, tank in ipairs(myTanks) do
+		local unitThreat = UnitThreatSituation(tank)
+		if unitThreat and unitThreat > highestThreat then
+			highestThreat = unitThreat
+			aggroTank = tank
+		end
+	end
+	return aggroTank, myTanks
+end
 
 function jps.findAggroInRaid()
 	local TankUnit = {}
@@ -273,7 +286,7 @@ end
 -- partypet1 to partypet4 -- party1 to party4 -- raid1 to raid40 -- raidpet1 to raidpet40 -- arena1 to arena5 - A member of the opposing team in an Arena match
 -- Pet return nil with UnitInRaid -- UnitInRaid("unit") returns 0 for raid1, 12 for raid13
 
-jps.FindSubGroupUnit = function(unit) -- UnitNAME or raidn
+local FindSubGroupUnit = function(unit) -- UnitNAME or raidn
 	local subgroup = 1 
 	if not IsInRaid() and IsInGroup() then return subgroup end
 	if IsInRaid() then
@@ -288,16 +301,13 @@ end
 -- FIND THE RAID SUBGROUP TO HEAL WITH AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
 -- name, rank, subgroup, level, class, fileName, zone, online, isDead, role, isML, combatRole = GetRaidRosterInfo(raidIndex)
 -- raidIndex of raid member between 1 and MAX_RAID_MEMBERS (40). If you specify an index that is out of bounds, the function returns nil
-
-jps.FindSubGroupTarget = function(lowHealthDef,groupVal)
+jps.FindSubGroupTarget = function(lowHealthDef)
 	if lowHealthDef == nil then lowHealthDef = 1 end
-	local group = 0
-	local name = nil
 	local groupTable = {}
 	for i=1,MAX_RAID_MEMBERS do
 		if GetRaidRosterInfo(i) == nil then break end
-		group = select(3,GetRaidRosterInfo(i)) -- if index is out of bounds, the function returns nil
-		name = select(1,GetRaidRosterInfo(i))
+		local group = select(3,GetRaidRosterInfo(i)) -- if index is out of bounds, the function returns nil
+		local name = select(1,GetRaidRosterInfo(i))
 		if canHeal(name) and jps.hp(name) < lowHealthDef then
 			local groupcount = groupTable[group]
 			if groupcount == nil then groupcount = 1 else groupcount = groupcount + 1 end
@@ -305,13 +315,13 @@ jps.FindSubGroupTarget = function(lowHealthDef,groupVal)
 		end
 	end
 
-	if groupVal == nil then groupVal = 2 end
+	local groupCount = 2
 	local groupToHeal = 0
 	local groupTableToHeal = {}
 	for i=1,#groupTable do
 		if groupTable[i] == nil then break end
-		if groupTable[i] > groupVal then -- HEAL >= 3 JOUEURS
-			groupVal = groupTable[i]
+		if groupTable[i] > groupCount then -- HEAL >= 3 JOUEURS
+			groupCount = groupTable[i]
 			groupToHeal = i
 			tinsert(groupTableToHeal,i)
 		end
@@ -321,56 +331,105 @@ jps.FindSubGroupTarget = function(lowHealthDef,groupVal)
 	local lowestHP = lowHealthDef
 	if groupToHeal > 0 then
 		for unit,index in pairs(RaidStatus) do
-			if (index["inrange"] == true) and (jps.FindSubGroupUnit(unit) == groupToHeal) and (index["hpct"] < lowestHP) then
+			if index["inrange"] == true and FindSubGroupUnit(unit) == groupToHeal and index["hpct"] < lowestHP then
 				tt = unit
 				lowestHP = index["hpct"]
 			end
 		end
 	end
-	return tt, groupToHeal, groupTableToHeal -- RETURN Group with at least 3 unit in range
+	return tt, groupToHeal -- RETURN Group with at least 3 unit in range
 end
 
 -- FIND THE RAID SUBGROUP TO HEAL WITH AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
-jps.FindSubGroup = function()
-		local group = 0
-		local name = nil
-		local groupTable = {}
-		for i=1,MAX_RAID_MEMBERS do
-			if GetRaidRosterInfo(i) == nil then break end
-			group = select(3,GetRaidRosterInfo(i)) -- if index is out of bounds, the function returns nil
-			name = select(1,GetRaidRosterInfo(i))
-			if canHeal(name) and jps.hp(name) < lowHealthDef then
-				local groupcount = groupTable[group]
-				if groupcount == nil then groupcount = 1 else groupcount = groupcount + 1 end
-				groupTable[group] = groupcount
-			end
-		end
+jps.FindSubGroupHeal = function(lowHealthDef)
+	if lowHealthDef == nil then lowHealthDef = 1 end
+	local HealthGroup = {}
+	for unit,index in pairs(RaidStatus) do
+		local group = FindSubGroupUnit(unit)
+		local unitHealth = jps.hp(unit)
+		if not HealthGroup[group] then HealthGroup[group] = {} end
 
-		if groupVal == nil then groupVal = 2 end
-		local groupToHeal = 0
-		local groupTableToHeal = {}
-		for i=1,#groupTable do
-			if groupTable[i] == nil then break end
-			if groupTable[i] > groupVal then -- HEAL >= 3 JOUEURS
-				groupVal = groupTable[i]
-				groupToHeal = i
-				tinsert(groupTableToHeal,i)
-			end
+		local healthGroup = HealthGroup[group][1]
+		if healthGroup == nil then healthGroup = 0 end
+		local countGroup = HealthGroup[group][2]
+		if countGroup == nil then countGroup = 0 end
+		HealthGroup[group][1] = healthGroup + unitHealth 
+		HealthGroup[group][2] = countGroup + 1
+
+		local countUnitGroup = HealthGroup[group][3]
+		if countUnitGroup == nil then
+			countUnitGroup = 0
+			HealthGroup[group][3] = countUnitGroup
 		end
-	return groupToHeal, groupTableToHeal -- RETURN Group with at least 3 unit in range
+		if unitHealth < lowHealthDef and canHeal(unit) then
+			HealthGroup[group][3] = countUnitGroup + 1
+		end
+	end
+	
+	local groupCount = 2
+	local groupToHeal = 0
+	local groupToHealHealthAvg = 100
+	for group,index in pairs(HealthGroup) do
+		local indexAvg = index[1] / index[2]
+		local indexCount = index[3]
+		if indexAvg < lowHealthDef and indexCount > groupCount then
+			groupCount = indexCount
+			groupToHealHealthAvg = indexAvg
+			groupToHeal = tonumber(group)
+		end
+	end
+	
+	if groupToHealHealthAvg > lowHealthDef then return nil end
+	local tt = nil
+	local lowestHP = lowHealthDef
+	for unit,index in pairs(RaidStatus) do
+		local unitHealth = jps.hp(unit)
+		if FindSubGroupUnit(unit) == groupToHeal and unitHealth < lowestHP then
+			tt = unit
+			lowestHP = unitHealth
+		end
+	end
+	return tt, groupToHeal, groupToHealHealthAvg  -- RETURN Group unit with avg health group lower than lowHealthDef
+end
+
+-- FIND THE RAID SUBGROUP TO HEAL WITH AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
+local FindSubGroup = function(lowHealthDef)
+	if lowHealthDef == nil then lowHealthDef = 1 end
+	local groupTable = {}
+	for i=1,MAX_RAID_MEMBERS do
+		if GetRaidRosterInfo(i) == nil then break end
+		local group = select(3,GetRaidRosterInfo(i)) -- if index is out of bounds, the function returns nil
+		local name = select(1,GetRaidRosterInfo(i))
+		if canHeal(name) and jps.hp(name) < lowHealthDef then
+			local groupcount = groupTable[group]
+			if groupcount == nil then groupcount = 1 else groupcount = groupcount + 1 end
+			groupTable[group] = groupcount
+		end
+	end
+
+	local groupCount = 2
+	local groupToHeal = 0
+	local groupTableToHeal = {}
+	for i=1,#groupTable do
+		if groupTable[i] == nil then break end
+		if groupTable[i] > groupCount then -- HEAL >= 3 JOUEURS
+			groupCount = groupTable[i]
+			groupToHeal = i
+			tinsert(groupTableToHeal,i)
+		end
+	end
+	return groupToHeal -- RETURN Group with at least 3 unit in range
 end
 
 -- FIND THE TARGET IN SUBGROUP TO HEAL WITH BUFF SPIRIT SHELL IN RAID
-jps.FindSubGroupAura = function(aura,tank) -- auraID to get correct spellID
+jps.FindSubGroupAura = function(aura) -- auraID to get correct spellID
 	local tt = nil
 	local tt_count = 0
-	local groupToHeal = 1
-	if tank == nil then groupToHeal = jps.FindSubGroup()
-	else groupToHeal = jps.FindSubGroupUnit(tank) end 
+	local groupToHeal, _ = FindSubGroup()
 
 	for unit,index in pairs(RaidStatus) do
 		local mybuff = jps.buffId(aura,unit) -- spellID
-		if (not mybuff) and (index["inrange"] == true) and (jps.FindSubGroupUnit(unit) == groupToHeal) then
+		if not mybuff and index["inrange"] == true and FindSubGroupUnit(unit) == groupToHeal then
 			tt = unit
 			tt_count = tt_count + 1
 		end

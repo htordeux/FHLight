@@ -3,7 +3,7 @@
 @class mage
 @spec arcane
 @author pcmd
-@description 
+@description
 SimCraft 6.0.2
 ]]--
 
@@ -13,6 +13,10 @@ SimCraft 6.0.2
 -- jps.UseCDs		--> mage.iceFloes -- Iceberg
 -- jps.MultiTarget	--> mage.netherTempest
 
+-- TO DO
+-- Cast frost ward and slow on aggro'd going after nontanks
+-- Fix casting frost ward when target is boss
+
 local L = MyLocalizationTable
 local spellTable = {}
 local canDPS = jps.canDPS
@@ -20,6 +24,7 @@ local canHeal = jps.canHeal
 
 if not mage then mage = {} end
 
+mage.alterTime = 108978;
 mage.arcaneBarrage = 44425;
 mage.arcaneBlast = 30451;
 mage.arcaneBrilliance = 1459;
@@ -40,14 +45,18 @@ mage.coldSnap = 11958;
 mage.coneOfCold = 120;
 mage.counterspell = 2139;
 mage.evocation = 12051;
+mage.frostNova = 122;
 mage.iceFloes = 108839; -- Iceberg
+mage.iceWard = 111264;
+mage.invisibility = 66;
 mage.mirrorImage = 55342;
 mage.netherTempest = 114923;
 mage.overpowered = 155147;
-mage.presenceOfMind = 12043; -- 
+mage.presenceOfMind = 12043; --
 mage.prismaticCrystal = 152087; -- Cristal prismatique
 mage.runeOfPower = 116011;
 mage.supernova = 157980;
+mage.slow = 31589;
 mage.slowFall = 130;
 mage.aspecOfTheFox = 172106; -- Buff Hunt
 mage.iceblock = 45438
@@ -123,7 +132,7 @@ jps.registerRotation("MAGE","ARCANE", function()
 ----------------------------
 
 	local playerAggro = jps.FriendAggro("player")
-	local playerhealth =  jps.hp("player","abs")
+	local playerhealth = jps.hp("player","abs")
 	local playerhealthpct = jps.hp("player")
 	local myTank,TankUnit = jps.findAggroInRaid() -- return Table with UnitThreatSituation == 3 (tanking) or == 1 (Overnuking)
 	local TankTarget = "target"
@@ -133,6 +142,8 @@ jps.registerRotation("MAGE","ARCANE", function()
 -- ENEMY TARGET
 ---------------------
 
+	local isBoss = UnitLevel("target") == -1 or UnitClassification("target") == "elite"
+	local isNotBoss = UnitLevel("target") ~= -1 or UnitClassification("target") == "normal"
 	-- rangedTarget returns "target" by default, sometimes could be friend
 	local rangedTarget, EnemyUnit, TargetCount = jps.LowestTarget()
 
@@ -144,12 +155,31 @@ jps.registerRotation("MAGE","ARCANE", function()
 	end
 	if canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
 
+	--? stop casting if invisible -- buff is 32612
+	if jps.Defensive and jps.buff(32612) then SpellStopCasting() end
+
 -----------------------------
 --- ROTATION
 -----------------------------
 
 spellTable = {
 
+	--? invisibility
+	{mage.invisibility, jps.Defensive and playerAggro and isBoss },
+	--? arcane barrage if invisibility buff and no aggro
+	{mage.arcaneBarrage, jps.buff(32612) and not playerAggro },
+	--? slow
+	{mage.slow, jps.Defensive and playerAggro and not jps.debuff(mage.slow) and isNotBoss },
+	--? alter time, first cast
+	{mage.alterTime, jps.Defensive and playerhealthpct < 0.75 and playerAggro and not jps.buff(110909) },
+	--? alter time, second cast -- buff is 110909
+	{mage.alterTime, jps.Defensive and jps.buff(110909) and jps.castEverySeconds(mage.alterTime,5) and jps.Moving },
+	--? iceblock
+	{mage.iceblock, jps.Defensive and playerhealthpct < 0.20 and not jps.buff(110909) and playerAggro },
+	--? frost ward
+	{mage.iceWard, canHeal(myTank) and not jps.buff(mage.iceWard,myTank) , myTank },   
+	--? iceblock cancel -- buff is 45438
+	{mage.iceblock, jps.Defensive and jps.buff(45438) and playerhealthpct > 0.20 and not playerAggro },
 	-- iceblock
 	{mage.iceblock, jps.Defensive and playerhealthpct < 0.20 and playerAggro },
 	
@@ -247,7 +277,7 @@ spellTable = {
 	spell,target = parseSpellTable(spellTable)
 	return spell,target
 	
-end, "Arcane  Mage Default")
+end, "Arcane Mage Default")
 
 
 -----------------------------

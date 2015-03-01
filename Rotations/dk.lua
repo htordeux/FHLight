@@ -38,7 +38,7 @@
 	-- "Bone Shield" 49222 "Bouclier dos"
 	dk.spells["BoneShield"] = toSpellName(49222)
 	--"Chains of Ice" 45524 "Chaînes de glace"
-	dk.spells["ChainsofIce"] = toSpellName(45524)
+	dk.spells["ChainsOfIce"] = toSpellName(45524)
 	
 
 	-- SPELLS
@@ -110,6 +110,10 @@
 	dk.spells["DeathCoil"] = 47541
 	-- "Lichborne" 49039 "Changeliche"
 	dk.spells["Lichborne"] = 49039
+	-- "Desecrated Ground" 108201 "Terre profanée"
+	dk.spells["DesecratedGround"] = 108201
+	-- "Conversion" 119975
+	dk.spells["Conversion"] = 119975
 	
 --------------------------------
 -- RUNES -----------------------

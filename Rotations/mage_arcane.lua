@@ -143,7 +143,6 @@ jps.registerRotation("MAGE","ARCANE", function()
 ---------------------
 
 	local isBoss = UnitLevel("target") == -1 or UnitClassification("target") == "elite"
-	local isNotBoss = UnitLevel("target") ~= -1 or UnitClassification("target") == "normal"
 	-- rangedTarget returns "target" by default, sometimes could be friend
 	local rangedTarget, EnemyUnit, TargetCount = jps.LowestTarget()
 
@@ -169,7 +168,7 @@ spellTable = {
 	--? arcane barrage if invisibility buff and no aggro
 	{mage.arcaneBarrage, jps.buff(32612) and not playerAggro },
 	--? slow
-	{mage.slow, jps.Defensive and playerAggro and not jps.debuff(mage.slow) and isNotBoss },
+	{mage.slow, jps.Defensive and playerAggro and not jps.debuff(mage.slow) and not isBoss },
 	--? alter time, first cast
 	{mage.alterTime, jps.Defensive and playerhealthpct < 0.75 and playerAggro and not jps.buff(110909) },
 	--? alter time, second cast -- buff is 110909

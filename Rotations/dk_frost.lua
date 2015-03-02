@@ -643,10 +643,11 @@ local spellTable = {
 	{ dk.spells["OutBreak"] , jps.myDebuffDuration("Blood Plague") < 5 },
 	{ dk.spells["OutBreak"] , jps.myDebuffDuration("Frost Fever") < 5 },
 	
-	-- COUNTERS, TALENTED --
+	-- COUNTERS, TALENTED -- { "CC" , "Snare" , "Root" , "Silence" , "Immune", "ImmuneSpell", "Disarm" }
 	-- "Desecrated Ground" 108201 "Terre profanée" -- immune to/removes roots, snares, and loss of control
-	{ dk.spells["DesecratedGround"] , jps.Moving and (jps.LoseControl("player","Root") or jps.LoseControl("player","Snare")) },
-	{ dk.spells["DesecratedGround"] , playerIsStun and not jps.LoseControl("player","Silence") },
+	{ dk.spells["DesecratedGround"] , jps.Moving and jps.LoseControl("player",{"Root"}) },
+	{ dk.spells["DesecratedGround"] , jps.Moving and jps.LoseControl("player",{"Snare"}) },
+	{ dk.spells["DesecratedGround"] , playerIsStun and not jps.LoseControl("player",{"Silence"}) },
 	-- "Lichborne" 49039 "Changeliche"
 	{ dk.spells["Lichborne"] , jps.debuff("psychic scream","player") }, -- Fear
 	{ dk.spells["Lichborne"] , jps.debuff("fear","player") }, -- Fear
@@ -661,7 +662,8 @@ local spellTable = {
 		-- Dwarf "Stoneform" 20594 Removes all poison, disease, curse, magic, and bleed effects and reduces all physical damage taken by 10% for 8 sec.
 		-->{ 20594, jps.hp() < 0.50 and playerAggro },
 		-- Gnome "Escape Artist" 20589
-		-->{ 20589, (jps.LoseControl("player","Root") or jps.LoseControl("player","Snare")) and jps.UseCDs },
+		-->{ 20589, jps.LoseControl("player",{"Snare"}) and jps.UseCDs },
+		-->{ 20589, jps.LoseControl("player",{"Root"}) and jps.UseCDs },
 		-- Undead "Will of the Forsaken" 7744
 		{ 7744, jps.debuff("psychic scream","player") }, -- Fear
 		{ 7744, jps.debuff("fear","player") }, -- Fear

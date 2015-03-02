@@ -139,7 +139,7 @@ function jps.findTankInRaid()
 		if jps.RoleInRaid(unit) == "TANK" then tinsert(myTanks,unit) end
 	end
 	local highestThreat = 0
-	local aggroTank = "focus"
+	local aggroTank = myTanks[1] or "focus"
 	for _, tank in ipairs(myTanks) do
 		local unitThreat = UnitThreatSituation(tank)
 		if unitThreat and unitThreat > highestThreat then

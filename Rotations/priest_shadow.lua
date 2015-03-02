@@ -80,6 +80,7 @@ local playerIsInterrupt = jps.InterruptEvents() -- return true/false ONLY FOR PL
 local rangedTarget, EnemyUnit, TargetCount = jps.LowestTarget()
 local EnemyCount = jps.RaidEnemyCount()
 local isArena, _ = IsActiveBattlefieldArena()
+local isBoss = (UnitLevel("target") == -1) or (UnitClassification("target") == "elite")
 
 -- Config FOCUS
 if not jps.UnitExists("focus") and canDPS("mouseover") then
@@ -288,6 +289,8 @@ local parseAggro = {
 	{ 586, jps.IsSpellKnown(108942) and playerhealthpct < 0.70 , "player" , "Aggro_Oubli" },
 	-- "Oubli" 586 -- Glyphe d'oubli 55684 -- Votre technique Oubli réduit à présent tous les dégâts subis de 10%.
 	{ 586, jps.glyphInfo(55684) and playerhealthpct < 0.70 , "player" , "Aggro_Oubli" },
+	-- "Power Word: Shield" 17	
+	{ 17, not jps.debuff(6788,"player") and not jps.buff(17,"player") , "player" },
 }
 
 -----------------------------
@@ -337,7 +340,7 @@ local spellTable = {
 	-- "Vampiric Embrace" 15286
 	{ 15286, AvgHealthLoss < 0.85 , "player" },
 	-- SELF HEAL
-	{ "nested", playerhealthpct < 0.70 , parseHeal },
+	{ "nested", playerhealthpct < 0.75 , parseHeal },
 
 	-- "Mindbender" "Torve-esprit" 123040 -- "Ombrefiel" 34433 "Shadowfiend"
 	{ 34433, priest.canShadowfiend(rangedTarget) , rangedTarget },
@@ -441,6 +444,9 @@ jps.registerRotation("PRIEST","SHADOW",function()
 	{ 17, jps.Moving and jps.IsSpellKnown(64129) and not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Shield_BodySoul" },
 	-- "Shadowform" 15473
 	{ 15473, not jps.buff(15473) , "player" },
+
+	-- "Oralius' Whispering Crystal" 118922 "Cristal murmurant d’Oralius"
+	{ {"macro","/use item:118922"}, jps.itemCooldown(118922) == 0 and not jps.buff(176151) , "player" },
 
 }
 

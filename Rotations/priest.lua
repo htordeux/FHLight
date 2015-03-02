@@ -135,8 +135,16 @@ end
 -- FUNCTIONS FRIEND UNIT
 ------------------------------------
 
+priest.unitForClarity = function(unit)
+	if not jps.UnitExists(unit) then return false end
+	if not jps.FriendAggro(unit) then return false end
+	if jps.isRecast(152118,unit) then return false end
+	if jps.buff(152118,unit) then return false end
+	return true
+end
+
 priest.unitForShield = function (unit)
-	if unit == nil then return false end
+	if not jps.UnitExists(unit) then return false end
 	if not jps.FriendAggro(unit) then return false end
 	if jps.buff(17,unit) then return false end
 	if jps.debuff(6788,unit) and not jps.buffId(123266,"player") then return false end
@@ -144,7 +152,7 @@ priest.unitForShield = function (unit)
 end
 
 priest.unitForMending = function (unit)
-	if unit == nil then return false end
+	if not jps.UnitExists(unit) then return false end
 	if not jps.FriendAggro(unit) then return false end
 	if (jps.cooldown(33076) > 0) then return false end
 	if jps.buff(41635,unit) then return false end
@@ -152,7 +160,7 @@ priest.unitForMending = function (unit)
 end
 
 priest.unitForBinding = function (unit)
-	if unit == nil then return false end
+	if not jps.UnitExists(unit) then return false end
 	if jps.UnitIsUnit(unit,"player") then return false end
 	if (jps.hp("player","abs") < priest.AvgAmountFlashHeal) then return false end
 	if (jps.hp(unit,"abs") < priest.AvgAmountFlashHeal) then return false end
@@ -160,7 +168,7 @@ priest.unitForBinding = function (unit)
 end
 
 priest.unitForLeap = function (unit)
-	if unit == nil then return false end
+	if not jps.UnitExists(unit) then return false end
 	if jps.UnitIsUnit(unit,"player") then return false end
 	if not jps.FriendAggro(unit) then return false end
 	if not jps.LoseControl(unit) then return false end

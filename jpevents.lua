@@ -639,8 +639,7 @@ end)
 jps.listener.registerEvent("UNIT_HEALTH_FREQUENT", function(unitID)
 	if not jps.isHealer then return end
 	if jps.UnitInRaid(unitID) then
-		local inrange = canHeal(unitID)
-		jps.UpdateRaidUnit(unitID,inrange)
+		jps.UpdateRaidUnit(unitID)
 		if jps.PvP and not jps.Combat and jps.tableLength(EnemyDamager) > 0 then
     		jps.Cycle()
 		end

@@ -50,19 +50,22 @@ end
 
 jps.registerRotation("WARRIOR","FURY",function()
 
-	local spell = nil
-	local target = nil
-	local playerhealth_deficiency =  jps.hp("player","abs") -- UnitHealthMax(player) - UnitHealth(player)
-	local playerhealth_pct = jps.hp("player") 
-	local playerAggro = jps.FriendAggro("player")
-	local playerIsStun = jps.StunEvents() -- return true/false
-	local isBoss = UnitLevel("target") == -1 or UnitClassification("target") == "elite"
-	local Enrage = jps.buff(12880) -- "Enrage" 12880 "Enrager"
+local spell = nil
+local target = nil
+local playerhealth_deficiency =  jps.hp("player","abs") -- UnitHealthMax(player) - UnitHealth(player)
+local playerhealth_pct = jps.hp("player") 
+local playerAggro = jps.FriendAggro("player")
+local playerIsStun = jps.StunEvents(2) -- return true/false ONLY FOR PLAYER -- "ROOT" was removed of Stuntype
+-- {"STUN_MECHANIC","STUN","FEAR","CHARM","CONFUSE","PACIFY","SILENCE","PACIFYSILENCE"}
+local playerIsInterrupt = jps.InterruptEvents() -- return true/false ONLY FOR PLAYER
+local playerWasControl = jps.ControlEvents() -- return true/false Player was interrupt or stun 2 sec ago ONLY FOR PLAYER
+local Enrage = jps.buff(12880) -- "Enrage" 12880 "Enrager"
 	
 ----------------------
 -- TARGET ENEMY
 ----------------------
 
+local isBoss = UnitLevel("target") == -1 or UnitClassification("target") == "elite"
 -- rangedTarget returns "target" by default, sometimes could be friend
 local rangedTarget, EnemyUnit, TargetCount = jps.LowestTarget()
 local EnemyCount = jps.RaidEnemyCount()
@@ -103,8 +106,8 @@ if canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
 local spellTable = {
 
 	-- TRINKETS -- jps.useTrinket(0) est "Trinket0Slot" est slotId  13 -- "jps.useTrinket(1) est "Trinket1Slot" est slotId  14
-	--{ jps.useTrinket(0), jps.UseCds },
-	--{ jps.useTrinket(1), jps.UseCds },
+	{ jps.useTrinket(0), jps.useTrinketBool(0) and not playerWasControl and jps.combatStart > 0 , "player" , "Trinket0"},
+	{ jps.useTrinket(1), jps.useTrinketBool(1) and not playerWasControl and jps.combatStart > 0 , "player" , "Trinket1"},
 	-- "Pummel" 6552 "Volée de coups"
 	{ warrior.spells["Pummel"], jps.Interrupts and jps.ShouldKick(rangedTarget) , rangedTarget , "_Pummel" },
 	-- "Mass Spell Reflection" 114028 "Renvoi de sort de masse"
@@ -124,7 +127,9 @@ local spellTable = {
 	-- "Pierre de soins" 5512
 	{ {"macro","/use item:5512"} , UnitAffectingCombat("player") == true and jps.itemCooldown(5512)==0 and (jps.hp("player") < 0.50) , "player" , "_UseItem"},
 	-- "Die by the Sword" 118038
-	{ warrior.spells["DieSword"] , playerAggro and playerhealth_pct < 0.7 , rangedTarget , "_DieSword" },
+	{ warrior.spells["DieSword"] , playerAggro and playerhealth_pct < 0.70 , rangedTarget , "_DieSword" },
+	-- "Stoneform" 20594 "Forme de pierre"
+	{ 20594 , playerAggro and jps.canDispel("player",{"Magic","Poison","Disease","Curse"}) , "player" , "_Stoneform" },
 
 	-- "Heroic Throw" 57755 "Lancer héroïque"
 	{ warrior.spells["HeroicThrow"] , jps.IsSpellInRange(57755,rangedTarget) , rangedTarget , "_Heroic Throw" },
@@ -133,7 +138,7 @@ local spellTable = {
 	-- "Piercing Howl" 12323 "Hurlement percant"
 	--{ warrior.spells["PiercingHowl"] , not jps.debuff(12323,rangedTarget) , rangedTarget , "_PiercingHowl"},
 	-- "Intimidating Shout" 5246
-	{ warrior.spells["IntimidatingShout"] , not jps.debuff(5246,rangedTarget) and jps.hp(rangedTarget,"abs") > 500000 , rangedTarget , "_IntimidatingShout"},
+	{ warrior.spells["IntimidatingShout"] , not jps.debuff(5246,rangedTarget) and isBoss , rangedTarget , "_IntimidatingShout"},
 
 	-- "Bloodthirst" 23881 "Sanguinaire"
 	{ warrior.spells["Bloodthirst"], jps.rage() < 30 , rangedTarget , "_Bloodthirst" },
@@ -142,12 +147,10 @@ local spellTable = {
 	{ warrior.spells["BerserkerRage"] , not Enrage , "player" , "_BerserkerRage" },
 	
 	-- "Recklessness" 1719 "Témérité" -- buff Raging Blow! 131116 -- "Bloodsurge" 46916 "Afflux sanguin"
-	{ warrior.spells["Recklessness"], jps.buff(131116) and jps.rage() > 80 and jps.hp(rangedTarget,"abs") > 500000 , "player" , "_Recklessness" },
-	{ warrior.spells["Recklessness"], jps.buff(46916) and jps.rage() > 80 and jps.hp(rangedTarget,"abs") > 500000 , "player" , "_Recklessness" },
+	{ warrior.spells["Recklessness"], jps.buff(131116) and jps.rage() > 80 and isBoss , "player" , "_Recklessness" },
+	{ warrior.spells["Recklessness"], jps.buff(46916) and jps.rage() > 80 and isBoss , "player" , "_Recklessness" },
 	-- "Bloodbath" 12292 "Bain de sang"  -- jps.buff(12292)
-	{ warrior.spells["Bloodbath"], jps.rage() > 60 and jps.hp(rangedTarget,"abs") > 500000 , rangedTarget , "_Bloodbath" },
-	-- "Avatar" 107574
-	{ warrior.spells["Avatar"], jps.rage() > 60 and jps.hp(rangedTarget,"abs") > 500000 , rangedTarget , "_Avatar" },
+	{ warrior.spells["Bloodbath"], jps.rage() > 60 and isBoss , rangedTarget , "_Bloodbath" },
 
 	-- "Execute" 5308 "Exécution" -- "Mort soudaine" 29725
 	{ warrior.spells["Execute"], jps.buff(29725) , rangedTarget , "Execute_SuddenDeath" },

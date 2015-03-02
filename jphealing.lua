@@ -42,8 +42,6 @@ end
 
 local RaidStatusRole = {}
 local RaidStatus = {}
-local unitHpct = function(unit,inrange) if inrange then return jps.hp(unit) end end
-local unitHealth = function(unit,inrange) if inrange then return jps.hp(unit,"abs") end end
 
 jps.UpdateRaidStatus = function ()
 
@@ -71,19 +69,16 @@ jps.UpdateRaidStatus = function ()
 		end
 		
 		if RaidStatus[unit] == nil then RaidStatus[unit] = {} end
-		local inrange = canHeal(unit)
-		RaidStatus[unit]["hpct"] = unitHpct(unit,inrange)
-		RaidStatus[unit]["health"] = unitHealth(unit,inrange)
-		RaidStatus[unit]["inrange"] = inrange
+		RaidStatus[unit]["hpct"] = jps.hp(unit)
+		RaidStatus[unit]["inrange"] = canHeal(unit)
 	end
 end
 
 -- Unit is INRANGE
-jps.UpdateRaidUnit = function (unit,inrange)
+jps.UpdateRaidUnit = function (unit)
 	if RaidStatus[unit] == nil then RaidStatus[unit] = {} end
-	RaidStatus[unit]["hpct"] = unitHpct(unit,inrange)
-	RaidStatus[unit]["health"] = unitHealth(unit,inrange)
-	RaidStatus[unit]["inrange"] = inrange
+	RaidStatus[unit]["hpct"] = jps.hp(unit)
+	RaidStatus[unit]["inrange"] = canHeal(unit)
 end
 
 jps.UnitInRaid = function(unit)
@@ -308,7 +303,7 @@ jps.FindSubGroupTarget = function(lowHealthDef)
 		if GetRaidRosterInfo(i) == nil then break end
 		local group = select(3,GetRaidRosterInfo(i)) -- if index is out of bounds, the function returns nil
 		local name = select(1,GetRaidRosterInfo(i))
-		if canHeal(name) and jps.hp(name) < lowHealthDef then
+		if canHeal(name) and jps.hp(name) <= lowHealthDef then
 			local groupcount = groupTable[group]
 			if groupcount == nil then groupcount = 1 else groupcount = groupcount + 1 end
 			groupTable[group] = groupcount
@@ -331,7 +326,7 @@ jps.FindSubGroupTarget = function(lowHealthDef)
 	local lowestHP = lowHealthDef
 	if groupToHeal > 0 then
 		for unit,index in pairs(RaidStatus) do
-			if index["inrange"] == true and FindSubGroupUnit(unit) == groupToHeal and index["hpct"] < lowestHP then
+			if index["inrange"] == true and FindSubGroupUnit(unit) == groupToHeal and index["hpct"] <= lowestHP then
 				tt = unit
 				lowestHP = index["hpct"]
 			end
@@ -361,7 +356,7 @@ jps.FindSubGroupHeal = function(lowHealthDef)
 			countUnitGroup = 0
 			HealthGroup[group][3] = countUnitGroup
 		end
-		if unitHealth < lowHealthDef and canHeal(unit) then
+		if unitHealth <= lowHealthDef and canHeal(unit) then
 			HealthGroup[group][3] = countUnitGroup + 1
 		end
 	end
@@ -372,7 +367,7 @@ jps.FindSubGroupHeal = function(lowHealthDef)
 	for group,index in pairs(HealthGroup) do
 		local indexAvg = index[1] / index[2]
 		local indexCount = index[3]
-		if indexAvg < lowHealthDef and indexCount > groupCount then
+		if indexAvg <= lowHealthDef and indexCount > groupCount then
 			groupCount = indexCount
 			groupToHealHealthAvg = indexAvg
 			groupToHeal = tonumber(group)
@@ -384,7 +379,7 @@ jps.FindSubGroupHeal = function(lowHealthDef)
 	local lowestHP = lowHealthDef
 	for unit,index in pairs(RaidStatus) do
 		local unitHealth = jps.hp(unit)
-		if FindSubGroupUnit(unit) == groupToHeal and unitHealth < lowestHP then
+		if FindSubGroupUnit(unit) == groupToHeal and unitHealth <= lowestHP then
 			tt = unit
 			lowestHP = unitHealth
 		end
@@ -400,7 +395,7 @@ local FindSubGroup = function(lowHealthDef)
 		if GetRaidRosterInfo(i) == nil then break end
 		local group = select(3,GetRaidRosterInfo(i)) -- if index is out of bounds, the function returns nil
 		local name = select(1,GetRaidRosterInfo(i))
-		if canHeal(name) and jps.hp(name) < lowHealthDef then
+		if canHeal(name) and jps.hp(name) <= lowHealthDef then
 			local groupcount = groupTable[group]
 			if groupcount == nil then groupcount = 1 else groupcount = groupcount + 1 end
 			groupTable[group] = groupcount
@@ -549,7 +544,7 @@ function jps.LookupRaid ()
 	
 -- RaidStatus
 	for unit,index in pairs(RaidStatus) do 
-		print("|cffa335ee",unit,"Hpct: ",index.hpct,"Health: ",index.health,"Range: ",index.inrange) -- color violet 
+		print("|cffa335ee",unit,"Hpct: ",index.hpct,"Range: ",index.inrange) -- color violet 
 	end
 end
 

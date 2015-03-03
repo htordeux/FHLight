@@ -322,7 +322,7 @@ local spellTable = {
 	-- "Devouring Plague" 2944 now consumes 3 Shadow Orbs, you don't have the ability to use with less Orbs
 	{ 2944, Orbs == 5 , rangedTarget , "ORBS_5" },
 	-- "Devouring Plague" 2944 now consumes 3 Shadow Orbs, you don't have the ability to use with less Orbs
-	{ 2944, Orbs > 2 and jps.hp(rangedTarget) < 0.20 , rangedTarget , "ORBS_LowHealth" },
+	{ 2944, Orbs > 3 and jps.hp(rangedTarget) < 0.20 , rangedTarget , "ORBS_LowHealth" },
 	-- "Mind Flay" 15407 -- "Shadow Word: Insanity" buff 132573
 	{ 15407, jps.buff(132573) , rangedTarget , "MINDFLAYORBS_" },
 	
@@ -343,8 +343,8 @@ local spellTable = {
 	{ "nested", playerhealthpct < 0.75 , parseHeal },
 
 	-- "Mindbender" "Torve-esprit" 123040 -- "Ombrefiel" 34433 "Shadowfiend"
-	{ 34433, priest.canShadowfiend(rangedTarget) , rangedTarget },
-	{ 123040, priest.canShadowfiend(rangedTarget) , rangedTarget },
+	{ 34433, priest.canShadowfiend("target") , "target" },
+	{ 123040, priest.canShadowfiend("target") , "target" },
 	
 	-- "Shadow Word: Pain" 589 -- "Shadow Word: Insanity" buff 132573
 	{ 589, not jps.buff(132573) and fnPainEnemyTarget("mouseover") and not jps.UnitIsUnit("target","mouseover") , "mouseover" , "Pain_MOUSEOVER_ORBS" },

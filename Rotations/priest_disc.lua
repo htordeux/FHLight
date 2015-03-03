@@ -288,7 +288,6 @@ spellTable = {
 		{ 152118, jps.debuff(6788,myTank) and not jps.buff(152118,myTank) and not jps.isRecast(152118,myTank) , myTank , "debuff_Timer_ClarityTank" },
 	},},
 	
-
 	{ "nested", jps.combatStart > 0 and (LowestImportantUnitHpct < 0.50 or AvgHealthLoss < 0.75) ,{
 		-- "Archange" 81700 -- Buff 81700 -- "Archange surpuissant" 172359  100 % critique POH or FH
 		{ 81700, jps.buffStacks(81661) == 5 , "player", "Emergency_ARCHANGE" },
@@ -297,6 +296,12 @@ spellTable = {
 		-- SNM Troll "Berserker" 26297 -- haste buff
 		{ 26297, true , "player" },
 	},},
+	
+	-- "POH" 596 -- Buff "Borrowed" 59889 -- "Archange surpuissant" 172359  100 % critique POH or FH
+	{ 596, not jps.Moving and (type(POHTarget) == "string") and canHeal(POHTarget) and jps.buff(172359,"player") , POHTarget , "Archange_Emergency_POH_" },
+	-- "POH" 596 -- Buff "Borrowed" 59889 -- "Power Infusion" 10060 "Infusion de puissance"
+	{ 596, not jps.Moving and (type(POHTarget) == "string") and canHeal(POHTarget) and jps.buff(59889,"player") and jps.buff(10060,"player") , POHTarget , "Borrowed_Emergency_POH_" },
+
 
 	-- EMERGENCY HEAL --
 	{ "nested", LowestImportantUnitHpct < 0.50 ,{
@@ -306,11 +311,6 @@ spellTable = {
 		{ 17, not jps.buff(17,LowestImportantUnit) and not jps.debuff(6788,LowestImportantUnit) , LowestImportantUnit , "Emergency_Shield_"..LowestImportantUnit },
 		-- "Pénitence" 47540
 		{ 47540, true , LowestImportantUnit , "Emergency_Penance_"..LowestImportantUnit },
-	
-		-- "POH" 596 -- Buff "Borrowed" 59889 -- "Archange surpuissant" 172359  100 % critique POH or FH
-		{ 596, not jps.Moving and (type(POHTarget) == "string") and canHeal(POHTarget) and jps.buff(172359,"player") , POHTarget , "Archange_Emergency_POH_" },
-		-- "POH" 596 -- Buff "Borrowed" 59889 -- "Power Infusion" 10060 "Infusion de puissance"
-		{ 596, not jps.Moving and (type(POHTarget) == "string") and canHeal(POHTarget) and jps.buff(59889,"player") and jps.buff(10060,"player") , POHTarget , "Borrowed_Emergency_POH_" },
 
 		-- "Soins rapides" 2061 -- Buff "Borrowed" 59889 -- "Archange surpuissant" 172359  100 % critique POH or FH
 		{ 2061, not jps.Moving and jps.buff(172359,"player") , LowestImportantUnit , "Emergency_FlashHeal_Archange_"..LowestImportantUnit },
@@ -742,6 +742,12 @@ spellTable = {
 		-- SNM Troll "Berserker" 26297 -- haste buff
 		{ 26297, true , "player" },
 	},},
+	
+	-- "POH" 596 -- Buff "Borrowed" 59889 -- "Archange surpuissant" 172359  100 % critique POH or FH
+	{ 596, not jps.Moving and (type(POHTarget) == "string") and canHeal(POHTarget) and jps.buff(172359,"player") , POHTarget , "Archange_Emergency_POH_" },
+	-- "POH" 596 -- Buff "Borrowed" 59889 -- "Power Infusion" 10060 "Infusion de puissance"
+	{ 596, not jps.Moving and (type(POHTarget) == "string") and canHeal(POHTarget) and jps.buff(59889,"player") and jps.buff(10060,"player") , POHTarget , "Borrowed_Emergency_POH_" },
+
 
 	-- EMERGENCY HEAL --
 	{ "nested", LowestImportantUnitHpct < 0.50 ,{
@@ -751,11 +757,6 @@ spellTable = {
 		{ 17, not jps.buff(17,LowestImportantUnit) and not jps.debuff(6788,LowestImportantUnit) , LowestImportantUnit , "Emergency_Shield_"..LowestImportantUnit },
 		-- "Pénitence" 47540
 		{ 47540, true , LowestImportantUnit , "Emergency_Penance_"..LowestImportantUnit },
-	
-		-- "POH" 596 -- Buff "Borrowed" 59889 -- "Archange surpuissant" 172359  100 % critique POH or FH
-		{ 596, not jps.Moving and (type(POHTarget) == "string") and canHeal(POHTarget) and jps.buff(172359,"player") , POHTarget , "Archange_Emergency_POH_" },
-		-- "POH" 596 -- Buff "Borrowed" 59889 -- "Power Infusion" 10060 "Infusion de puissance"
-		{ 596, not jps.Moving and (type(POHTarget) == "string") and canHeal(POHTarget) and jps.buff(59889,"player") , POHTarget , "Borrowed_Emergency_POH_" },
 
 		-- "Soins rapides" 2061 -- Buff "Borrowed" 59889 -- "Archange surpuissant" 172359  100 % critique POH or FH
 		{ 2061, not jps.Moving and jps.buff(172359,"player") , LowestImportantUnit , "Emergency_FlashHeal_Archange_"..LowestImportantUnit },
@@ -764,7 +765,7 @@ spellTable = {
 		{ 121135, not jps.Moving and AvgHealthLoss < 0.80 and CountInRange > 2 , LowestImportantUnit , "Emergency_Cascade_"..LowestImportantUnit },
 		
 		-- "Clarity of Will" 152118 shields with protective ward for 20 sec -- 2.5 sec cast
-		{ 152118, not jps.Moving and priest.unitForClarity(LowestImportantUnit) and jps.debuff(6788,LowestImportantUnit) and jps.buff(59889,"player") and jps.buff(10060,"player"), LowestImportantUnit  , "Emergency_Clarity_"..LowestImportantUnit  },
+		{ 152118, not jps.Moving and priest.unitForClarity(LowestImportantUnit) and jps.debuff(6788,LowestImportantUnit) and jps.buff(59889,"player") , LowestImportantUnit  , "Emergency_Clarity_"..LowestImportantUnit  },
 		-- "Soins rapides" 2061
 		{ 2061, not jps.Moving , LowestImportantUnit , "Emergency_FlashHeal_50_"..LowestImportantUnit },
 	},},

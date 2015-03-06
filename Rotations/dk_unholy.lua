@@ -7,14 +7,14 @@ jps.registerRotation("DEATHKNIGHT","UNHOLY",function()
 
 	local rp = UnitPower("player") 
 
-	local ffDuration = jps.myDebuffDuration("Frost Fever")
-	local bpDuration = jps.myDebuffDuration("Blood Plague")
+	local ffDuration = jps.myDebuffDuration(55095)
+	local bpDuration = jps.myDebuffDuration(55078)
 	local siStacks = jps.buffStacks("shadow infusion","pet")
 	local superPet = jps.buff("dark transformation","pet")
 
 	local Dr,Fr,Ur = dk.updateRune()
-	local DepletedRunes = (Dr == 0) or (Ur == 0) or (Fr == 0)
-	local AllDepletedRunes = (Dr == 0) and (Ur == 0) and (Fr == 0)
+	local DepletedRunes = (Dr == 0) or (Fr == 0) or (Ur == 0)
+	local AllDepletedRunes = (Dr + Fr + Ur) == 0
 	local timeToDie = jps.TimeToDie("target")
 	
 	local spellTable =
@@ -60,8 +60,8 @@ jps.registerRotation("DEATHKNIGHT","UNHOLY",function()
 		
 		-- DOT CDs
 
-		{ "outbreak",				not jps.myDebuff("Frost Fever") or not jps.myDebuff("Blood Plague") },
-		{ "unholy blight",			not jps.myDebuff("Frost Fever") or not jps.myDebuff("Blood Plague") },
+		{ "outbreak",				not jps.myDebuff(55095) or not jps.myDebuff(55078) },
+		{ "unholy blight",			not jps.myDebuff(55095) or not jps.myDebuff(55078) },
 		
 		
 		-- renew Dots

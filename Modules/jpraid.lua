@@ -15,8 +15,6 @@ local UnitGUID = UnitGUID
 local canDPS = jps.canDPS
 local UnitThreatSituation = UnitThreatSituation
 local UnitPlayerControlled = UnitPlayerControlled
-local LowestTarget = jps.LowestTarget -- include canDPS
--- local rangedTarget, EnemyUnit, TargetCount = jps.LowestTarget()
 
 ------------------------------
 -- HEALTH Functions
@@ -139,6 +137,7 @@ function jps.targetIsRaidBoss(target)
 	return false
 end
 
+-- local rangedTarget, EnemyUnit, TargetCount = jps.LowestTarget()
 jps.findMeRangedTarget = function()
 	local rangedTarget = "target"
 	if canDPS("target") then
@@ -158,7 +157,7 @@ jps.findMeRangedTarget = function()
 	elseif canDPS("boss4") then
 		rangedTarget = "boss3"
 	else
-		local LowestEnemy,_,_ = LowestTarget()
+		local LowestEnemy,_,_ = jps.LowestTarget()
 		rangedTarget = LowestEnemy
 	end
 	return rangedTarget

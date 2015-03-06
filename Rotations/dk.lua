@@ -173,9 +173,10 @@
 	"Hex","Mind Control","Cyclone","Polymorph","Pyroblast","Tranquility","Divine Hymn","Ring of Frost","Entangling Roots",
 	"Maléfice","Contrôle mental","Cyclone","Métamorphose","Explosion pyrotechnique","Tranquillité","Hymne divin","Anneau de givre","Sarments"
 	}
+
 	function dk.shoulDarkSimUnit(unit)
 		local darkSimSpell = false
-		for index,spellName in pairs(darkSimSpells) do
+		for index,spellName in ipairs(darkSimSpells) do
 			if jps.IsCastingSpell(spellName, unit) then 
 				darkSimSpell = true
 			elseif jps.IsChannelingSpell(spellName, unit) then 
@@ -194,14 +195,14 @@
 	end
 
 	function dk.canCastPlagueLeech(timeLeft)
-		if timeLeft == nil then timeLeft = 999 end
+		if timeLeft == nil then timeLeft = 9 end
 		if jps.cooldown(dk.spells["OutBreak"]) > 0 then return false end
 		if not jps.myDebuff(dk.spells["FrostFever"]) then return false end
 		if not jps.myDebuff(dk.spells["BloodPlague"]) then return false end
-		if jps.myDebuffDuration(dk.spells["FrostFever"]) <= timeLeft then
+		if jps.myDebuffDuration(dk.spells["FrostFever"]) < timeLeft then
 			return true
 		end
-		if jps.myDebuffDuration(dk.spells["BloodPlague"]) <= timeLeft then
+		if jps.myDebuffDuration(dk.spells["BloodPlague"]) < timeLeft then
 			return true
 		end
 		return true

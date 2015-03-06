@@ -378,11 +378,6 @@ local spellTable = {
 		{ 596, canHeal(POHTarget) , POHTarget },
 	},},
 
-
-	-- FOCUS PNJ "Soins" 2060
-	--{ 2060, not jps.Moving and jps.UnitExists("focus") and UnitCanAssist("player","focus")
-	--and jps.hp("focus") < 0.80 and jps.IsSpellInRange(2060,"focus") , "focus" , "Soins_Focus"  },
-
 	{ "nested", LowestImportantUnitHpct < 0.85 ,{
 		-- "Holy Word: Serenity" 88684 -- Chakra: Serenity 81208
 		{ {"macro",macroSerenity}, jps.cooldown(88684) == 0 and jps.buffId(81208) , LowestImportantUnit , "Serenity_"..LowestImportantUnit },

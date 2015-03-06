@@ -45,18 +45,17 @@ Rotations\paladin.lua
 Rotations\rogue.lua
 Rotations\shaman.lua
 Rotations\warlock.lua
-
 Rotations\priest.lua
+Rotations\warrior.lua
+
 Rotations\priest_disc.lua
 Rotations\priest_holy.lua
 Rotations\priest_shadow.lua
 
-Rotations\warrior.lua
 Rotations\warrior_arms.lua
 Rotations\warrior_fury.lua
 Rotations\warrior_prot.lua
 
-Rotations\dk.lua
 Rotations\dk_frost.lua
 Rotations\dk_blood.lua
 Rotations\dk_unholy.lua

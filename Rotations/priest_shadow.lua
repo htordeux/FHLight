@@ -324,7 +324,7 @@ local spellTable = {
 	-- "Devouring Plague" 2944 now consumes 3 Shadow Orbs, you don't have the ability to use with less Orbs
 	{ 2944, Orbs > 3 and jps.hp(rangedTarget) < 0.20 , rangedTarget , "ORBS_LowHealth" },
 	-- "Mind Flay" 15407 -- "Shadow Word: Insanity" buff 132573
-	{ 15407, jps.buff(132573) , rangedTarget , "MINDFLAYORBS_" },
+	{ 15407, not jps.Moving and jps.buff(132573) , rangedTarget , "MINDFLAYORBS_" },
 	
 	-- "Shadow Word: Death" 32379 "Mot de l'ombre : Mort"
 	{ 32379, jps.hp(rangedTarget) < 0.20 , rangedTarget, "castDeath_"..rangedTarget },
@@ -334,8 +334,8 @@ local spellTable = {
 	{ 8092, jps.buff(124430) , rangedTarget , "Blast_ShadowyInsight" },
 	-- "Mind Blast" 8092 -- "Glyph of Mind Spike" 33371 gives buff 81292 
 	{ 8092, jps.buffStacks(81292) == 2 , rangedTarget },
-	-- "Mind Blast" 8092
-	{ 8092, not jps.Moving , rangedTarget , "Blast_CD" },
+	-- "Mind Blast" 8092 -- Instant with CoP
+	{ 8092, true , rangedTarget , "Blast_CD" },
 	
 	-- "Vampiric Embrace" 15286
 	{ 15286, AvgHealthLoss < 0.85 , "player" },

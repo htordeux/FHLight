@@ -246,6 +246,7 @@ end
 
 
 -- WARNING FOCUS RETURN FALSE IF NOT IN GROUP OR RAID BECAUSE OF UNITINRANGE(UNIT)
+-- CANHEAL returns TRUE for "target" and "focus" FRIENDS NOT IN RAID
 jps.LowestImportantUnit = function()
 	local myTanks = { "player","focus","target","targettarget","mouseover" }
 	local LowestImportantUnit = "player"

@@ -14,6 +14,7 @@ local UnitExists = UnitExists
 local UnitIsVisible = UnitIsVisible
 local UnitIsDeadOrGhost = UnitIsDeadOrGhost
 local UnitCanAssist = UnitCanAssist
+local UnitIsFriend = UnitIsFriend
 local UnitInVehicle = UnitInVehicle
 local UnitCanAttack = UnitCanAttack
 local SpellIsTargeting = SpellIsTargeting
@@ -163,15 +164,19 @@ end
 -- UnitInRange(unit) -- returns FALSE if out of range or if the unit is invalid. TRUE if in range
 -- information is ONLY AVAILABLE FOR MEMBERS OF THE PLAYER'S GROUP
 -- when not in a party/raid, the new version of UnitInRange returns FALSE for "player" and "pet". The old function returned true.
+-- UnitInRange return FALSE when not in a party/raid reason
 function jps.canHeal(unit)
 	if not jps.UnitExists(unit) then return false end
-	if GetUnitName("player") == GetUnitName(unit) then return true end
-	if not select(1,UnitInRange(unit)) then return false end 
-	-- return FALSE when not in a party/raid reason why to be true for player GetUnitName("player") == GetUnitName(unit)
-	if not UnitCanAssist("player",unit) then return false end
-	if not UnitIsFriend("player",unit) then return false end 
 	if UnitInVehicle(unit) then return false end
 	if jps.PlayerIsBlacklisted(unit) then return false end
+
+	if unit == "player" then return true end
+	if unit == "focus" and UnitCanAssist("player","focus") and UnitIsFriend("player","focus") then return true end
+	if unit == "target" and UnitCanAssist("player","target") and UnitIsFriend("player","target") then return true end
+
+	if not select(1,UnitInRange(unit)) then return false end
+	if not UnitCanAssist("player",unit) then return false end
+	if not UnitIsFriend("player",unit) then return false end
 	return true
 end
 
@@ -239,7 +244,6 @@ function jps.canCast(spell,unit)
 	if jps.cooldown(spellname) > 0 then return false end
 	if not jps.IsSpellInRange(spell,unit) then return false end
 	if jps[spellname] ~= nil and jps[spellname] == false then return false end -- need spellname
-	--if jps.IsSpellFailed(spellname) then return false end
 	return true
 end
 

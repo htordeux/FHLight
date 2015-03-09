@@ -884,7 +884,6 @@ jps.registerRotation("PRIEST","DISCIPLINE", priestDiscPvP , "Disc Priest PVP" , 
 jps.registerRotation("PRIEST","DISCIPLINE",function()
 
 	local playerIsSwimming = IsSwimming()
-	local isArena, _ = IsActiveBattlefieldArena()
 	local LowestImportantUnit = jps.LowestImportantUnit()
 	local LowestImportantUnitHpct = jps.hp(LowestImportantUnit) -- UnitHealth(unit) / UnitHealthMax(unit)
 	local POHTarget, _, _ = jps.FindSubGroupHeal(0.50) -- myTank returns "focus" by default
@@ -916,7 +915,7 @@ jps.registerRotation("PRIEST","DISCIPLINE",function()
 		-- SNM "Levitate" 1706 -- try to keep buff for enemy dispel -- Buff "Lévitation" 111759
 		{ 1706, not jps.buff(111759) , "player" },
 		-- SNM "Nova" 132157 -- keep buff "Words of Mending" 155362 "Mot de guérison" 
-		{ 132157, jps.IsSpellKnown(155362) and jps.buffStacks(155362) < 10 , "player" , "Nova_WoM" },
+		{ 132157, jps.IsSpellKnown(155362) and jps.buffStacks(155362) < 5 , "player" , "Nova_WoM" },
 	},},
 		
 	-- "Shield" 17 "Body and Soul" 64129 -- figure out how to speed buff everyone as they move

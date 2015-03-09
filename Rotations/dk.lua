@@ -194,15 +194,16 @@
 		return dk.shoulDarkSimUnit("focus")
 	end
 
+	-- debuff Frost Fever 55095 debuff Blood Plague 55078
+	--"Outbreak" 77575 "Poussée de fièvre"
 	function dk.canCastPlagueLeech(timeLeft)
-		if timeLeft == nil then timeLeft = 9 end
-		if jps.cooldown(dk.spells["OutBreak"]) > 0 then return false end
-		if not jps.myDebuff(dk.spells["FrostFever"]) then return false end
-		if not jps.myDebuff(dk.spells["BloodPlague"]) then return false end
-		if jps.myDebuffDuration(dk.spells["FrostFever"]) < timeLeft then
+		if timeLeft == nil then timeLeft = 30 end
+		if not jps.myDebuff(55095) then return false end
+		if not jps.myDebuff(55078) then return false end
+		if jps.myDebuffDuration(55095) < timeLeft then
 			return true
 		end
-		if jps.myDebuffDuration(dk.spells["BloodPlague"]) < timeLeft then
+		if jps.myDebuffDuration(55078) < timeLeft then
 			return true
 		end
 		return true

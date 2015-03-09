@@ -136,7 +136,7 @@ local spellTable = {
 	{ dk.spells["BoneShield"] , not jps.buff(49822) },
 
 	-- "Army of the Dead" 42650 "Armée des morts"
-	{ dk.spells["ArmyoftheDead"] , IsLeftControlKeyDown() == true and GetCurrentKeyBoardFocus() == nil},
+	{ dk.spells["ArmyoftheDead"] , IsLeftControlKeyDown() },
 	-- "Death Grip" 49576 "Poigne de la mort" -- "Death Strike" 49998 "Frappe de Mort"
 	{ dk.spells["DeathGrip"] , jps.PvP and not jps.UnitIsUnit("targettarget","player") and not jps.IsSpellInRange(49998,"target") },
 	-- "Chains of Ice" 45524 "Chaînes de glace"
@@ -166,8 +166,10 @@ local spellTable = {
 	{ jps.useTrinket(1), jps.UseCDs and jps.combatStart > 0 and jps.useTrinketBool(1) and not playerWasControl },
 
 	-- HEALS --
+	-- "Plague Leech" 123693 "Parasite de peste"
+	{ dk.spells["PlagueLeech"] , dk.canCastPlagueLeech() and AllDepletedRunes , "target", "_PlagueLeech_DepletedRunes" },
 	-- "Death Strike" 49998 "Frappe de Mort" -- 1 Unholy, 1 Frost -- "Blood Shield" 77535 "Bouclier de sang" -- jps.buffDuration(77535) max 9 sec
-	{ dk.spells["DeathStrike"] , Fr > 0 and  Ur > 0 , "target" , "_|cff1eff00DeathStrike_Runes" },
+	{ dk.spells["DeathStrike"] , Fr > 0 and Ur > 0 , "target" , "_|cff1eff00DeathStrike_Runes" },
 	-- "Rune Tap" 48982 "Connexion runique" -- "Rune Tap" Buff 171049 -- 1 Blood pour réduire tous les dégâts subis de 40% pendant 3 s.
 	{ dk.spells["RuneTap"] , jps.combatStart > 0 and jps.hp() < 0.40 and not jps.buff(171049) , "target" , "_RuneTap" },
 	-- "Vampiric Blood" 55233 "Sang vampirique" -- Augmente le maximum de points de vie de 15% et les soins reçus de 15% pendant 10 s. from other healers and from Death Strike and Death Siphon.
@@ -179,7 +181,7 @@ local spellTable = {
 	-- "Death Siphon" 108196 "Siphon mortel"
 	{ dk.spells["DeathSiphon"] , jps.hp() < 0.40 , "target" , "_DeathSiphon" },
 	-- "Stoneform" 20594 "Forme de pierre"
-	{ 20594 , jps.hp("player") < 0.75 , "target" , "_Stoneform" },
+	{ warrior.spells["Stoneform"] , jps.hp("player") < 0.75 , "target" , "_Stoneform" },
 	-- "Icebound Fortitude" 48792 "Robustesse glaciale"
 	{ dk.spells["Icebound"] , jps.combatStart > 0 and jps.hp("player") < 0.75 , "target" , "_Icebound" },
 
@@ -191,12 +193,12 @@ local spellTable = {
 
 	-- RUNE MANAGEMENT --
 	-- "Plague Leech" 123693 "Parasite de peste"
-	{ dk.spells["PlagueLeech"] , dk.canCastPlagueLeech() and DepletedRunes , "target", "_PlagueLeech" },
+	{ dk.spells["PlagueLeech"] , dk.canCastPlagueLeech(9) and DepletedRunes , "target", "_PlagueLeech" },
 	--"BloodTap" 45529 -- "Drain sanglant" 114851
 	{ dk.spells["BloodTap"] , jps.buffStacks(114851) > 9 and DepletedRunes , "target", "_BloodTap9" },
 	{ dk.spells["BloodTap"] , jps.buffStacks(114851) > 5 and AllDepletedRunes , "target", "_BloodTap5" },
 	-- "Empower Rune Weapon" 47568 "Renforcer l'arme runique"
-	{ dk.spells["EmpowerRuneWeapon"] , jps.IsSpellInRange(49998,"target") and jps.runicPower() < 75 and AllDepletedRunes , "target", "_EmpowerRuneWeapon" },
+	{ dk.spells["EmpowerRuneWeapon"] , jps.IsSpellInRange(49998,"target") and AllDepletedRunes , "target", "_EmpowerRuneWeapon" },
 
 	-- MULTITARGET
 	{"nested", jps.MultiTarget and EnemyCount > 2 ,{

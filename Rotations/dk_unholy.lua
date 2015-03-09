@@ -38,7 +38,7 @@ jps.registerRotation("DEATHKNIGHT","UNHOLY",function()
     	{ "Raise Ally", UnitIsDeadOrGhost("target") == 1 and jps.UseCds, "target"},
 
 		-- AOE
-		{ "Death and Decay", IsShiftKeyDown() == true and GetCurrentKeyBoardFocus() == nil},
+		{ "Death and Decay", IsShiftKeyDown() },
 		
 		-- spell steal
 		

@@ -139,7 +139,7 @@ end
 
 -- check if a unit has at least one buff from a buff table (first param)
 function jps.buffLooper(tableName, unit)
-	for _, buffName in pairs(tableName) do
+	for _, buffName in ipairs(tableName) do
 		if jps.buff(buffName, unit) then
 			return true
 		end
@@ -194,54 +194,53 @@ local raidBuffs = {
 
 
 -- functions for raid buffs
-jps.staminaBuffs = {"Power Word: Fortitude", "Commanding Shout", "Qiraji Fortitude"}
+local staminaBuffs = {"Power Word: Fortitude", "Commanding Shout", "Qiraji Fortitude"}
 function jps.hasStaminaBuff(unit)
-	return jps.buffLooper(jps.staminaBuffs, unit)
+	return jps.buffLooper(staminaBuffs, unit)
 end
 
-jps.statsBuffs = {"Mark of the Wild", "Legacy of the Emperor", "Blessing of Kings", "Embrace of the Shale Spider"}
+local statsBuffs = {"Mark of the Wild", "Legacy of the Emperor", "Blessing of Kings", "Embrace of the Shale Spider"}
 function jps.hasStatsBuff(unit)
-	return jps.buffLooper(jps.statsBuffs, unit)
+	return jps.buffLooper(statsBuffs, unit)
 end
 
-jps.attackPowerBuffs = {"Horn of Winter", "Trueshot Aura", "Battle Shout"}
+local attackPowerBuffs = {"Cor de l’hiver","Aura de précision","Cri de guerre","Horn of Winter", "Trueshot Aura", "Battle Shout"}
 function jps.hasAttackPowerBuff(unit)
-	return jps.buffLooper(jps.attackPowerBuffs, unit)
+	return jps.buffLooper(attackPowerBuffs, unit)
 end
 
-jps.hasteBuffs = {"Unholy Aura", "Swiftblade's Cunning", "Unleashed Rage","Cackling Howl","Serpent's Swiftness"}
+local hasteBuffs = {"Unholy Aura", "Swiftblade's Cunning", "Unleashed Rage","Cackling Howl","Serpent's Swiftness"}
 function jps.hasHasteBuff(unit)
-	return jps.buffLooper(jps.hasteBuffs, unit)
+	return jps.buffLooper(hasteBuffs, unit)
 end
 
-jps.spellHasteBuffs = {"Moonkin Aura", "Elemental Oath", "Mind Quickening","Energizing Spores"}
+local spellHasteBuffs = {"Moonkin Aura", "Elemental Oath", "Mind Quickening","Energizing Spores"}
 function jps.hasSpellHasteBuff(unit)
-	return jps.buffLooper(jps.spellHasteBuffs, unit)
+	return jps.buffLooper(spellHasteBuffs, unit)
 end
 
-jps.critBuffs = {"Arcane Brilliance", "Dalaran Brilliance", "Leader of the Pack","Legacy of the White Tiger","Fearless Roar","Still Water","Terrifying Roar","Furious Howl"}
+local critBuffs = {"Arcane Brilliance", "Dalaran Brilliance", "Leader of the Pack","Legacy of the White Tiger","Fearless Roar","Still Water","Terrifying Roar","Furious Howl"}
 function jps.hasCritBuff(unit)
-	return jps.buffLooper(jps.critBuffs, unit)
+	return jps.buffLooper(critBuffs, unit)
 end
 
-jps.spellPowerBuffs = {"Arcane Brilliance", "Dalaran Brilliance", "Burning Wrath", "Dark Intent", "Still Water"}
+local spellPowerBuffs = {"Arcane Brilliance", "Dalaran Brilliance", "Burning Wrath", "Dark Intent", "Still Water"}
 function jps.hasSpellPowerBuff(unit)
-	return jps.buffLooper(jps.spellPowerBuffs, unit)
+	return jps.buffLooper(spellPowerBuffs, unit)
 end
 
-jps.masteryBuffs = {"Blessing of Might","Grace of Air","Roar of Courage","Spirit Beast Blessing"}
+local masteryBuffs = {"Blessing of Might","Grace of Air","Roar of Courage","Spirit Beast Blessing"}
 function jps.hasMasteryBuff(unit)
-	return jps.buffLooper(jps.masteryBuffs, unit)
+	return jps.buffLooper(masteryBuffs, unit)
 end
 
 function jps.hasSpellPowerCritBuff(unit)
 	return jps.hasCritBuff(unit) and jps.hasSpellPowerBuff(unit)
 end
 
-
-jps.multistrikeBuffs = {"Dark Intent"}
+local multistrikeBuffs = {"Dark Intent"}
 function jps.hasMultistrikeBuff(unit)
-	return jps.buffLooper(jps.multistrikeBuffs, unit)
+	return jps.buffLooper(multistrikeBuffs, unit)
 end
 
 -- type of raid buffs to functions

@@ -323,7 +323,7 @@ end)
 
 --- COMBAT_LOG_EVENT_UNFILTERED Handler
 jps.listener.registerEvent("COMBAT_LOG_EVENT_UNFILTERED", function(timeStamp, event, ...)
-	if jps.Enabled and UnitAffectingCombat("player") == true and combatLogEventTable[event] then
+	if jps.Enabled and UnitAffectingCombat("player") and combatLogEventTable[event] then
 		--LOG.debug("CombatLogEventUntfiltered: %s", event)
 		if enableUnfilteredProfiling and enableProfiling then startProfileMemory("COMBAT_LOG_EVENT_UNFILTERED::"..event) end
 		for _,fn in pairs(combatLogEventTable[event]) do
@@ -784,6 +784,7 @@ local bitband = bit.band
 jps.listener.registerEvent("COMBAT_LOG_EVENT_UNFILTERED", function(...)
 	local event = select(2,...)
 	local sourceGUID = select(4,...)
+	local sourceName = select(5,...)
 	local sourceFlags = select(6,...)
 	local destGUID = select(8,...)
 	local destName = select(9,...)
@@ -829,7 +830,6 @@ jps.listener.registerEvent("COMBAT_LOG_EVENT_UNFILTERED", function(...)
 -- HEAL ENEMY TABLE -- contains the UnitGUID of Enemy Healers
 		if isSourceEnemy then
 			local healId = select(12, ...)
-			local sourceName = select(5,...)
 			local addEnemyHealer = false
 			if jps.HealerSpellID[healId] then
 				if EnemyHealer[sourceGUID] == nil then
@@ -842,7 +842,6 @@ jps.listener.registerEvent("COMBAT_LOG_EVENT_UNFILTERED", function(...)
 
 -- Table ENEMYCOOLDOWNS to track some CD Spells depends of spellID in table jps.EnemyCds
 	if sourceGUID and destGUID and spellEvents[event] then
-
 			local spellId = select(12, ...)
 			local spellname = select(13, ...)
 			local start, _, _ = GetSpellCooldown(spellId)
@@ -861,7 +860,6 @@ jps.listener.registerEvent("COMBAT_LOG_EVENT_UNFILTERED", function(...)
 -- DAMAGE TABLE Note that for the SWING prefix, _DAMAGE starts at the 12th parameter
 	if sourceGUID and destGUID and damageEvents[event] then
 
-
 		if isSourceEnemy and isDestRaid then
 			local dmgTTD = 0
 			if event == "SWING_DAMAGE" then
@@ -874,7 +872,7 @@ jps.listener.registerEvent("COMBAT_LOG_EVENT_UNFILTERED", function(...)
 				if damage > 0 then dmgTTD = damage end
 			end
 			
-			if canHeal(destName) then
+			if UnitCanAssist("player",destName) and UnitIsFriend("player",destName) then
 				if EnemyDamager[sourceGUID] == nil then EnemyDamager[sourceGUID] = {} end
 				EnemyDamager[sourceGUID]["friend"] = destGUID -- TABLE OF ENEMY GUID TARGETING FRIEND GUID
 				EnemyDamager[sourceGUID]["friendname"] = destName

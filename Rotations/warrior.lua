@@ -119,3 +119,30 @@ warrior.spells["EnragedRegeneration"] = toSpellName(55694)
 warrior.spells["ImpendingVictory"] = toSpellName(103840)
 -- "Victory Rush" 34428 "Ivresse de la victoire" -- damage and healing you for 15% of your maximum health. Can only be used within 20 sec after you kill an enemy that yields experience or honor.
 warrior.spells["VictoryRush"] = toSpellName(34428)
+-- "Enraged Regeneration" 55694 "Régénération enragée"
+warrior.spells["EnragedRegeneration"] = toSpellName(55694)
+
+-- PROTECTION SPEC
+
+-- "Shield Slam" 23922 "Heurt de bouclier"
+warrior.spells["ShieldSlam"] = toSpellName(23922)
+-- "Shield Wall" 871 "Mur protecteur"
+warrior.spells["ShieldWall"] = toSpellName(871)
+-- "Last Stand" 12975 "Dernier rempart"
+warrior.spells["LastStand"] = toSpellName(12975)
+-- "Shield Block" 2565 "Maîtrise du blocage" -- 12 sec. bloquez chacune des attaques en mêlée contre vous pendant 6 s. 2 charges au maximum.
+warrior.spells["ShieldBlock"] = toSpellName(2565)
+-- "Shield Barrier" 112048 "Barrière protectrice" -- Consomme jusqu’à 40 points de rage supplémentaires pour augmenter le montant absorbé.
+warrior.spells["ShieldBarrier"] = toSpellName(112048)
+-- "Spell Reflection" 23920 "Renvoi de sort"
+warrior.spells["SpellReflection"] = toSpellName(23920)
+-- "Devastate" 20243 "Dévaster" 
+warrior.spells["Devastate"] = toSpellName(20243)
+-- "Heroic Strike" 78 "Frappe héroïque"
+warrior.spells["HeroicStrike"] = toSpellName(78)
+-- "Thunder Clap" 6343 "Coup de tonnerre"
+warrior.spells["ThunderClap"] = toSpellName(6343)
+-- "Revenge" 6572 "Revanche"
+warrior.spells["Revenge"] = toSpellName(6572)
+-- "Shield Slam" 23922 "Heurt de bouclier"
+warrior.spells["ShieldSlam"] = toSpellName(23922)

@@ -79,7 +79,6 @@ local playerIsInterrupt = jps.InterruptEvents() -- return true/false ONLY FOR PL
 -- rangedTarget returns "target" by default, sometimes could be friend
 local rangedTarget, EnemyUnit, TargetCount = jps.LowestTarget()
 local EnemyCount = jps.RaidEnemyCount()
-local isArena, _ = IsActiveBattlefieldArena()
 local isBoss = (UnitLevel("target") == -1) or (UnitClassification("target") == "elite")
 
 -- Config FOCUS
@@ -431,9 +430,16 @@ jps.registerRotation("PRIEST","SHADOW",function()
 		-- "Mind Flay" 15407
 		{ 15407, true , rangedTarget , "Fouet_Mental" },
 	},},
+	
+	{"nested", jps.PvP , {
+		-- "Gardien de peur" 6346
+		{ 6346, not jps.buff(6346,"player") , "player" },
+		-- SNM "Fortitude" 21562 -- "Commanding Shout" 469 -- "Blood Pact" 166928
+		{ 21562, jps.buffMissing(21562) and jps.buffMissing(469) and jps.buffMissing(166928) , "player" },
+		-- SNM "Levitate" 1706 -- try to keep buff for enemy dispel -- Buff "Lévitation" 111759
+		{ 1706, not jps.buff(111759) , "player" },
+	},},
 
-	-- "Gardien de peur" 6346
-	{ 6346, not jps.buff(6346,"player") , "player" },
 	-- "Fortitude" 21562 -- "Commanding Shout" 469 -- "Blood Pact" 166928
 	{ 21562, jps.buffMissing(21562) , "player" },
 	-- SNM "Levitate" 1706 -- try to keep buff for enemy dispel -- Buff "Lévitation" 111759

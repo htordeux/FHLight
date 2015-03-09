@@ -189,7 +189,7 @@ spellTable = {
 	{mage.slowFall, jps.fallingFor() > 1.5 and not jps.buff(mage.slowFall) ,"player"},
 	
 	--cds offensive IsAltKeyDown
-	{mage.runeOfPower, IsAltKeyDown() == true and GetCurrentKeyBoardFocus() == nil and jps.IsSpellKnown(mage.runeOfPower)},
+	{mage.runeOfPower, IsAltKeyDown() and jps.IsSpellKnown(mage.runeOfPower)},
 	{mage.arcaneBrilliance, not jps.buff(mage.arcaneBrilliance),"player" }, 
 
 	{"nested",mage.shouldUseCDs() and jps.canDPS("target") and not jps.Moving,{

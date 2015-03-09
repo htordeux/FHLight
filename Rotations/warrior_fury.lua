@@ -23,7 +23,7 @@ local EnemyCaster = function(unit)
 	local _, classTarget, classIDTarget = UnitClass(unit)
 	return ClassEnemy[classTarget]
 end
-	
+
 -- Debuff EnemyTarget NOT DPS
 local DebuffUnitCyclone = function (unit)
 	local Cyclone = false
@@ -60,6 +60,8 @@ local playerIsStun = jps.StunEvents(2) -- return true/false ONLY FOR PLAYER -- "
 local playerIsInterrupt = jps.InterruptEvents() -- return true/false ONLY FOR PLAYER
 local playerWasControl = jps.ControlEvents() -- return true/false Player was interrupt or stun 2 sec ago ONLY FOR PLAYER
 local Enrage = jps.buff(12880) -- "Enrage" 12880 "Enrager"
+local inMelee = jps.IsSpellInRange(5308,"target") -- "Execute" 5308
+local inRanged = jps.IsSpellInRange(57755,"target") -- "Heroic Throw" 57755 "Lancer héroïque"
 	
 ----------------------
 -- TARGET ENEMY
@@ -69,7 +71,6 @@ local isBoss = UnitLevel("target") == -1 or UnitClassification("target") == "eli
 -- rangedTarget returns "target" by default, sometimes could be friend
 local rangedTarget, EnemyUnit, TargetCount = jps.LowestTarget()
 local EnemyCount = jps.RaidEnemyCount()
-local isArena, _ = IsActiveBattlefieldArena()
 
 -- Config FOCUS
 if not jps.UnitExists("focus") and canDPS("mouseover") then
@@ -105,31 +106,45 @@ if canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
 
 local spellTable = {
 
-	-- TRINKETS -- jps.useTrinket(0) est "Trinket0Slot" est slotId  13 -- "jps.useTrinket(1) est "Trinket1Slot" est slotId  14
-	{ jps.useTrinket(0), jps.useTrinketBool(0) and not playerWasControl and jps.combatStart > 0 , "player" , "Trinket0"},
-	{ jps.useTrinket(1), jps.useTrinketBool(1) and not playerWasControl and jps.combatStart > 0 , "player" , "Trinket1"},
-	-- "Pummel" 6552 "Volée de coups"
-	{ warrior.spells["Pummel"], jps.Interrupts and jps.ShouldKick(rangedTarget) , rangedTarget , "_Pummel" },
-	-- "Mass Spell Reflection" 114028 "Renvoi de sort de masse"
-	{ warrior.spells["MassSpellReflection"], jps.Interrupts and jps.ShouldKick(rangedTarget) and jps.UnitIsUnit("targettarget","player") , rangedTarget , "_MassSpellReflection" },
-
-	-- "Commanding Shout" 469 "Cri de commandement"
-	{ warrior.spells["CommandingShout"] , not jps.buff(469) and playerhealth_pct < 0.75 , "player" , "_CommandingShout" },
+	-- "Heroic Leap" 6544 "Bond héroïque"
+	{ warrior.spells["HeroicLeap"] , IsShiftKeyDown() , "player" },
+	
+	-- BUFFS 
+	-- "Battle Stance"" 2457 -- "Defensive Stance" 71
+	{ warrior.spells["BattleStance"], not jps.buff(71) and not jps.buff(2457) , "player" },
 	-- "Battle Shout" 6673 "Cri de guerre"
-	{ warrior.spells["BattleShout"] , not jps.buff(6673) and playerhealth_pct > 0.75 , "player" , "_BattleShout" },
-	-- "Stoneform" 20594 "Forme de pierre"
-	{ warrior.spells["Stoneform"] , playerAggro and playerhealth_pct < 0.85 , "player" , "_Stoneform" },
+	{ warrior.spells["BattleShout"], not jps.hasAttackPowerBuff("player") and not jps.buff(469) , "player" },
+	-- "Commanding Shout" 469 "Cri de commandement"
+	{ warrior.spells["CommandingShout"] , not jps.buff(469) and jps.hasAttackPowerBuff("player") and not jps.buff(6673) , rangedTarget , "_CommandingShout" },
+
+	-- INTERRUPTS --
+	{ "nested", jps.Interrupts ,{
+		-- "Pummel" 6552 "Volée de coups"
+		{ warrior.spells["Pummel"] , jps.ShouldKick(rangedTarget) , rangedTarget , "_Pummel" },
+		{ warrior.spells["Pummel"] , jps.ShouldKick("focus") , "focus" , "_Pummel" },
+		-- "Mass Spell Reflection" 114028 "Renvoi de sort de masse"
+		{ warrior.spells["MassSpellReflection"] , jps.UnitIsUnit("targettarget","player") and jps.IsCasting(rangedTarget) , rangedTarget , "_MassSpell" },
+	}},
+
 	-- "Impending Victory" 103840 "Victoire imminente" -- Talent Replaces Victory Rush.
 	{ warrior.spells["ImpendingVictory"] , playerhealth_pct < 0.85 , rangedTarget , "_ImpendingVictory" },
+	{ warrior.spells["VictoryRush"] , playerhealth_pct <  0.85 , rangedTarget , "_VictoryRush" },
 	-- "Victory Rush" 34428 "Ivresse de la victoire" -- "Victorious" 32216 "Victorieux" -- Ivresse de la victoire activée.
 	{ warrior.spells["ImpendingVictory"] , jps.buffDuration(32216) < 4 , rangedTarget , "_ImpendingVictory" },
-	--{ warrior.spells["VictoryRush"] , playerhealth_pct <  0.85 , rangedTarget , "_VictoryRush" },
+	{ warrior.spells["VictoryRush"] , jps.buffDuration(32216) < 4 , rangedTarget , "_VictoryRush" },
+	-- "Enraged Regeneration" 55694 "Régénération enragée"
+	{ warrior.spells["EnragedRegeneration"] , playerhealth_pct < 0.50 , rangedTarget , "_EnragedRegeneration" },
 	-- "Pierre de soins" 5512
-	{ {"macro","/use item:5512"} , UnitAffectingCombat("player") == true and jps.itemCooldown(5512)==0 and (jps.hp("player") < 0.50) , "player" , "_UseItem"},
+	{ {"macro","/use item:5512"} , jps.combatStart > 0 and jps.itemCooldown(5512)==0 and jps.hp("player") < 0.50 , rangedTarget , "_UseItem"},
 	-- "Die by the Sword" 118038
 	{ warrior.spells["DieSword"] , playerAggro and playerhealth_pct < 0.70 , rangedTarget , "_DieSword" },
 	-- "Stoneform" 20594 "Forme de pierre"
-	{ 20594 , playerAggro and jps.canDispel("player",{"Magic","Poison","Disease","Curse"}) , "player" , "_Stoneform" },
+	{ warrior.spells["Stoneform"] , playerAggro and playerhealth_pct < 0.85 , rangedTarget , "_Stoneform" },
+	{ warrior.spells["Stoneform"] , jps.canDispel("player",{"Magic","Poison","Disease","Curse"}) , rangedTarget , "_Stoneform" },
+	
+	-- TRINKETS -- jps.useTrinket(0) est "Trinket0Slot" est slotId  13 -- "jps.useTrinket(1) est "Trinket1Slot" est slotId  14
+	{ jps.useTrinket(0), jps.useTrinketBool(0) and not playerWasControl and jps.combatStart > 0 , rangedTarget , "Trinket0"},
+	{ jps.useTrinket(1), jps.useTrinketBool(1) and not playerWasControl and jps.combatStart > 0 , rangedTarget , "Trinket1"},
 
 	-- "Heroic Throw" 57755 "Lancer héroïque"
 	{ warrior.spells["HeroicThrow"] , jps.IsSpellInRange(57755,rangedTarget) , rangedTarget , "_Heroic Throw" },
@@ -141,61 +156,50 @@ local spellTable = {
 	{ warrior.spells["IntimidatingShout"] , not jps.debuff(5246,rangedTarget) and isBoss , rangedTarget , "_IntimidatingShout"},
 
 	-- "Bloodthirst" 23881 "Sanguinaire"
-	{ warrior.spells["Bloodthirst"], jps.rage() < 30 , rangedTarget , "_Bloodthirst" },
-	{ warrior.spells["Bloodthirst"], jps.rage() < 80 and not Enrage and jps.cooldown(18499) > 0 , rangedTarget , "_Bloodthirst" },
+	{ warrior.spells["Bloodthirst"], true , rangedTarget , "_Bloodthirst" },
 	-- "Berserker Rage" 18499 "Rage de berserker"
-	{ warrior.spells["BerserkerRage"] , not Enrage , "player" , "_BerserkerRage" },
+	{ warrior.spells["BerserkerRage"] , not Enrage , rangedTarget , "_BerserkerRage" },
 	
 	-- "Recklessness" 1719 "Témérité" -- buff Raging Blow! 131116 -- "Bloodsurge" 46916 "Afflux sanguin"
-	{ warrior.spells["Recklessness"], jps.buff(131116) and jps.rage() > 80 and isBoss , "player" , "_Recklessness" },
-	{ warrior.spells["Recklessness"], jps.buff(46916) and jps.rage() > 80 and isBoss , "player" , "_Recklessness" },
+	{ warrior.spells["Recklessness"], jps.buff(131116) and jps.rage() > 80 and isBoss , rangedTarget , "_Recklessness" },
+	{ warrior.spells["Recklessness"], jps.buff(46916) and jps.rage() > 80 and isBoss , rangedTarget , "_Recklessness" },
 	-- "Bloodbath" 12292 "Bain de sang"  -- jps.buff(12292)
-	{ warrior.spells["Bloodbath"], jps.rage() > 60 and isBoss , rangedTarget , "_Bloodbath" },
-
+	{ warrior.spells["Bloodbath"], jps.combatStart > 0 , rangedTarget , "_Bloodbath" },
 	-- "Execute" 5308 "Exécution" -- "Mort soudaine" 29725
 	{ warrior.spells["Execute"], jps.buff(29725) , rangedTarget , "Execute_SuddenDeath" },
-	-- "Ravager" 152277 -- 40 yd range
-	{ warrior.spells["Ravager"] , jps.IsSpellKnown(152277) , rangedTarget , "_Ravager" },
+	
+	{"nested", (jps.MultiTarget or EnemyCount > 2) and jps.IsSpellInRange(1680,rangedTarget) ,{
+		-- "Raging Blow" 85288 "Coup déchaîné" -- buff Raging Blow! 131116 -- cost 10 rage -- "Meat Cleaver" 85739 "Fendoir à viande"
+		{ warrior.spells["RagingBlow"] , jps.buff(131116) and jps.buffStacks(85739) > 1 , rangedTarget , "_RagingBlow_MeatCleaver" },
+		-- "Bladestorm" 46924 "Tempête de lames" -- "Enrage" 12880 "Enrager" -- While Bladestorm is active, you cannot perform any actions except for using your Taunt
+		{ warrior.spells["Bladestorm"], jps.buffDuration(12880) > 6 , rangedTarget , "_Bladestorm" },
+		-- "Shockwave" 46968 "Onde de choc"
+		{ warrior.spells["Shockwave"] , true , rangedTarget , "_Shockwave" },
+		-- "Whirlwind" 1680 -- 8 yd range
+		{ warrior.spells["Whirlwind"], jps.rage() > 60 , rangedTarget , "_Whirlwind" },
+		-- "Wild Strike" 100130 "Frappe sauvage" -- Alone cost 45 rage -- "Bloodsurge" 46916 "Afflux sanguin"
+		{ warrior.spells["WildStrike"] , jps.buff(46916) , rangedTarget ,"_WildStrike_Bloodsurge" },
+	}},
+
+	-- "Execute" 5308 "Exécution" -- cost 30 rage
+	{ warrior.spells["Execute"] , Enrage and jps.hp(rangedTarget) < 0.20 , rangedTarget , "_Execute_Enrage" },
+	-- "Raging Blow" 85288 "Coup déchaîné" -- buff Raging Blow! 131116 -- cost 10 rage -- "Meat Cleaver" 85739 "Fendoir à viande"
+	{ warrior.spells["RagingBlow"] , jps.buff(131116) and jps.buffStacks(131116) == 2 , rangedTarget , "_RagingBlow_Stacks" },
+	{ warrior.spells["RagingBlow"] , jps.buff(131116) and jps.buffDuration(131116) < 4 , rangedTarget , "_RagingBlow_Buff" },
+	-- "Wild Strike" 100130 "Frappe sauvage" -- Alone cost 45 rage -- "Bloodsurge" 46916 "Afflux sanguin"
+	{ warrior.spells["WildStrike"] , jps.buff(46916) , rangedTarget ,"_WildStrike_Bloodsurge" },
+
 	-- "Storm Bolt" 107570 "Eclair de tempete" -- 30 yd range
 	{ warrior.spells["StormBolt"] , jps.IsSpellKnown(107570) , rangedTarget ,"_StormBolt" },
 	-- "Dragon Roar " 118000 -- 8 yards
 	{ warrior.spells["DragonRoar"] , jps.IsSpellKnown(118000) and jps.IsSpellInRange(118000,rangedTarget) , rangedTarget , "_DragonRoar" },
+	-- "Ravager" 152277 -- 40 yd range
+	{ warrior.spells["Ravager"] , jps.IsSpellKnown(152277) , rangedTarget , "_Ravager" },
 	-- "Siegebreaker" 176289 "Briseur de siège"
 	{ warrior.spells["Siegebreaker"] , jps.IsSpellKnown(176289) , rangedTarget ,"_Siegebreaker" },
 
-	{"nested", jps.hp(rangedTarget) < 0.20 ,{
-		-- "Execute" 5308 "Exécution" -- cost 30 rage
-		{ warrior.spells["Execute"], jps.rage() > 60 , rangedTarget , "Execute" },
-		-- "Wild Strike" 100130 "Frappe sauvage" -- Alone cost 45 rage -- "Bloodsurge" 46916 "Afflux sanguin"
-		{ warrior.spells["WildStrike"] , jps.buff(46916) , rangedTarget ,"_WildStrike_Bloodsurge" },
-		-- "Execute" 5308 "Exécution" -- cost 30 rage
-		{ warrior.spells["Execute"], Enrage , rangedTarget , "Execute" },
-
-	}},
-
-	{"nested", jps.MultiTarget or EnemyCount >= 3 ,{
-	
-		-- "Wild Strike" 100130 "Frappe sauvage" -- Alone cost 45 rage -- "Bloodsurge" 46916 "Afflux sanguin"
-		{ warrior.spells["WildStrike"] , jps.buff(46916) , rangedTarget ,"_WildStrike_Bloodsurge" },
-		-- "Raging Blow" 85288 "Coup déchaîné" -- buff Raging Blow! 131116 -- cost 10 rage -- "Meat Cleaver" 85739 "Fendoir à viande"
-		{ warrior.spells["RagingBlow"] , jps.buff(131116) and (jps.buffStacks(85739) >= 2) , rangedTarget , "_RagingBlow_MeatCleaver" },
-		-- "Bladestorm" 46924 "Tempête de lames" -- "Enrage" 12880 "Enrager" -- While Bladestorm is active, you cannot perform any actions except for using your Taunt
-		{ warrior.spells["Bladestorm"], jps.buffDuration(12880) > 6 , rangedTarget , "_Bladestorm" },
-		-- "Shockwave" 46968 "Onde de choc"
-		{ warrior.spells["Shockwave"] , jps.IsSpellInRange(46968,rangedTarget) , rangedTarget , "_Shockwave" },
-		-- "Whirlwind" 1680 -- 8 yd range
-		{ warrior.spells["Whirlwind"], jps.rage() > 60 and jps.IsSpellInRange(1680,rangedTarget) , rangedTarget , "_Whirlwind" },
-
-	}},
-	
-	-- "Raging Blow" 85288 "Coup déchaîné" -- buff Raging Blow! 131116 -- cost 10 rage
-	{ warrior.spells["RagingBlow"] , (jps.buffStacks(131116) == 2) , rangedTarget , "_RagingBlow_Stacks" },
-	-- "Wild Strike" 100130 "Frappe sauvage" -- Alone cost 45 rage -- "Bloodsurge" 46916 "Afflux sanguin"
-	{ warrior.spells["WildStrike"] , jps.buff(46916) , rangedTarget ,"_WildStrike_Bloodsurge" },
 	-- "Wild Strike" 100130 "Frappe sauvage" -- Alone cost 45 rage -- "Bloodsurge" 46916 "Afflux sanguin"
 	{ warrior.spells["WildStrike"] , jps.rage() > 80 , rangedTarget ,"_WildStrike_Rage" },
-	-- "Raging Blow" 85288 "Coup déchaîné" -- buff Raging Blow! 131116
-	{ warrior.spells["RagingBlow"] , jps.buffDuration(131116) < 4 , rangedTarget , "_RagingBlow_Buff" },
 	-- "Bloodthirst" 23881 "Sanguinaire"
 	{ warrior.spells["Bloodthirst"], true , rangedTarget , "_Bloodthirst_End" },
 
@@ -213,7 +217,7 @@ jps.registerStaticTable("WARRIOR","FURY",
 		{ warrior.spells["Pummel"] ,'jps.ShouldKick()', warrior.rangedTarget},
 
 		-- Buffs
-		{ warrior.spells["BattleShout"],'not jps.buff(6673)' , "player"},
+		{ warrior.spells["BattleShout"],'not jps.buff(6673)' , warrior.rangedTarget},
 
 		-- Normal Rotation
 		{ warrior.spells["RagingBlow"] ,'jps.buffStacks(131116) == 2', warrior.rangedTarget },

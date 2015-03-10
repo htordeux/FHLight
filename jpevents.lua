@@ -723,7 +723,6 @@ local UpdateIntervalRaidStatus = function()
 	scoreLastUpdate = curTime
 	jps.UpdateHealerBlacklist()
 	updateEnemyDamager()
-	jps.UpdateRaidStatus()
 	if #jps.LastMessage > 2 then
 		for i=3,#jps.LastMessage do jps.LastMessage[i] = nil end
 	end

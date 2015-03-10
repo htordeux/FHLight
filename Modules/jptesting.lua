@@ -48,7 +48,7 @@ function jps_Test()
 	print("ttd: ",jps.TimeToDie("target"))
 	print("Facing: ",jps.PlayerIsFacing("target",30))
 	print("GCD: ",jps.GCD)
-	print("Distance: ",jps.Distance("target"))
+	print("Distance: ",jps.FriendNearby(12))
 	write("***************************")
 	
 	--local cdplayer = jps.enemyCooldownWatch("player")

@@ -9,6 +9,7 @@ jps.TimeToDieData = {}
 local UnitHealth = UnitHealth
 local UnitHealthMax = UnitHealthMax
 local UnitGUID = UnitGUID
+local UnitExists = UnitExists
 
 updateTimeToDie = function(elapsed, unit) -- jps.registerOnUpdate(updateTimeToDie) on jpevents.lua
 	if not unit then

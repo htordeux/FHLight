@@ -119,7 +119,6 @@ local DebuffToDispel = {
 	toSpellName(61721),		-- Polymorph: Rabbit
 	toSpellName(61780),		-- Polymorph: Turkey
 	toSpellName(28271),		-- Polymorph: Turtle
-	
 	toSpellName(8122),		-- "Psychic Scream"			-- Dispel type	Magic
 	toSpellName(5484),		-- "Howl of Terror"			-- Dispel type	Magic
 	toSpellName(3355),		-- Freezing Trap			-- Dispel type	Magic

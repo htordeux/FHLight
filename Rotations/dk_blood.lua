@@ -20,6 +20,26 @@ local canDPS = jps.canDPS
 local strfind = string.find
 local UnitClass = UnitClass
 
+local ClassEnemy = {
+	["WARRIOR"] = "cac",
+	["PALADIN"] = "caster",
+	["HUNTER"] = "cac",
+	["ROGUE"] = "cac",
+	["PRIEST"] = "caster",
+	["DEATHKNIGHT"] = "cac",
+	["SHAMAN"] = "caster",
+	["MAGE"] = "caster",
+	["WARLOCK"] = "caster",
+	["MONK"] = "caster",
+	["DRUID"] = "caster"
+}
+
+local EnemyCaster = function(unit)
+	if not jps.UnitExists(unit) then return false end
+	local _, classTarget, classIDTarget = UnitClass(unit)
+	return ClassEnemy[classTarget]
+end
+
 -- Debuff EnemyTarget NOT DPS
 local DebuffUnitCyclone = function (unit)
 	local Cyclone = false
@@ -146,8 +166,8 @@ local spellTable = {
 
 	-- DISEASES -- debuff Frost Fever 55095 -- debuff Blood Plague 55078
 	-- "Outbreak" 77575 "Poussée de fièvre" -- 30 yd range 
-	{ dk.spells["OutBreak"] , jps.myBuffDuration(55078,"target") < 0 , "target" , "_OutBreak" },
-	{ dk.spells["OutBreak"] , jps.myBuffDuration(55095,"target") < 0 , "target" , "_OutBreak" },
+	{ dk.spells["OutBreak"] , jps.myBuffDuration(55078,"target") < 0 and not jps.isRecast(77575,"target") , "target" , "_OutBreak" },
+	{ dk.spells["OutBreak"] , jps.myBuffDuration(55095,"target") < 0 and not jps.isRecast(77575,"target") , "target" , "_OutBreak" },
 	-- "Plague Strike" 45462 "Frappe de peste" -- 1 Unholy Rune
 	{ dk.spells["PlagueStrike"] , not jps.myDebuff(55078,"target") , "target" , "_PlagueStrike" },
 	-- "Icy Touch" 45477 "Toucher de glace" -- 1 Frost Rune
@@ -161,13 +181,15 @@ local spellTable = {
 	-- CONTROL --
 	{"nested", jps.combatStart > 0 , parseControl },
 	
-	-- TRINKETS
-	{ jps.useTrinket(0), jps.UseCDs and jps.combatStart > 0 and jps.useTrinketBool(0) and not playerWasControl },
-	{ jps.useTrinket(1), jps.UseCDs and jps.combatStart > 0 and jps.useTrinketBool(1) and not playerWasControl },
+	-- TRINKETS -- jps.useTrinket(0) est "Trinket0Slot" est slotId  13 -- "jps.useTrinket(1) est "Trinket1Slot" est slotId  14
+	{ jps.useTrinket(0), jps.UseCDs and jps.useTrinketBool(0) and not playerWasControl and jps.combatStart > 0 },
+	{ jps.useTrinket(1), jps.UseCDs and jps.useTrinketBool(1) and not playerWasControl and jps.combatStart > 0 },
+	
+	-- PLAGUE LEECH --
+	-- "Plague Leech" 123693 "Parasite de peste"
+	{ dk.spells["PlagueLeech"] , dk.canCastPlagueLeech() and DepletedRunes , rangedTarget , "|cff1eff00PlagueLeech_DepletedRunes" },
 
 	-- HEALS --
-	-- "Plague Leech" 123693 "Parasite de peste"
-	{ dk.spells["PlagueLeech"] , dk.canCastPlagueLeech() and AllDepletedRunes , "target", "_PlagueLeech_DepletedRunes" },
 	-- "Death Strike" 49998 "Frappe de Mort" -- 1 Unholy, 1 Frost -- "Blood Shield" 77535 "Bouclier de sang" -- jps.buffDuration(77535) max 9 sec
 	{ dk.spells["DeathStrike"] , Fr > 0 and Ur > 0 , "target" , "_|cff1eff00DeathStrike_Runes" },
 	-- "Rune Tap" 48982 "Connexion runique" -- "Rune Tap" Buff 171049 -- 1 Blood pour réduire tous les dégâts subis de 40% pendant 3 s.

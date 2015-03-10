@@ -153,7 +153,7 @@ end
 -- UnitPosition returns nil
 
 function jps.Distance(unit)
-	local dist = math.sqrt(UnitDistanceSquared(unit))
+	local dist,_ = math.sqrt(UnitDistanceSquared(unit))
 	if dist == 0 and UnitPosition(unit) == nil then dist = 100 end
 	return dist
 end

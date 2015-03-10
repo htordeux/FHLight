@@ -197,7 +197,6 @@ end
 
 -- WORKING ONLY FOR PARTYn..TARGET AND RAIDn..TARGET NOT FOR UNITNAME..TARGET
 -- CHECK IF WE CAN DAMAGE A UNIT
-
 function jps.canDPS(unit)
 	if not jps.UnitExists(unit) then return false end
 	if jps.PvP and UnitHasImmuneBuff(unit) then return false end

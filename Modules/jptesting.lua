@@ -50,11 +50,9 @@ function jps_Test()
 	print("GCD: ",jps.GCD)
 	print("Distance: ",jps.FriendNearby(12))
 	write("***************************")
-	
-	--local cdplayer = jps.enemyCooldownWatch("player")
-	--print("cdplayer: ",cdplayer)
-	local cdtarget = jps.enemyCooldownWatch("target")
-	write("cdtarget: ",cdtarget)
+
+	local CDtarget = jps.enemyCooldownWatch("target")
+	write("CDtarget: ",CDtarget)
 
 --	local mastery = GetMasteryEffect()
 --	local masteryValue = math.ceil(mastery)/100

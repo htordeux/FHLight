@@ -384,10 +384,11 @@ jps.FindSubGroupHeal = function(lowHealthDef)
 			groupToHeal = tonumber(group)
 		end
 	end
-	
-	if groupToHealHealthAvg > lowHealthDef then return nil end
+
 	local tt = nil
 	local lowestHP = lowHealthDef
+	if groupToHealHealthAvg > lowHealthDef then return tt, groupToHeal, groupToHealHealthAvg end
+
 	for unit,_ in pairs(RaidStatus) do
 		local unitHealth = jps.hp(unit)
 		if FindSubGroupUnit(unit) == groupToHeal and unitHealth < lowestHP then

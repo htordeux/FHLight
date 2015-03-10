@@ -268,15 +268,13 @@ local parseControlFocus = {
 
 local parseHeal = {
 	-- "Don des naaru" 59544
-	{ 59544, true , "player" , "Naaru_Player" },
+	{ 59544, true , "player" },
 	-- "Prière du désespoir" 19236
 	{ 19236, jps.IsSpellKnown(19236) , "player" },
 	-- "Pierre de soins" 5512
-	{ {"macro","/use item:5512"}, jps.itemCooldown(5512)==0 , "player" , "_Item5512" },
+	{ {"macro","/use item:5512"}, jps.itemCooldown(5512)==0 , "player" },
 	-- "Power Word: Shield" 17	
 	{ 17, not jps.debuff(6788,"player") and not jps.buff(17,"player") , "player" },
-	-- "Prayer of Mending" "Prière de guérison" 33076 
-	--{ 33076, not jps.buff(33076,"player") , "player" },
 }
 
 local parseAggro = {
@@ -301,9 +299,12 @@ local spellTable = {
 	-- "Shadowform" 15473
 	{ 15473, not jps.buff(15473) , "player" },
 	
+	-- SNM "Levitate" 1706 -- "Dark Simulacrum" debuff 77606
+	{ 1706, jps.fallingFor() > 1.5 and not jps.buff(111759) , "player" },
+	
 	-- TRINKETS -- jps.useTrinket(0) est "Trinket0Slot" est slotId  13 -- "jps.useTrinket(1) est "Trinket1Slot" est slotId  14
-	{ jps.useTrinket(0), jps.useTrinketBool(0) and jps.combatStart > 0 and jps.hp(rangedTarget) < 0.9 , "player" },
-	{ jps.useTrinket(1), jps.useTrinketBool(1) and playerIsStun , "player" },
+	{ jps.useTrinket(0), jps.useTrinketBool(0) and jps.combatStart > 0 and jps.hp(rangedTarget) < 0.9 },
+	{ jps.useTrinket(1), jps.useTrinketBool(1) and playerIsStun },
 	-- PLAYER AGGRO
 	{ "nested", playerAggro , parseAggro },
 	
@@ -337,7 +338,7 @@ local spellTable = {
 	{ 8092, true , rangedTarget , "Blast_CD" },
 	
 	-- "Vampiric Embrace" 15286
-	{ 15286, AvgHealthLoss < 0.85 , "player" },
+	{ 15286, AvgHealthLoss < 0.85 , rangedTarget , "_VampiricEmbrace"  },
 	-- SELF HEAL
 	{ "nested", playerhealthpct < 0.75 , parseHeal },
 
@@ -351,28 +352,25 @@ local spellTable = {
 	{ 34914, not jps.buff(132573) and fnVampEnemyTarget("mouseover") and not jps.UnitIsUnit("target","mouseover") , "mouseover" , "Vamp_MOUSEOVER_ORBS" },
 
 	-- "Power Infusion" "Infusion de puissance" 10060
-	{ 10060, jps.combatStart > 0 , "player" },
+	{ 10060, jps.combatStart > 0 , rangedTarget , "_PowerInfusion"  },
 	-- "Mind Spike" 73510 -- "Clarity of Power" 155246 "Clarté de pouvoir" -- "Devouring Plague" debuff 158831
 	{ 73510, not jps.Moving and jps.IsSpellKnown(155246) and Orbs < 4 and not jps.myDebuff(158831,rangedTarget) and not jps.myDebuff(34914,rangedTarget) and not jps.myDebuff(589,rangedTarget) , rangedTarget , "Spike_CoP" },
 
 	-- "Shadow Word: Pain" 589 -- "Shadow Word: Insanity" buff 132573
 	{ 589, type(PainEnemyTarget) == "string" , PainEnemyTarget , "Pain_MultiUnit_" },
+	{ 589, jps.myDebuff(589,rangedTarget) and jps.myDebuffDuration(589,rangedTarget) < jps.GCD and not jps.isRecast(589,rangedTarget) , rangedTarget , "Pain_Target_" },
+
 	-- "Vampiric Touch" 34914 -- "Shadow Word: Insanity" buff 132573
 	{ 34914, type(VampEnemyTarget) == "string" , VampEnemyTarget , "Vamp_MultiUnit_" },
+	{ 34914, not jps.Moving and jps.myDebuff(34914,rangedTarget) and jps.myDebuffDuration(34914,rangedTarget) < jps.GCD and not jps.isRecast(34914,rangedTarget) , rangedTarget , "VT_Target_" },
 
 	-- MULTITARGET
 	-- "Divine Star" Holy 110744 Shadow 122121
-	{ 122121, jps.IsSpellKnown(122121) and playerIsInterrupt and jps.IsSpellInRange(122121,rangedTarget) , rangedTarget , "Interrupt_DivineStar_" },
-	{ 122121, jps.IsSpellKnown(122121) and EnemyCount > 2 and jps.IsSpellInRange(122121,rangedTarget) , rangedTarget , "Divine_Star"  },
+	{ 122121, jps.IsSpellKnown(122121) and jps.IsSpellInRange(122121,rangedTarget) , rangedTarget , "_DivineStar"  },
 	-- "Cascade" Holy 121135 Shadow 127632
-	{ 127632, jps.IsSpellKnown(127632) and EnemyCount > 2 , rangedTarget , "Cascade_"  },
+	{ 127632, jps.IsSpellKnown(127632) , rangedTarget , "_Cascade"  },
 	-- "MindSear" 48045
 	{ 48045, not jps.Moving and jps.MultiTarget and EnemyCount > 3 , rangedTarget  },
-
-	-- "Shadow Word: Pain" 589 Keep up
-	{ 589, jps.myDebuff(589,rangedTarget) and jps.myDebuffDuration(589,rangedTarget) < jps.GCD and not jps.isRecast(589,rangedTarget) , rangedTarget , "Pain_Target_" },
-	-- "Vampiric Touch" 34914 Keep up
-	{ 34914, not jps.Moving and jps.myDebuff(34914,rangedTarget) and jps.myDebuffDuration(34914,rangedTarget) < jps.GCD and not jps.isRecast(34914,rangedTarget) , rangedTarget , "VT_Target_" },
 
 	-- "Leap of Faith" 73325 -- "Saut de foi"
 	{ 73325 , type(LeapFriend) == "string" , LeapFriend , "|cff1eff00Leap_MultiUnit_" },
@@ -384,7 +382,7 @@ local spellTable = {
 	-- "Gardien de peur" 634
 	{ 6346, not jps.buff(6346,"player") , "player" },
 	-- "Mind Flay" 15407
-	{ 15407, true , rangedTarget , "Fouet_Mental" },
+	{ 15407, true , rangedTarget , "_FouetMental" },
 }
 
 	spell,target = parseSpellTable(spellTable)

@@ -28,10 +28,14 @@ local UnitGUID = UnitGUID
 
 -- TABLE ENEMIES IN COMBAT
 local EnemyDamager = {}
+setmetatable(EnemyDamager, { __mode = 'k' })
 local EnemyHealer = {}
+setmetatable(EnemyHealer, { __mode = 'k' })
 local EnemyCooldowns = {}
+setmetatable(EnemyCooldowns, { __mode = 'k' })
 -- HEALTABLE
 local Healtable = {}
+setmetatable(Healtable, { __mode = 'k' })
 -- Timetodie based on incoming Damage
 local RaidTimeToDie = {}
 local GetTime = GetTime
@@ -342,6 +346,8 @@ end)
 
 -- Garbage Collection is automatic in lua every 30 sec
 local collectGarbage = function()
+	UpdateAddOnMemoryUsage()
+	write("Memory: ",GetAddOnMemoryUsage("JPS"))
 	if GetAddOnMemoryUsage("JPS") > 5120 then collectgarbage("collect") end
 end
 
@@ -445,8 +451,8 @@ local leaveCombat = function()
 	jps.HealerBlacklist = {} 
 	jps.UpdateRaidStatus()
 	jps.UpdateRaidRole()
-
-	collectgarbage()
+	-- Garbage
+	collectGarbage()
 end
 
 jps.listener.registerEvent("PLAYER_REGEN_ENABLED", leaveCombat)

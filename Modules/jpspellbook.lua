@@ -7,6 +7,10 @@ local GetSpellInfo = GetSpellInfo
 local GetTalentInfo = GetTalentInfo
 local GetGlyphSocketInfo = GetGlyphSocketInfo
 local GetGlyphLink = GetGlyphLink
+local GetSpellCooldown = GetSpellCooldown
+local GetSpellTabInfo = GetSpellTabInfo
+local GetSpellBookItemInfo = GetSpellBookItemInfo
+local GetSpellBookItemName = GetSpellBookItemName
 
 ------------------------------
 -- GLYPHS
@@ -35,15 +39,6 @@ end
 -- SPELLS
 ------------------------------
 
--- isKnown = IsSpellKnown(spellID [, isPet])
--- isKnown - True if the player (or pet) knows the given spell. false otherwise
-
-local GetSpellInfo = GetSpellInfo
-local GetSpellCooldown = GetSpellCooldown
-local GetSpellTabInfo = GetSpellTabInfo
-local GetSpellBookItemInfo = GetSpellBookItemInfo
-local GetSpellBookItemName = GetSpellBookItemName
-
 local jps_IsSpellKnown = function(spell)
 	local name, texture, offset, numSpells, isGuild = GetSpellTabInfo(2)
 	local booktype = "spell"
@@ -57,7 +52,7 @@ local jps_IsSpellKnown = function(spell)
 		local spellID = select(2,GetSpellBookItemInfo(index, booktype))
 		local slotType = select(1,GetSpellBookItemInfo(index, booktype))
 		local name = select(1,GetSpellBookItemName(index, booktype))
-		if ((spellname:lower() == name:lower()) or (spellname == name)) and slotType ~= "FUTURESPELL" then
+		if spellname == name and slotType ~= "FUTURESPELL" then
 			mySpell = spellname
 			break -- Breaking out of the for/do loop, because we have a match
 		end

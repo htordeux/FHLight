@@ -20,8 +20,11 @@
 
 
 local L = MyLocalizationTable
+local IsHarmfulSpell = IsHarmfulSpell
+local IsHelpfulSpell = IsHelpfulSpell
+		
 jps = {}
-setmetatable(jps, { __mode = 'k' }) -- jps is now weak
+
 jps.Version = "1.5"
 jps.Rotation = nil
 jps.UpdateInterval = 0.1
@@ -49,12 +52,13 @@ jps.Casting = false
 jps.ThisCast = nil
 jps.Moving = false
 jps.HarmSpell = ""
+jps.HelpSpell = ""
 jps.CurrentCast = nil
 jps.CurrentCastInterrupt = nil
 jps.CurrentCastInterruptID = nil
 jps.SentCast = nil
-jps.LastCast = ""
-jps.LastTarget = ""
+jps.LastCast = nil
+jps.LastTarget = nil
 jps.Message = ""
 jps.LastMessage = {}
 jps.LastTargetGUID = nil
@@ -99,6 +103,10 @@ jps.Tooltip = ""
 jps.ToggleRotationName = {"No Rotations"}
 rotationDropdownHolder = nil
 
+-- Local
+local tinsert = table.insert
+local GetSpellInfo = GetSpellInfo -- name, rank, icon, castTime, minRange, maxRange, spellId = GetSpellInfo(spellId or spellName)
+
 -- Slash Cmd
 SLASH_jps1 = '/jps'
 
@@ -113,33 +121,30 @@ end
 -- DETECT CLASS SPEC
 ------------------------
 
-local GetHarmfulSpell = function()
-	local HarmSpell = nil
-	local HarmSpellTable = {}
+function GetHarmfulSpell()
 	local _, _, offset, numSpells, _ = GetSpellTabInfo(2)
 	local booktype = "spell"
+	local harm = 0
+	local help = 0
 	for index = offset+1, numSpells+offset do
 		-- Get the Global Spell ID from the Player's spellbook
-		-- name, rank, icon, castTime, minRange, maxRange, spellId = GetSpellInfo(spellId or spellName)
-		
-		local name = select(1,GetSpellBookItemName(index, booktype))
+		local spell = select(1,GetSpellBookItemName(index, booktype))
 		local spellID = select(2,GetSpellBookItemInfo(index, booktype))
 		local minRange = select(5,GetSpellInfo(spellID))
 		local maxRange = select(6,GetSpellInfo(spellID))
 		local harmful = IsHarmfulSpell(index, booktype)
-		
-		if minRange ~= nil and maxRange ~= nil and harmful ~= nil then
-			if (maxRange > 39) and (harmful) and (minRange == 0) then
-				table.insert(HarmSpellTable,name)
-			elseif (maxRange > 29) and (harmful) and (minRange == 0) then
-				table.insert(HarmSpellTable,name)
-			elseif (maxRange > 19) and (harmful) and (minRange == 0) then
-				table.insert(HarmSpellTable,name)
+		local helpful = IsHelpfulSpell(index, booktype)
+		if maxRange and harmful then
+			if maxRange > harm then
+				harm = maxRange
+				jps.HarmSpell = spell
+			end
+		elseif maxRange and helpful then
+			if maxRange > help then
+				help = maxRange
+				jps.HelpSpell = spell
 			end
 		end
-	end
-	if HarmSpellTable[1] then
-		jps.HarmSpell = HarmSpellTable[1]
 	end
 end
 
@@ -158,7 +163,7 @@ end
 local setClassCooldowns = function()
 	local options = {}
 	jps.DPSRacial = getDPSRacial()
-	if jps.DPSRacial then table.insert(options,"DPS Racial") end
+	if jps.DPSRacial then tinsert(options,"DPS Racial") end
 
 	-- Add spells
 	for i,spell in pairs(options) do
@@ -175,12 +180,11 @@ function jps.detectSpec()
 	jps.Tooltip = ""
 	jps.ToggleRotationName = {"No Rotations"}
 	rotationDropdownHolder:Hide()
-	GetHarmfulSpell()
 	jps.initializedRotation = false
-
 	jps.Race = UnitRace("player")
 	jps.Class = UnitClass("player")
 	jps.Level = Ternary(jps.Level > 1, jps.Level, UnitLevel("player"))
+
 	if jps.Class then
 		local id = GetSpecialization() -- remplace GetPrimaryTalentTree() patch 5.0.4
 		if not id then
@@ -196,8 +200,7 @@ function jps.detectSpec()
 			if name then
 				jps.Spec = name
 				if jps.Spec then
-					write("Online for your",jps.Spec,jps.Class)
-					write("HarmfulSpell "..jps.HarmSpell)
+					write("Online for your",jps.Class,"-",jps.Spec)
 				end
 			end
 		end
@@ -301,6 +304,9 @@ function SlashCmdList.jps(cmd, editbox)
 		write("/jps help - Show this help text.")
 	elseif msg == "pew" then
 	  	jps.Cycle()
+	elseif msg == "harm" then
+	  	write("|cFFFF0000HarmfulSpell "..jps.HarmSpell)
+	  	write("|cff1eff00HelpfulSpell "..jps.HelpSpell)
 	else
 		if jps.Enabled then
 			print("jps Enabled - Ready and Waiting.")

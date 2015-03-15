@@ -139,7 +139,7 @@ end
 
 -- check if a unit has at least one buff from a buff table (first param)
 function jps.buffLooper(tableName, unit)
-	for _, buffName in ipairs(tableName) do
+	for _, buffName in pairs(tableName) do
 		if jps.buff(buffName, unit) then
 			return true
 		end
@@ -268,11 +268,11 @@ function jps.hasSimilarBuff(buffName, unit)
 end
 
 -- checks if our whole(valid) raid is buffed with a specific buff
-function jps.raidIsBuffed(buff) 
-	for unit, _ in pairs(jps.RaidStatus) do
-		if jps.UnitExists(unit) then
-			if not jps.hasSimilarBuff(buff, unit) then return false end
-		end
-	end
-	return true
-end
+--function jps.raidIsBuffed(buff) 
+--	for unit, _ in pairs(jps.RaidStatus) do
+--		if jps.UnitExists(unit) then
+--			if not jps.hasSimilarBuff(buff, unit) then return false end
+--		end
+--	end
+--	return true
+--end

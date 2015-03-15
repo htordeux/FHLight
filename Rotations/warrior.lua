@@ -1,5 +1,7 @@
 
+if not warrior then warrior = {} end
 warrior = {}
+warrior.spells = {}
 
 -- Enemy Tracking
 function warrior.rangedTarget()
@@ -23,13 +25,13 @@ function warrior.relativeRage(percentage)
 	return maxRage * percentage
 end
 
+-- local function
+local GetSpellInfo = GetSpellInfo
 local function toSpellName(id)
 	local name = GetSpellInfo(id)
 	return name
 end
 
-warrior.spells = {}
-	
 -- BUFFS
 
 -- "Defensive Stance" 71

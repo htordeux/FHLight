@@ -8,6 +8,9 @@ to your rotation - you can find all relevant information on Transforming your Ro
 
 local UnitIsUnit = UnitIsUnit
 local canCast = jps.canCast
+-- name, rank, icon, castTime, minRange, maxRange, spellId = GetSpellInfo(spellId or spellName)
+local GetSpellInfo = GetSpellInfo
+local ipairs = ipairs
 
 local parser = {}
 parser.testMode = false
@@ -52,20 +55,18 @@ local function fnParseMacro(macro, conditions, target)
         -- Workaround for TargetUnit is still PROTECTED despite goblin active
         local changeTargets = UnitIsUnit(target,"target")~=1 and jps.UnitExists(target)
         if changeTargets then jps.Macro("/target "..target) end
-
+        local macroSpell = ""
         if type(macro) == "string" then
-            local macroSpell = macro
             if string.find(macro,"%s") == nil then -- {"macro","/startattack"}
                 macroSpell = macro
             else
                 macroSpell = select(3,string.find(macro,"%s(.*)")) -- {"macro","/cast Sanguinaire"}
             end
             if not jps.Casting then jps.Macro(macro) end -- Avoid interrupt Channeling with Macro
-            
         -- CASTSEQUENCE WORKS ONLY FOR INSTANT CAST SPELL
 		-- "#showtooltip\n/cast Frappe du colosse\n/cast Sanguinaire"
 		elseif type(macro) == "number" then
-			local macroSpell = GetSpellInfo(macro)
+			macroSpell = GetSpellInfo(macro)
 			jps.Macro("/cast "..tostring(macroSpell))
 		end
 		if changeTargets and not jps.Casting then jps.Macro("/targetlasttarget") end
@@ -120,14 +121,14 @@ will be used as a default value.[br]
 @returns Tupel [code]spell,target[/code] if a spell should be cast, else [code]nil[/code]
 ]]--
 
-parseStaticSpellTable = function( hydraTable )
+parseStaticSpellTable = function(hydraTable)
 
     if not parser.compiledTables[tostring(hydraTable)] then
         jps.compileSpellTable(hydraTable)
         parser.compiledTables[tostring(hydraTable)] = true
     end
 
-    for _, spellTable in pairs(hydraTable) do
+    for _,spellTable in ipairs(hydraTable) do
 
         if type(spellTable) == "function" then spellTable = spellTable() end
         local spell = nil
@@ -186,14 +187,14 @@ local function ConditionEval(conditions)
     end
 end
 
-parseMyStaticSpellTable = function( hydraTable )
+parseMyStaticSpellTable = function(hydraTable)
 	
 	local spell = nil
 	local conditions = nil
 	local target = nil
 	local message = ""
 
-	for i, spellTable in ipairs( hydraTable ) do
+	for i,spellTable in ipairs(hydraTable) do
         spell = spellTable[1] -- spell
 		local cond, targ = strsplit("|", spellTable[2])
 		conditions = ConditionEval(jps.conditionParser(cond))

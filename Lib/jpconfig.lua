@@ -70,7 +70,7 @@ function jps.createConfigFrame()
 		end
 	end
 
-	for i,v in ipairs (t) do
+	for i,v in ipairs(t) do
 		local JPS_IconOptions_CheckButton = CreateFrame("CheckButton", "JPS_Button_"..v, jpsConfigFrame, "OptionsCheckButtonTemplate");
 		JPS_IconOptions_CheckButton:SetPoint("TOPLEFT",buttonPositionX,buttonPositionY);
 		getglobal(JPS_IconOptions_CheckButton:GetName().."Text"):SetText(v);
@@ -395,7 +395,7 @@ function jps.addSettingsFrame()
 	settingsInfo:SetJustifyV("TOP")
 	settingsInfo:SetText("Work in Progress!")
 
-	for settingsKey,settingsVal in pairs (jps.settings) do
+	for settingsKey,settingsVal in pairs(jps.settings) do
 		jps.notifySettingChanged(settingsKey, jps.getConfigVal(settingsKey))
 
 		rotationCountSetting = rotationCountSetting + 1

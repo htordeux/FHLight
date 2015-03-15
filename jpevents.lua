@@ -28,18 +28,17 @@ local UnitGUID = UnitGUID
 
 -- TABLE ENEMIES IN COMBAT
 local EnemyDamager = {}
-setmetatable(EnemyDamager, { __mode = 'k' })
+setmetatable(EnemyDamager, { __mode = 'k' }) -- creation of a weak table
 local EnemyHealer = {}
-setmetatable(EnemyHealer, { __mode = 'k' })
+setmetatable(EnemyHealer, { __mode = 'k' }) -- creation of a weak table
 local EnemyCooldowns = {}
-setmetatable(EnemyCooldowns, { __mode = 'k' })
+setmetatable(EnemyCooldowns, { __mode = 'k' }) -- creation of a weak table
 -- HEALTABLE
 local Healtable = {}
-setmetatable(Healtable, { __mode = 'k' })
--- Timetodie based on incoming Damage
-local RaidTimeToDie = {}
-local GetTime = GetTime
+setmetatable(Healtable, { __mode = 'k' }) -- creation of a weak table
 -- RaidStatus
+local GetSpellInfo = GetSpellInfo
+local GetTime = GetTime
 local canHeal = jps.canHeal
 local canDPS = jps.canDPS
 local GetUnitName = GetUnitName
@@ -377,7 +376,6 @@ end)
 -- Also fires any other time the player sees a loading screen
 jps.listener.registerEvent("PLAYER_ENTERING_WORLD", function()
 	jps.detectSpec()
-	reset_healtable()
 	jps.UpdateRaidStatus()
 	jps.UpdateRaidRole()
 	EnemyHealer = {} -- keep healer enemy table during all RBG time?
@@ -397,8 +395,14 @@ end)
 jps.listener.registerEvent("VARIABLES_LOADED", jps_VARIABLES_LOADED)
 
 -- Dual Spec Respec -- only fire when spec change no other event before
-jps.listener.registerEvent("ACTIVE_TALENT_GROUP_CHANGED", jps.detectSpec)
-jps.listener.registerEvent("ACTIVE_TALENT_GROUP_CHANGED", jps.resetRotationTable)
+jps.listener.registerEvent("ACTIVE_TALENT_GROUP_CHANGED", function()
+	jps.resetRotationTable()
+	jps.detectSpec()
+end)
+jps.listener.registerEvent("SPELLS_CHANGED", function()
+	GetHarmfulSpell()
+end)
+
 
 -- Save on Logout
 jps.listener.registerEvent("PLAYER_LEAVING_WORLD", jps_SAVE_PROFILE)
@@ -443,7 +447,6 @@ local leaveCombat = function()
 	SpellFailedTable = {}
 	EnemyCooldowns = {}
 	EnemyDamager = {}
-	RaidTimeToDie = {}
 	Healtable = {}
 	jps.LastMessage = {}
 	jps.TimeToDieData = {}
@@ -524,7 +527,6 @@ end)
 --channel success = SENT - CHANNEL_START - SUCCEEDED - CHANNEL_STOP
 --channel interrupt = SENT - CHANNEL_START - SUCCEEDED - CHANNEL_STOP
 
--- "UNIT_SPELLCAST_SENT"
 local sendTime = 0
 local GetTime = GetTime
 local Shield = GetSpellInfo(17)
@@ -617,7 +619,8 @@ jps.listener.registerEvent("LOSS_OF_CONTROL_ADDED", function ()
     		jps.createTimer("PlayerInterrupt",duration)
     		jps.createTimer("PlayerWasControl",duration + 2)
     	return end
-		for _, stuntype in ipairs(stunTypeTable) do
+		for i=1,#stunTypeTable do -- for _,stuntype in ipairs(stunTypeTable) do
+			local stuntype = stunTypeTable[i]
 			if locType == stuntype then 
 				jps.createTimer("PlayerStun",duration)
 				jps.createTimer("PlayerWasControl",duration + 2)
@@ -633,7 +636,7 @@ end)
 --end)
 
 ----------------------
--- UPDATE RAID ROSTER
+-- UPDATE RAID STATUS
 ----------------------
 -- UNIT_HEALTH events are sent for raid and party members regardless of their distance from the character of the host. 
 -- This makes UNIT_HEALTH extremely valuable to monitor PARTY AND RAID MEMBERS.
@@ -643,13 +646,8 @@ end)
 
 -- In Arena ??? Opposing arena member with index N (1,2,3,4 or 5).
 jps.listener.registerEvent("UNIT_HEALTH_FREQUENT", function(unitID)
-	if not jps.isHealer then return end
-	if jps.UnitInRaid(unitID) then
-		jps.UpdateRaidUnit(unitID)
-		if jps.PvP and not jps.Combat and jps.tableLength(EnemyDamager) > 0 then
-    		jps.Cycle()
-		end
-	end
+	if jps.PvP and not jps.Combat and jps.RaidAffectingCombat() then jps.Cycle() end
+	if jps.isHealer then jps.UpdateRaidUnit(unitID) end
 end)
 
 -- Group/Raid Update
@@ -670,7 +668,7 @@ local updateEnemyDamager = function()
 		local dataset = index.friendaggro
 		if dataset then 
 			local timeDelta = GetTime() - dataset[1]
-			if timeDelta > 2 then EnemyDamager[unit] = nil end
+			if timeDelta > 4 then EnemyDamager[unit] = nil end
 		end
 	end
 end
@@ -895,8 +893,8 @@ end)
 -- table.insert called without a position, it inserts the element in the last position of the array (and, therefore, moves no elements)
 -- table.remove called without a position, it removes the last element of the array.
 
--- EnemyDamager[enemyGuid] = { ["friend"] = enemyFriend } -- TABLE OF ENEMY GUID TARGETING FRIEND NAME
--- COUNT ENEMY ONLY WHEN THEY DO DAMAGE TO INRANGE FRIENDS
+-- TABLE OF ENEMY GUID TARGETING FRIEND GUID
+-- EnemyDamager[enemyGuid] = { ["friend"] = enemyFriend , [""friendname""] = destName , ["friendaggro"] = {GetTime(), dmgTTD} }
 function jps.RaidEnemyCount()
 	local enemycount = 0
 	for unit,index in pairs(EnemyDamager) do
@@ -917,7 +915,8 @@ jps.EnemyDamager = function(unit)
 	return false
 end
 
--- EnemyDamager[enemyGuid] = { ["friend"] = enemyFriend } -- TABLE OF ENEMY GUID TARGETING FRIEND GUID
+-- TABLE OF ENEMY GUID TARGETING FRIEND GUID
+-- EnemyDamager[enemyGuid] = { ["friend"] = enemyFriend , [""friendname""] = destName , ["friendaggro"] = {GetTime(), dmgTTD} }
 jps.FriendAggro = function (friend)
 	local friendGuid = UnitGUID(friend)
 	for _,index in pairs(EnemyDamager) do
@@ -931,12 +930,14 @@ local FriendTable = {}
 jps.FriendAggroTable = function()
 	table.wipe(FriendTable)
 	for unit,index in pairs (EnemyDamager) do
-		table.insert(FriendTable, index.friendname) -- { "Bob" , "Fred" , "Bob" }
+		FriendTable[#FriendTable+1] = index.friendname
+		-- table.insert(FriendTable, index.friendname) -- { "Bob" , "Fred" , "Bob" }
 	end
 
 	-- make unique keys
 	local hash = {}
-	for _,v in ipairs(FriendTable) do
+	for i=1,#FriendTable do -- for _,v in ipairs(FriendTable) do
+		local v = FriendTable[i]
 		local count = hash[v]
 		if count == nil then count = 1 else count = count + 1 end
 		hash[v] = count --  hash = { ["Bob] = 2 , ["Fred"] = 1}
@@ -1005,6 +1006,7 @@ end
 -- TIMETODIE Based on incoming DMG
 ------------------------------
 
+-- 	RaidTimeToDie = {}
 --	if RaidTimeToDie[destGUID] == nil then RaidTimeToDie[destGUID] = {} end
 --	local dataset = RaidTimeToDie[destGUID]
 --	local data = table.getn(dataset)

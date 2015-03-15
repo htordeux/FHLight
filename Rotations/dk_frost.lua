@@ -168,7 +168,7 @@ local spellTable = {
 	-- "Chains of Ice" 45524 "Chaînes de glace"
 	{ dk.spells["ChainsOfIce"] , jps.PvP and TargetMoving and not jps.IsSpellInRange(49998,rangedTarget) },
 	-- "Icy Touch" 45477 "Toucher de glace" -- for use with Glyph of Icy Touch 43546
-	{ dk.spells["IcyTouch"] , jps.glyphInfo(43546) and jps.castEverySeconds(45477,10) and jps.DispelOffensive(rangedTarget) , rangedTarget , "|cff1eff00DispelOffensive_"..rangedTarget },
+	{ dk.spells["IcyTouch"] , jps.glyphInfo(43546) and jps.castEverySeconds(45477,10) and jps.DispelOffensive(rangedTarget) , rangedTarget , "|cff1eff00DispelOffensive_" },
 	-- "Lichborne" 49039 "Changeliche" -- vous rend insensible aux effets de charme, de peur et de sommeil pendant 10 s.
 	{ dk.spells["Lichborne"] , playerIsStun , rangedTarget , "_Lichborne" },
 
@@ -420,7 +420,7 @@ local spellTable = {
 	-- "Chains of Ice" 45524 "Chaînes de glace"
 	{ dk.spells["ChainsOfIce"] , jps.PvP and TargetMoving and not jps.IsSpellInRange(49998,rangedTarget) },
 	-- "Icy Touch" 45477 "Toucher de glace" -- for use with Glyph of Icy Touch 43546
-	{ dk.spells["IcyTouch"] , jps.glyphInfo(43546) and jps.castEverySeconds(45477,10) and jps.DispelOffensive(rangedTarget) , rangedTarget , "|cff1eff00DispelOffensive_"..rangedTarget },
+	{ dk.spells["IcyTouch"] , jps.glyphInfo(43546) and jps.castEverySeconds(45477,10) and jps.DispelOffensive(rangedTarget) , rangedTarget , "|cff1eff00DispelOffensive_" },
 	-- "Lichborne" 49039 "Changeliche" -- vous rend insensible aux effets de charme, de peur et de sommeil pendant 10 s.
 	{ dk.spells["Lichborne"] , playerIsStun , rangedTarget , "_Lichborne" },
 
@@ -673,7 +673,7 @@ local spellTable = {
 	-- "Chains of Ice" 45524 "Chaînes de glace"
 	{ dk.spells["ChainsOfIce"] , TargetMoving and shouldChain() },
 	-- "Icy Touch" 45477 "Toucher de glace" -- for use with Glyph of Icy Touch 43546
-	{ dk.spells["IcyTouch"] , jps.glyphInfo(43546) and jps.castEverySeconds(45477,10) and jps.DispelOffensive(rangedTarget) , rangedTarget , "|cff1eff00DispelOffensive_"..rangedTarget },
+	{ dk.spells["IcyTouch"] , jps.glyphInfo(43546) and jps.castEverySeconds(45477,10) and jps.DispelOffensive(rangedTarget) , rangedTarget , "|cff1eff00DispelOffensive_" },
 	-- "Lichborne" 49039 "Changeliche" -- vous rend insensible aux effets de charme, de peur et de sommeil pendant 10 s.
 	{ dk.spells["Lichborne"] , playerIsStun , rangedTarget , "_Lichborne" },
 

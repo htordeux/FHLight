@@ -12,6 +12,9 @@ The DoT Tracker can be used with normal tables (#ref:jps.dotTracker.castTable) b
 are deprecated you should instead convert your rotation to a static spell table and use the appropriate function (#ref:jps.dotTracker.castTableStatic).
 ]]--
 local L = MyLocalizationTable
+local GetSpellInfo = GetSpellInfo
+local ipairs = ipairs
+
 local dotTracker = {}
 jps.dotTracker = dotTracker
 dotTracker.log = jps.Logger(jps.LogLevel.ERROR)

@@ -1,7 +1,7 @@
 local UnitIsUnit = UnitIsUnit
 local canCast = jps.canCast
 local tinsert = table.insert
-
+local GetSpellInfo = GetSpellInfo
 
 local function fnMessageEval(message)
     if message == nil then
@@ -43,35 +43,29 @@ local function fnParseMacro(macro, conditions, target)
         -- Workaround for TargetUnit is still PROTECTED despite goblin active
         local changeTargets = not UnitIsUnit(target,"target") and jps.UnitExists(target)
         if changeTargets then jps.Macro("/target "..target) end
-
+		local macroSpell = ""
         if type(macro) == "string" then
-            local macroSpell = macro
             if string.find(macro,"%s") == nil then -- {"macro","/startattack"}
                 macroSpell = macro
             else
                 macroSpell = select(3,string.find(macro,"%s(.*)")) -- {"macro","/cast Sanguinaire"}
             end
             if not jps.Casting then jps.Macro(macro) end -- Avoid interrupt Channeling with Macro
-            if jps.Debug then macrowrite(macroSpell,"|cff1eff00",target) end
-            if jps.DebugMsg then macrowrite("|cffffffff",jps.Message) end
-            
         -- CASTSEQUENCE WORKS ONLY FOR INSTANT CAST SPELL
 		-- "#showtooltip\n/cast Frappe du colosse\n/cast Sanguinaire"
 		elseif type(macro) == "number" then
-			local macroSpell = GetSpellInfo(macro)
+			macroSpell = GetSpellInfo(macro)
 			jps.Macro("/cast "..tostring(macroSpell))
-			if jps.DebugMsg then macrowrite("|cffffffff",jps.Message) end
 		end
+		if jps.Debug then macrowrite(macroSpell,"|cff1eff00",target) end
+        if jps.DebugMsg then macrowrite("|cffffffff",jps.Message) end
 		if changeTargets and not jps.Casting then jps.Macro("/targetlasttarget") end
-		tinsert(jps.LastMessage,1,jps.Message)
 	end
 end
 
 -------------------------
 -- PARSE DYNAMIC
 -------------------------
-
--- rawset() and table.insert can still be used to directly modify a read-only table
 
 --local readOnly = function(t)
 --        local mt = {
@@ -111,7 +105,7 @@ end
 --    return setmetatable(t, mt)
 --end
 
-parseSpellTable = function( hydraTable )
+parseSpellTable = function(hydraTable)
 	
 --	proxy = setmetatable(hydraTable, {__index = function(t, index) return index end})
 --	proxy = setmetatable(hydraTable, proxy) -- sets proxy to be spellTable's metatable
@@ -125,8 +119,8 @@ parseSpellTable = function( hydraTable )
 	local target = nil
 	local message = ""
 
-	for i, spellTable in ipairs( hydraTable ) do
-
+	for i=1,#hydraTable do -- for i, spellTable in ipairs(hydraTable) do
+		local spellTable = hydraTable[i]
         if type(spellTable) == "function" then spellTable = spellTable() end
 		spell = spellTable[1] 
 		conditions = fnConditionEval(spellTable[2])

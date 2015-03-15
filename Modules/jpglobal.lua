@@ -4,6 +4,7 @@
 
 local L = MyLocalizationTable
 local GetTime = GetTime
+local ipairs = ipairs
 
 -----------------------------------------------------------------------------------------------------------------------
 -- memoize.lua - v1.2 (2012-01)
@@ -278,64 +279,12 @@ end
 -- (Example: "Creature-0-976-0-11-31146-000136DF91")
 -- (Example: "Vignette-0-970-1116-7-0-0017CAE465")
 function jps.UnitGUID(unit)
-
 	local guid = UnitGUID(unit)
 	if guid == nil then return nil end
 	local objet, idplayer, spawnplayer, _, _, idobjet, spawnobjet = strsplit("-",guid);
-
 	if objet == "Player" then
 		return idplayer,spawnplayer
 	else
 		return idobjet,spawnobjet
-	end
-
-end
-
-------------------------------
--- KEYS
-------------------------------
-
-keyDownMapper = {}
-keyDownMapper["shift"] = IsShiftKeyDown
-keyDownMapper["left-shift"] = IsLeftShiftKeyDown
-keyDownMapper["right-shift"] = IsRightShiftKeyDown
-keyDownMapper["alt"]= IsAltKeyDown
-keyDownMapper["left-alt"] = IsLeftAltKeyDown
-keyDownMapper["right-alt"] = IsRightAltKeyDown
-keyDownMapper["ctrl"] = IsControlKeyDown
-keyDownMapper["left-ctrl"] = IsLeftControlKeyDown
-keyDownMapper["right-ctrl"] = IsRightControlKeyDown
-
-function keyPressed(...)	
-	local paramType = type(arrayOrString)
-	matchesNeed = select("#", ...)
-	matchesFound = 0
-	i = 1
-	while select(i , ...) ~= nil  do
-		needle = select(i, ...)
-		i = i+1
-		local apiFunction = keyDownMapper[needle:lower()]
-		if type(apiFunction) == "function" then
-			if apiFunction() ~= nil  then
-				matchesFound  =matchesFound+1
-				if matchesFound == matchesNeed then
-					return true
-				end
-			end
-		end
-	end
-	return false
-end
-
-function dump(o)
-	if type(o) == 'table' then
-		local s = '{ \n'
-		for k,v in pairs(o) do
-			if type(k) ~= 'number' then k = '"'..k..'"' end
-			s = s .. '	['..k..'] = ' .. dump(v) .. ',\n'
-		end
-		print(s .. '\n} ')
-	else
-		return tostring(o)
 	end
 end

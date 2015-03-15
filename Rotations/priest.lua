@@ -25,13 +25,11 @@ priest.AvgAmountGreatHeal = (1+masteryValue)*(1+minCrit)*(24430+(2.219*bonusHeal
 
 priest.Disc = {}
 priest.Spell = {}
-setmetatable(priest.Disc, { __mode = 'k' }) -- priest.Disc is now weak
 
 priest.Spell.Archangel = 81700;
 priest.Spell.Smite = 585;
 priest.Spell.ClarityOfWill = 152118
 priest.Spell.Cascade = 121135;
-priest.Spell.DivineStar = 110744;
 priest.Spell.Halo = 120517;
 priest.Spell.PowerWordShield = 17;
 priest.Spell.PowerWordSolace = 129250;
@@ -80,7 +78,7 @@ priest.ShouldInterruptCasting = function ( InterruptTable, AvgHealthLoss, CountI
 	for key, healSpellTable  in pairs(InterruptTable) do
 		local breakpoint = healSpellTable[2]
 		local spellName = GetSpellInfo(healSpellTable[1])
-		if (spellName:lower() == spellCasting:lower()) and healSpellTable[3] == false then
+		if spellName == spellCasting and healSpellTable[3] == false then
 			if healSpellTable[1] == priest.Spell.HolyCascade and AvgHealthLoss > breakpoint then
 				SpellStopCasting()
 				DEFAULT_CHAT_FRAME:AddMessage("STOPCASTING avgHP"..spellName.." , raid has enough hp!",0, 0.5, 0.8)

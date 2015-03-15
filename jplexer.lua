@@ -36,6 +36,7 @@ local yield,wrap = coroutine.yield,coroutine.wrap
 local strfind = string.find
 local strsub = string.sub
 local append = table.insert
+local ipairs = ipairs
 
 local function assert_arg(idx,val,tp)
     if type(val) ~= tp then

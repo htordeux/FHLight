@@ -6,10 +6,12 @@ Most of the rotations are registered on load, but you can also (un)register Rota
 You could even outsource your rotations to a separate addon if you want to.
 ]]--
 
+local tinsert = table.insert
 local pveRotations = {}
 local oocRotations = {}
 local pvpRotations = {}
 local activeRotation = 1
+local ipairs = ipairs
 
 local classNames = { "WARRIOR", "PALADIN", "HUNTER", "ROGUE", "PRIEST", "DEATHKNIGHT", "SHAMAN", "MAGE", "WARLOCK", "MONK", "DRUID" }
 
@@ -75,7 +77,7 @@ local function addRotationToTable(rotations,rotation)
             return
         end
     end
-    table.insert(rotations, rotation)
+    tinsert(rotations, rotation)
 end
 
 local function tableCount(rotationTable, key)

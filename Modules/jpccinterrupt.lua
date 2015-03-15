@@ -32,8 +32,9 @@ local canDPS = jps.canDPS
 local canHeal = jps.canHeal
 local UnitIsUnit = UnitIsUnit
 local GetTime = GetTime
-local GetSpellInfo = GetSpellInfo
 
+-- local function
+local GetSpellInfo = GetSpellInfo
 local function toSpellName(id)
 	local name = GetSpellInfo(id)
 	return name
@@ -89,7 +90,8 @@ function jps.LoseControl(unit, controlTable)
 	while auraName do
 		local Priority = jps.SpellControl[spellId]
 		if Priority then
-			for _,control in ipairs(controlTable) do -- {"CC" , "Snare" , "Root" , "Silence" }
+			for i=1,#controlTable do -- for _,control in ipairs(controlTable) do
+				local control = controlTable[i]
 				if Priority == control then
 					targetControlled = true
 					if expTime ~= nil then timeControlled = expTime - GetTime() end
@@ -152,7 +154,8 @@ local ControlDebuff = {
 local latencyWorld = select(4,GetNetStats())/1000
 function jps.IsCastingControl(unit)
 	if not canDPS(unit) then return false end
-	for _,spell in ipairs(ControlDebuff) do
+	for i=1,#ControlDebuff do -- for _,spell in ipairs(ControlDebuff) do
+		local spell = ControlDebuff[i]
 		if jps.IsCastingSpell(spell,unit) then
 			return true
 		end
@@ -168,14 +171,16 @@ local DebuffNotDispel = {
 
 -- Don't dispel if friend is affected by "Unstable Affliction" or "Vampiric Touch" or "Lifebloom"
 local NotDispelFriendly = function(unit)
-	for _,debuff in ipairs(DebuffNotDispel) do
+	for i=1,#DebuffNotDispel do -- for _,debuff in ipairs(DebuffNotDispel) do
+		local debuff = DebuffNotDispel[i]
 		if jps.debuff(debuff,unit) then return true end
 	end
 	return false
 end
 
 local findDebuffToDispel = function(name)
-	for _,debuff in ipairs(DebuffToDispel) do
+	for i=1,#DebuffToDispel do -- for _,debuff in ipairs(DebuffToDispel) do
+		local debuff = DebuffToDispel[i]
 		if name == debuff then
 		return true end
 	end
@@ -235,7 +240,8 @@ function jps.DispelOffensive(unit)
 	if unit == nil then return false end
 	if not canDPS(unit) then return false end
 	if jps.buff(NotOffensiveDispel,unit) then return false end 
-	for _, buff in ipairs(BuffToDispel) do
+	for i=1,#BuffToDispel do -- for _,buff in ipairs(BuffToDispel) do
+		local buff = BuffToDispel[i]
 		if jps.buff(buff,unit) then
 		return true end
 	end

@@ -7,7 +7,12 @@ local canHeal = jps.canHeal
 local strfind = string.find
 local UnitClass = UnitClass
 local UnitChannelInfo = UnitChannelInfo
-local tinsert = table.insert
+local GetSpellInfo = GetSpellInfo
+
+-- Channeling
+local MindFlay = GetSpellInfo(15407)
+local Insanity = GetSpellInfo(129197)
+local MindSear = GetSpellInfo(48045)
 
 local ClassEnemy = {
 	["WARRIOR"] = "cac",
@@ -114,8 +119,7 @@ if canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
 ------------------------
 
 -- take care if "focus" not Polymorph and not Cyclone
--- table.insert(t, 1, "element") insert an element at the start
-if canDPS("focus") and not DebuffUnitCyclone("focus") then tinsert(EnemyUnit,1,"focus") end
+if canDPS("focus") and not DebuffUnitCyclone("focus") then EnemyUnit[#EnemyUnit+1] = "focus" end
 
 local fnPainEnemyTarget = function(unit)
 	if canDPS(unit) and not jps.myDebuff(589,unit) and not jps.isRecast(589,unit) then
@@ -131,7 +135,8 @@ local fnVampEnemyTarget = function(unit)
 end
 
 local SilenceEnemyTarget = nil
-for _,unit in ipairs(EnemyUnit) do
+for i=1,#EnemyUnit do -- for _,unit in ipairs(EnemyUnit) do
+	local unit = EnemyUnit[1]
 	if jps.IsSpellInRange(15487,unit) then
 		if jps.ShouldKick(unit) then
 			SilenceEnemyTarget = unit
@@ -140,28 +145,32 @@ for _,unit in ipairs(EnemyUnit) do
 end
 
 local DeathEnemyTarget = nil
-for _,unit in ipairs(EnemyUnit) do 
+for i=1,#EnemyUnit do -- for _,unit in ipairs(EnemyUnit) do
+	local unit = EnemyUnit[1]
 	if priest.canShadowWordDeath(unit) then 
 		DeathEnemyTarget = unit
 	break end
 end
 
 local PainEnemyTarget = nil
-for _,unit in ipairs(EnemyUnit) do 
+for i=1,#EnemyUnit do -- for _,unit in ipairs(EnemyUnit) do
+	local unit = EnemyUnit[1]
 	if fnPainEnemyTarget(unit) then
 		PainEnemyTarget = unit
 	break end
 end
 
 local VampEnemyTarget = nil
-for _,unit in ipairs(EnemyUnit) do 
+for i=1,#EnemyUnit do -- for _,unit in ipairs(EnemyUnit) do
+	local unit = EnemyUnit[1]
 	if fnVampEnemyTarget(unit) then
 		VampEnemyTarget = unit
 	break end
 end
 
 local DispelOffensiveTarget = nil
-for _,unit in ipairs(EnemyUnit) do 
+for i=1,#EnemyUnit do -- for _,unit in ipairs(EnemyUnit) do
+	local unit = EnemyUnit[1]
 	if jps.DispelOffensive(unit) then
 		DispelOffensiveTarget = unit
 	break end
@@ -173,7 +182,8 @@ end
 
 -- priest.unitForLeap includes jps.FriendAggro and jps.LoseControl
 local LeapFriend = nil
-for _,unit in ipairs(FriendUnit) do
+for i=1,#FriendUnit do -- for _,unit in ipairs(FriendUnit) do
+	local unit = FriendUnit[i]
 	if priest.unitForLeap(unit) and jps.hp(unit) < 0.25 then
 		if jps.RoleInRaid(unit) == "HEALER" then
 			LeapFriend = unit
@@ -194,13 +204,11 @@ if jps.buff(47585,"player") then return end -- "Dispersion" 47585
 -- "Mind Flay" 15407 -- "Mind Blast" 8092 -- buff 81292 "Glyph of Mind Spike"
 -- "Insanity" 129197
 local canCastMindBlast = false
-local canCastDeath = false
-local MindFlay = GetSpellInfo(15407) or GetSpellInfo(129197)
 local Channeling = UnitChannelInfo("player") -- "Mind Flay" is a channeling spell
 -- "Shadow Word: Insanity" 132573 not jps.buff(132573)
-if Channeling == MindFlay then
+if Channeling and Channeling == MindFlay then
 	-- "Mind Blast" 8092 -- buff 81292 "Glyph of Mind Spike"
-	if (jps.cooldown(8092) == 0) and (jps.buffStacks(81292) == 2) then 
+	if jps.cooldown(8092) == 0 and jps.buffStacks(81292) == 2 then 
 		canCastMindBlast = true
 	-- "Shadowy Insight" proc "Mind Blast" 8092 -- "Shadowy Insight" 162452 gives BUFF 124430
 	elseif jps.buff(124430) then
@@ -208,9 +216,6 @@ if Channeling == MindFlay then
 	-- "Mind Blast" 8092
 	elseif jps.cooldown(8092) == 0 and not jps.Moving then 
 		canCastMindBlast = true
-	-- "Shadow Word: Death" 32379
-	elseif jps.hp(rangedTarget) < 0.20 then
-		canCastDeath = true
 	end
 end
 
@@ -221,13 +226,6 @@ if canCastMindBlast then
 	write("MIND_BLAST")
 return end
 
-if canCastDeath then
-	SpellStopCasting()
-	spell = 32379;
-	target = rangedTarget;
-	write("DEATH_MultiUnit")
-return end
-
 -- Avoid interrupt Channeling
 if jps.ChannelTimeLeft() > 0 then return nil end
 
@@ -236,6 +234,7 @@ if jps.ChannelTimeLeft() > 0 then return nil end
 -------------------------------------------------------------
 
 local fnOrbs = function(unit)
+	if not jps.PvP then return false end
 	if jps.LoseControl(unit) then return false end
 	if Orbs == 0 then return false end
 	if Orbs < 3 and jps.ShouldKick(unit) then return true end
@@ -301,6 +300,7 @@ local spellTable = {
 	
 	-- SNM "Levitate" 1706 -- "Dark Simulacrum" debuff 77606
 	{ 1706, jps.fallingFor() > 1.5 and not jps.buff(111759) , "player" },
+	{ 1706, jps.debuff(77606,"player") , "player" , "DarkSim_Levitate" },
 	
 	-- TRINKETS -- jps.useTrinket(0) est "Trinket0Slot" est slotId  13 -- "jps.useTrinket(1) est "Trinket1Slot" est slotId  14
 	{ jps.useTrinket(0), jps.useTrinketBool(0) and jps.combatStart > 0 and jps.hp(rangedTarget) < 0.9 },
@@ -318,17 +318,18 @@ local spellTable = {
 	{ 73510, jps.buffStacks(87160,"player") == 3 , rangedTarget , "Spike_SurgeofDarkness_Stacks" },
 	{ 73510, jps.buff(87160) and jps.hp(rangedTarget) < 0.20 , rangedTarget , "Spike_SurgeofDarkness_LowHealth" },
 	{ 73510, jps.buff(87160) and jps.buffDuration(87160) < 4 , rangedTarget , "Spike_SurgeofDarkness_GCD" },
-	
+
 	-- "Devouring Plague" 2944 now consumes 3 Shadow Orbs, you don't have the ability to use with less Orbs
 	{ 2944, Orbs == 5 , rangedTarget , "ORBS_5" },
 	-- "Devouring Plague" 2944 now consumes 3 Shadow Orbs, you don't have the ability to use with less Orbs
 	{ 2944, Orbs > 3 and jps.hp(rangedTarget) < 0.20 , rangedTarget , "ORBS_LowHealth" },
-	-- "Mind Flay" 15407 -- "Shadow Word: Insanity" buff 132573
-	{ 15407, not jps.Moving and jps.buff(132573) , rangedTarget , "MINDFLAYORBS_" },
 	
 	-- "Shadow Word: Death" 32379 "Mot de l'ombre : Mort"
-	{ 32379, jps.hp(rangedTarget) < 0.20 , rangedTarget, "castDeath_"..rangedTarget },
+	{ 32379, jps.hp(rangedTarget) < 0.20 , rangedTarget, "castDeath_" },
 	{ 32379, type(DeathEnemyTarget) == "string" , DeathEnemyTarget , "Death_MultiUnit" },
+
+	-- "Mind Flay" 15407 -- "Shadow Word: Insanity" buff 132573 -- "Insanity" 129197
+	{ 15407, not jps.Moving and jps.buff(132573) , rangedTarget , "MINDFLAYORBS_" },
 	
 	-- "Mind Blast" 8092 -- "Shadowy Insight" 162452 gives buff 124430
 	{ 8092, jps.buff(124430) , rangedTarget , "Blast_ShadowyInsight" },
@@ -338,7 +339,7 @@ local spellTable = {
 	{ 8092, true , rangedTarget , "Blast_CD" },
 	
 	-- "Vampiric Embrace" 15286
-	{ 15286, AvgHealthLoss < 0.85 , rangedTarget , "_VampiricEmbrace"  },
+	{ 15286, AvgHealthLoss < 0.75 , rangedTarget , "_VampiricEmbrace"  },
 	-- SELF HEAL
 	{ "nested", playerhealthpct < 0.75 , parseHeal },
 
@@ -352,9 +353,12 @@ local spellTable = {
 	{ 34914, not jps.buff(132573) and fnVampEnemyTarget("mouseover") and not jps.UnitIsUnit("target","mouseover") , "mouseover" , "Vamp_MOUSEOVER_ORBS" },
 
 	-- "Power Infusion" "Infusion de puissance" 10060
-	{ 10060, jps.combatStart > 0 , rangedTarget , "_PowerInfusion"  },
+	{ 10060, jps.combatStart > 0 and not jps.myDebuff(34914,rangedTarget) and not jps.myDebuff(589,rangedTarget) , rangedTarget , "_PowerInfusion"  },
 	-- "Mind Spike" 73510 -- "Clarity of Power" 155246 "Clarté de pouvoir" -- "Devouring Plague" debuff 158831
 	{ 73510, not jps.Moving and jps.IsSpellKnown(155246) and Orbs < 4 and not jps.myDebuff(158831,rangedTarget) and not jps.myDebuff(34914,rangedTarget) and not jps.myDebuff(589,rangedTarget) , rangedTarget , "Spike_CoP" },
+	{ 73510, not jps.Moving and jps.IsSpellKnown(155246) and Orbs < 4 and not jps.myDebuff(158831,rangedTarget)
+	and jps.myDebuffDuration(34914,rangedTarget) < 3 and jps.myDebuffDuration(589,rangedTarget) < 3 , rangedTarget , "Spike_CoP" },
+
 
 	-- "Shadow Word: Pain" 589 -- "Shadow Word: Insanity" buff 132573
 	{ 589, type(PainEnemyTarget) == "string" , PainEnemyTarget , "Pain_MultiUnit_" },
@@ -366,19 +370,18 @@ local spellTable = {
 
 	-- MULTITARGET
 	-- "Divine Star" Holy 110744 Shadow 122121
-	{ 122121, jps.IsSpellKnown(122121) and jps.IsSpellInRange(122121,rangedTarget) , rangedTarget , "_DivineStar"  },
+	{ 122121, jps.IsSpellKnown(122121) and EnemyCount > 3 , rangedTarget , "_DivineStar"  },
 	-- "Cascade" Holy 121135 Shadow 127632
-	{ 127632, jps.IsSpellKnown(127632) , rangedTarget , "_Cascade"  },
+	{ 127632, jps.IsSpellKnown(127632) and EnemyCount > 3 , rangedTarget , "_Cascade"  },
 	-- "MindSear" 48045
 	{ 48045, not jps.Moving and jps.MultiTarget and EnemyCount > 3 , rangedTarget  },
 
-	-- "Leap of Faith" 73325 -- "Saut de foi"
-	{ 73325 , type(LeapFriend) == "string" , LeapFriend , "|cff1eff00Leap_MultiUnit_" },
-	
 	-- Offensive Dispel -- "Dissipation de la magie" 528 -- includes canDPS
-	{ 528, jps.castEverySeconds(528,10) and jps.DispelOffensive(rangedTarget) , rangedTarget , "|cff1eff00Dispel_Offensive_"..rangedTarget },
+	{ 528, jps.castEverySeconds(528,10) and jps.DispelOffensive(rangedTarget) , rangedTarget , "|cff1eff00Dispel_Offensive_" },
 	{ 528, jps.castEverySeconds(528,10) and type(DispelOffensiveTarget) == "string"  , DispelOffensiveTarget , "|cff1eff00Dispel_Offensive_MultiUnit_" },
 
+	-- "Leap of Faith" 73325 -- "Saut de foi"
+	{ 73325 , type(LeapFriend) == "string" , LeapFriend , "|cff1eff00Leap_MultiUnit_" },
 	-- "Gardien de peur" 634
 	{ 6346, not jps.buff(6346,"player") , "player" },
 	-- "Mind Flay" 15407
@@ -412,12 +415,13 @@ jps.registerRotation("PRIEST","SHADOW",function()
 	local macroCancelaura = "/cancelaura "..ShadowForm
 
 	local spellTableOOC = {
-	
-	-- "Don des naaru" 59544
-	{ 59544, playerhealthpct < 0.75 , "player" },
-	-- "Soins rapides" 2061
-	{ {"macro",macroCancelaura}, playerhealthpct < 0.75 , "player"  , "Cancelaura_" },
-	{ 2061, not jps.buff(15473) and not jps.Moving and playerhealthpct < 0.75 , "player" , "FlashHeal_" },
+
+	-- SNM "Levitate" 1706	
+	{ 1706, jps.fallingFor() > 1.5 and not jps.buff(111759) , "player" },
+	{ 1706, playerIsSwimming and not jps.buff(111759) , "player" },
+
+	-- "Fortitude" 21562 -- "Commanding Shout" 469 -- "Blood Pact" 166928
+	{ 21562, not jps.PvP and jps.buffMissing(21562) , "player" },
 	
 	-- "Semblance spectrale" 112833 "Spectral Guise" gives buff 119032
 	{"nested", jps.buff(119032) , {
@@ -438,14 +442,13 @@ jps.registerRotation("PRIEST","SHADOW",function()
 		{ 1706, not jps.buff(111759) , "player" },
 	},},
 
-	-- "Fortitude" 21562 -- "Commanding Shout" 469 -- "Blood Pact" 166928
-	{ 21562, jps.buffMissing(21562) , "player" },
-	-- SNM "Levitate" 1706 -- try to keep buff for enemy dispel -- Buff "Lévitation" 111759
-	{ 1706, jps.fallingFor() > 1.5 and not jps.buff(111759) , "player" },
-	{ 1706, playerIsSwimming and not jps.buff(111759) , "player" },
-
+	-- "Don des naaru" 59544
+	{ 59544, playerhealthpct < 0.75 , "player" },
 	-- "Shield" 17 "Body and Soul" 64129 -- figure out how to speed buff everyone as they move
 	{ 17, jps.Moving and jps.IsSpellKnown(64129) and not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Shield_BodySoul" },
+	-- "Soins rapides" 2061
+	{ {"macro",macroCancelaura}, jps.buff(15473) and playerhealthpct < 0.50 , "player"  , "Cancelaura_" },
+	{ 2061, not jps.buff(15473) and not jps.Moving and playerhealthpct < 0.75 , "player" , "FlashHeal_" },
 	-- "Shadowform" 15473
 	{ 15473, not jps.buff(15473) , "player" },
 
@@ -453,6 +456,8 @@ jps.registerRotation("PRIEST","SHADOW",function()
 	{ {"macro","/use item:118922"}, jps.itemCooldown(118922) == 0 and not jps.buff(176151) , "player" },
 
 }
+
+	if jps.RaidAffectingCombat() then jps.Combat = true end
 
 	local spell,target = parseSpellTable(spellTableOOC)
 	return spell,target

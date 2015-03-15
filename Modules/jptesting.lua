@@ -14,6 +14,13 @@
 -- FUNCTION TEST 
 -----------------------
 
+-- local function
+local GetSpellInfo = GetSpellInfo
+local function toSpellName(id)
+	local name = GetSpellInfo(id)
+	return name
+end
+
 local function canCastDebug(spell,unit)
 	if spell == "" then return false end
 	if unit == nil then unit = "target" end
@@ -36,9 +43,6 @@ end
 
 function jps_Test()
 
-	--jps.printIsSpellFailed()
-	jps.LookupEnemyDamager()
-	jps.LookupEnemyHealer()
 	write("***************************")
 	print("Stun:|cff0070dd ",jps.checkTimer("PlayerStun"))
 	print("Interrupt:|cff0070dd ",jps.checkTimer("PlayerInterrupt"))
@@ -46,13 +50,32 @@ function jps_Test()
 	print("Aggro:|cff0070dd ",jps.FriendAggro("player"))
 	print("LoseControl:|cff0070dd ",jps.LoseControl("player"))
 	print("ttd: ",jps.TimeToDie("target"))
-	print("Facing: ",jps.PlayerIsFacing("target",30))
+	print("Facing: ",jps.PlayerIsFacing("target",90))
 	print("GCD: ",jps.GCD)
 	print("Distance: ",jps.FriendNearby(12))
 	write("***************************")
 
-	local CDtarget = jps.enemyCooldownWatch("target")
-	write("CDtarget: ",CDtarget)
+--	local CDtarget = jps.enemyCooldownWatch("target")
+--	write("CDtarget: ",CDtarget)
+	
+	local POHTarget, groupToHeal, groupHealth = jps.FindSubGroupHeal(1)
+	print("POHTarget: ",POHTarget,"groupToHeal: ",groupToHeal,"groupHealth: ",groupHealth)
+	local CountInRange, AvgHealthLoss, FriendUnit = jps.CountInRaidStatus(100)
+	write("CountInRange: ",CountInRange,"AvgHealthLoss: ", AvgHealthLoss)
+
+--[[	
+	local myTanks = { "player","focus","target" }
+	myTanks[1] = "prout";
+	write("1",unpack(myTanks)) -- "prout,focus,target"
+	
+	local myTanks = { "player","focus","target" }
+	myTanks[#myTanks] = "prout";  
+	write("2",unpack(myTanks)) -- player,focus,prout"
+	
+	local myTanks = { "player","focus","target" }
+	myTanks[#myTanks+1] = "prout";  
+	write("3",unpack(myTanks)) -- "player,focus,target,prout"
+]]--
 
 --	local mastery = GetMasteryEffect()
 --	local masteryValue = math.ceil(mastery)/100
@@ -73,9 +96,10 @@ end
 function jps_RaidTest()
 
 	jps.LookupRaid ()
-
-	local target, dupe, dupecount = jps.LowestTarget()
-	print("target: ",target,"count", dupecount,"Table: ", unpack(dupe))
+	jps.LookupEnemyDamager()
+	local rangedTarget, EnemyUnit, TargetCount = jps.LowestTarget()
+	print("rangedTarget: ",rangedTarget,"TargetCount: ",TargetCount)
+	print("EnemyUnit: ",unpack(EnemyUnit))
 
 end
 

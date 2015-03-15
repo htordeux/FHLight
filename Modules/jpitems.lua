@@ -85,7 +85,7 @@ function parseTrinketText(trinket,str)
 				local matchesRequired = table.getn(str)
 				local matchesFound = 0
 				for key, val in pairs(str) do 
-					if string.find(text:lower(), val:lower()) then 
+					if string.find(text:lower(),val:lower()) then 
 						matchesFound = matchesFound +1 
 					end
 				end
@@ -170,7 +170,7 @@ function jps.useSlot(num)
 	end
 
 	-- Use it
-	if not useSlotMacros[num] then useSlotMacros[num] = { "macro", "/use "..num } end
+	if not useSlotMacros[num] then useSlotMacros[num] = {"macro","/use "..num} end
 	return useSlotMacros[num]
 end
 

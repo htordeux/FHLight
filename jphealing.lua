@@ -3,7 +3,6 @@ local UnitGetIncomingHeals = UnitGetIncomingHeals
 local UnitGetTotalAbsorbs = UnitGetTotalAbsorbs
 local UnitHealth = UnitHealth
 local UnitHealthMax = UnitHealthMax
-local GetSpellInfo = GetSpellInfo
 local GetRaidRosterInfo = GetRaidRosterInfo
 local GetNumGroupMembers = GetNumGroupMembers
 local GetNumSubgroupMembers = GetNumSubgroupMembers
@@ -15,6 +14,8 @@ local UnitDebuff = UnitDebuff
 local MAX_RAID_MEMBERS = MAX_RAID_MEMBERS
 local UnitGUID = UnitGUID
 local GetTime = GetTime
+local UnitInRaid = UnitInRaid
+local UnitAffectingCombat = UnitAffectingCombat
 
 -- Localization
 local L = MyLocalizationTable
@@ -23,14 +24,19 @@ local UnitClass = UnitClass
 local GetUnitName = GetUnitName
 local tinsert = table.insert
 local pairs = pairs
+local canHeal = jps.canHeal
+local canDPS = jps.canDPS
+local twipe = table.wipe
 
 -- local function
+local GetSpellInfo = GetSpellInfo
 local function toSpellName(id)
 	local name = GetSpellInfo(id)
 	return name
 end
-local canHeal = jps.canHeal
-local canDPS = jps.canDPS
+local function HealthPct(unit)
+	return UnitHealth(unit) / UnitHealthMax(unit)
+end
 
 ----------------------
 -- UPDATE RAIDROSTER
@@ -42,6 +48,7 @@ local canDPS = jps.canDPS
 
 local RaidStatusRole = {}
 local RaidStatus = {}
+local RaidRoster = {}
 
 jps.UpdateRaidStatus = function ()
 
@@ -60,7 +67,7 @@ jps.UpdateRaidStatus = function ()
 		npe = GetNumSubgroupMembers()
 	end
 
-	table.wipe(RaidStatus)
+	twipe(RaidStatus)
 	for i=nps,npe do
 		if i==0 then
 			unit = "player"
@@ -69,21 +76,15 @@ jps.UpdateRaidStatus = function ()
 		end
 		
 		if RaidStatus[unit] == nil then RaidStatus[unit] = {} end
-		RaidStatus[unit]["hpct"] = jps.hp(unit)
+		RaidStatus[unit]["hpct"] = HealthPct(unit)
 		RaidStatus[unit]["inrange"] = canHeal(unit)
 	end
 end
 
--- Unit is INRANGE
 jps.UpdateRaidUnit = function (unit)
-	if RaidStatus[unit] == nil then RaidStatus[unit] = {} end
-	RaidStatus[unit]["hpct"] = jps.hp(unit)
+	if RaidStatus[unit] == nil then return end
+	RaidStatus[unit]["hpct"] = HealthPct(unit)
 	RaidStatus[unit]["inrange"] = canHeal(unit)
-end
-
-jps.UnitInRaid = function(unit)
-	if RaidStatus[unit] then return true end
-	return false
 end
 
 --------------------------
@@ -97,8 +98,10 @@ end
 -- role = UnitGroupRolesAssigned(unit) -- works only for friendly unit in raid TANK, HEALER, DAMAGER, NONE -- return "NONE" if not in raid
 
 jps.UpdateRaidRole = function ()
-	table.wipe(RaidStatusRole)
+	twipe(RaidStatusRole)
+	twipe(RaidRoster)
 	for unit,_ in pairs(RaidStatus) do
+		RaidRoster[#RaidRoster+1] = unit
 		local role = UnitGroupRolesAssigned(unit)
 		local class = select(2,UnitClass(unit))
 		if RaidStatusRole[unit] == nil then RaidStatusRole[unit] = {} end
@@ -111,6 +114,36 @@ end
 jps.RoleInRaid = function (unit)
 	if RaidStatusRole[unit] then return RaidStatusRole[unit]["role"] end
 	return "NONE"
+end
+
+----------------------
+-- UPDATE RAIDTARGET
+----------------------
+
+local RaidTarget = {}
+jps.LowestTarget = function()
+	twipe(RaidTarget)
+	for i=1,#RaidRoster do -- for unit,_ in pairs(RaidStatus) do
+		local unit = RaidRoster[i]
+		if canDPS(unit.."target") then
+			local unittarget = unit.."target"
+			RaidTarget[#RaidTarget+1] = unittarget -- tinsert(RaidTarget, unittarget)
+		end
+	end
+	
+	local hash = {}
+	for i=1,#RaidTarget do -- for _,v in ipairs(RaidTarget) do -- { "playertarget" , "raid5target" , "raid4target" }
+		local v = RaidTarget[i]
+		local targuid = UnitGUID(v)
+		hash[targuid] = v -- hash = { [targuid1] = "playertarget" , [targuid2] = "raid5target"}
+	end
+
+	local dupe = {}
+	for _,j in pairs(hash) do
+		dupe[#dupe+1] = j -- dupe = { "playertarget" , "raid5target" }
+	end
+	table.sort(dupe, function(a,b) return HealthPct(a) < HealthPct(b) end)
+	return dupe[1] or "target", dupe, #dupe
 end
 
 --------------------------
@@ -127,61 +160,47 @@ end
 --3 = securely tanking at least one unit.
 
 function jps.findTankInRaid()
-	local myTanks = {}
-	for unit,_ in pairs(RaidStatus) do
-		if jps.RoleInRaid(unit) == "TANK" then tinsert(myTanks,unit) end
-	end
-	local highestThreat = 0
-	local aggroTank = myTanks[1] or "focus"
-	for _, tank in ipairs(myTanks) do
-		local unitThreat = UnitThreatSituation(tank)
-		if unitThreat and unitThreat > highestThreat then
-			highestThreat = unitThreat
-			aggroTank = tank
+	local TankUnit = {}
+	for i=1,#RaidRoster do -- for unit,_ in pairs(RaidStatus) do
+		local unit = RaidRoster[i]
+		if jps.RoleInRaid(unit) == "TANK" then
+			TankUnit[#TankUnit+1] = unit -- tinsert(TankUnit,unit)
 		end
 	end
-	return aggroTank, myTanks
+	local highestThreat = 0
+	local tankThreat = TankUnit[1] or "focus"
+	for i=1,#TankUnit do -- for _,unit in ipairs(TankUnit) do
+		local unit = TankUnit[i]
+		local unitThreat = UnitThreatSituation(unit)
+		if unitThreat and unitThreat >= highestThreat then
+			highestThreat = unitThreat
+			tankThreat = unit
+		end
+	end
+	return tankThreat, TankUnit
 end
 
 function jps.findAggroInRaid()
 	local TankUnit = {}
-	for unit,_ in pairs(RaidStatus) do
-		local Threat = UnitThreatSituation(unit)
-		if Threat then
-			if Threat == 1 then tinsert(TankUnit, unit)
-			elseif Threat == 3 then tinsert(TankUnit, unit) end
+	for i=1,#RaidRoster do -- for unit,_ in pairs(RaidStatus) do
+		local unit = RaidRoster[i]
+		local unitThreat = UnitThreatSituation(unit)
+		if unitThreat then
+			if unitThreat == 1 then TankUnit[#TankUnit+1] = unit -- tinsert(TankUnit, unit)
+			elseif unitThreat == 3 then TankUnit[#TankUnit+1] = unit -- tinsert(TankUnit, unit)
+			end
 		end
 	end
-	table.sort(TankUnit, function(a,b) return jps.hp(a) < jps.hp(b) end)
+	table.sort(TankUnit, function(a,b) return HealthPct(a) < HealthPct(b) end)
 	return TankUnit[1] or "focus", TankUnit
 end
 
-----------------------
--- UPDATE RAIDTARGET
-----------------------
-
-local RaidTarget = {}
-jps.LowestTarget = function()
-	table.wipe(RaidTarget)
-	for unit,_ in pairs (RaidStatus) do
-		if canDPS(unit.."target") then
-			local unittarget = unit.."target"
-			tinsert(RaidTarget, unittarget)
-		end
+function jps.RaidAffectingCombat()
+	for i=1,#RaidRoster do -- for unit,_ in pairs(RaidStatus) do
+		local unit = RaidRoster[i]
+		if jps.Distance(unit) < 40 and UnitAffectingCombat(unit) then return true end
 	end
-	
-	local hash = {}
-	for _,v in ipairs(RaidTarget) do -- { "playertarget" , "raid5target" , "raid4target" }
-		local targuid = UnitGUID(v)
-		hash[targuid] = v -- hash = { [targuid1] = "playertarget" , [targuid2] = "raid5target"}
-	end
-
-	local dupe = {}
-	for _,j in pairs(hash) do
-		dupe[#dupe+1] = j -- dupe = { "playertarget" , "raid5target" }
-	end
-	table.sort(dupe, function(a,b) return jps.hp(a) < jps.hp(b) end)
-	return dupe[1] or "target", dupe, #dupe
+	return false
 end
 
 ---------------------------
@@ -198,15 +217,15 @@ jps.CountInRaidStatus = function (lowHealthDef)
 
 	for unit,_ in pairs(RaidStatus) do
 		if canHeal(unit) then
-			local unitHP = jps.hp(unit)
-			tinsert(myFriends, unit)
+			local unitHP = HealthPct(unit)
+			myFriends[#myFriends+1] = unit -- tinsert(myFriends, unit)
 			raidHP = raidHP + unitHP
 			if unitHP < lowHealthDef then
 				countInRange = countInRange + 1
 			end
         end
 	end
-	table.sort(myFriends, function(a,b) return jps.hp(a) < jps.hp(b) end)
+	table.sort(myFriends, function(a,b) return HealthPct(a) < HealthPct(b) end)
 	if countInRange > 0 then avgHP = raidHP / countInRange end
 	return countInRange, avgHP, myFriends
 end
@@ -217,7 +236,7 @@ jps.LowestInRaidStatus = function()
 	local lowestHP = 100
 	for unit,_ in pairs(RaidStatus) do
 		if canHeal(unit) then
-			local unitHP = jps.hp(unit)
+			local unitHP = HealthPct(unit)
 			if unitHP < lowestHP then
 				lowestHP = unitHP
 				lowestUnit = unit
@@ -248,13 +267,15 @@ jps.LowestImportantUnit = function()
 	local myTanks = { "player","focus","target","targettarget","mouseover" }
 	local LowestImportantUnit = "player"
 	if jps.Defensive then
-		local _,aggroTanks = jps.findAggroInRaid()
-		for i,j in ipairs(aggroTanks) do
-			table.insert(myTanks, j)
+		local _,Tanks = jps.findTankInRaid()
+		for i=1,#Tanks do -- for _,unit in ipairs(Tanks) do
+			local unit = Tanks[i]
+			myTanks[#myTanks+1] = unit -- tinsert(myTanks, unit)
 		end
 		local lowestHP = 100 -- in case with Inc & Abs > 1
-		for _, unit in pairs(myTanks) do
-			local unitHP = jps.hp(unit)
+		for i=1,#myTanks do -- for _,unit in ipairs(myTanks) do
+			local unit = myTanks[i]
+			local unitHP = HealthPct(unit)
 			if canHeal(unit) and unitHP < lowestHP then 
 				lowestHP = unitHP
 				LowestImportantUnit = unit
@@ -275,7 +296,7 @@ jps.FriendNearby = function(distance)
 	if distance == nil then distance = 8 end
 	local count = 0
 	for unit,_ in pairs(RaidStatus) do
-		if jps.Distance(unit) < distance and jps.hp(unit) < 1 then
+		if jps.Distance(unit) < distance and HealthPct(unit) < 0.95 then
 			count = count + 1
 		end
 	end
@@ -313,7 +334,7 @@ jps.FindSubGroupTarget = function(lowHealthDef)
 		if GetRaidRosterInfo(i) == nil then break end
 		local group = select(3,GetRaidRosterInfo(i)) -- if index is out of bounds, the function returns nil
 		local name = select(1,GetRaidRosterInfo(i))
-		if canHeal(name) and jps.hp(name) < lowHealthDef then
+		if canHeal(name) and HealthPct(name) < lowHealthDef then
 			local groupcount = groupTable[group]
 			if groupcount == nil then groupcount = 1 else groupcount = groupcount + 1 end
 			groupTable[group] = groupcount
@@ -322,13 +343,11 @@ jps.FindSubGroupTarget = function(lowHealthDef)
 
 	local groupCount = 2
 	local groupToHeal = 0
-	local groupTableToHeal = {}
 	for i=1,#groupTable do
 		if groupTable[i] == nil then break end
 		if groupTable[i] > groupCount then -- HEAL >= 3 JOUEURS
 			groupCount = groupTable[i]
 			groupToHeal = i
-			tinsert(groupTableToHeal,i)
 		end
 	end
 
@@ -336,7 +355,7 @@ jps.FindSubGroupTarget = function(lowHealthDef)
 	local lowestHP = lowHealthDef
 	if groupToHeal > 0 then
 		for unit,_ in pairs(RaidStatus) do
-			local unitHP = jps.hp(unit)
+			local unitHP = HealthPct(unit)
 			if FindSubGroupUnit(unit) == groupToHeal and unitHP < lowestHP then
 				tt = unit
 				lowestHP = unitHP
@@ -352,7 +371,7 @@ jps.FindSubGroupHeal = function(lowHealthDef)
 	local HealthGroup = {}
 	for unit,_ in pairs(RaidStatus) do
 		local group = FindSubGroupUnit(unit)
-		local unitHealth = jps.hp(unit)
+		local unitHealth = HealthPct(unit)
 		if not HealthGroup[group] then HealthGroup[group] = {} end
 
 		local healthGroup = HealthGroup[group][1]
@@ -367,7 +386,7 @@ jps.FindSubGroupHeal = function(lowHealthDef)
 			countUnitGroup = 0
 			HealthGroup[group][3] = countUnitGroup
 		end
-		if unitHealth < lowHealthDef and canHeal(unit) then
+		if canHeal(unit) and unitHealth < lowHealthDef then
 			HealthGroup[group][3] = countUnitGroup + 1
 		end
 	end
@@ -390,7 +409,7 @@ jps.FindSubGroupHeal = function(lowHealthDef)
 	if groupToHealHealthAvg > lowHealthDef then return tt, groupToHeal, groupToHealHealthAvg end
 
 	for unit,_ in pairs(RaidStatus) do
-		local unitHealth = jps.hp(unit)
+		local unitHealth = HealthPct(unit)
 		if FindSubGroupUnit(unit) == groupToHeal and unitHealth < lowestHP then
 			tt = unit
 			lowestHP = unitHealth
@@ -407,7 +426,7 @@ local FindSubGroup = function(lowHealthDef)
 		if GetRaidRosterInfo(i) == nil then break end
 		local group = select(3,GetRaidRosterInfo(i)) -- if index is out of bounds, the function returns nil
 		local name = select(1,GetRaidRosterInfo(i))
-		if canHeal(name) and jps.hp(name) < lowHealthDef then
+		if canHeal(name) and HealthPct(name) < lowHealthDef then
 			local groupcount = groupTable[group]
 			if groupcount == nil then groupcount = 1 else groupcount = groupcount + 1 end
 			groupTable[group] = groupcount
@@ -416,13 +435,11 @@ local FindSubGroup = function(lowHealthDef)
 
 	local groupCount = 2
 	local groupToHeal = 0
-	local groupTableToHeal = {}
 	for i=1,#groupTable do
 		if groupTable[i] == nil then break end
 		if groupTable[i] > groupCount then -- HEAL >= 3 JOUEURS
 			groupCount = groupTable[i]
 			groupToHeal = i
-			tinsert(groupTableToHeal,i)
 		end
 	end
 	return groupToHeal -- RETURN Group with at least 3 unit in range
@@ -432,9 +449,10 @@ end
 jps.FindSubGroupAura = function(aura) -- auraID to get correct spellID
 	local tt = nil
 	local tt_count = 0
-	local groupToHeal, _ = FindSubGroup()
+	local groupToHeal = FindSubGroup()
 
-	for unit,_ in pairs(RaidStatus) do
+	for i=1,#RaidRoster do -- for unit,_ in pairs(RaidStatus) do
+		local unit = RaidRoster[i]
 		local mybuff = jps.buffId(aura,unit) -- spellID
 		if not mybuff and FindSubGroupUnit(unit) == groupToHeal then
 			tt = unit
@@ -478,7 +496,8 @@ local DebuffNotDispel = {
 	}
 -- Don't dispel if friend is affected by "Unstable Affliction" or "Vampiric Touch" or "Lifebloom"
 local NotDispelFriendly = function(unit)
-	for _,debuff in ipairs(DebuffNotDispel) do
+	for i=1,#DebuffNotDispel do -- for _,debuff in ipairs(DebuffNotDispel) do
+		local debuff = DebuffNotDispel[i]
 		if jps.debuff(debuff,unit) then return true end
 	end
 	return false
@@ -492,7 +511,8 @@ jps.canDispel = function (unit,dispelTable) -- {"Magic", "Poison", "Disease", "C
 	local i = 1
 	auraName, _, _, _, debuffType, _, expirationTime, castBy, _, _, spellId = UnitDebuff(unit, i) 
 	while auraName do
-		for _,dispeltype in ipairs(dispelTable) do
+		for i=1,#dispelTable do -- for _,dispeltype in ipairs(dispelTable) do
+			local dispeltype = dispelTable[i]
 			if debuffType == dispeltype and expirationTime-GetTime() > 1 then
 			return true end
 		end
@@ -505,14 +525,12 @@ end
 jps.FindMeDispelTarget = function (dispelTable) -- {"Magic", "Poison", "Disease", "Curse"}
 	local dispelUnit = nil
 	local dispelUnitHP = 100
-	for unit,_ in pairs(RaidStatus) do	 
-		if canHeal(unit) then
-			if jps.canDispel(unit,dispelTable) then
-				local unitHP = jps.hp(unit)
-				if unitHP < dispelUnitHP then
-					dispelUnitHP = unitHP
-					dispelUnit = unit
-				end
+	for unit,_ in pairs(RaidStatus) do
+		if jps.canDispel(unit,dispelTable) then
+			local unitHP = HealthPct(unit)
+			if unitHP < dispelUnitHP then
+				dispelUnitHP = unitHP
+				dispelUnit = unit
 			end
 		end
 	end
@@ -520,26 +538,30 @@ jps.FindMeDispelTarget = function (dispelTable) -- {"Magic", "Poison", "Disease"
 end
 
 function jps.DispelMagicTarget()
-	for unit,_ in pairs(RaidStatus) do	 
-		if canHeal(unit) and jps.canDispel(unit,{"Magic"}) then return unit end
+	for i=1,#RaidRoster do -- for unit,_ in pairs(RaidStatus) do
+		local unit = RaidRoster[i]
+		if jps.canDispel(unit,{"Magic"}) then return unit end
 	end
 end 
 
 function jps.DispelDiseaseTarget()
-	for unit,_ in pairs(RaidStatus) do	 
-		if canHeal(unit) and jps.canDispel(unit,{"Disease"}) then return unit end
+	for i=1,#RaidRoster do -- for unit,_ in pairs(RaidStatus) do
+		local unit = RaidRoster[i]
+		if jps.canDispel(unit,{"Disease"}) then return unit end
 	end
 end 
 
 function jps.DispelPoisonTarget()
-	for unit,_ in pairs(RaidStatus) do	 
-		if canHeal(unit) and jps.canDispel(unit,{"Poison"}) then return unit end
+	for i=1,#RaidRoster do -- for unit,_ in pairs(RaidStatus) do
+		local unit = RaidRoster[i]
+		if jps.canDispel(unit,{"Poison"}) then return unit end
 	end
 end 
 
 function jps.DispelCurseTarget()
-	for unit,_ in pairs(RaidStatus) do	 
-		if canHeal(unit) and jps.canDispel(unit,{"Curse"}) then return unit end
+	for i=1,#RaidRoster do -- for unit,_ in pairs(RaidStatus) do
+		local unit = RaidRoster[i]
+		if jps.canDispel(unit,{"Curse"}) then return unit end
 	end
 end
 
@@ -557,6 +579,10 @@ function jps.LookupRaid ()
 -- RaidStatus
 	for unit,index in pairs(RaidStatus) do 
 		print("|cffa335ee",unit,"Hpct: ",index.hpct,"Range: ",index.inrange) -- color violet 
+	end
+
+	for _,unit in ipairs(RaidRoster) do
+		write(unit,"Hpct: ",HealthPct(unit),"Range: ",canHeal(unit))
 	end
 end
 

@@ -1,4 +1,5 @@
 local jphistory = {}
+local GetSpellInfo = GetSpellInfo
 
 -- Hook into jps.Cast!
 local jpsCastFn = jps.Cast

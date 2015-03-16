@@ -237,7 +237,6 @@ local BuffToDispel =
 -- "Lifebloom" When Lifebloom expires or is dispelled, the target is instantly healed
 local NotOffensiveDispel = toSpellName(94447) -- "Lifebloom"
 function jps.DispelOffensive(unit)
-	if unit == nil then return false end
 	if not canDPS(unit) then return false end
 	if jps.buff(NotOffensiveDispel,unit) then return false end 
 	for i=1,#BuffToDispel do -- for _,buff in ipairs(BuffToDispel) do
@@ -252,17 +251,16 @@ end
 -- name, nameSubtext, text, texture, startTime, endTime, isTradeSkill, notInterruptible = UnitCastingInfo("unit")
 
 function jps.ShouldKick(unit)
-	if unit == nil then unit = "target" end
 	if not canDPS(unit) then return false end
 	local casting = select(1,UnitCastingInfo(unit))
 	local notinterruptible = select(9,UnitCastingInfo(unit)) --  if true, indicates that this cast cannot be interrupted 
 	local channelling = select(1,UnitChannelInfo(unit))
 	local not_interruptible = select(8,UnitChannelInfo(unit)) -- if true, indicates that this cast cannot be interrupted
 	if casting == L["Release Aberrations"] then return false end
-
-	if casting and notinterruptible == false then
+	if casting == nil and channelling == nil then return false end
+	if casting and not notinterruptible then
 		return true
-	elseif channelling and not_interruptible == false then
+	elseif channelling and not not_interruptible then
 		return true
 	end
 	return false

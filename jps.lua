@@ -131,15 +131,17 @@ function GetHarmfulSpell()
 		local spell = select(1,GetSpellBookItemName(index, booktype))
 		local spellID = select(2,GetSpellBookItemInfo(index, booktype))
 		local minRange = select(5,GetSpellInfo(spellID))
+		if minRange == nil then minRange = 0 end
 		local maxRange = select(6,GetSpellInfo(spellID))
+		if maxRange == nil then maxRange = 0 end
 		local harmful = IsHarmfulSpell(index, booktype)
 		local helpful = IsHelpfulSpell(index, booktype)
-		if maxRange and harmful then
+		if maxRange > 0 and minRange == 0 and harmful then
 			if maxRange > harm then
 				harm = maxRange
 				jps.HarmSpell = spell
 			end
-		elseif maxRange and helpful then
+		elseif maxRange > 0 and minRange == 0 and helpful then
 			if maxRange > help then
 				help = maxRange
 				jps.HelpSpell = spell

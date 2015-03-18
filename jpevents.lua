@@ -646,7 +646,7 @@ end)
 
 -- In Arena ??? Opposing arena member with index N (1,2,3,4 or 5).
 jps.listener.registerEvent("UNIT_HEALTH_FREQUENT", function(unitID)
-	if jps.PvP and not jps.Combat and jps.RaidAffectingCombat() then jps.Cycle() end
+	if jps.PvP and not jps.Combat and jps.RaidEnemyCount() > 0 then jps.Cycle() end
 	if jps.isHealer then jps.UpdateRaidUnit(unitID) end
 end)
 

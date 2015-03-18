@@ -195,14 +195,6 @@ function jps.findAggroInRaid()
 	return TankUnit[1] or "focus", TankUnit
 end
 
-function jps.RaidAffectingCombat()
-	for i=1,#RaidRoster do -- for unit,_ in pairs(RaidStatus) do
-		local unit = RaidRoster[i]
-		if jps.Distance(unit) < 40 and UnitAffectingCombat(unit) then return true end
-	end
-	return false
-end
-
 ---------------------------
 -- HEALTH UNIT RAID
 ---------------------------

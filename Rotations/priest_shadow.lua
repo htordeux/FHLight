@@ -457,8 +457,6 @@ jps.registerRotation("PRIEST","SHADOW",function()
 
 }
 
-	if jps.RaidAffectingCombat() then jps.Combat = true end
-
 	local spell,target = parseSpellTable(spellTableOOC)
 	return spell,target
 

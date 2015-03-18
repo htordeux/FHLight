@@ -953,8 +953,6 @@ local spellTableOOC = {
 
 }
 
-	if jps.RaidAffectingCombat() then jps.Combat = true end
-
 	local spell,target = parseSpellTable(spellTableOOC)
 	return spell,target
 

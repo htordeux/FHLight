@@ -71,9 +71,9 @@ local priestHoly = function()
 	local LowestImportantUnit = jps.LowestImportantUnit()
 	local LowestImportantUnitHealth = jps.hp(LowestImportantUnit,"abs") -- UnitHealthMax(unit) - UnitHealth(unit)
 	local LowestImportantUnitHpct = jps.hp(LowestImportantUnit) -- UnitHealth(unit) / UnitHealthMax(unit)
-
-	--local POHTarget, groupToHeal = jps.FindSubGroupTarget(0.75) -- Target to heal with POH in RAID with AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
+	local countFriendNearby = jps.FriendNearby(12)
 	local POHTarget, groupToHeal, groupHealth = jps.FindSubGroupHeal(0.75) -- Target to heal with POH in RAID with AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
+	--local POHTarget, groupToHeal = jps.FindSubGroupTarget(0.75) -- Target to heal with POH in RAID with AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
 
 	local myTank,TankUnit = jps.findAggroInRaid() -- return Table with UnitThreatSituation == 3 (tanking) or == 1 (Overnuking) or "focus" default
 	local TankTarget = "target"
@@ -94,6 +94,7 @@ local priestHoly = function()
 -- ENEMY TARGET
 ---------------------
 
+	local isBoss = UnitLevel("target") == -1 or UnitClassification("target") == "elite"
 	-- rangedTarget returns "target" by default, sometimes could be friend
 	local rangedTarget, EnemyUnit, TargetCount = jps.LowestTarget()
 
@@ -108,7 +109,7 @@ local priestHoly = function()
 	
 	local playerIsTargeted = false
 	for i=1,#EnemyUnit do -- for _,unit in ipairs(EnemyUnit) do
-		local unit = EnemyUnit[1]
+		local unit = EnemyUnit[i]
 		if TargetCount > 0 then
 			if jps.UnitIsUnit(unit.."target","player") then
 				playerIsTargeted = true
@@ -185,7 +186,7 @@ local priestHoly = function()
 
 	local SilenceEnemyTarget = nil
 	for i=1,#EnemyUnit do -- for _,unit in ipairs(EnemyUnit) do
-		local unit = EnemyUnit[1]
+		local unit = EnemyUnit[i]
 		if jps.IsSpellInRange(15487,unit) then
 			if jps.ShouldKick(unit) then
 				SilenceEnemyTarget = unit
@@ -195,7 +196,7 @@ local priestHoly = function()
 
 	local FearEnemyTarget = nil
 	for i=1,#EnemyUnit do -- for _,unit in ipairs(EnemyUnit) do
-		local unit = EnemyUnit[1]
+		local unit = EnemyUnit[i]
 		if priest.canFear(unit) and not jps.LoseControl(unit) then
 			FearEnemyTarget = unit
 		break end
@@ -203,7 +204,7 @@ local priestHoly = function()
 
 	local DispelOffensiveEnemyTarget = nil
 	for i=1,#EnemyUnit do -- for _,unit in ipairs(EnemyUnit) do
-		local unit = EnemyUnit[1]
+		local unit = EnemyUnit[i]
 		if jps.DispelOffensive(unit) and LowestImportantUnitHpct > 0.85 then
 			DispelOffensiveEnemyTarget = unit
 		break end
@@ -251,13 +252,12 @@ local priestHoly = function()
 ------------------------------------------------------
 
 	local InterruptTable = {
-		{priest.Spell.FlashHeal, 0.70 , jps.buff(27827) }, -- "Esprit de rédemption" 27827
-		{priest.Spell.Heal, 0.85 , jps.buff(27827) },
-		{priest.Spell.PrayerOfHealing, 0.85, jps.buffId(81206) or jps.buff(27827) } -- Chakra: Sanctuary 81206
+		{priest.Spell.FlashHeal, 0.75 , jps.buff(27827) }, -- "Esprit de rédemption" 27827
+		{priest.Spell.Heal, 0.90 , jps.buff(27827) },
+		{priest.Spell.PrayerOfHealing, 0.80, jps.buffId(81206) or jps.buff(27827) }, -- Chakra: Sanctuary 81206
+		{priest.Spell.HolyCascade, 0.90 , false}
 	}
 
--- Avoid interrupt Channeling
-	if jps.ChannelTimeLeft() > 0 then return nil end
 -- Avoid Overhealing
 	priest.ShouldInterruptCasting( InterruptTable , AvgHealthLoss ,  CountInRange )
 
@@ -279,7 +279,7 @@ local spellTable = {
 			-- "Circle of Healing" 34861
 			{ 34861, AvgHealthLoss < 0.75 , LowestImportantUnit },
 			-- "Soins rapides" 2061
-			{ 2061, LowestImportantUnitHpct < 0.85 , LowestImportantUnit },
+			{ 2061, LowestImportantUnitHpct < 0.75 , LowestImportantUnit },
 			-- "Renew" 139
 			{ 139, type(RenewFriend) == "string" , RenewFriend },
 		},
@@ -292,7 +292,7 @@ local spellTable = {
 	{ jps.useTrinket(1), jps.useTrinketBool(1) and not playerWasControl and jps.combatStart > 0 , "player" , "Trinket1"},
 
 	-- "Guardian Spirit"
-	{ 47788, playerIsStun and LowestImportantUnitHpct < 0.25 , LowestImportantUnit , "Guardian_" },
+	{ 47788, playerIsStun and LowestImportantUnitHpct < 0.30 , LowestImportantUnit , "Guardian_" },
 	-- "Pierre de soins" 5512
 	{ {"macro","/use item:5512"}, jps.itemCooldown(5512) == 0 and jps.hp() < 0.75 , "player" , "Item5512" },
 	-- "Prière du désespoir" 19236
@@ -332,9 +332,11 @@ local spellTable = {
 	{ {"macro",macroSerenity}, jps.cooldown(88684) == 0 and jps.buffId(81208) and jps.hp(myTank) < 0.80 , myTank , "Health_Serenity_Tank" },
 	
 	-- TIMER POM -- "Prière de guérison" 33076 -- Buff POM 41635
-	{ 33076, not jps.Moving and not buffTrackerMending and canHeal(myTank) , myTank , "Tracker_Mending_Tank" },
-	{ 33076, not jps.Moving and not buffTrackerMending and type(MendingFriend) == "string" , MendingFriend , "Tracker_Mending_Friend" },
-	{ 33076, not jps.Moving and not buffTrackerMending and not jps.buff(41635,LowestImportantUnit) , LowestImportantUnit , "Tracker_Mending_" },
+	{ "nested", not jps.Moving and not buffTrackerMending ,{
+		{ 33076, canHeal(myTank) , myTank , "Tracker_Mending_Tank" },
+		{ 33076, type(MendingFriend) == "string" , MendingFriend , "Tracker_Mending_Friend" },
+		{ 33076, not jps.buff(41635,LowestImportantUnit) , LowestImportantUnit , "Tracker_Mending_" },
+	},},
 
 	-- CHAKRA
 	-- Chakra: Serenity 81208 -- "Holy Word: Serenity" 88684
@@ -343,12 +345,23 @@ local spellTable = {
 	{ 81208, not jps.buffId(81208) and not jps.FaceTarget and jps.FinderLastMessage("Cancelaura") == false , "player" , "|cffa335eeChakra_Serenity" },
 
 	-- "Infusion de puissance" 10060
-	{ 10060, jps.combatStart > 0 and (LowestImportantUnitHpct < 0.50 or AvgHealthLoss < 0.75) , "player" , "Emergency_POWERINFUSION" },
+	{ 10060, jps.combatStart > 0 and LowestImportantUnitHpct < 0.50 , "player" , "Emergency_POWERINFUSION" },
+	
+	-- GROUP HEAL
+	-- "Circle of Healing" 34861
+	{ 34861, CountInRange > 2 and AvgHealthLoss < 0.80 , LowestImportantUnit , "COH_" },
+	-- "Cascade" Holy 121135 Shadow 127632
+	{ 121135, not jps.Moving and CountInRange > 2 and AvgHealthLoss < 0.80 , LowestImportantUnit ,  "Cascade_" },
+	{ "nested", not jps.Moving and (type(POHTarget) == "string") ,{
+		-- "Prayer of Healing" 596 -- Chakra: Sanctuary 81206 -- increase 25 % Prayer of Mending, Circle of Healing, Divine Star, Cascade, Halo, Divine Hymn
+		{ {"macro",sanctuaryPOH}, not jps.buffId(81206) and jps.cooldown(81206) == 0 and jps.cooldown(596) == 0 , POHTarget , "|cffa335eeSanctuary_POH"},
+		{ 596, canHeal(POHTarget) , POHTarget },
+	},},
 
 	-- EMERGENCY HEAL -- "Serendipity" 63735
 	{ "nested", LowestImportantUnitHpct < 0.50 ,{
 		-- "Guardian Spirit" 47788
-		{ 47788, LowestImportantUnitHpct < 0.25 , LowestImportantUnit , "Emergency_Guardian_" },
+		{ 47788, LowestImportantUnitHpct < 0.30 , LowestImportantUnit , "Emergency_Guardian_" },
 		-- "Holy Word: Serenity" 88684 -- Chakra: Serenity 81208
 		{ {"macro",macroSerenity}, jps.cooldown(88684) == 0 and jps.buffId(81208) , LowestImportantUnit , "Emergency_Serenity_" },
 		-- "Power Word: Shield" 17 
@@ -371,17 +384,6 @@ local spellTable = {
 	-- CONTROL --
 	--{ 15487, type(SilenceEnemyTarget) == "string" , SilenceEnemyTarget , "Silence_MultiUnit" },
 	--{ "nested", not jps.LoseControl(rangedTarget) and canDPS(rangedTarget) , parseControl },
-
-	-- GROUP HEAL
-	-- "Circle of Healing" 34861
-	{ 34861, CountInRange > 2 and AvgHealthLoss < 0.80 , LowestImportantUnit , "COH_" },
-	-- "Cascade" Holy 121135 Shadow 127632
-	{ 121135, not jps.Moving and CountInRange > 2 and AvgHealthLoss < 0.80 , LowestImportantUnit ,  "Cascade_" },
-	{ "nested", not jps.Moving and (type(POHTarget) == "string") ,{
-		-- "Prayer of Healing" 596 -- Chakra: Sanctuary 81206 -- increase 25 % Prayer of Mending, Circle of Healing, Divine Star, Cascade, Halo, Divine Hymn
-		{ {"macro",sanctuaryPOH}, not jps.buffId(81206) and jps.cooldown(81206) == 0 and jps.cooldown(596) == 0 , POHTarget , "|cffa335eeSanctuary_POH"},
-		{ 596, canHeal(POHTarget) , POHTarget },
-	},},
 
 	{ "nested", LowestImportantUnitHpct < 0.85 ,{
 		-- "Holy Word: Serenity" 88684 -- Chakra: Serenity 81208

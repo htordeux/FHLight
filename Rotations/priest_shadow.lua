@@ -136,7 +136,7 @@ end
 
 local SilenceEnemyTarget = nil
 for i=1,#EnemyUnit do -- for _,unit in ipairs(EnemyUnit) do
-	local unit = EnemyUnit[1]
+	local unit = EnemyUnit[i]
 	if jps.IsSpellInRange(15487,unit) then
 		if jps.ShouldKick(unit) then
 			SilenceEnemyTarget = unit
@@ -146,7 +146,7 @@ end
 
 local DeathEnemyTarget = nil
 for i=1,#EnemyUnit do -- for _,unit in ipairs(EnemyUnit) do
-	local unit = EnemyUnit[1]
+	local unit = EnemyUnit[i]
 	if priest.canShadowWordDeath(unit) then 
 		DeathEnemyTarget = unit
 	break end
@@ -154,7 +154,7 @@ end
 
 local PainEnemyTarget = nil
 for i=1,#EnemyUnit do -- for _,unit in ipairs(EnemyUnit) do
-	local unit = EnemyUnit[1]
+	local unit = EnemyUnit[i]
 	if fnPainEnemyTarget(unit) then
 		PainEnemyTarget = unit
 	break end
@@ -162,7 +162,7 @@ end
 
 local VampEnemyTarget = nil
 for i=1,#EnemyUnit do -- for _,unit in ipairs(EnemyUnit) do
-	local unit = EnemyUnit[1]
+	local unit = EnemyUnit[i]
 	if fnVampEnemyTarget(unit) then
 		VampEnemyTarget = unit
 	break end
@@ -170,7 +170,7 @@ end
 
 local DispelOffensiveTarget = nil
 for i=1,#EnemyUnit do -- for _,unit in ipairs(EnemyUnit) do
-	local unit = EnemyUnit[1]
+	local unit = EnemyUnit[i]
 	if jps.DispelOffensive(unit) then
 		DispelOffensiveTarget = unit
 	break end
@@ -323,6 +323,7 @@ local spellTable = {
 	{ 2944, Orbs == 5 , rangedTarget , "ORBS_5" },
 	-- "Devouring Plague" 2944 now consumes 3 Shadow Orbs, you don't have the ability to use with less Orbs
 	{ 2944, Orbs > 3 and jps.hp(rangedTarget) < 0.20 , rangedTarget , "ORBS_LowHealth" },
+	{ 2944, Orbs > 3 and jps.hp("player") < 0.75 , rangedTarget , "ORBS_LowHealth" },
 	
 	-- "Shadow Word: Death" 32379 "Mot de l'ombre : Mort"
 	{ 32379, jps.hp(rangedTarget) < 0.20 , rangedTarget, "castDeath_" },
@@ -370,9 +371,9 @@ local spellTable = {
 
 	-- MULTITARGET
 	-- "Divine Star" Holy 110744 Shadow 122121
-	{ 122121, jps.IsSpellKnown(122121) and EnemyCount > 3 , rangedTarget , "_DivineStar"  },
+	{ 122121, jps.IsSpellKnown(122121) and EnemyCount > 2 , rangedTarget , "_DivineStar"  },
 	-- "Cascade" Holy 121135 Shadow 127632
-	{ 127632, jps.IsSpellKnown(127632) and EnemyCount > 3 , rangedTarget , "_Cascade"  },
+	{ 127632, jps.IsSpellKnown(127632) and EnemyCount > 2 , rangedTarget , "_Cascade"  },
 	-- "MindSear" 48045
 	{ 48045, not jps.Moving and jps.MultiTarget and EnemyCount > 3 , rangedTarget  },
 

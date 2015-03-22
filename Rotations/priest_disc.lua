@@ -158,14 +158,14 @@ local priestDisc = function()
 			PainFriend = unit
 		break end
 	end
-	
+
 ------------------------
 -- LOCAL FUNCTIONS ENEMY
 ------------------------
 
 	local SilenceEnemyTarget = nil
 	for i=1,#EnemyUnit do -- for _,unit in ipairs(EnemyUnit) do
-		local unit = EnemyUnit[1]
+		local unit = EnemyUnit[i]
 		if jps.IsSpellInRange(15487,unit) then
 			if jps.ShouldKick(unit) then
 				SilenceEnemyTarget = unit
@@ -175,7 +175,7 @@ local priestDisc = function()
 
 	local FearEnemyTarget = nil
 	for i=1,#EnemyUnit do -- for _,unit in ipairs(EnemyUnit) do
-		local unit = EnemyUnit[1]
+		local unit = EnemyUnit[i]
 		if priest.canFear(unit) and not jps.LoseControl(unit) then
 			FearEnemyTarget = unit
 		break end
@@ -183,7 +183,7 @@ local priestDisc = function()
 
 	local DispelOffensiveEnemyTarget = nil
 	for i=1,#EnemyUnit do -- for _,unit in ipairs(EnemyUnit) do
-		local unit = EnemyUnit[1]
+		local unit = EnemyUnit[i]
 		if jps.DispelOffensive(unit) and LowestImportantUnitHpct > 0.85 then
 			DispelOffensiveEnemyTarget = unit
 		break end
@@ -295,9 +295,11 @@ spellTable = {
 	-- SHIELD TANK
 	{ 17, canHeal(myTank) and not jps.buff(17,myTank) and not jps.debuff(6788,myTank) , myTank , "Timer_Shield_Tank" },
 	-- TIMER POM -- "Prière de guérison" 33076 -- Buff POM 41635
-	{ 33076, not jps.Moving and not buffTrackerMending and canHeal(myTank) , myTank , "Tracker_Mending_Tank" },
-	{ 33076, not jps.Moving and not buffTrackerMending and type(MendingFriend) == "string" , MendingFriend , "Tracker_Mending_Friend" },
-	{ 33076, not jps.Moving and not buffTrackerMending and not jps.buff(41635,LowestImportantUnit) , LowestImportantUnit , "Tracker_Mending_" },
+	{ "nested", not jps.Moving and not buffTrackerMending ,{
+		{ 33076, canHeal(myTank) , myTank , "Tracker_Mending_Tank" },
+		{ 33076, type(MendingFriend) == "string" , MendingFriend , "Tracker_Mending_Friend" },
+		{ 33076, not jps.buff(41635,LowestImportantUnit) , LowestImportantUnit , "Tracker_Mending_" },
+	},},
 	-- ClarityTank -- "Clarity of Will" 152118 shields with protective ward for 20 sec
 	{ 152118, not jps.Moving and canHeal(myTank) and LowestImportantUnitHpct > 0.80 and priest.unitForClarity(myTank) , myTank , "Timer_ClarityTank" },
 
@@ -309,7 +311,7 @@ spellTable = {
 		-- SNM Troll "Berserker" 26297 -- haste buff
 		--{ 26297, true , "player" },
 	},},
-	
+
 	{ "nested", not jps.Moving and type(POHTarget) == "string" and canHeal(POHTarget) ,{
 		-- "Cascade" Holy 121135 Shadow 127632
 		{ 121135, CountInRange > 2 and AvgHealthLoss < 0.80 , LowestImportantUnit ,  "Cascade_POH_" },
@@ -409,7 +411,7 @@ spellTable = {
 		{ 47540, not IsInGroup() , rangedTarget,"|cFFFF0000Penance_" },
 		{ 47540, IsInGroup() and LowestImportantUnitHpct < 1 , rangedTarget,"|cFFFF0000Penance_" },
 		-- "Mot de l'ombre: Douleur" 589 -- Only if 1 targeted enemy 
-		{ 589, TargetCount == 1 and jps.myDebuffDuration(589,rangedTarget) == 0 and not IsInGroup() , rangedTarget , "|cFFFF0000Douleur_" },
+		{ 589, jps.myDebuffDuration(589,rangedTarget) == 0 and not IsInGroup() , rangedTarget , "|cFFFF0000Douleur_" },
 	},},
 	
 	-- "Nova" 132157 -- "Words of Mending" 155362 "Mot de guérison"
@@ -500,7 +502,7 @@ local priestDiscPvP = function()
 	
 	local playerIsTargeted = false
 	for i=1,#EnemyUnit do -- for _,unit in ipairs(EnemyUnit) do
-		local unit = EnemyUnit[1]
+		local unit = EnemyUnit[i]
 		if TargetCount > 0 then
 			if jps.UnitIsUnit(unit.."target","player") then
 				playerIsTargeted = true
@@ -569,24 +571,24 @@ local priestDiscPvP = function()
 			DispelFriendRole = unit -- if jps.RoleInRaid(unit) == "HEALER" then
 		break end
 	end
-	
+
 	-- PAIN SUPPRESSION
 	local PainFriend = nil
 	for i=1,#FriendUnit do -- for _,unit in ipairs(FriendUnit) do
-		if jps.cooldown(33206) == 0 then break end
 		local unit = FriendUnit[i]
+		if jps.cooldown(33206) == 0 then break end 
 		if jps.buff(33206,unit) then
 			PainFriend = unit
 		break end
 	end
-	
+
 ------------------------
 -- LOCAL FUNCTIONS ENEMY
 ------------------------
 
 	local SilenceEnemyTarget = nil
 	for i=1,#EnemyUnit do -- for _,unit in ipairs(EnemyUnit) do
-		local unit = EnemyUnit[1]
+		local unit = EnemyUnit[i]
 		if jps.IsSpellInRange(15487,unit) then
 			if jps.ShouldKick(unit) then
 				SilenceEnemyTarget = unit
@@ -596,7 +598,7 @@ local priestDiscPvP = function()
 
 	local FearEnemyTarget = nil
 	for i=1,#EnemyUnit do -- for _,unit in ipairs(EnemyUnit) do
-		local unit = EnemyUnit[1] 
+		local unit = EnemyUnit[i]
 		if priest.canFear(unit) and not jps.LoseControl(unit) then
 			FearEnemyTarget = unit
 		break end
@@ -604,7 +606,7 @@ local priestDiscPvP = function()
 
 	local DispelOffensiveEnemyTarget = nil
 	for i=1,#EnemyUnit do -- for _,unit in ipairs(EnemyUnit) do
-		local unit = EnemyUnit[1]
+		local unit = EnemyUnit[i]
 		if jps.DispelOffensive(unit) and LowestImportantUnitHpct > 0.85 then
 			DispelOffensiveEnemyTarget = unit
 		break end
@@ -706,8 +708,8 @@ spellTable = {
 	-- SNM "Chacun pour soi" 59752 "Every Man for Himself" -- Human
 	{ 59752, playerIsStun , "player" , "Every_Man_for_Himself" },
 	-- TRINKETS -- jps.useTrinket(0) est "Trinket0Slot" est slotId  13 -- "jps.useTrinket(1) est "Trinket1Slot" est slotId  14
-	{ jps.useTrinket(0), jps.useTrinketBool(0) and not playerWasControl and jps.combatStart > 0 },
-	{ jps.useTrinket(1), jps.useTrinketBool(1) and playerIsStun and jps.combatStart > 0 and LowestImportantUnitHpct < 0.75 },
+	{ jps.useTrinket(0), jps.useTrinketBool(0) and not playerWasControl and jps.combatStart > 0 , "player" , "useTrinket0" },
+	{ jps.useTrinket(1), jps.useTrinketBool(1) and playerIsStun and jps.combatStart > 0 and LowestImportantUnitHpct < 0.75 , "player" , "useTrinket1" },
 
 	-- "Suppression de la douleur" 33206 "Pain Suppression"
 	{ 33206, playerIsStun and LowestImportantUnitHpct < 0.30 , LowestImportantUnit, "StunPain_" },
@@ -761,9 +763,11 @@ spellTable = {
 	-- SHIELD TANK
 	{ 17, canHeal(myTank) and not jps.buff(17,myTank) and not jps.debuff(6788,myTank) , myTank , "Timer_Shield_Tank" },
 	-- TIMER POM -- "Prière de guérison" 33076 -- Buff POM 41635
-	{ 33076, not jps.Moving and not buffTrackerMending and canHeal(myTank) , myTank , "Tracker_Mending_Tank" },
-	{ 33076, not jps.Moving and not buffTrackerMending and type(MendingFriend) == "string" , MendingFriend , "Tracker_Mending_Friend" },
-	{ 33076, not jps.Moving and not buffTrackerMending and not jps.buff(41635,LowestImportantUnit) , LowestImportantUnit , "Tracker_Mending_" },
+	{ "nested", not jps.Moving and not buffTrackerMending ,{
+		{ 33076, canHeal(myTank) , myTank , "Tracker_Mending_Tank" },
+		{ 33076, type(MendingFriend) == "string" , MendingFriend , "Tracker_Mending_Friend" },
+		{ 33076, not jps.buff(41635,LowestImportantUnit) , LowestImportantUnit , "Tracker_Mending_" },
+	},},
 	-- ClarityTank -- "Clarity of Will" 152118 shields with protective ward for 20 sec
 	{ 152118, not jps.Moving and canHeal(myTank) and LowestImportantUnitHpct > 0.80 and priest.unitForClarity(myTank) , myTank , "Timer_ClarityTank" },
 
@@ -807,7 +811,7 @@ spellTable = {
 		{ 47540, true , LowestImportantUnit , "Emergency_Penance_" },
 		-- "Power Infusion" 10060 "Infusion de puissance"
 		{ 10060, LowestImportantUnitHpct < 0.50 and LowestImportantUnitHpct == myTank , "player" , "Emergency_POWERINFUSION" },
-		{ 10060, LowestImportantUnitHpct < 0.50 and AvgHealthLoss < 0.75 , "player" , "Emergency_POWERINFUSION" },
+		{ 10060, LowestImportantUnitHpct < 0.50 and AvgHealthLoss < 0.80 , "player" , "Emergency_POWERINFUSION" },
 		-- "Soins rapides" 2061 -- Buff "Borrowed" 59889 -- "Archange surpuissant" 172359  100 % critique POH or FH
 		{ 2061, not jps.Moving and jps.buff(172359,"player") , LowestImportantUnit , "Emergency_FlashHeal_Archange_" },
 		{ 2061, not jps.Moving and LowestImportantUnitHpct < 0.25 , LowestImportantUnit , "Emergency_FlashHeal_30_" },
@@ -875,7 +879,7 @@ spellTable = {
 		-- "Pénitence" 47540 -- jps.glyphInfo(119866) -- allows Penance to be cast while moving.
 		{ 47540, true , rangedTarget,"|cFFFF0000Penance_" },
 		-- "Mot de l'ombre: Douleur" 589 -- Only if 1 targeted enemy 
-		{ 589, TargetCount == 1 and jps.myDebuffDuration(589,rangedTarget) == 0 and not IsInGroup() , rangedTarget , "|cFFFF0000Douleur_" },
+		{ 589, jps.myDebuffDuration(589,rangedTarget) == 0 and not IsInGroup() , rangedTarget , "|cFFFF0000Douleur_" },
 	},},
 	
 	-- "Nova" 132157 -- "Words of Mending" 155362 "Mot de guérison"

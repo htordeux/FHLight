@@ -44,8 +44,8 @@ function jps_Test()
 	print("POHTarget: ",POHTarget,"groupToHeal: ",groupToHeal,"groupHealth: ",groupHealth)
 	local CountInRange, AvgHealthLoss, FriendUnit = jps.CountInRaidStatus(100)
 	write("CountInRange: ",CountInRange,"AvgHealthLoss: ", AvgHealthLoss)
---	local _,Tanks = jps.findTankInRaid()
---	print("Tanks: ",unpack(Tank))
+	local mytank,Tanks = jps.findTankInRaid()
+	print(mytank,"Tanks: ",unpack(Tanks))
 
 --	local mastery = GetMasteryEffect()
 --	local masteryValue = math.ceil(mastery)/100

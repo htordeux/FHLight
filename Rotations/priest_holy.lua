@@ -1,5 +1,5 @@
 -- jps.Interrupts for Dispel
--- jps.Defensive changes the LowestImportantUnit to table = { "player","focus","target","targettarget","mouseover" } with insert TankUnit  = jps.findAggroInRaid()
+-- jps.Defensive changes the LowestImportantUnit to table = { "player","focus","target","mouseover" } with table.insert TankUnit  = jps.findTankInRaid()
 -- jps.FaceTarget to DPSing
 -- jps.MultiTarget for Chakra: Sanctuary 81206
 

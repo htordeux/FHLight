@@ -134,9 +134,11 @@ jps.registerRotation("MAGE","ARCANE", function()
 	local playerAggro = jps.FriendAggro("player")
 	local playerhealth = jps.hp("player","abs")
 	local playerhealthpct = jps.hp("player")
-	local myTank,TankUnit = jps.findAggroInRaid() -- return Table with UnitThreatSituation == 3 (tanking) or == 1 (Overnuking)
+	local myTank,_ = jps.findTankInRaid()
 	local TankTarget = "target"
 	if canHeal(myTank) then TankTarget = myTank.."target" end
+	local playerIsStun = jps.StunEvents(2) -- return true/false ONLY FOR PLAYER -- "ROOT" was removed of Stuntype
+	-- {"STUN_MECHANIC","STUN","FEAR","CHARM","CONFUSE","PACIFY","SILENCE","PACIFYSILENCE"}
 
 ---------------------
 -- ENEMY TARGET
@@ -161,7 +163,10 @@ jps.registerRotation("MAGE","ARCANE", function()
 --- ROTATION
 -----------------------------
 
-spellTable = {
+local spellTable = {
+
+	-- SNM "Chacun pour soi" 59752 "Every Man for Himself" -- Human
+	{ 59752, playerIsStun , "player" , "Every_Man_for_Himself" },
 
 	--? invisibility
 	{mage.invisibility, jps.Defensive and playerAggro and isBoss },
@@ -175,13 +180,10 @@ spellTable = {
 	{mage.alterTime, jps.Defensive and jps.buff(110909) and jps.castEverySeconds(mage.alterTime,5) and jps.Moving },
 	--? iceblock
 	{mage.iceblock, jps.Defensive and playerhealthpct < 0.20 and not jps.buff(110909) and playerAggro },
-	--? frost ward
-	{mage.iceWard, canHeal(myTank) and not jps.buff(mage.iceWard,myTank) , myTank },   
-	--? iceblock cancel -- buff is 45438
-	{mage.iceblock, jps.Defensive and jps.buff(45438) and playerhealthpct > 0.20 and not playerAggro },
-	-- iceblock
 	{mage.iceblock, jps.Defensive and playerhealthpct < 0.20 and playerAggro },
-	
+	--? frost ward
+	{mage.iceWard, canHeal(myTank) and not jps.buff(mage.iceWard,myTank) , myTank },
+
 	--interrupts
 	{mage.counterspell, jps.ShouldKick("target") },
 

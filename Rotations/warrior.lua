@@ -27,9 +27,9 @@ end
 
 -- local function
 local GetSpellInfo = GetSpellInfo
-local function toSpellName(id)
-	local name = GetSpellInfo(id)
-	return name
+local function toSpellName(spell)
+	local spellname = GetSpellInfo(spell)
+	return spellname
 end
 
 -- BUFFS

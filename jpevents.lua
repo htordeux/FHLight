@@ -37,7 +37,6 @@ setmetatable(EnemyCooldowns, { __mode = 'k' }) -- creation of a weak table
 local Healtable = {}
 setmetatable(Healtable, { __mode = 'k' }) -- creation of a weak table
 -- RaidStatus
-local GetSpellInfo = GetSpellInfo
 local GetTime = GetTime
 local canHeal = jps.canHeal
 local canDPS = jps.canDPS
@@ -47,6 +46,15 @@ local tinsert = table.insert
 local tremove = table.remove
 -- Table for failed spells
 local SpellFailedTable = {}
+
+-- local function
+local GetSpellInfo = GetSpellInfo
+local function toSpellName(spell)
+	local spellname = GetSpellInfo(spell)
+--	if type(spell) == "string" then spellname = spell end
+--	if type(spell) == "number" then spellname = GetSpellInfo(spell) end
+	return spellname
+end
 
 --------------------------
 -- (UN)REGISTER FUNCTIONS 
@@ -529,7 +537,7 @@ end)
 
 local sendTime = 0
 local GetTime = GetTime
-local Shield = GetSpellInfo(17)
+local Shield = toSpellName(17)
 jps.listener.registerEvent("UNIT_SPELLCAST_SENT", function(unitID,spellname,_,spelltarget,_)
 	if unitID == "player" then
 		jps.SentCast = spellname
@@ -652,15 +660,21 @@ end)
 
 -- Group/Raid Update
 -- RAID_ROSTER_UPDATE's pre-MoP functionality was moved to the new event GROUP_ROSTER_UPDATE
-jps.listener.registerEvent("GROUP_ROSTER_UPDATE", jps.UpdateRaidStatus)
-jps.listener.registerEvent("GROUP_ROSTER_UPDATE", jps.UpdateRaidRole)
+-- PARTY_MEMBER_DISABLE -- Fired when a specific party member is offline or dead 
+jps.listener.registerEvent("GROUP_ROSTER_UPDATE", function()
+	jps.UpdateRaidStatus()
+	jps.UpdateRaidRole()
+end)
+jps.listener.registerEvent("PARTY_MEMBER_DISABLE", function()
+	jps.UpdateRaidStatus()
+	jps.UpdateRaidRole()
+end)
 
 -----------------------
 -- UPDATE ENEMY TABLE
 -----------------------
 -- "UNIT_TARGET" Fired when the target of yourself, raid, and party members change: 'target', 'party1target', 'raid1target', etc.. 
 -- Should also work for 'pet' and 'focus'. This event only fires when the triggering unit is within the player's visual range
-
 jps.listener.registerEvent("UNIT_TARGET", jps.LowestTarget)
 
 local updateEnemyDamager = function()
@@ -990,9 +1004,7 @@ end
 
 -- Returns the average heal value of given spell.
 getaverage_heal = function(spell)
-	local spellname = nil
-	if type(spell) == "string" then spellname = spell end
-	if type(spell) == "number" then spellname = GetSpellInfo(spell) end
+	local spellname = toSpellName(spell)
 	if spellname == nil then return 0 end
  	if Healtable[spellname] == nil then
 		return 0

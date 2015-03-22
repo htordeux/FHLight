@@ -11,8 +11,15 @@ Functions which handle casting & channeling stuff.
 local L = MyLocalizationTable
 local UnitCastingInfo = UnitCastingInfo
 local UnitChannelInfo = UnitChannelInfo
-local GetSpellInfo = GetSpellInfo
 local GetSpellCooldown = GetSpellCooldown
+local GetSpellInfo = GetSpellInfo
+
+local function toSpellName(spell)
+	local spellname = GetSpellInfo(spell)
+--	if type(spell) == "string" then spellname = spell end
+--	if type(spell) == "number" then spellname = GetSpellInfo(spell) end
+	return spellname
+end
 
 --------------------------
 -- CASTING SPELL
@@ -20,7 +27,6 @@ local GetSpellCooldown = GetSpellCooldown
 
 -- name, nameSubtext, text, texture, startTime, endTime, isTradeSkill, castID, notInterruptible = UnitCastingInfo("unit")
 -- name, nameSubtext, text, texture, startTime, endTime, isTradeSkill, notInterruptible = UnitCastingInfo("unit")
-
 
 function jps.CastTimeLeft(unit)
 	if unit == nil then unit = "player" end
@@ -37,10 +43,8 @@ function jps.ChannelTimeLeft(unit)
 end
 
 function jps.SpellCastTime(spell)
-	local spellname = nil
-	if type(spell) == "string" then spellname = spell end
-	if type(spell) == "number" then spellname = tostring(select(1,GetSpellInfo(spell))) end
-	castTime = select(4, GetSpellInfo(spellname)) 
+	local castTime = select(4, GetSpellInfo(spell))
+	if castTime == nil then return 0 end
 	return (castTime/1000) or 0
 end
 
@@ -52,9 +56,7 @@ function jps.IsCasting(unit)
 end
 
 function jps.IsCastingSpell(spell,unit) -- WORKS FOR CASTING SPELL NOT CHANNELING SPELL
-	local spellname = nil
-	if type(spell) == "string" then spellname = spell end
-	if type(spell) == "number" then spellname = GetSpellInfo(spell) end
+	local spellname = toSpellName(spell)
 	if spellname == nil then return false end
 	if unit == nil then unit = "player" end
 	local name, _, _, _, startTime, endTime, _, _, interrupt = UnitCastingInfo(unit)
@@ -64,9 +66,7 @@ function jps.IsCastingSpell(spell,unit) -- WORKS FOR CASTING SPELL NOT CHANNELIN
 end
 
 function jps.IsChannelingSpell(spell,unit) -- WORKS FOR CHANNELING SPELL NOT CASTING SPELL
-	local spellname = nil
-	if type(spell) == "string" then spellname = spell end
-	if type(spell) == "number" then spellname = GetSpellInfo(spell) end
+	local spellname = toSpellName(spell)
 	if spellname == nil then return false end
 	if unit == nil then unit = "player" end
 	local name, _, _, _, startTime, endTime, _, interrupt = UnitChannelInfo(unit)
@@ -75,29 +75,12 @@ function jps.IsChannelingSpell(spell,unit) -- WORKS FOR CHANNELING SPELL NOT CAS
 	return false
 end
 
--- returns cooldown off a spell
--- start, duration, enable = GetSpellCooldown("name") or GetSpellCooldown(id)
-function jps.cooldown(spell)
-	local spellname = nil
-	if type(spell) == "string" then spellname = spell end
-	if type(spell) == "number" then spellname = GetSpellInfo(spell) end
-	if spellname == nil then return 0 end
-	local start,duration,_ = GetSpellCooldown(spellname)
-	-- if spell is unknown start is nil and cd is 0 => set it to 999 if the spell is unknown
-	if start == nil then return 999 end
-	local cd = start+duration-GetTime()
-	if cd < 0 then return 0 end
-	return cd
-end
-
 ------------------
 -- TIMED CASTING
 ------------------
 
 function jps.castEverySeconds(spell, seconds)
-	local spellname = nil
-	if type(spell) == "string" then spellname = spell end
-	if type(spell) == "number" then spellname = GetSpellInfo(spell) end
+	local spellname = toSpellName(spell)
 	if spellname == nil then return false end
 	if not jps.TimedCasting[spellname] then
 		return true

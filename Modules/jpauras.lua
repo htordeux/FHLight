@@ -7,6 +7,13 @@ local UnitBuff = UnitBuff
 local UnitDebuff = UnitDebuff
 local GetSpellInfo = GetSpellInfo
 
+local function toSpellName(spell)
+	local spellname = GetSpellInfo(spell)
+--	if type(spell) == "string" then spellname = spell end
+--	if type(spell) == "number" then spellname = GetSpellInfo(spell) end
+	return spellname
+end
+
 --------------------------
 -- BUFF DEBUFF
 --------------------------
@@ -16,8 +23,9 @@ local GetSpellInfo = GetSpellInfo
 -- spellId of the spell or effect that applied the aura
 
 function jps.buffId(spellId,unit)
-	local spellname = nil
-	if type(spellId) == "number" then spellname = GetSpellInfo(spellId) end
+	local spellname = toSpellName(spellId)
+--	if type(spellId) == "number" then spellname = GetSpellInfo(spellId) end
+--	if spellname == nil then return false end
 	if spellname == nil then return false end
 	if unit == nil then unit = "player" end
 	local auraName, _, _, count, _, duration, expirationTime, castBy, _, _, buffId
@@ -32,9 +40,9 @@ function jps.buffId(spellId,unit)
 end
 
 function jps.buff(spell,unit)
-	local spellname = nil
-	if type(spell) == "string" then spellname = spell end
-	if type(spell) == "number" then spellname = GetSpellInfo(spell) end
+	local spellname = toSpellName(spell)
+--	if type(spell) == "string" then spellname = spell end
+--	if type(spell) == "number" then spellname = GetSpellInfo(spell) end
 	if spellname == nil then return false end
 	if unit == nil then unit = "player" end
 	if select(1,UnitBuff(unit,spellname)) then return true end
@@ -42,9 +50,9 @@ function jps.buff(spell,unit)
 end
 
 function jps.debuff(spell,unit)
-	local spellname = nil
-	if type(spell) == "string" then spellname = spell end
-	if type(spell) == "number" then spellname = GetSpellInfo(spell) end
+	local spellname = toSpellName(spell)
+--	if type(spell) == "string" then spellname = spell end
+--	if type(spell) == "number" then spellname = GetSpellInfo(spell) end
 	if spellname == nil then return false end
 	if unit == nil then unit = "target" end
 	if select(1,UnitDebuff(unit,spellname)) then return true end
@@ -52,9 +60,9 @@ function jps.debuff(spell,unit)
 end
 
 function jps.myDebuff(spell,unit)
-	local spellname = nil
-	if type(spell) == "string" then spellname = spell end
-	if type(spell) == "number" then spellname = GetSpellInfo(spell) end
+	local spellname = toSpellName(spell)
+--	if type(spell) == "string" then spellname = spell end
+--	if type(spell) == "number" then spellname = GetSpellInfo(spell) end
 	if spellname == nil then return false end
 	if unit == nil then unit = "target" end
 	if select(1,UnitDebuff(unit,spellname)) and select(8,UnitDebuff(unit,spellname))=="player" then return true end
@@ -62,9 +70,9 @@ function jps.myDebuff(spell,unit)
 end
 
 function jps.myBuffDuration(spell,unit)
-	local spellname = nil
-	if type(spell) == "string" then spellname = spell end
-	if type(spell) == "number" then spellname = GetSpellInfo(spell) end
+	local spellname = toSpellName(spell)
+--	if type(spell) == "string" then spellname = spell end
+--	if type(spell) == "number" then spellname = GetSpellInfo(spell) end
 	if spellname == nil then return 0 end
 	if unit == nil then unit = "player" end
 	local _,_,_,_,_,_,duration,caster,_,_,_ = UnitBuff(unit,spellname)
@@ -76,9 +84,9 @@ function jps.myBuffDuration(spell,unit)
 end
 
 function jps.myDebuffDuration(spell,unit) 
-	local spellname = nil
-	if type(spell) == "string" then spellname = spell end
-	if type(spell) == "number" then spellname = GetSpellInfo(spell) end
+	local spellname = toSpellName(spell)
+--	if type(spell) == "string" then spellname = spell end
+--	if type(spell) == "number" then spellname = GetSpellInfo(spell) end
 	if spellname == nil then return 0 end
 	if unit == nil then unit = "target" end
 	local _,_,_,_,_,_,duration,caster,_,_ = UnitDebuff(unit,spellname)
@@ -90,9 +98,9 @@ function jps.myDebuffDuration(spell,unit)
 end
 
 function jps.buffDuration(spell,unit)
-	local spellname = nil
-	if type(spell) == "string" then spellname = spell end
-	if type(spell) == "number" then spellname = GetSpellInfo(spell) end
+	local spellname = toSpellName(spell)
+--	if type(spell) == "string" then spellname = spell end
+--	if type(spell) == "number" then spellname = GetSpellInfo(spell) end
 	if spellname == nil then return 0 end
 	if unit == nil then unit = "player" end
 	local _,_,_,_,_,_,duration,caster,_,_,_ = UnitBuff(unit,spellname)
@@ -103,9 +111,9 @@ function jps.buffDuration(spell,unit)
 end
 
 function jps.debuffDuration(spell,unit) 
-	local spellname = nil
-	if type(spell) == "string" then spellname = spell end
-	if type(spell) == "number" then spellname = GetSpellInfo(spell) end
+	local spellname = toSpellName(spell)
+--	if type(spell) == "string" then spellname = spell end
+--	if type(spell) == "number" then spellname = GetSpellInfo(spell) end
 	if spellname == nil then return 0 end
 	if unit == nil then unit = "target" end
 	local _,_,_,_,_,_,duration,caster,_,_ = UnitDebuff(unit,spellname)
@@ -116,9 +124,9 @@ function jps.debuffDuration(spell,unit)
 end
 
 function jps.debuffStacks(spell,unit)
-	local spellname = nil
-	if type(spell) == "string" then spellname = spell end
-	if type(spell) == "number" then spellname = GetSpellInfo(spell) end
+	local spellname = toSpellName(spell)
+--	if type(spell) == "string" then spellname = spell end
+--	if type(spell) == "number" then spellname = GetSpellInfo(spell) end
 	if spellname == nil then return 0 end
 	if unit == nil then unit = "target" end
 	local _,_,_,count, _,_,_,_,_,_ = UnitDebuff(unit,spellname)
@@ -127,9 +135,9 @@ function jps.debuffStacks(spell,unit)
 end
 
 function jps.buffStacks(spell,unit)
-	local spellname = nil
-	if type(spell) == "string" then spellname = spell end
-	if type(spell) == "number" then spellname = GetSpellInfo(spell) end
+	local spellname = toSpellName(spell)
+--	if type(spell) == "string" then spellname = spell end
+--	if type(spell) == "number" then spellname = GetSpellInfo(spell) end
 	if spellname == nil then return 0 end
 	if unit == nil then unit = "player" end
 	local _, _, _, count, _, _, _, _, _ = UnitBuff(unit,spellname)

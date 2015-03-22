@@ -87,9 +87,9 @@ local function Sleep(Interval)
 	FishUntil = GetTime() + (Interval / 1000)
 end
 
-local function spelltoName(spellID)
-	local name = GetSpellInfo(spellID)
-	return name
+local function toSpellName(spell)
+	local spellname = GetSpellInfo(spell)
+	return spellname
 end
 
 -- 0x7 is the index of the created-by descriptor, not the offset.
@@ -140,7 +140,7 @@ function LookupFishing ()
 		else 
 			RemoveTimerCallback(LookupFishing)
 			--PlayerObject:CastSpellByID(131474)
-			PlayerObject:CastSpellByName(spelltoName(131474)) 
+			PlayerObject:CastSpellByName(toSpellName(131474)) 
 		end
 	end
 	Sleep(GetLatency() + 500)
@@ -157,7 +157,7 @@ local function SpellCastEventHandler(self, event, ...)
     -- lineID - Spell lineID counter. This number is always 0 for channels. (number) -- 0
     -- spellID - The id of the spell that's being casted. (number, spellID) -- 131490
 
-		if fh.FishingCast[1] == "player" and fh.FishingCast[2] == spelltoName(131490) then --  fh.FishingCast[5] == 131490 -- BUFF  
+		if fh.FishingCast[1] == "player" and fh.FishingCast[2] == toSpellName(131490) then --  fh.FishingCast[5] == 131490 -- BUFF  
 			local timer = math.random(200,500)
 			SetTimerCallback(LookupFishing, timer)
 		end

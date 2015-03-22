@@ -1,5 +1,5 @@
 -- jps.Interrupts for Dispel
--- jps.Defensive changes the LowestImportantUnit to table = { "player","focus","target","targettarget","mouseover" } with insert TankUnit  = jps.findAggroInRaid()
+-- jps.Defensive changes the LowestImportantUnit to table = { "player","focus","target","mouseover" } with table.insert TankUnit  = jps.findTankInRaid()
 -- jps.FaceTarget to DPSing
 
 local L = MyLocalizationTable
@@ -404,6 +404,7 @@ spellTable = {
 		-- "Châtiment" 585
 		{ 585, jps.castEverySeconds(585,2) and not IsInGroup() , rangedTarget , "|cFFFF0000Chatiment_" },
 		{ 585, jps.castEverySeconds(585,2) and IsInGroup() and LowestImportantUnitHpct < 1 , rangedTarget , "|cFFFF0000Chatiment_" },
+		{ 585, jps.castEverySeconds(585,2) and IsInGroup() and jps.buffStacks(81661) < 5 , rangedTarget , "|cFFFF0000Chatiment_" },
 		-- "Pénitence" 47540 -- jps.glyphInfo(119866) -- allows Penance to be cast while moving.
 		{ 47540, not IsInGroup() , rangedTarget,"|cFFFF0000Penance_" },
 		{ 47540, IsInGroup() and LowestImportantUnitHpct < 1 , rangedTarget,"|cFFFF0000Penance_" },

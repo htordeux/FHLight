@@ -3,7 +3,6 @@
 --------------------------
 
 local L = MyLocalizationTable
-local GetSpellInfo = GetSpellInfo
 local GetTalentInfo = GetTalentInfo
 local GetGlyphSocketInfo = GetGlyphSocketInfo
 local GetGlyphLink = GetGlyphLink
@@ -11,6 +10,14 @@ local GetSpellCooldown = GetSpellCooldown
 local GetSpellTabInfo = GetSpellTabInfo
 local GetSpellBookItemInfo = GetSpellBookItemInfo
 local GetSpellBookItemName = GetSpellBookItemName
+local GetSpellInfo = GetSpellInfo
+
+local function toSpellName(spell)
+	local spellname = GetSpellInfo(spell)
+--	if type(spell) == "string" then spellname = spell end
+--	if type(spell) == "number" then spellname = GetSpellInfo(spell) end
+	return spellname
+end
 
 ------------------------------
 -- GLYPHS
@@ -43,9 +50,9 @@ local jps_IsSpellKnown = function(spell)
 	local name, texture, offset, numSpells, isGuild = GetSpellTabInfo(2)
 	local booktype = "spell"
 	local mySpell = nil
-	local spellname = nil
-	if type(spell) == "string" then spellname = spell end
-	if type(spell) == "number" then spellname = GetSpellInfo(spell) end
+	local spellname = toSpellName(spell)
+--	if type(spell) == "string" then spellname = spell end
+--	if type(spell) == "number" then spellname = GetSpellInfo(spell) end
 
 	for index = offset+1, numSpells+offset do
 		-- Get the Global Spell ID from the Player's spellbook

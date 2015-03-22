@@ -7,8 +7,6 @@ to your rotation - you can find all relevant information on Transforming your Ro
 ]]--
 
 local UnitIsUnit = UnitIsUnit
-local canCast = jps.canCast
--- name, rank, icon, castTime, minRange, maxRange, spellId = GetSpellInfo(spellId or spellName)
 local GetSpellInfo = GetSpellInfo
 local ipairs = ipairs
 
@@ -154,7 +152,7 @@ parseStaticSpellTable = function(hydraTable)
         end
 
         -- Return spell if conditions are true and spell is castable.
-        if spell ~= nil and conditions and canCast(spell,target) then
+        if spell ~= nil and conditions and jps.canCast(spell,target) then
             return spell,target
         end
     end
@@ -201,7 +199,7 @@ parseMyStaticSpellTable = function(hydraTable)
 		target = TargetEval(targ)
 		
 		-- Return spell if conditions are true and spell is castable.
-		if spell ~= nil and conditions and canCast(spell,target) then
+		if spell ~= nil and conditions and jps.canCast(spell,target) then
 			return spell,target
 		end
 	end

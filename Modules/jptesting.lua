@@ -16,29 +16,11 @@
 
 -- local function
 local GetSpellInfo = GetSpellInfo
-local function toSpellName(id)
-	local name = GetSpellInfo(id)
-	return name
-end
-
-local function canCastDebug(spell,unit)
-	if spell == "" then return false end
-	if unit == nil then unit = "target" end
-	local spellname = nil
-	if type(spell) == "string" then spellname = spell end
-	if type(spell) == "number" then spellname = GetSpellInfo(spell) end
-	
-	if spellname == nil then print("spell is nil") end
-	if jps.PlayerIsBlacklisted(unit) then print("blacklisted unit") end
-	if not jps.UnitExists(unit) and not isBattleRez(spellname) then print("invalid unit") end -- isBattleRez need spellname
-	
-	local usable, nomana = IsUsableSpell(spell) -- usable, nomana = IsUsableSpell("spellName" or spellID)
-	if not usable then print("spell is not usable") end
-	if nomana then return print("failed mana test") end
-	if (jps.cooldown(spellname) > 0) then print("cooldown not finished") end
-	if not jps.IsSpellInRange(spell,unit) then print("spell is not inrange") end
-	if jps[spellname] ~= nil and jps[spellname] == false then print("not spellname") end -- need spellname
-	print("passes all tests")
+local function toSpellName(spell)
+	local spellname = GetSpellInfo(spell)
+--	if type(spell) == "string" then spellname = spell end
+--	if type(spell) == "number" then spellname = GetSpellInfo(spell) end
+	return spellname
 end
 
 function jps_Test()
@@ -62,20 +44,8 @@ function jps_Test()
 	print("POHTarget: ",POHTarget,"groupToHeal: ",groupToHeal,"groupHealth: ",groupHealth)
 	local CountInRange, AvgHealthLoss, FriendUnit = jps.CountInRaidStatus(100)
 	write("CountInRange: ",CountInRange,"AvgHealthLoss: ", AvgHealthLoss)
-
---[[	
-	local myTanks = { "player","focus","target" }
-	myTanks[1] = "prout";
-	write("1",unpack(myTanks)) -- "prout,focus,target"
-	
-	local myTanks = { "player","focus","target" }
-	myTanks[#myTanks] = "prout";  
-	write("2",unpack(myTanks)) -- player,focus,prout"
-	
-	local myTanks = { "player","focus","target" }
-	myTanks[#myTanks+1] = "prout";  
-	write("3",unpack(myTanks)) -- "player,focus,target,prout"
-]]--
+--	local _,Tanks = jps.findTankInRaid()
+--	print("Tanks: ",unpack(Tank))
 
 --	local mastery = GetMasteryEffect()
 --	local masteryValue = math.ceil(mastery)/100
@@ -102,6 +72,34 @@ function jps_RaidTest()
 	print("EnemyUnit: ",unpack(EnemyUnit))
 
 end
+
+	local tsort = table.sort
+	local table = {9,5,12,1,2,4}
+	for i=1,#table do
+		print("|cffe5cc80",table[i])
+	end
+	tsort(table, function(a,b) return a >= b end)
+	for i=1,#table do
+		print("sort>",table[i]) -- 12,9,5,4,1,2
+	end
+	tsort(table, function(a,b) return a <= b end)
+	for i=1,#table do
+		write("sort<",table[i]) -- 1,2,4,5,9,12
+	end
+
+
+	local myTanks = { "player","focus","target" }
+	myTanks[1] = "prout";
+	write("1",unpack(myTanks)) -- "prout,focus,target"
+	
+	local myTanks = { "player","focus","target" }
+	myTanks[#myTanks] = "prout";  
+	write("2",unpack(myTanks)) -- player,focus,prout"
+	
+	local myTanks = { "player","focus","target" }
+	myTanks[#myTanks+1] = "prout";  
+	write("3",unpack(myTanks)) -- "player,focus,target,prout"
+
 
 -----------------------
 -- FUNCTION MEMORY

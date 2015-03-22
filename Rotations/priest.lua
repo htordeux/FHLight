@@ -97,7 +97,7 @@ end
 -- FUNCTIONS ENEMY UNIT
 ------------------------------------
 
-priest.canFear = function (rangedTarget)
+priest.canFear = function(rangedTarget)
 	if not jps.canDPS(rangedTarget) then return false end
 	local canFear = false
 	local BerserkerRage = GetSpellInfo(18499)
@@ -114,7 +114,7 @@ priest.canFear = function (rangedTarget)
 	return canFear
 end
 
-priest.canShadowfiend = function (rangedTarget)
+priest.canShadowfiend = function(rangedTarget)
 	if not jps.canDPS(rangedTarget) then return false end
 	if UnitGetTotalAbsorbs(rangedTarget) > 0 then return false end
 	local isBoss = (UnitLevel(rangedTarget) == -1) or (UnitClassification(rangedTarget) == "elite")
@@ -122,7 +122,7 @@ priest.canShadowfiend = function (rangedTarget)
 	return false
 end
 
-priest.canShadowWordDeath = function (rangedTarget)
+priest.canShadowWordDeath = function(rangedTarget)
 	if not jps.canDPS(rangedTarget) then return false end
 	if jps.cooldown(32379) == 0 and jps.hp(rangedTarget) < 0.20 then return true end
 	return false
@@ -140,7 +140,7 @@ priest.unitForClarity = function(unit)
 	return true
 end
 
-priest.unitForShield = function (unit)
+priest.unitForShield = function(unit)
 	if not jps.UnitExists(unit) then return false end
 	if not jps.FriendAggro(unit) then return false end
 	if jps.buff(17,unit) then return false end
@@ -148,15 +148,15 @@ priest.unitForShield = function (unit)
 	return true
 end
 
-priest.unitForMending = function (unit)
+priest.unitForMending = function(unit)
 	if not jps.UnitExists(unit) then return false end
 	if not jps.FriendAggro(unit) then return false end
-	if (jps.cooldown(33076) > 0) then return false end
+	if jps.cooldown(33076) > 0 then return false end
 	if jps.buff(41635,unit) then return false end
 	return true
 end
 
-priest.unitForBinding = function (unit)
+priest.unitForBinding = function(unit)
 	if not jps.UnitExists(unit) then return false end
 	if jps.UnitIsUnit(unit,"player") then return false end
 	if jps.hp("player") > 0.75 then return false end
@@ -164,7 +164,7 @@ priest.unitForBinding = function (unit)
 	return true
 end
 
-priest.unitForLeap = function (unit)
+priest.unitForLeap = function(unit)
 	if not jps.UnitExists(unit) then return false end
 	if jps.UnitIsUnit(unit,"player") then return false end
 	if not jps.FriendAggro(unit) then return false end

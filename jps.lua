@@ -105,7 +105,7 @@ rotationDropdownHolder = nil
 
 -- Local
 local tinsert = table.insert
-local GetSpellInfo = GetSpellInfo -- name, rank, icon, castTime, minRange, maxRange, spellId = GetSpellInfo(spellId or spellName)
+local GetSpellInfo = GetSpellInfo
 
 -- Slash Cmd
 SLASH_jps1 = '/jps'
@@ -136,12 +136,12 @@ function GetHarmfulSpell()
 		if maxRange == nil then maxRange = 0 end
 		local harmful = IsHarmfulSpell(index, booktype)
 		local helpful = IsHelpfulSpell(index, booktype)
-		if maxRange > 0 and minRange == 0 and harmful then
+		if harmful and maxRange > 0 and minRange == 0 then
 			if maxRange > harm then
 				harm = maxRange
 				jps.HarmSpell = spell
 			end
-		elseif maxRange > 0 and minRange == 0 and helpful then
+		elseif helpful and maxRange > 0 and minRange == 0 then
 			if maxRange > help then
 				help = maxRange
 				jps.HelpSpell = spell
@@ -334,10 +334,12 @@ hooksecurefunc("UseAction", function(...)
 	if jps.Enabled and (select(3, ...) ~= nil) and InCombatLockdown() == true then
 		local stype,id,_ = GetActionInfo(select(1, ...))
 		if stype == "spell" then
-			local name = GetSpellInfo(id)
-			if jps.NextSpell ~= name and not jps.shouldSpellBeIgnored(name) then
-				jps.NextSpell = name
-				write("Set",name,"for next cast.")
+			local name, _, icon, _, _, _, _ = GetSpellInfo(id)
+			if string.find(string.lower(icon),"spell") ~= nil then
+				if jps.NextSpell ~= name and not jps.shouldSpellBeIgnored(name) then
+					jps.NextSpell = name
+					write("Set",name,"for next cast.")
+				end
 			end
 		end
 	end

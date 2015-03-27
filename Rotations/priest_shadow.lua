@@ -202,10 +202,9 @@ if jps.buff(47585,"player") then return end -- "Dispersion" 47585
 	
 --	SpellStopCasting()
 -- "Mind Flay" 15407 -- "Mind Blast" 8092 -- buff 81292 "Glyph of Mind Spike"
--- "Insanity" 129197
+-- "Insanity" 129197 -- buff "Shadow Word: Insanity" 132573
 local canCastMindBlast = false
 local Channeling = UnitChannelInfo("player") -- "Mind Flay" is a channeling spell
--- "Shadow Word: Insanity" 132573 not jps.buff(132573)
 if Channeling and Channeling == MindFlay then
 	-- "Mind Blast" 8092 -- buff 81292 "Glyph of Mind Spike"
 	if jps.cooldown(8092) == 0 and jps.buffStacks(81292) == 2 then 
@@ -370,10 +369,11 @@ local spellTable = {
 	{ 34914, not jps.Moving and jps.myDebuff(34914,rangedTarget) and jps.myDebuffDuration(34914,rangedTarget) < jps.GCD and not jps.isRecast(34914,rangedTarget) , rangedTarget , "VT_Target_" },
 
 	-- MULTITARGET
-	-- "Divine Star" Holy 110744 Shadow 122121
-	{ 122121, jps.IsSpellKnown(122121) and EnemyCount > 2 , rangedTarget , "_DivineStar"  },
 	-- "Cascade" Holy 121135 Shadow 127632
 	{ 127632, jps.IsSpellKnown(127632) and EnemyCount > 2 , rangedTarget , "_Cascade"  },
+	{ 127632, jps.IsSpellKnown(127632) and 	jps.UseCDs , rangedTarget , "_Cascade"  },
+	-- "Divine Star" Holy 110744 Shadow 122121
+	{ 122121, jps.IsSpellKnown(122121) and EnemyCount > 2 , rangedTarget , "_DivineStar"  },
 	-- "MindSear" 48045
 	{ 48045, not jps.Moving and jps.MultiTarget and EnemyCount > 3 , rangedTarget  },
 

@@ -288,6 +288,10 @@ spellTable = {
 	{ "nested", canDPS("target") and isBoss and jps.IsCasting("target") ,{
 		{ 17, not jps.buff(17,"targettarget") and not jps.debuff(6788,"targettarget") , "targettarget" , "Shield_TargetTarget" },
 	},},
+	{ "nested", IsShiftKeyDown() and isBoss and canHeal("mouseover") ,{
+		{ 17, not jps.buff(17,"mouseover") and not jps.debuff(6788,"mouseover") , "mouseover" , "Shield_Mouseover" },
+		{ 152118, jps.debuff(6788,"mouseover") and not jps.buff(152118,"mouseover") and not jps.isRecast(152118,"mouseover") , "mouseover" , "Clarity_Mouseover" },
+	},},
 
 	-- "Pénitence" 47540
 	{ 47540, canHeal(myTank) and jps.hp(myTank) < 0.80 , myTank , "Penance_myTank_" },

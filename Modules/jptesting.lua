@@ -73,6 +73,7 @@ function jps_RaidTest()
 
 end
 
+--[[
 	local tsort = table.sort
 	local table = {9,5,12,1,2,4}
 	for i=1,#table do
@@ -99,7 +100,7 @@ end
 	local myTanks = { "player","focus","target" }
 	myTanks[#myTanks+1] = "prout";  
 	write("3",unpack(myTanks)) -- "player,focus,target,prout"
-
+]]
 
 -----------------------
 -- FUNCTION MEMORY

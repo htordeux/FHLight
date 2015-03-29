@@ -491,7 +491,7 @@ local NotDispelFriendly = function(unit)
 	return false
 end
 
-jps.canDispel = function (unit,dispelTable) -- {"Magic", "Poison", "Disease", "Curse"}
+jps.canDispel = function(unit,dispelTable) -- {"Magic", "Poison", "Disease", "Curse"}
 	if not canHeal(unit) then return false end
 	if NotDispelFriendly(unit) then return false end
 	if dispelTable == nil then dispelTable = {"Magic"} end
@@ -510,7 +510,7 @@ jps.canDispel = function (unit,dispelTable) -- {"Magic", "Poison", "Disease", "C
 	return false
 end
 
-jps.FindMeDispelTarget = function (dispelTable) -- {"Magic", "Poison", "Disease", "Curse"}
+jps.FindMeDispelTarget = function(dispelTable) -- {"Magic", "Poison", "Disease", "Curse"}
 	local dispelUnit = nil
 	local dispelUnitHP = 100
 	for unit,_ in pairs(RaidStatus) do
@@ -546,6 +546,22 @@ end
 function jps.DispelCurseTarget()
 	for unit,_ in pairs(RaidStatus) do
 		if jps.canDispel(unit,{"Curse"}) then return unit end
+	end
+end
+
+function jps.FindMeBossDebuff(Boss)
+	local BossDebuff = jps.RaidBossDebuff[Boss]
+	if BossDebuff == nil then return false end
+	for i=1,#BossDebuff do
+		local debuff = BossDebuff[i]
+		if jps.debuff(debuff,unit) then return true end
+	end
+	return false
+end
+
+jps.FindMeRaidBossDebuff = function(Boss)
+	for unit,_ in pairs(RaidStatus) do
+		if jps.FindMeBossDebuff(Boss) then return unit end
 	end
 end
 

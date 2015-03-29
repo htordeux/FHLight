@@ -176,7 +176,7 @@ local darkSimSpells = {
 function dk.shoulDarkSimUnit(unit)
 	local darkSimSpell = false
 	for i=1,#darkSimSpells do -- for _,spellName in ipairs(darkSimSpells) do
-		local spellName = darkSimSpells[1]
+		local spellName = darkSimSpells[i]
 		if jps.IsCastingSpell(spellName, unit) then 
 			darkSimSpell = true
 		elseif jps.IsChannelingSpell(spellName, unit) then 

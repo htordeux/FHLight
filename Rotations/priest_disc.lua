@@ -287,8 +287,9 @@ spellTable = {
 	-- SHIELD BOSS TARGET
 	{ "nested", canDPS("target") and isBoss and jps.IsCasting("target") ,{
 		{ 17, not jps.buff(17,"targettarget") and not jps.debuff(6788,"targettarget") , "targettarget" , "Shield_TargetTarget" },
+		{ 152118, jps.debuff(6788,"targettarget") and not jps.buff(152118,"targettarget") and not jps.isRecast(152118,"targettarget") , "targettarget" , "Clarity_TargetTarget" },
 	},},
-	{ "nested", IsShiftKeyDown() and isBoss and canHeal("mouseover") ,{
+	{ "nested", IsShiftKeyDown() and canDPS("target") and isBoss and canHeal("mouseover") ,{
 		{ 17, not jps.buff(17,"mouseover") and not jps.debuff(6788,"mouseover") , "mouseover" , "Shield_Mouseover" },
 		{ 152118, jps.debuff(6788,"mouseover") and not jps.buff(152118,"mouseover") and not jps.isRecast(152118,"mouseover") , "mouseover" , "Clarity_Mouseover" },
 	},},
@@ -409,11 +410,11 @@ spellTable = {
 	{ "nested", jps.FaceTarget and canDPS(rangedTarget) and LowestImportantUnitHpct > 0.80 ,{
 		-- "Châtiment" 585
 		{ 585, jps.castEverySeconds(585,2) and not IsInGroup() , rangedTarget , "|cFFFF0000Chatiment_" },
-		{ 585, jps.castEverySeconds(585,2) and IsInGroup() and LowestImportantUnitHpct < 1 , rangedTarget , "|cFFFF0000Chatiment_" },
+		--{ 585, jps.castEverySeconds(585,2) and IsInGroup() and LowestImportantUnitHpct < 1 , rangedTarget , "|cFFFF0000Chatiment_" },
 		{ 585, jps.castEverySeconds(585,2) and IsInGroup() and jps.buffStacks(81661) < 5 , rangedTarget , "|cFFFF0000Chatiment_" },
 		-- "Pénitence" 47540 -- jps.glyphInfo(119866) -- allows Penance to be cast while moving.
 		{ 47540, not IsInGroup() , rangedTarget,"|cFFFF0000Penance_" },
-		{ 47540, IsInGroup() and LowestImportantUnitHpct < 1 , rangedTarget,"|cFFFF0000Penance_" },
+		--{ 47540, IsInGroup() and LowestImportantUnitHpct < 1 , rangedTarget,"|cFFFF0000Penance_" },
 		-- "Mot de l'ombre: Douleur" 589 -- Only if 1 targeted enemy 
 		{ 589, jps.myDebuffDuration(589,rangedTarget) == 0 and not IsInGroup() , rangedTarget , "|cFFFF0000Douleur_" },
 	},},

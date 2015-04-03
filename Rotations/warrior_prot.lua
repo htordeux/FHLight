@@ -80,8 +80,10 @@ local spellTable ={
 	{ 6544, IsShiftKeyDown() , "player" },
 	
 	-- BUFFS
-	-- "Defensive Stance"" 71
-	{ warrior.spells["DefensiveStance"], not jps.buff(71) , "player" },
+	-- "Gladiator Stance" 156291 -- Talent "Gladiator's Resolve" 152276
+	{ 156291, jps.IsSpellKnown(152276) and not jps.buff(156291) and not jps.buff(71) , "player" },
+	-- "Defensive Stance" 71
+	{ warrior.spells["DefensiveStance"], not jps.buff(71) and not jps.buff(156291), "player" },
 	-- "Battle Shout" 6673 "Cri de guerre"
 	{ warrior.spells["BattleShout"] , not jps.hasAttackPowerBuff("player") , "player" },
 	
@@ -126,7 +128,7 @@ local spellTable ={
 	{ jps.useTrinket(1), jps.useTrinketBool(1) and not playerWasControl and jps.combatStart > 0 , rangedTarget , "Trinket1"},
 
 	-- "Heroic Throw" 57755 "Lancer héroïque"
-	{ warrior.spells["HeroicThrow"] , jps.IsSpellInRange(57755,rangedTarget) , rangedTarget , "_Heroic Throw" },
+	{ warrior.spells["HeroicThrow"] , inRanged , rangedTarget , "_Heroic Throw" },
 	-- "Charge" 100
 	{ warrior.spells["Charge"], jps.UseCDs and jps.IsSpellInRange(100,rangedTarget) , rangedTarget , "_Charge"},
 	-- "Piercing Howl" 12323 "Hurlement percant"
@@ -135,36 +137,52 @@ local spellTable ={
 	{ warrior.spells["IntimidatingShout"] , not jps.debuff(5246,rangedTarget) and isBoss , rangedTarget , "_IntimidatingShout"},
 	-- "Bloodbath" 12292 "Bain de sang"  -- jps.buff(12292)
 	{ warrior.spells["Bloodbath"], jps.combatStart > 0 , rangedTarget , "_Bloodbath" },
+
+	-- TALENTS --
+	-- "Storm Bolt" 107570 "Eclair de tempete" -- 30 yd range
+	{ warrior.spells["StormBolt"] , jps.IsSpellKnown(107570) , rangedTarget ,"_StormBolt" },
+	-- "Dragon Roar " 118000 -- 8 yards
+	{ warrior.spells["DragonRoar"] , jps.IsSpellKnown(118000) and inMelee , rangedTarget , "_DragonRoar" },
+	-- "Revenge" 6572 "Revanche"
+	{ warrior.spells["Revenge"] , inMelee , rangedTarget , "_Revenge" },
 	
 	-- MULTITARGET --
-	{"nested", (jps.MultiTarget or EnemyCount > 2) ,{
+	{"nested", (jps.MultiTarget and EnemyCount > 2) ,{
 
 		-- "Ravager" 152277 -- 40 yd range
 		{ warrior.spells["Ravager"] , jps.IsSpellKnown(152277) , rangedTarget , "_Ravager" },
 		-- "Shockwave" 46968 "Onde de choc"
 		{ warrior.spells["Shockwave"] , jps.IsSpellKnown(46968) , rangedTarget , "_Shockwave" },
 		-- "Thunder Clap" 6343 "Coup de tonnerre"
-		{ warrior.spells["ThunderClap"] , jps.IsSpellInRange(6343,rangedTarget) , rangedTarget , "_ThunderClap" },
+		{ warrior.spells["ThunderClap"] , inMelee , rangedTarget , "_ThunderClap" },
 
 	}},
 
 	-- SINGLETARGET --
+	-- "Heroic Strike" 78 "Frappe héroïque" -- "Ultimatum" 122509
+	{ warrior.spells["HeroicStrike"] , jps.buff(122509) , rangedTarget , "_HeroicStrike_Ultimatum" },
 	-- "Shield Slam" 23922 "Heurt de bouclier" -- "Sword and Board" 50227 "Epée et bouclier"
 	{ warrior.spells["ShieldSlam"] , jps.buff(50227) , rangedTarget , "_ShieldSlam_SwordBoard" },
 	-- "Shield Slam" 23922 "Heurt de bouclier"
-	{ warrior.spells["ShieldSlam"] , true , rangedTarget , "_ShieldSlam" },
-	-- "Revenge" 6572 "Revanche"
-	{ warrior.spells["Revenge"] , true , rangedTarget , "_Revenge" },
+	{ warrior.spells["ShieldSlam"] , inMelee , rangedTarget , "_ShieldSlam" },
+	-- "Dévaster" 20243 "Devastate"
+	{ warrior.spells["Devastate"] , jps.buffDuration(169686) < 2 , rangedTarget , "_Devastate_BuffDuration" },
+	-- "Unyielding Strikes" 169685 "Frappes inflexibles" -- Buff "Frappes inflexibles" 169686
+	-- Dévaster réduit le coût en rage de Frappe héroïque de 5 pendant 5 s. Cumulable jusqu’à 6 fois
+	{ warrior.spells["HeroicStrike"] , jps.buffStacks(169686) > 4 and jps.buff(156321) , rangedTarget , "_HeroicStrike_BuffStrikes_1" },
+	{ warrior.spells["HeroicStrike"] , jps.buffStacks(169686) == 6 , rangedTarget , "_HeroicStrike_BuffStrikes_2" },
+	-- "Shield Charge" 156321 -- Buff same ID -- -- "Gladiator Stance" 156291
+	-- Increasing the damage of Shield Slam, Revenge, and Heroic Strike by 25% for 7 sec.
+	{ 156321, jps.buff(156291) and not jps.buff(156321) , rangedTarget , "_ShieldCharge"},
 	-- "Execute" 5308 "Exécution" -- "Mort soudaine" 29725
 	{ warrior.spells["Execute"], jps.buff(29725) , rangedTarget , "_Execute_SuddenDeath" },
-	-- "Heroic Strike" 78 "Frappe héroïque" -- "Ultimatum" 122509
-	{ warrior.spells["HeroicStrike"] , jps.buff(122509) , rangedTarget , "_HeroicStrike_Ultimatum" },
 	-- "Execute" 5308 "Exécution"
-	{ warrior.spells["Execute"], jps.rage() > 70 and jps.hp(rangedTarget) < 0.20 , rangedTarget , "_Execute" },
+	{ warrior.spells["Execute"], jps.rage() > 60 and jps.hp(rangedTarget) < 0.20 , rangedTarget , "_Execute" },
 	--- "Heroic Strike" 78 "Frappe héroïque"
-	{ warrior.spells["HeroicStrike"] , jps.rage() > 70 and jps.hp(rangedTarget) > 0.20 , rangedTarget , "_HeroicStrike_Rage" },
+	{ warrior.spells["HeroicStrike"] , jps.rage() > 90 and jps.hp(rangedTarget) > 0.20 , rangedTarget , "_HeroicStrike_Rage" },
+	{ warrior.spells["HeroicStrike"] , jps.rage() > 60 and jps.hp(rangedTarget) > 0.20 and jps.buff(156321) , rangedTarget , "_HeroicStrike_BuffCharge" },
 	-- "Dévaster" 20243 "Devastate"
-	{ warrior.spells["Devastate"] , true , rangedTarget , "_Devastate" },
+	{ warrior.spells["Devastate"] , inMelee , rangedTarget , "_Devastate_End" },
 
 }
 

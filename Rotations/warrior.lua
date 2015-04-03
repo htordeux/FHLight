@@ -112,7 +112,7 @@ warrior.spells["StormBolt"] = toSpellName(107570) -- gives debuff 132169
 -- "Shockwave" 46968 "Onde de choc" -- damage and stunning all enemies within 10 yards for 4 sec.  Cooldown reduced by 20 sec if it strikes at least 3 targets.
 warrior.spells["Shockwave"] = toSpellName(46968)
 -- "Dragon Roar" 118000 "Rugissement de dragon" -- damage to all enemies within 8 yards and knocking them back and down for 0.5 sec. STUN
-warrior.spells["DragonRoar "] = toSpellName(118000)
+warrior.spells["DragonRoar"] = toSpellName(118000)
 -- "Sudden Death" 29725 "Mort soudaine" -- 10% chance to make your next Execute cost no initial Rage and be usable on any target, regardless of health level
 warrior.spells["SuddenDeath"] = toSpellName(29725)
 -- "Enraged Regeneration" 55694 "Régénération enragée" -- no rage Instantly heals you for 10% of your maximum health, and an additional 20% over 5 sec. Usable while stunned.

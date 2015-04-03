@@ -261,14 +261,16 @@ spellTable = {
 		{ 59544, true , "player" , "Aggro_Naaru" },
 	},},
 	{ "nested", playerAggro or playerWasControl or playerIsTargeted ,{
+		-- "Power Word: Shield" 17
+		{ 17, not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Aggro_Shield" },
 		-- "Spectral Guise" 112833 "Semblance spectrale"
 		{ 112833, jps.IsSpellKnown(112833) , "player" , "Aggro_Spectral" },
 		-- "Oubli" 586 -- Fantasme 108942 -- vous dissipez tous les effets affectant le déplacement sur vous-même
 		{ 586, jps.IsSpellKnown(108942) , "player" , "Aggro_Oubli" },
 		-- "Oubli" 586 -- Glyphe d'oubli 55684 -- Votre technique Oubli réduit à présent tous les dégâts subis de 10%.
 		{ 586, jps.glyphInfo(55684) , "player" , "Aggro_Oubli" },
-		-- "Power Word: Shield" 17
-		{ 17, not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Aggro_Shield" },
+		-- "Oubli" 586
+		{ 586, not jps.PvP , "player" , "Aggro_Oubli" },
 		-- "Glyph of Purify" 55677 Your Purify spell also heals your target for 5% of maximum health
 		{ 527, jps.canDispel("player",{"Magic"}) , "player" , "Aggro_Dispel" },
 	},},
@@ -415,7 +417,7 @@ spellTable = {
 		-- "Pénitence" 47540 -- jps.glyphInfo(119866) -- allows Penance to be cast while moving.
 		{ 47540, not IsInGroup() , rangedTarget,"|cFFFF0000Penance_" },
 		--{ 47540, IsInGroup() and LowestImportantUnitHpct < 1 , rangedTarget,"|cFFFF0000Penance_" },
-		-- "Mot de l'ombre: Douleur" 589 -- Only if 1 targeted enemy 
+		-- "Mot de l'ombre: Douleur" 589
 		{ 589, jps.myDebuffDuration(589,rangedTarget) == 0 and not IsInGroup() , rangedTarget , "|cFFFF0000Douleur_" },
 	},},
 	
@@ -695,7 +697,7 @@ spellTable = {
 		 -- Dwarf "Stoneform" 20594 Removes all poison, disease, curse, magic, and bleed effects and reduces all physical damage taken by 10% for 8 sec.
 		 -->{ 20594, jps.hp() < 0.50 and playerAggro },
 		 -- Gnome "Escape Artist" 20589
-		 -->{ 20589, (jps.LoseControl("player","Root") or jps.LoseControl("player","Snare")) and jps.UseCDs },
+		 -->{ 20589, (jps.LoseControl("player",{"Root"}) or jps.LoseControl("player",{"Snare"})) },
 		 -- Pandaren "Quaking Palm" 107079
 		 -->{ 107079, EnemyCaster(rangedTarget) == "caster" , rangedTarget },
 		 -- Tauren "War Stomp" 20549
@@ -728,14 +730,16 @@ spellTable = {
 		{ 59544, true , "player" , "Aggro_Naaru" },
 	},},
 	{ "nested", playerAggro or playerWasControl or playerIsTargeted ,{
+		-- "Power Word: Shield" 17
+		{ 17, not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Aggro_Shield" },
 		-- "Spectral Guise" 112833 "Semblance spectrale"
 		{ 112833, jps.IsSpellKnown(112833) , "player" , "Aggro_Spectral" },
 		-- "Oubli" 586 -- Fantasme 108942 -- vous dissipez tous les effets affectant le déplacement sur vous-même
 		{ 586, jps.IsSpellKnown(108942) , "player" , "Aggro_Oubli" },
 		-- "Oubli" 586 -- Glyphe d'oubli 55684 -- Votre technique Oubli réduit à présent tous les dégâts subis de 10%.
 		{ 586, jps.glyphInfo(55684) , "player" , "Aggro_Oubli" },
-		-- "Power Word: Shield" 17
-		{ 17, not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Aggro_Shield" },
+		-- "Oubli" 586
+		{ 586, not jps.PvP , "player" , "Aggro_Oubli" },
 		-- "Glyph of Purify" 55677 Your Purify spell also heals your target for 5% of maximum health
 		{ 527, jps.canDispel("player",{"Magic"}) , "player" , "Aggro_Dispel" },
 		-- "Pénitence" 47540
@@ -883,7 +887,7 @@ spellTable = {
 		{ 585, jps.castEverySeconds(585,2) , rangedTarget , "|cFFFF0000Chatiment_" },
 		-- "Pénitence" 47540 -- jps.glyphInfo(119866) -- allows Penance to be cast while moving.
 		{ 47540, true , rangedTarget,"|cFFFF0000Penance_" },
-		-- "Mot de l'ombre: Douleur" 589 -- Only if 1 targeted enemy 
+		-- "Mot de l'ombre: Douleur" 589 
 		{ 589, jps.myDebuffDuration(589,rangedTarget) == 0 and not IsInGroup() , rangedTarget , "|cFFFF0000Douleur_" },
 	},},
 	
@@ -959,7 +963,7 @@ local spellTableOOC = {
 	{ 152118, not jps.Moving and canHeal(myTank) and not jps.buff(152118,myTank) and not jps.isRecast(152118,myTank) , myTank , "Clarity_Tank" },
 	
 	-- "Oralius' Whispering Crystal" 118922 "Cristal murmurant d’Oralius"
-	{ {"macro","/use item:118922"}, jps.itemCooldown(118922) == 0 and not jps.buff(176151) , "player" , "Item_"},
+	{ {"macro","/use item:118922"}, not jps.buff(105691) and not jps.buff(156070) and not jps.buff(156079) and jps.itemCooldown(118922) == 0 and not jps.buff(176151) , "player" , "Item_Oralius"},
 
 }
 

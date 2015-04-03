@@ -144,53 +144,66 @@ local spellTable = {
 	{ warrior.spells["Stoneform"] , playerAggro and jps.hp() < 0.85 , rangedTarget , "_Stoneform" },
 	{ warrior.spells["Stoneform"] , jps.canDispel("player",{"Magic","Poison","Disease","Curse"}) , rangedTarget , "_Stoneform" },
 
-	-- PLAGUE LEECH --
-	-- "Plague Leech" 123693 "Parasite de peste"
-	{ dk.spells["PlagueLeech"] , dk.canCastPlagueLeech() and DepletedRunes , rangedTarget , "|cff1eff00PlagueLeech_DepletedRunes" },
-
-	-- HEALS --	
-	-- "Pierre de soins" 5512
-	{ {"macro","/use item:5512"}, jps.hp("player") < 0.70 and jps.itemCooldown(5512)==0 , "player" , "_Item5512" },
-	-- "Death Pact" 48743 "Pacte mortel"
-	{ dk.spells["DeathPact"] , jps.UseCDs and jps.hp() < 0.50 , rangedTarget, "_DeathPact" },
-	-- "Death Siphon" 108196 "Siphon mortel"
-	{ dk.spells["DeathSiphon"] , jps.UseCDs and jps.hp() < 0.50 , rangedTarget, "_DeathSiphon" },
-	-- "Conversion" 119975
-	{ dk.spells["Conversion"] , jps.UseCDs and jps.hp() < 0.55 , rangedTarget, "_Conversion" },
-	-- "Death Strike" 49998 "Frappe de Mort" -- 1 Unholy, 1 Frost
-	-- "Dark Succor" 101568 "Sombre secours" Buff -- Your next Death Strike in Frost or Unholy Presence is free and its healing is increased by 100%.
-	{ dk.spells["DeathStrike"] , jps.buff(101568) , rangedTarget, "|cff1eff00DeathStrike_Buff" },
-	{ dk.spells["DeathStrike"] , jps.hp() < 0.60 , rangedTarget, "|cff1eff00DeathStrike_Health" },
-	
 	-- CONTROL --
+	-- "Lichborne" 49039 "Changeliche" -- vous rend insensible aux effets de charme, de peur et de sommeil pendant 10 s.
+	{ dk.spells["Lichborne"] , playerIsStun , rangedTarget , "_Lichborne" },
 	-- "Death Grip" 49576 "Poigne de la mort"
 	{ dk.spells["DeathGrip"] , jps.PvP and not jps.IsSpellInRange(49998,rangedTarget) },
 	-- "Chains of Ice" 45524 "Chaînes de glace"
 	{ dk.spells["ChainsOfIce"] , jps.PvP and TargetMoving and not jps.IsSpellInRange(49998,rangedTarget) },
 	-- "Icy Touch" 45477 "Toucher de glace" -- for use with Glyph of Icy Touch 43546
 	{ dk.spells["IcyTouch"] , jps.glyphInfo(43546) and jps.castEverySeconds(45477,10) and jps.DispelOffensive(rangedTarget) , rangedTarget , "|cff1eff00DispelOffensive_" },
-	-- "Lichborne" 49039 "Changeliche" -- vous rend insensible aux effets de charme, de peur et de sommeil pendant 10 s.
-	{ dk.spells["Lichborne"] , playerIsStun , rangedTarget , "_Lichborne" },
+	-- "Icebound Fortitude" 48792 "Robustesse glaciale" -- The Death Knight freezes his blood to become immune to Stun effects and reduce all damage taken by 20% for 8 sec.
+	{ dk.spells["Icebound"] , playerWasControl , "player" , "Stun_Icebound" },
+
+	-- RUNE MANAGEMENT --
+	-- "Plague Leech" 123693 "Parasite de peste"
+	{ dk.spells["PlagueLeech"] , dk.canCastPlagueLeech() and DepletedRunes , rangedTarget , "|cff1eff00PlagueLeech_DepletedRunes" },
+	-- "BloodTap" 45529 -- Buff "Drain sanglant" 114851
+	{ dk.spells["BloodTap"] , jps.buffStacks(114851) > 9 and DepletedRunes , rangedTarget , "DrainSanglant_10" },
+	{ dk.spells["BloodTap"] , jps.buffStacks(114851) > 5 and AllDepletedRunes , rangedTarget , "DrainSanglant_5" },
+	-- "Empower Rune Weapon" 77606 "Renforcer l'arme runique"
+	{ dk.spells["EmpowerRuneWeapon"] , jps.IsSpellInRange(49998,rangedTarget) and jps.runicPower() < 75 and AllDepletedRunes },
+
+	-- HEALS --	
+	-- "Pierre de soins" 5512
+	{ {"macro","/use item:5512"}, jps.hp("player") < 0.75 and jps.itemCooldown(5512)==0 , "player" , "_Item5512" },
+	-- "Death Pact" 48743 "Pacte mortel"
+	{ dk.spells["DeathPact"] , jps.UseCDs and jps.hp() < 0.55 , rangedTarget, "_DeathPact" },
+	-- "Death Siphon" 108196 "Siphon mortel"
+	{ dk.spells["DeathSiphon"] , jps.UseCDs and jps.hp() < 0.55 , rangedTarget, "_DeathSiphon" },
+	-- "Conversion" 119975
+	{ dk.spells["Conversion"] , jps.UseCDs and jps.hp() < 0.55 , rangedTarget, "_Conversion" },
+	-- "Death Strike" 49998 "Frappe de Mort" -- 1 Unholy, 1 Frost
+	-- "Dark Succor" 101568 "Sombre secours" Buff -- Your next Death Strike in Frost or Unholy Presence is free and its healing is increased by 100%.
+	{ dk.spells["DeathStrike"] , jps.buff(101568) , rangedTarget, "|cff1eff00DeathStrike_Buff" },
+	{ dk.spells["DeathStrike"] , jps.hp() < 0.65 , rangedTarget, "|cff1eff00DeathStrike_Health" },
 
 	-- KICK --
-	-- Blood Elf "Arcane Torrent" 28730
-	{ 28730, jps.Interrupts and CheckInteractDistance(rangedTarget,3) == true and jps.ShouldKick(rangedTarget) , rangedTarget },
-	-- Pandaren "Quaking Palm" 107079
-	{ 107079, jps.Interrupts and IsSpellInRange(107079,rangedTarget) and jps.ShouldKick(rangedTarget) , rangedTarget },
-	-- Tauren "War Stomp" 20549 "Choc martial"
-	{ 20549 , jps.Interrupts and CheckInteractDistance(rangedTarget,3) == true and jps.ShouldKick(rangedTarget) , rangedTarget },
-	--"Strangulate" 47476 "Strangulation" -- 30 yd range
-	{ dk.spells["Strangulate"] , jps.Interrupts and jps.ShouldKick(rangedTarget) , "_STRANGULATE" },
-	{ dk.spells["Strangulate"] , jps.Interrupts and jps.ShouldKick("focus") , "focus" },
-	-- "Asphyxiate" 108194 "Asphyxier" -- 30 yd range
-	{ dk.spells["Asphyxiate"] , jps.Interrupts and jps.ShouldKick(rangedTarget) , rangedTarget , "_ASPHYXIATE" },
-	{ dk.spells["Asphyxiate"] , jps.Interrupts and jps.ShouldKick("focus") , "focus" },
-	--"Mind Freeze" 47528 "Gel de l'esprit"
-	{ dk.spells["MindFreeze"] , jps.Interrupts and jps.ShouldKick(rangedTarget) , rangedTarget , "_MINDFREEZE" },
-	{ dk.spells["MindFreeze"] , jps.Interrupts and jps.ShouldKick("focus"), "focus" },
 	-- "Dark Simulacrum" 77606 "Sombre simulacre"
 	{ dk.spells["DarkSimulacrum"], dk.shouldDarkSimTarget() , "target" , "_DARKSIMULACRUM" },
 	{ dk.spells["DarkSimulacrum"], dk.shouldDarkSimFocus() , "focus"},
+	{"nested", jps.Interrupts ,{
+		-- Blood Elf "Arcane Torrent" 28730
+		{ 28730, CheckInteractDistance(rangedTarget,3) == true and jps.ShouldKick(rangedTarget) , rangedTarget },
+		-- Pandaren "Quaking Palm" 107079
+		{ 107079, IsSpellInRange(107079,rangedTarget) and jps.ShouldKick(rangedTarget) , rangedTarget },
+		-- Tauren "War Stomp" 20549 "Choc martial"
+		{ 20549 , CheckInteractDistance(rangedTarget,3) == true and jps.ShouldKick(rangedTarget) , rangedTarget },
+		--"Strangulate" 47476 "Strangulation" -- 30 yd range
+		{ dk.spells["Strangulate"] , jps.ShouldKick(rangedTarget) , "_STRANGULATE" },
+		{ dk.spells["Strangulate"] , jps.ShouldKick("focus") , "focus" },
+		-- "Asphyxiate" 108194 "Asphyxier" -- 30 yd range
+		{ dk.spells["Asphyxiate"] , jps.ShouldKick(rangedTarget) , rangedTarget , "_ASPHYXIATE" },
+		{ dk.spells["Asphyxiate"] , jps.ShouldKick("focus") , "focus" },
+		--"Mind Freeze" 47528 "Gel de l'esprit"
+		{ dk.spells["MindFreeze"] , jps.ShouldKick(rangedTarget) , rangedTarget , "_MINDFREEZE" },
+		{ dk.spells["MindFreeze"] , jps.ShouldKick("focus"), "focus" },
+	}},
+	
+	--"Outbreak" 77575 "Poussée de fièvre" -- 30 yd range 
+	{ dk.spells["OutBreak"] , jps.myDebuffDuration(55078,rangedTarget) < 5 and not jps.isRecast(77575,rangedTarget) },
+	{ dk.spells["OutBreak"] , jps.myDebuffDuration(55095,rangedTarget) < 5 and not jps.isRecast(77575,rangedTarget) },
 
 	--"Killing Machine" 51124 "Machine à tuer" -- next Obliterate or Frost Strike automatically critically strike.
 	--"Frost Strike" 49143 "Frappe de givre" -- 25 Runic Power 
@@ -202,6 +215,8 @@ local spellTable = {
 	-- "Freezing Fog" 59052 "Brouillard Givrant" -- Your next Icy Touch or Howling Blast will consume no runes.
 	{ dk.spells["HowlingBlast"] , jps.buff(59057) , rangedTarget , "HowlingBlast_Rime" },
 	{ dk.spells["HowlingBlast"] , jps.buff(59052) , rangedTarget , "HowlingBlast_FreezingFog" },
+	--"Soul Reaper" 130735 "Faucheur d’âme"
+	{ dk.spells["SoulReaper"] , jps.hp(rangedTarget) < 0.35 , rangedTarget , "_SoulReaper" },
 	
 	-- MULTITARGET --
 	-- "Death and Decay" 43265 "Mort et decomposition" -- 1 Unholy
@@ -219,26 +234,9 @@ local spellTable = {
 		--{ dk.spells["DeathAndDecay"] , true },
 	}},
 
-	-- RUNE MANAGEMENT --
-	-- "Plague Leech" 123693 "Parasite de peste"
-	{ dk.spells["PlagueLeech"] , dk.canCastPlagueLeech(9) and DepletedRunes , rangedTarget , "_PlagueLeech" },
-	-- "BloodTap" 45529 -- Buff "Drain sanglant" 114851
-	{ dk.spells["BloodTap"] , jps.buffStacks(114851) > 9 and DepletedRunes , rangedTarget , "DrainSanglant_10" },
-	{ dk.spells["BloodTap"] , jps.buffStacks(114851) > 5 and AllDepletedRunes , rangedTarget , "DrainSanglant_5" },
-	-- "Empower Rune Weapon" 77606 "Renforcer l'arme runique"
-	{ dk.spells["EmpowerRuneWeapon"] , jps.IsSpellInRange(49998,rangedTarget) and jps.runicPower() < 75 and AllDepletedRunes },
-	
-	--"Outbreak" 77575 "Poussée de fièvre" -- 30 yd range 
-	{ dk.spells["OutBreak"] , jps.myDebuffDuration(55078,rangedTarget) < 5 and not jps.isRecast(77575,rangedTarget) },
-	{ dk.spells["OutBreak"] , jps.myDebuffDuration(55095,rangedTarget) < 5 and not jps.isRecast(77575,rangedTarget) },
-
 	-- TRINKETS -- jps.useTrinket(0) est "Trinket0Slot" est slotId  13 -- "jps.useTrinket(1) est "Trinket1Slot" est slotId  14
 	{ jps.useTrinket(0), jps.UseCDs and jps.useTrinketBool(0) and not playerWasControl and jps.combatStart > 0 },
 	{ jps.useTrinket(1), jps.UseCDs and jps.useTrinketBool(1) and not playerWasControl and jps.combatStart > 0 },
-
-	-- COUNTERS, ABILITIES -- icebound as last resort on Stun
-	-- "Icebound Fortitude" 48792 "Robustesse glaciale"
-	{ dk.spells["Icebound"] , playerWasControl , "player" , "Stun_Icebound" },
 	
 	-- DISEASES --
 	-- "Howling Blast" 49184 "Rafale hurlante" -- gives debuff Frost Fever 55095 -- 1 Frost
@@ -248,14 +246,10 @@ local spellTable = {
 	{ dk.spells["PlagueStrike"] , not jps.myDebuff(55078,rangedTarget) and not jps.isRecast(45462,rangedTarget) , rangedTarget , "PlagueStrike_Debuff" },
 	{ dk.spells["PlagueStrike"] , not jps.myDebuff(55078,"focus") and not jps.isRecast(45462,"focus") , "focus" , "PlagueStrike_Debuff_focus" },
 
-	--"Soul Reaper" 130735 "Faucheur d’âme"
-	{ dk.spells["SoulReaper"] , jps.hp(rangedTarget) < 0.35 , rangedTarget , "_SoulReaper" },
-
 	--"Frost Strike" 49143 "Frappe de givre" -- 25 Runic Power 
 	{ dk.spells["FrostStrike"] , jps.runicPower() > 49 , rangedTarget , "FrostStrike_RunicPower" },
 	-- "Obliterate" 49020 "Anéantissement" -- 1 Unholy, 1 Frost
-	{ dk.spells["Obliterate"] , jps.runicPower() < 50 , rangedTarget , "Obliterate_LowPower" },
-	{ dk.spells["Obliterate"] , jps.buff(dk.spells["KillingMachine"]) , rangedTarget , "Obliterate_KillingMachine" },
+	{ dk.spells["Obliterate"] , jps.runicPower() < 50 , rangedTarget , "Obliterate_RunicPower" },
 	-- "Howling Blast" 49184 "Rafale hurlante" -- 1 Frost -- 30 yd range
 	{ dk.spells["HowlingBlast"] , Fr > 1 , rangedTarget , "HowlingBlast_FrostRune" }, -- Frost runes
 	{ dk.spells["HowlingBlast"] , DeathRuneCount > 1 , rangedTarget , "HowlingBlast_DeathRune" }, -- Death runes

@@ -67,6 +67,7 @@ local target = nil
 local CountInRange, AvgHealthLoss, FriendUnit = jps.CountInRaidStatus(1)
 local playermana = jps.roundValue(UnitPower("player",0)/UnitPowerMax("player",0),2)
 local Orbs = UnitPower("player",13) -- SPELL_POWER_SHADOW_ORBS 	13
+local COP = jps.IsSpellKnown(155246)
 
 ---------------------
 -- TIMER
@@ -114,6 +115,11 @@ if canDPS("target") and not DebuffUnitCyclone("target") then rangedTarget =  "ta
 elseif canDPS("targettarget") and not DebuffUnitCyclone("targettarget") then rangedTarget = "targettarget"
 elseif canDPS("mouseover") and not DebuffUnitCyclone("mouseover") and UnitAffectingCombat("mouseover") then rangedTarget = "mouseover"
 end
+
+--if COP and canDPS("mouseover") and not DebuffUnitCyclone("mouseover") and UnitAffectingCombat("mouseover") 
+--and not jps.myDebuff(34914,rangedTarget) and not jps.myDebuff(589,rangedTarget) and not jps.myDebuff(158831,rangedTarget) then
+--rangedTarget = "targettarget" end
+
 if canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
 
 ------------------------
@@ -215,7 +221,7 @@ if Channeling and Channeling ~= MindSear and not jps.buff(132573) then
 	elseif jps.buff(124430) then
 		canCastMindBlast = true
 	-- "Mind Blast" 8092 -- Instant with COP 155246
-	elseif jps.cooldown(8092) == 0 and jps.IsSpellKnown(155246) then 
+	elseif jps.cooldown(8092) == 0 and COP then 
 		canCastMindBlast = true
 	-- "OnCD"
 	elseif jps.cooldown(8092) == 0 and not jps.Moving then
@@ -331,12 +337,17 @@ local spellTable = {
 	-- "Mind Blast" 8092 -- "Glyph of Mind Spike" 33371 gives buff 81292 
 	{ 8092, jps.buffStacks(81292) == 2 , rangedTarget },
 	-- "Mind Blast" 8092 -- Instant with COP 155246
-	{ 8092, jps.IsSpellKnown(155246) , rangedTarget , "Blast_CD" },
+	{ 8092, COP , rangedTarget , "Blast_CD" },
 	
 	-- "Mind Spike" 73510 -- "Surge of Darkness" gives buff -- "Surge of Darkness" 87160
 	{ 73510, jps.buffStacks(87160,"player") == 3 , rangedTarget , "Spike_SurgeofDarkness_Stacks" },
 	{ 73510, jps.buff(87160) and jps.hp(rangedTarget) < 0.20 , rangedTarget , "Spike_SurgeofDarkness_LowHealth" },
 	{ 73510, jps.buff(87160) and jps.buffDuration(87160) < 4 , rangedTarget , "Spike_SurgeofDarkness_CD" },
+
+	-- "MindSear" 48045 -- Take care of Mind Blast CD -- "Insanité incendiaire" 179338 "Searing Insanity"
+	{ 48045, not jps.Moving and jps.buff(132573) and jps.FinderLastMessage("ORBS_MindSear") , rangedTarget , "MINDSEAR" },
+	-- "Mind Flay" 15407 -- "Shadow Word: Insanity" buff 132573 -- "Insanity" 129197
+	{ 15407, not jps.Moving and jps.buff(132573) , rangedTarget , "MINDFLAYORBS" },
 
 	-- "Devouring Plague" 2944 now consumes 3 Shadow Orbs, you don't have the ability to use with less Orbs
 	{ 2944, Orbs == 5 , rangedTarget , "ORBS_5" },
@@ -345,12 +356,7 @@ local spellTable = {
 	{ 2944, Orbs > 3 and jps.MultiTarget and jps.cooldown(8092) > 2.30 and EnemyCount > 3 , rangedTarget , "ORBS_MindSear" },
 	{ 2944, Orbs > 3 and jps.hp(rangedTarget) < 0.20 , rangedTarget , "ORBS_LowHealth" },
 	{ 2944, Orbs > 3 and jps.hp("player") < 0.75 , rangedTarget , "ORBS_LowHealth" },
-	
-	-- "MindSear" 48045 -- Take care of Mind Blast CD -- "Insanité incendiaire" 179338 "Searing Insanity"
-	{ 48045, not jps.Moving and jps.buff(132573) and jps.FinderLastMessage("ORBS_MindSear") , rangedTarget , "MINDSEAR" },
-	-- "Mind Flay" 15407 -- "Shadow Word: Insanity" buff 132573 -- "Insanity" 129197
-	{ 15407, not jps.Moving and jps.buff(132573) , rangedTarget , "MINDFLAYORBS" },
-	
+
 	-- "Shadow Word: Death" 32379 "Mot de l'ombre : Mort"
 	{ 32379, jps.hp(rangedTarget) < 0.20 , rangedTarget, "castDeath_" },
 	{ 32379, type(DeathEnemyTarget) == "string" , DeathEnemyTarget , "Death_MultiUnit" },
@@ -373,8 +379,8 @@ local spellTable = {
 	-- "Power Infusion" "Infusion de puissance" 10060
 	{ 10060, jps.FinderLastMessage("ORBS") , rangedTarget , "_PowerInfusion"  },
 	-- "Mind Spike" 73510 -- "Clarity of Power" 155246 "Clarté de pouvoir" -- "Devouring Plague" debuff 158831
-	{ 73510, not jps.Moving and jps.IsSpellKnown(155246) and Orbs < 4 and not jps.myDebuff(158831,rangedTarget) and jps.myDebuffDuration(34914,rangedTarget) < 5 and jps.myDebuffDuration(589,rangedTarget) < 9 , rangedTarget , "Spike_CoP" },
-	{ 73510, not jps.Moving and jps.IsSpellKnown(155246) and Orbs < 4 and not jps.myDebuff(158831,rangedTarget) , rangedTarget , "Spike_CoP" },
+	{ 73510, not jps.Moving and COP and Orbs < 4 and not jps.myDebuff(158831,rangedTarget) and jps.myDebuffDuration(34914,rangedTarget) < 5 and jps.myDebuffDuration(589,rangedTarget) < 9 , rangedTarget , "Spike_CoP" },
+	{ 73510, not jps.Moving and COP and Orbs < 4 and not jps.myDebuff(158831,rangedTarget) , rangedTarget , "Spike_CoP" },
 
 	-- "Shadow Word: Pain" 589 -- "Shadow Word: Insanity" buff 132573
 	{ 589, jps.myDebuff(589,rangedTarget) and jps.myDebuffDuration(589,rangedTarget) < 3 and not jps.isRecast(589,rangedTarget) , rangedTarget , "Pain_Target_" },

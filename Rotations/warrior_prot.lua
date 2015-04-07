@@ -2,6 +2,7 @@ local L = MyLocalizationTable
 local canDPS = jps.canDPS
 local strfind = string.find
 local UnitClass = UnitClass
+local UnitAffectingCombat = UnitAffectingCombat
 
 local ClassEnemy = {
 	["WARRIOR"] = "cac",
@@ -47,13 +48,21 @@ local isBoss = UnitLevel("target") == -1 or UnitClassification("target") == "eli
 local rangedTarget, EnemyUnit, TargetCount = jps.LowestTarget()
 local EnemyCount = jps.RaidEnemyCount()
 
--- Config FOCUS
-if not jps.UnitExists("focus") and canDPS("mouseover") then
+-- Config FOCUS with MOUSEOVER
+local name = GetUnitName("focus") or ""
+if not jps.UnitExists("focus") and canDPS("mouseover") and UnitAffectingCombat("mouseover") then
 	-- set focus an enemy targeting you
 	if jps.UnitIsUnit("mouseovertarget","player") and not jps.UnitIsUnit("target","mouseover") then
 		jps.Macro("/focus mouseover")
-		local name = GetUnitName("focus")
 		print("Enemy DAMAGER|cff1eff00 "..name.." |cffffffffset as FOCUS")
+	-- set focus an enemy healer
+	elseif jps.EnemyHealer("mouseover") then
+		jps.Macro("/focus mouseover")
+		print("Enemy HEALER|cff1eff00 "..name.." |cffffffffset as FOCUS")
+	-- set focus an enemy in combat
+	elseif canDPS("mouseover") and not jps.UnitIsUnit("target","mouseover") then
+		jps.Macro("/focus mouseover")
+		print("Enemy COMBAT|cff1eff00 "..name.." |cffffffffset as FOCUS")
 	end
 end
 
@@ -147,7 +156,7 @@ local spellTable ={
 	{ warrior.spells["Revenge"] , inMelee , rangedTarget , "_Revenge" },
 	
 	-- MULTITARGET --
-	{"nested", (jps.MultiTarget and EnemyCount > 2) ,{
+	{"nested", jps.MultiTarget and EnemyCount > 2 ,{
 
 		-- "Ravager" 152277 -- 40 yd range
 		{ warrior.spells["Ravager"] , jps.IsSpellKnown(152277) , rangedTarget , "_Ravager" },
@@ -161,26 +170,25 @@ local spellTable ={
 	-- SINGLETARGET --
 	-- "Heroic Strike" 78 "Frappe héroïque" -- "Ultimatum" 122509
 	{ warrior.spells["HeroicStrike"] , jps.buff(122509) , rangedTarget , "_HeroicStrike_Ultimatum" },
+	{ warrior.spells["HeroicStrike"] , jps.rage() > 89 and jps.buff(156321) , rangedTarget , "_HeroicStrike_Rage_BuffCharge" },
 	-- "Shield Slam" 23922 "Heurt de bouclier" -- "Sword and Board" 50227 "Epée et bouclier"
 	{ warrior.spells["ShieldSlam"] , jps.buff(50227) , rangedTarget , "_ShieldSlam_SwordBoard" },
 	-- "Shield Slam" 23922 "Heurt de bouclier"
 	{ warrior.spells["ShieldSlam"] , inMelee , rangedTarget , "_ShieldSlam" },
-	-- "Dévaster" 20243 "Devastate"
-	{ warrior.spells["Devastate"] , jps.buffDuration(169686) < 2 , rangedTarget , "_Devastate_BuffDuration" },
+	-- "Dévaster" 20243 "Devastate" -- Buff "Frappes inflexibles" 169686
+	{ warrior.spells["Devastate"] , jps.buffDuration(169686) < 2 and jps.buffStacks(169686) < 6 , rangedTarget , "_Devastate_BuffDuration" },
 	-- "Unyielding Strikes" 169685 "Frappes inflexibles" -- Buff "Frappes inflexibles" 169686
 	-- Dévaster réduit le coût en rage de Frappe héroïque de 5 pendant 5 s. Cumulable jusqu’à 6 fois
-	{ warrior.spells["HeroicStrike"] , jps.buffStacks(169686) > 4 and jps.buff(156321) , rangedTarget , "_HeroicStrike_BuffStrikes_1" },
-	{ warrior.spells["HeroicStrike"] , jps.buffStacks(169686) == 6 , rangedTarget , "_HeroicStrike_BuffStrikes_2" },
-	-- "Shield Charge" 156321 -- Buff same ID -- -- "Gladiator Stance" 156291
+	{ warrior.spells["HeroicStrike"] , jps.buffStacks(169686) > 3 , rangedTarget , "_HeroicStrike_BuffStrikes" },
+	-- "Shield Charge" 156321 -- Buff same ID -- "Gladiator Stance" 156291
 	-- Increasing the damage of Shield Slam, Revenge, and Heroic Strike by 25% for 7 sec.
 	{ 156321, jps.buff(156291) and not jps.buff(156321) , rangedTarget , "_ShieldCharge"},
 	-- "Execute" 5308 "Exécution" -- "Mort soudaine" 29725
 	{ warrior.spells["Execute"], jps.buff(29725) , rangedTarget , "_Execute_SuddenDeath" },
 	-- "Execute" 5308 "Exécution"
-	{ warrior.spells["Execute"], jps.rage() > 60 and jps.hp(rangedTarget) < 0.20 , rangedTarget , "_Execute" },
-	--- "Heroic Strike" 78 "Frappe héroïque"
-	{ warrior.spells["HeroicStrike"] , jps.rage() > 90 and jps.hp(rangedTarget) > 0.20 , rangedTarget , "_HeroicStrike_Rage" },
-	{ warrior.spells["HeroicStrike"] , jps.rage() > 60 and jps.hp(rangedTarget) > 0.20 and jps.buff(156321) , rangedTarget , "_HeroicStrike_BuffCharge" },
+	{ warrior.spells["Execute"], jps.hp(rangedTarget) < 0.20 , rangedTarget , "_Execute" },
+	-- "Heroic Strike" 78 "Frappe héroïque" -- "Ultimatum" 122509
+	{ warrior.spells["HeroicStrike"] , jps.rage() > 89 , rangedTarget , "_HeroicStrike_DumpRage" },
 	-- "Dévaster" 20243 "Devastate"
 	{ warrior.spells["Devastate"] , inMelee , rangedTarget , "_Devastate_End" },
 

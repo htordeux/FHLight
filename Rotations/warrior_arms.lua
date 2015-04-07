@@ -16,6 +16,7 @@ local L = MyLocalizationTable
 local canDPS = jps.canDPS
 local strfind = string.find
 local UnitClass = UnitClass
+local UnitAffectingCombat = UnitAffectingCombat
 
 local ClassEnemy = {
 	["WARRIOR"] = "cac",
@@ -85,18 +86,21 @@ local isBoss = UnitLevel("target") == -1 or UnitClassification("target") == "eli
 local rangedTarget, EnemyUnit, TargetCount = jps.LowestTarget()
 local EnemyCount = jps.RaidEnemyCount()
 
--- Config FOCUS
-if not jps.UnitExists("focus") and canDPS("mouseover") then
+-- Config FOCUS with MOUSEOVER
+local name = GetUnitName("focus") or ""
+if not jps.UnitExists("focus") and canDPS("mouseover") and UnitAffectingCombat("mouseover") then
 	-- set focus an enemy targeting you
 	if jps.UnitIsUnit("mouseovertarget","player") and not jps.UnitIsUnit("target","mouseover") then
 		jps.Macro("/focus mouseover")
-		local name = GetUnitName("focus")
 		print("Enemy DAMAGER|cff1eff00 "..name.." |cffffffffset as FOCUS")
 	-- set focus an enemy healer
 	elseif jps.EnemyHealer("mouseover") then
 		jps.Macro("/focus mouseover")
-		local name = GetUnitName("focus")
 		print("Enemy HEALER|cff1eff00 "..name.." |cffffffffset as FOCUS")
+	-- set focus an enemy in combat
+	elseif canDPS("mouseover") and not jps.UnitIsUnit("target","mouseover") then
+		jps.Macro("/focus mouseover")
+		print("Enemy COMBAT|cff1eff00 "..name.." |cffffffffset as FOCUS")
 	end
 end
 
@@ -147,109 +151,79 @@ local spellTable = {
 		{ 20594 , playerAggro and playerhealth_pct < 0.85 , rangedTarget , "_Stoneform" },
 		{ 20594 , jps.canDispel("player",{"Magic","Poison","Disease","Curse"}) , rangedTarget , "_Stoneform" },
 		-- "Impending Victory" 103840 "Victoire imminente" -- Talent Replaces Victory Rush.
-		{ 103840 , playerhealth_pct < 0.85 , rangedTarget , "_ImpendingVictory" },
+		{ warrior.spells["ImpendingVictory"] , playerhealth_pct < 0.85 , rangedTarget , "_ImpendingVictory" },
+		{ warrior.spells["VictoryRush"] , playerhealth_pct <  0.85 , rangedTarget , "_VictoryRush" },
 		-- "Victory Rush" 34428 "Ivresse de la victoire" -- "Victorious" 32216 "Victorieux" -- Ivresse de la victoire activée.
-		{ 103840 , jps.buffDuration(32216) < 4 , rangedTarget , "_ImpendingVictory" },
-		-- Master Healing Potion
-		{ jps.useBagItem(76097), playerhealth_pct < 0.50 }, 
+		{ warrior.spells["ImpendingVictory"] , jps.buffDuration(32216) < 4 , rangedTarget , "_ImpendingVictory" },
+		{ warrior.spells["VictoryRush"] , jps.buffDuration(32216) < 4 , rangedTarget , "_VictoryRush" }, 
 		-- "Pierre de soins" 5512 "Healthstone"
 		{ {"macro","/use item:5512"} , jps.combatStart > 0 and jps.itemCooldown(5512)==0 and playerhealth_pct < 0.50 , rangedTarget , "_UseItem"},
 		-- "Die by the Sword" 118038
 		{ 118038 , playerAggro and playerhealth_pct < 0.70 , rangedTarget , "_DieSword" },
 		-- "Defensive Stance" 71
-		{ warrior.spells["DefensiveStance"] , not jps.buff(71) and playerhealth_pct < 0.30 },
+		{ 71 , not jps.buff(71) and playerhealth_pct < 0.30 },
 		-- "Shield Barrier" 112048 "Barrière protectrice" -- "Defensive Stance" 71
 		{ 112048, jps.buff(71) and playerhealth_pct < 0.30 },
 	}},
 
 	-- "Heroic Throw" 57755 "Lancer héroïque"
 	{ 57755, inRanged , rangedTarget , "_Heroic Throw" },
-	-- "Taunt" 355 "Provocation"
 	-- "Charge" 100
-	{ 100, jps.IsSpellInRange(100,rangedTarget) , rangedTarget , "_Charge"},
+	{ 100, jps.UseCDs and jps.IsSpellInRange(100,rangedTarget) , rangedTarget , "_Charge"},
+	-- "Intimidating Shout" 5246
+	{ 5246, not jps.debuff(5246,rangedTarget) and isBoss , rangedTarget , "_IntimidatingShout"},
 	
-	 -- COOLDOWNS --
-	{ "nested", inMelee and jps.UseCDs,{
-		{ jps.useTrinket(0), jps.useTrinketBool(0) },
-		{ jps.useTrinket(1), jps.useTrinketBool(1) },
-		-- "Bloodbath" 12292 "Bain de sang"
-		{ 12292, true , rangedTarget },
-		-- "Recklessness" 1719 "Témérité" -- "Defensive Stance" 71 -- Avoid forcing back into battle stance
-		{ 1719, not jps.buff(71) , rangedTarget },
-	}},
+	-- TRINKETS -- jps.useTrinket(0) est "Trinket0Slot" est slotId  13 -- "jps.useTrinket(1) est "Trinket1Slot" est slotId  14
+	{ jps.useTrinket(0), jps.useTrinketBool(0) and not playerWasControl and jps.combatStart > 0 , rangedTarget , "Trinket0"},
+	{ jps.useTrinket(1), jps.useTrinketBool(1) and not playerWasControl and jps.combatStart > 0 , rangedTarget , "Trinket1"},
 	
+	-- "Recklessness" 1719 "Témérité" -- "Defensive Stance" 71 -- Avoid forcing back into battle stance
+	{ 1719, not jps.buff(71) and jps.rage() > 60 and inMelee and jps.debuff(167105,rangedTarget) , rangedTarget , "_Recklessness" },
+	-- "Bloodbath" 12292 "Bain de sang"  -- jps.buff(12292)
+	{ 12292, jps.combatStart > 0 and inMelee and jps.debuff(167105,rangedTarget), rangedTarget , "_Bloodbath" },
+	
+	-- TALENTS --
+	-- "Storm Bolt" 107570 "Eclair de tempete"
+	{ 107570, jps.IsSpellKnown(107570) , rangedTarget , "_StormBolt_Health" },
+	-- "Dragon Roar" 118000 "Rugissement de dragon"
+	{ 118000, jps.IsSpellKnown(118000) and jps.IsSpellInRange(118000,rangedTarget) , rangedTarget , "_DragonRoar" },
+	-- "Ravager" 152277 -- "Colossus Smash" 167105
+	{ 152277, jps.IsSpellKnown(152277) and jps.debuff(167105,rangedTarget) , rangedTarget , "_Ravager"},
+	-- "Siegebreaker" 176289 "Briseur de siège"
+	{ 176289 , jps.IsSpellKnown(176289) , rangedTarget ,"_Siegebreaker" },
+	-- "Execute" 163201 "Exécution" -- "Mort soudaine" 29725
+	{ 163201, jps.buff(29725) , rangedTarget , "Execute_SuddenDeath" },
+
 	-- MULTI-TARGET 
-	{ "nested", inMelee and jps.MultiTarget,{
+	{ "nested", jps.MultiTarget and EnemyCount > 2 and inMelee ,{
 		-- "Sweeping Strikes" 12328 "Attaques circulaires" 
 		{ 12328, not jps.myDebuff(12328) , rangedTarget , "_SweepingStrikes" },
-		-- "Bladestorm" 46924 "Tempête de lames"
-		{ 46924, true , rangedTarget , "_Bladestorm" },
 		-- "Rend" 772 "Pourfendre" -- Apply if tab-target has no debuff
 		{ 772 , not jps.debuff(772,rangedTarget) , rangedTarget , "_Rend_Debuff" },
 		{ 772 , jps.myDebuffDuration(772,rangedTarget) < 4 , rangedTarget , "_Rend_Duration" },
-		-- "Ravager" 152277 -- "Bloodbath" 12292 "Bain de sang"
-		{ 152277, jps.buff(12292) , rangedTarget , "_Ravager" },
-		-- "Dragon Roar" 118000 "Rugissement de dragon"
-		{ 118000, true , rangedTarget , "_DragonRoar" },
 		-- "Whirlwind" 1680 "Tourbillon"
 		{ 1680, true , rangedTarget , "_Whirlwind" },
 		-- "Thunder Clap" 6343 "Coup de tonnerre"
 		{ 6343, true , rangedTarget , "_ThunderClap" },
+		-- "Bladestorm" 46924 "Tempête de lames" -- "Enrage" 12880 "Enrager" -- While Bladestorm is active, you cannot perform any actions except for using your Taunt
+		{ 46924, true , rangedTarget , "_Bladestorm" },
+		-- "Shockwave" 46968 "Onde de choc"
+		{ 46968 , true , rangedTarget , "_Shockwave" },
 	}},
 	
 	-- SINGLE TARGET --
-	-- "Heroic Throw" 57755 "Lancer héroïque"
-	{ 57755, inRanged , rangedTarget , "_Heroic Throw" },
-	-- "Taunt" 355 "Provocation"
-	-- "Charge" 100
-	{ 100, jps.IsSpellInRange(100,rangedTarget) , rangedTarget , "_Charge"},
-	-- "MortalStrike" 12294 "Frappe mortelle" -- Remplace "Frappe Heroique" -- Rage dump
-	{ 12294, jps.rage() > 80 and jps.hp(rangedTarget) > 0.20 , rangedTarget , "_MortalStrike_Rage" },
-	-- "Ravager" 152277 -- "Colossus Smash" 167105
-	{ 152277, jps.cooldown(167105) < 3 , rangedTarget , "_Ravager"},
-	-- 163201 "Execute" -- "Sudden Death" 52437 -- "Death Sentence" 144442
-	{ 163201, jps.buff(144442) , rangedTarget , "_Execute_SuddenDeath" }, -- T16 4p
-	{ 163201, jps.buff(52437) , rangedTarget , "_Execute_DeathSentence" },
 	-- "Rend" 772 "Pourfendre"
 	{ 772, not jps.debuff(772,rangedTarget) , rangedTarget , "_Rend_Debuff" },
-	{ 772, jps.myDebuffDuration(772,rangedTarget) < 4 , rangedTarget , "_Rend_Duration" },
-	-- "Storm Bolt" 107570 "Eclair de tempete"
-	{ 107570, true , rangedTarget , "_StormBolt_Health" },
-	
-	-- PRE-EXECUTE PHASE -- target > 20% Health
-	{ "nested", inMelee and jps.hp("target") > 0.20 and not jps.debuff(167105,"target"),{
-		-- "MortalStrike" 12294 "Frappe mortelle" -- Remplace "Frappe Heroique"
-		{ 12294 , true , rangedTarget , "_MortalStrike" },
-		-- "Colossus Smash" 167105
-		{ 167105, jps.rage() > 60 , rangedTarget , "_ColossusSmash" },
-		-- "Dragon Roar" 118000 "Rugissement de dragon"
-		{ 118000, true , rangedTarget , "_DragonRoar" },
-		-- "Whirlwind" 1680 "Tourbillon"
-		{ 1680, jps.rage() > 40 , rangedTarget , "_Whirlwind" },
-		-- "Thunder Clap" 6343 "Coup de tonnerre"
-		{ 6343, true , rangedTarget , "_ThunderClap" },
-	}},
-
-	{ "nested", inMelee and jps.hp(rangedTarget) > 0.20 and jps.debuff(167105,rangedTarget) ,{
-		-- "MortalStrike" 12294 "Frappe mortelle" -- Remplace "Frappe Heroique"
-		{ 12294, true , rangedTarget , "_MortalStrike" },
-		-- "Impending Victory" 103840 "Victoire imminente"
-		{ 103840, jps.rage() < 30 , rangedTarget , "_ImpendingVictory" },
-		-- "Whirlwind" 1680 "Tourbillon"
-		{ 1680, true , rangedTarget , "_Whirlwind" },
-		-- "Shockwave" 46968 "Onde de choc"
-		{ 46968, true , rangedTarget , "_Shockwave" },
-	}},
-	
-	-- EXECUTE PHASE -- target < 20% Health -- "Colossus Smash" 167105
-	{ "nested", inMelee and jps.hp(rangedTarget) < 0.20 ,{
-		-- 163201 "Execute"
-		{ 163201, true , rangedTarget , "_Execute_Health" },
-		-- "Colossus Smash" 167105
-		{ 167105, jps.rage() > 60 , rangedTarget , "_ColossusSmash_Health" },
-		-- "Dragon Roar" 118000 "Rugissement de dragon"
-		{ 118000, true , rangedTarget , "_DragonRoar_Health" },
-	}},
+	{ 772, jps.myDebuffDuration(772,rangedTarget) < 5 , rangedTarget , "_Rend_Duration" },
+	-- "Colossus Smash" 167105
+	{ 167105, true , rangedTarget , "_ColossusSmash_Health" },
+	-- "Execute" 163201
+	{ 163201, not jps.debuff(167105,rangedTarget) and jps.hp(rangedTarget) < 0.20 and jps.rage() > 40 , rangedTarget , "_Execute_Health" },
+	{ 163201, jps.debuff(167105,rangedTarget) and jps.hp(rangedTarget) < 0.20 , rangedTarget , "_Execute_Health" },
+	-- "MortalStrike" 12294 "Frappe mortelle" -- Remplace "Frappe Heroique"
+	{ 12294 , jps.hp(rangedTarget) > 0.20 , rangedTarget , "_MortalStrike" },
+	-- "Whirlwind" 1680 "Tourbillon"
+	{ 1680, jps.hp(rangedTarget) > 0.20 , rangedTarget , "_Whirlwind" }
 
 }
 

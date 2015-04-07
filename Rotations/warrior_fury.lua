@@ -3,6 +3,7 @@ local L = MyLocalizationTable
 local canDPS = jps.canDPS
 local strfind = string.find
 local UnitClass = UnitClass
+local UnitAffectingCombat = UnitAffectingCombat
 
 local ClassEnemy = {
 	["WARRIOR"] = "cac",
@@ -72,18 +73,21 @@ local isBoss = UnitLevel("target") == -1 or UnitClassification("target") == "eli
 local rangedTarget, EnemyUnit, TargetCount = jps.LowestTarget()
 local EnemyCount = jps.RaidEnemyCount()
 
--- Config FOCUS
-if not jps.UnitExists("focus") and canDPS("mouseover") then
+-- Config FOCUS with MOUSEOVER
+local name = GetUnitName("focus") or ""
+if not jps.UnitExists("focus") and canDPS("mouseover") and UnitAffectingCombat("mouseover") then
 	-- set focus an enemy targeting you
 	if jps.UnitIsUnit("mouseovertarget","player") and not jps.UnitIsUnit("target","mouseover") then
 		jps.Macro("/focus mouseover")
-		local name = GetUnitName("focus")
 		print("Enemy DAMAGER|cff1eff00 "..name.." |cffffffffset as FOCUS")
 	-- set focus an enemy healer
 	elseif jps.EnemyHealer("mouseover") then
 		jps.Macro("/focus mouseover")
-		local name = GetUnitName("focus")
 		print("Enemy HEALER|cff1eff00 "..name.." |cffffffffset as FOCUS")
+	-- set focus an enemy in combat
+	elseif canDPS("mouseover") and not jps.UnitIsUnit("target","mouseover") then
+		jps.Macro("/focus mouseover")
+		print("Enemy COMBAT|cff1eff00 "..name.." |cffffffffset as FOCUS")
 	end
 end
 
@@ -141,19 +145,17 @@ local spellTable = {
 	-- "Stoneform" 20594 "Forme de pierre"
 	{ warrior.spells["Stoneform"] , playerAggro and playerhealth_pct < 0.75 , rangedTarget , "_Stoneform" },
 	{ warrior.spells["Stoneform"] , jps.canDispel("player",{"Magic","Poison","Disease","Curse"}) , rangedTarget , "_Stoneform" },
-	
-	-- TRINKETS -- jps.useTrinket(0) est "Trinket0Slot" est slotId  13 -- "jps.useTrinket(1) est "Trinket1Slot" est slotId  14
-	{ jps.useTrinket(0), jps.useTrinketBool(0) and not playerWasControl and jps.combatStart > 0 , rangedTarget , "Trinket0"},
-	{ jps.useTrinket(1), jps.useTrinketBool(1) and not playerWasControl and jps.combatStart > 0 , rangedTarget , "Trinket1"},
 
 	-- "Heroic Throw" 57755 "Lancer héroïque"
 	{ warrior.spells["HeroicThrow"] , inRanged , rangedTarget , "_Heroic Throw" },
 	-- "Charge" 100
 	{ warrior.spells["Charge"], jps.UseCDs and jps.IsSpellInRange(100,rangedTarget) , rangedTarget , "_Charge"},
-	-- "Piercing Howl" 12323 "Hurlement percant"
-	--{ warrior.spells["PiercingHowl"] , not jps.debuff(12323,rangedTarget) , rangedTarget , "_PiercingHowl"},
 	-- "Intimidating Shout" 5246
 	{ warrior.spells["IntimidatingShout"] , not jps.debuff(5246,rangedTarget) and isBoss , rangedTarget , "_IntimidatingShout"},
+	
+	-- TRINKETS -- jps.useTrinket(0) est "Trinket0Slot" est slotId  13 -- "jps.useTrinket(1) est "Trinket1Slot" est slotId  14
+	{ jps.useTrinket(0), jps.useTrinketBool(0) and not playerWasControl and jps.combatStart > 0 , rangedTarget , "Trinket0"},
+	{ jps.useTrinket(1), jps.useTrinketBool(1) and not playerWasControl and jps.combatStart > 0 , rangedTarget , "Trinket1"},
 
 	-- "Bloodthirst" 23881 "Sanguinaire"
 	{ warrior.spells["Bloodthirst"], not Enrage , rangedTarget , "_Bloodthirst" },
@@ -161,20 +163,19 @@ local spellTable = {
 	{ warrior.spells["BerserkerRage"], not Enrage , rangedTarget , "_BerserkerRage" },
 
 	-- "Recklessness" 1719 "Témérité" -- buff Raging Blow! 131116 -- "Bloodsurge" 46916 "Afflux sanguin"
-	{ warrior.spells["Recklessness"], jps.rage() > 60 and Enrage and isBoss , rangedTarget , "_Recklessness" },
-	{ warrior.spells["Recklessness"], jps.rage() > 60 and Enrage and isBoss , rangedTarget , "_Recklessness" },
+	{ warrior.spells["Recklessness"], jps.combatStart > 0 and Enrage and inMelee , rangedTarget , "_Recklessness" },
 	-- "Bloodbath" 12292 "Bain de sang"  -- jps.buff(12292)
-	{ warrior.spells["Bloodbath"], jps.combatStart > 0 and Enrage , rangedTarget , "_Bloodbath" },
-	-- "Execute" 5308 "Exécution" -- cost 30 rage
+	{ warrior.spells["Bloodbath"], jps.combatStart > 0 and Enrage and inMelee , rangedTarget , "_Bloodbath" },
+	-- "Execute" 5308 "Exécution" -- "Mort soudaine" 29725
 	{ warrior.spells["Execute"], jps.buff(29725) , rangedTarget , "Execute_SuddenDeath" },
 	-- "Wild Strike" 100130 "Frappe sauvage" -- Alone cost 45 rage -- "Bloodsurge" 46916 "Afflux sanguin"
 	{ warrior.spells["WildStrike"] , jps.buff(46916) , rangedTarget ,"_WildStrike_Bloodsurge" },
-	{ warrior.spells["WildStrike"] , jps.rage() > 90 , rangedTarget ,"_WildStrike_Rage90" },
+	{ warrior.spells["WildStrike"] , jps.rage() > 89 , rangedTarget ,"_WildStrike_Rage89" },
 	
 	{"nested", jps.hp(rangedTarget) < 0.20 and inMelee ,{
 		-- "Execute" 5308 "Exécution" -- cost 30 rage
 		{ warrior.spells["Execute"] , Enrage , rangedTarget , "_Execute_Enrage" },
-		{ warrior.spells["Execute"] , jps.rage() > 60 , rangedTarget , "_Execute_Rage" },
+		{ warrior.spells["Execute"] , jps.rage() > 59 , rangedTarget , "_Execute_Rage" },
 		-- "Raging Blow" 85288 "Coup déchaîné" -- buff Raging Blow! 131116 -- "Meat Cleaver" 85739 "Fendoir à viande"
 		{ warrior.spells["RagingBlow"] , jps.buff(131116) , rangedTarget , "_RagingBlow_Buff" },
 	}},
@@ -186,13 +187,14 @@ local spellTable = {
 		-- Whirlwind increases the number of targets that your Raging Blow hits by 1, stacking up to 3 times.
 		{ warrior.spells["RagingBlow"] , jps.buff(131116) and jps.buffStacks(85739) > 1 , rangedTarget , "_RagingBlow_MeatCleaver" },
 		-- "Whirlwind" 1680 -- 8 yd range -- "Meat Cleaver" 85739 "Fendoir à viande"
-		{ warrior.spells["Whirlwind"], jps.rage() > 60 , rangedTarget , "_Whirlwind" },
+		{ warrior.spells["Whirlwind"], jps.rage() > 59 , rangedTarget , "_Whirlwind" },
 		-- "Bladestorm" 46924 "Tempête de lames" -- "Enrage" 12880 "Enrager" -- While Bladestorm is active, you cannot perform any actions except for using your Taunt
 		{ warrior.spells["Bladestorm"], true , rangedTarget , "_Bladestorm" },
 		-- "Shockwave" 46968 "Onde de choc"
 		{ warrior.spells["Shockwave"] , true , rangedTarget , "_Shockwave" },
 	}},
-
+	
+	-- TALENTS --
 	-- "Storm Bolt" 107570 "Eclair de tempete" -- 30 yd range
 	{ warrior.spells["StormBolt"] , jps.IsSpellKnown(107570) , rangedTarget ,"_StormBolt" },
 	-- "Dragon Roar " 118000 -- 8 yards
@@ -204,8 +206,6 @@ local spellTable = {
 
 	-- "Raging Blow" 85288 "Coup déchaîné" -- buff Raging Blow! 131116 -- "Meat Cleaver" 85739 "Fendoir à viande"
 	{ warrior.spells["RagingBlow"] , jps.buff(131116) , rangedTarget , "_RagingBlow_Buff" },
-	-- "Wild Strike" 100130 "Frappe sauvage" -- Alone cost 45 rage -- "Bloodsurge" 46916 "Afflux sanguin"
-	{ warrior.spells["WildStrike"] , jps.rage() > 60 , rangedTarget ,"_WildStrike_Rage60" },
 	-- "Bloodthirst" 23881 "Sanguinaire"
 	{ warrior.spells["Bloodthirst"], true , rangedTarget , "_Bloodthirst_End" },
 

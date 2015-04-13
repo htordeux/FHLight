@@ -37,6 +37,7 @@ end
 
 -- Debuff EnemyTarget NOT DPS
 local DebuffUnitCyclone = function (unit)
+	if not UnitAffectingCombat(unit) then return false end
 	local Cyclone = false
 	local i = 1
 	local auraName = select(1,UnitDebuff(unit, i))
@@ -68,6 +69,8 @@ local CountInRange, AvgHealthLoss, FriendUnit = jps.CountInRaidStatus(1)
 local playermana = jps.roundValue(UnitPower("player",0)/UnitPowerMax("player",0),2)
 local Orbs = UnitPower("player",13) -- SPELL_POWER_SHADOW_ORBS 	13
 local COP = jps.IsSpellKnown(155246)
+local myTank,_ = jps.findTankInRaid() -- default "focus"
+local NbOrbs = 5
 
 ---------------------
 -- TIMER
@@ -116,12 +119,8 @@ end
 
 if canDPS("target") and not DebuffUnitCyclone("target") then rangedTarget =  "target"
 elseif canDPS("targettarget") and not DebuffUnitCyclone("targettarget") then rangedTarget = "targettarget"
-elseif canDPS("mouseover") and not DebuffUnitCyclone("mouseover") and UnitAffectingCombat("mouseover") then rangedTarget = "mouseover"
+elseif canDPS("mouseover") and not DebuffUnitCyclone("mouseover") then rangedTarget = "mouseover"
 end
-
---if COP and canDPS("mouseover") and not DebuffUnitCyclone("mouseover") and UnitAffectingCombat("mouseover") 
---and not jps.myDebuff(34914,rangedTarget) and not jps.myDebuff(589,rangedTarget) and not jps.myDebuff(158831,rangedTarget) then
---rangedTarget = "targettarget" end
 
 if canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
 
@@ -279,14 +278,14 @@ local parseControlFocus = {
 }
 
 local parseHeal = {
+	-- "Power Word: Shield" 17	
+	{ 17, not jps.debuff(6788,"player") and not jps.buff(17,"player") , "player" },
 	-- "Don des naaru" 59544
 	{ 59544, true , "player" },
 	-- "Prière du désespoir" 19236
 	{ 19236, jps.IsSpellKnown(19236) , "player" },
 	-- "Pierre de soins" 5512
 	{ {"macro","/use item:5512"}, jps.itemCooldown(5512)==0 , "player" },
-	-- "Power Word: Shield" 17	
-	{ 17, not jps.debuff(6788,"player") and not jps.buff(17,"player") , "player" },
 }
 
 local parseAggro = {
@@ -334,14 +333,19 @@ local spellTable = {
 	{ 15286, AvgHealthLoss < 0.75 , rangedTarget , "VampiricEmbrace"  },
 	{ 15286, jps.hp("player") < 0.75 and not IsInGroup() , rangedTarget , "VampiricEmbrace"  },
 	{ "nested", jps.hp("player") < 0.75 , parseHeal },
+	-- "Power Word: Shield" 17
+	{ 17, jps.Defensive and not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Aggro_Shield" },
 
 	-- "Shadow Word: Death" 32379 "Mot de l'ombre : Mort"
-	{ 32379, type(DeathEnemyTarget) == "string" and not jps.buff(132573) , DeathEnemyTarget , "Death_MultiUnit_Orbs" },
+	{ 32379, type(DeathEnemyTarget) == "string" and not jps.buff(132573) and Orbs < 5 , DeathEnemyTarget , "Death_MultiUnit_Orbs" },
 
 	-- "Power Infusion" "Infusion de puissance" 10060
-	{ 10060, jps.FinderLastMessage("PLAGUE") , rangedTarget , "PowerInfusion"  },	
-	-- "MindSear" 48045 -- Take care of Mind Blast CD -- "Insanité incendiaire" 179338 "Searing Insanity"
-	{ 48045, not jps.Moving and jps.buff(132573) and jps.MultiTarget and EnemyCount > 3 , rangedTarget , "MINDSEARORBS" },
+	{ 10060, jps.FinderLastMessage("PLAGUE") , rangedTarget , "PowerInfusion"  },
+	
+	-- MULTITARGET
+	-- "MindSear" 48045 -- "Insanité incendiaire" 179338 "Searing Insanity"
+	{ 48045, not jps.Moving and jps.MultiTarget and EnemyCount > 3 and jps.buff(132573) , myTank , "MINDSEARORBS_Tank" },
+	{ 48045, not jps.Moving and jps.MultiTarget and EnemyCount > 3 and jps.buff(132573) , rangedTarget , "MINDSEARORBS" },
 	-- "Mind Flay" 15407 -- "Shadow Word: Insanity" buff 132573 -- "Insanity" 129197
 	{ 15407, not jps.Moving and jps.buff(132573) , rangedTarget , "MINDFLAYORBS" },
 	
@@ -387,26 +391,26 @@ local spellTable = {
 	{ 34914, not jps.buff(132573) and fnVampEnemyTarget("focus") , "focus" , "Vamp_FOCUS_ORBS" },
 
 	-- "Mind Spike" 73510 -- "Clarity of Power" 155246 "Clarté de pouvoir" -- "Devouring Plague" debuff 158831
-	{ 73510, not jps.Moving and COP and Orbs < 5 and not jps.myDebuff(158831,rangedTarget) and jps.myDebuffDuration(34914,rangedTarget) < 5 and jps.myDebuffDuration(589,rangedTarget) < 6 , rangedTarget , "Spike_CoP_Target" },
-	{ 73510, not jps.Moving and COP and Orbs < 5 and not jps.myDebuff(158831,"focus") and jps.myDebuffDuration(34914,"focus") < 5 and jps.myDebuffDuration(589,"focus") < 6 , "focus" , "Spike_CoP_Focus" },
+	{ 73510, not jps.Moving and COP and Orbs < NbOrbs and not jps.myDebuff(158831,rangedTarget) and jps.myDebuffDuration(34914,rangedTarget) < 5 and jps.myDebuffDuration(589,rangedTarget) < 6 , rangedTarget , "Spike_CoP_Target" },
+	{ 73510, not jps.Moving and COP and Orbs < NbOrbs and not jps.myDebuff(158831,"focus") and jps.myDebuffDuration(34914,"focus") < 5 and jps.myDebuffDuration(589,"focus") < 6 , "focus" , "Spike_CoP_Focus" },
 
 	-- "Shadow Word: Pain" 589 -- "Shadow Word: Insanity" buff 132573
-	{ 589, jps.myDebuff(589,rangedTarget) and jps.myDebuffDuration(589,rangedTarget) < 3 and not jps.isRecast(589,rangedTarget) , rangedTarget , "Pain_Target" },
-	{ 589, jps.myDebuff(589,"focus") and jps.myDebuffDuration(589,"focus") < 3 and not jps.isRecast(589,"focus") , "focus" , "Pain_Focus" },
+	{ 589, jps.myDebuffDuration(589,rangedTarget) < 3 and not jps.isRecast(589,rangedTarget) , rangedTarget , "Pain_Target" },
+	{ 34914, not jps.Moving and jps.myDebuffDuration(34914,rangedTarget) < 3 and not jps.isRecast(34914,rangedTarget) , rangedTarget , "VT_Target" },
 	{ 589, type(PainEnemyTarget) == "string" , PainEnemyTarget , "Pain_MultiUnit" },
 	
+	-- "MindSear" 48045
+	{ 48045, not jps.Moving and jps.MultiTarget and EnemyCount > 3 , myTank , "MINDSEAR_Tank" },
+	{ 48045, not jps.Moving and jps.MultiTarget and EnemyCount > 3 , rangedTarget , "MINDSEAR" },
+	
 	-- "Vampiric Touch" 34914 -- "Shadow Word: Insanity" buff 132573
-	{ 34914, not jps.Moving and jps.myDebuff(34914,rangedTarget) and jps.myDebuffDuration(34914,rangedTarget) < 3 and not jps.isRecast(34914,rangedTarget) , rangedTarget , "VT_Target" },
-	{ 34914, not jps.Moving and jps.myDebuff(34914,"focus") and jps.myDebuffDuration(34914,"focus") < 3 and not jps.isRecast(34914,"focus") , "focus" , "VT_Focus" },
+	{ 589, jps.myDebuffDuration(589,"focus") < 3 and not jps.isRecast(589,"focus") , "focus" , "Pain_Focus" },
+	{ 34914, not jps.Moving and jps.myDebuffDuration(34914,"focus") < 3 and not jps.isRecast(34914,"focus") , "focus" , "VT_Focus" },
 	{ 34914, type(VampEnemyTarget) == "string" , VampEnemyTarget , "Vamp_MultiUnit" },
 	
 	-- "Mindbender" "Torve-esprit" 123040 -- "Ombrefiel" 34433 "Shadowfiend"
 	{ 34433, priest.canShadowfiend(rangedTarget) , rangedTarget },
 	{ 123040, priest.canShadowfiend(rangedTarget) , rangedTarget },
-	
-	-- MULTITARGET
-	-- "MindSear" 48045 -- Take care of Mind Blast CD -- "Insanité incendiaire" 179338 "Searing Insanity"
-	{ 48045, not jps.Moving and jps.MultiTarget and EnemyCount > 3 , rangedTarget , "MINDSEAR" },
 
 	-- Offensive Dispel -- "Dissipation de la magie" 528 -- includes canDPS
 	{ 528, jps.castEverySeconds(528,10) and jps.DispelOffensive(rangedTarget) , rangedTarget , "|cff1eff00Dispel_Offensive" },

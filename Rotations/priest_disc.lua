@@ -56,7 +56,7 @@ local priestDisc = function()
 	local POHTarget, groupToHeal, groupHealth = jps.FindSubGroupHeal(0.75) -- Target to heal with POH in RAID with AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
 	--local POHTarget, groupToHeal = jps.FindSubGroupTarget(0.75) -- Target to heal with POH in RAID with AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
 
-	local myTank,TankUnit = jps.findAggroInRaid() -- return Table with UnitThreatSituation == 3 (tanking) or == 1 (Overnuking) or "focus" default
+	local myTank,TankUnit = jps.findTankInRaid() -- return Table with UnitThreatSituation == 3 (tanking) or == 1 (Overnuking) or "focus" default
 	local TankTarget = "target"
 	if canHeal(myTank) then TankTarget = myTank.."target" end
 
@@ -251,8 +251,12 @@ spellTable = {
 
 	-- "Suppression de la douleur" 33206 "Pain Suppression"
 	{ 33206, playerIsStun and LowestImportantUnitHpct < 0.30 , LowestImportantUnit, "StunPain_" },
+	-- "Power Word: Shield" 17
+	{ 17, jps.Defensive and not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Aggro_Shield" },
 	-- PLAYER AGGRO
 	{ "nested", jps.hp() < 0.75 ,{
+		-- "Power Word: Shield" 17
+		{ 17, not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Aggro_Shield" },
 		-- "Pierre de soins" 5512
 		{ {"macro","/use item:5512"}, jps.itemCooldown(5512) == 0 , "player" , "Item5512" },
 		-- "Prière du désespoir" 19236
@@ -301,9 +305,9 @@ spellTable = {
 	{ 47540, LowestImportantUnitHealth > priest.AvgAmountGreatHeal , LowestImportantUnit , "Penance_" },
 	-- SHIELD TANK
 	{ 17, canHeal(myTank) and not jps.buff(17,myTank) and not jps.debuff(6788,myTank) , myTank , "Timer_Shield_Tank" },
+	{ 33076, canHeal(myTank) and not jps.buff(41635,myTank) , myTank , "Timer_Mending_Tank" },
 	-- TIMER POM -- "Prière de guérison" 33076 -- Buff POM 41635
 	{ "nested", not jps.Moving and not buffTrackerMending ,{
-		{ 33076, canHeal(myTank) , myTank , "Tracker_Mending_Tank" },
 		{ 33076, type(MendingFriend) == "string" , MendingFriend , "Tracker_Mending_Friend" },
 		{ 33076, not jps.buff(41635,LowestImportantUnit) , LowestImportantUnit , "Tracker_Mending_" },
 	},},
@@ -320,8 +324,11 @@ spellTable = {
 	},},
 
 	{ "nested", not jps.Moving and type(POHTarget) == "string" and canHeal(POHTarget) ,{
+		-- "Prière de guérison" 33076 -- Buff POM 41635
+		{ 33076, not jps.buff(41635,POHTarget) , "Mending_POH_" },
+		{ 33076, type(MendingFriend) == "string" , MendingFriend , "Mending_POH_Friend_" },
 		-- "Cascade" Holy 121135 Shadow 127632
-		{ 121135, CountInRange > 2 and AvgHealthLoss < 0.80 , LowestImportantUnit ,  "Cascade_POH_" },
+		{ 121135, true , POHTarget ,  "Cascade_POH_" },
 		-- "POH" 596 -- "Archange surpuissant" 172359  100 % critique POH or FH
 		{ 596, jps.buff(172359,"player") , POHTarget , "Archange_POH_" },
 		-- "POH" 596 -- "Power Infusion" 10060 "Infusion de puissance"
@@ -376,14 +383,17 @@ spellTable = {
 
 	-- GROUP HEAL --
 	-- "Cascade" Holy 121135 Shadow 127632
-	{ 121135, not jps.Moving and CountInRange > 2 and AvgHealthLoss < 0.80 , LowestImportantUnit ,  "Cascade_" },
-	{ "nested", type(POHTarget) == "string" ,{
+	{ 121135, not jps.Moving and CountInRange > 2 and AvgHealthLoss < 0.85 , LowestImportantUnit ,  "Cascade_" },
+	{ "nested", type(POHTarget) == "string" and canHeal(POHTarget) ,{
+		-- "Prière de guérison" 33076 -- Buff POM 41635
+		{ 33076, not jps.buff(41635,POHTarget) , "Mending_POH_" },
+		{ 33076, type(MendingFriend) == "string" , MendingFriend , "Mending_POH_Friend_" },
 		-- "Power Word: Shield" 17 -- Keep Buff "Borrowed" 59889 always
 		{ 17, type(ShieldFriend) == "string" and not jps.buff(59889,"player") , ShieldFriend , "Timer_ShieldFriend" },
 		-- "Carapace spirituelle" spell & buff "player" 109964 buff target 114908
 		{ 109964, jps.IsSpellKnown(109964) , POHTarget , "Carapace_POH_" },
 		-- "Prière de soins" 596 "Prayer of Healing"
-		{ 596, not jps.Moving and canHeal(POHTarget) , POHTarget , "POH_" },
+		{ 596, not jps.Moving , POHTarget , "POH_" },
 	},},
 
 	-- HEAL --
@@ -412,11 +422,10 @@ spellTable = {
 	{ "nested", jps.FaceTarget and canDPS(rangedTarget) and LowestImportantUnitHpct > 0.80 ,{
 		-- "Châtiment" 585
 		{ 585, jps.castEverySeconds(585,2) and not IsInGroup() , rangedTarget , "|cFFFF0000Chatiment_" },
-		--{ 585, jps.castEverySeconds(585,2) and IsInGroup() and LowestImportantUnitHpct < 1 , rangedTarget , "|cFFFF0000Chatiment_" },
 		{ 585, jps.castEverySeconds(585,2) and IsInGroup() and jps.buffStacks(81661) < 5 , rangedTarget , "|cFFFF0000Chatiment_" },
+		{ 585, jps.castEverySeconds(585,2) and IsInGroup() and jps.hp(myTank) < 1 , rangedTarget , "|cFFFF0000Chatiment_" },
 		-- "Pénitence" 47540 -- jps.glyphInfo(119866) -- allows Penance to be cast while moving.
 		{ 47540, not IsInGroup() , rangedTarget,"|cFFFF0000Penance_" },
-		--{ 47540, IsInGroup() and LowestImportantUnitHpct < 1 , rangedTarget,"|cFFFF0000Penance_" },
 		-- "Mot de l'ombre: Douleur" 589
 		{ 589, jps.myDebuffDuration(589,rangedTarget) == 0 and not IsInGroup() , rangedTarget , "|cFFFF0000Douleur_" },
 	},},
@@ -475,7 +484,7 @@ local priestDiscPvP = function()
 	local POHTarget, groupToHeal, groupHealth = jps.FindSubGroupHeal(0.75) -- Target to heal with POH in RAID with AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
 	--local POHTarget, groupToHeal = jps.FindSubGroupTarget(0.75) -- Target to heal with POH in RAID with AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
 
-	local myTank,TankUnit = jps.findAggroInRaid() -- return Table with UnitThreatSituation == 3 (tanking) or == 1 (Overnuking) or "focus" default
+	local myTank,TankUnit = jps.findTankInRaid() -- return Table with UnitThreatSituation == 3 (tanking) or == 1 (Overnuking) or "focus" default
 	local TankTarget = "target"
 	if canHeal(myTank) then TankTarget = myTank.."target" end
 
@@ -689,7 +698,7 @@ spellTable = {
 	-- SNM "Levitate" 1706 -- "Dark Simulacrum" debuff 77606
 	{ 1706, jps.fallingFor() > 1.5 and not jps.buff(111759) , "player" },
 	{ 1706, jps.debuff(77606,"player") , "player" , "DarkSim_Levitate" },
-	
+
 	-- SNM RACIAL COUNTERS -- share 30s cd with trinket
 	{"nested", jps.UseCDs , {
 		 -- Blood Elf "Arcane Torrent" 28730
@@ -720,8 +729,12 @@ spellTable = {
 
 	-- "Suppression de la douleur" 33206 "Pain Suppression"
 	{ 33206, playerIsStun and LowestImportantUnitHpct < 0.30 , LowestImportantUnit, "StunPain_" },
+	-- "Power Word: Shield" 17
+	{ 17, jps.Defensive and not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Aggro_Shield" },
 	-- PLAYER AGGRO
 	{ "nested", jps.hp() < 0.75 ,{
+		-- "Power Word: Shield" 17
+		{ 17, not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Aggro_Shield" },
 		-- "Pierre de soins" 5512
 		{ {"macro","/use item:5512"}, jps.itemCooldown(5512) == 0 , "player" , "Item5512" },
 		-- "Prière du désespoir" 19236
@@ -750,9 +763,8 @@ spellTable = {
 		{ 33076, not jps.Moving and not jps.buff(41635,"player") , "player" , "Aggro_Mending" },
 		-- "Clarity of Will" 152118 shields with protective ward for 20 sec
 		{ 152118, not jps.Moving and priest.unitForClarity("player") and jps.debuff(6788,"player") , "player" , "Aggro_Clarity" },
-		-- SNM "Nova" 132157 -- "Words of Mending" 155362 "Mot de guérison"
+		-- "Nova" 132157 -- "Words of Mending" 155362 "Mot de guérison"
 		{ 132157, jps.hp() < 0.40 , "player" , "Aggro_Nova" },
-		{ 132157, jps.IsSpellKnown(155362) and jps.buffStacks(155362) < 10 , "player" , "Aggro_Nova_WoM" },
 	},},
 
 	-- "Leap of Faith" 73325 -- "Saut de foi"
@@ -771,9 +783,9 @@ spellTable = {
 	{ 47540, LowestImportantUnitHealth > priest.AvgAmountGreatHeal , LowestImportantUnit , "Penance_" },
 	-- SHIELD TANK
 	{ 17, canHeal(myTank) and not jps.buff(17,myTank) and not jps.debuff(6788,myTank) , myTank , "Timer_Shield_Tank" },
+	{ 33076, canHeal(myTank) and not jps.buff(41635,myTank) , myTank , "Timer_Mending_Tank" },
 	-- TIMER POM -- "Prière de guérison" 33076 -- Buff POM 41635
 	{ "nested", not jps.Moving and not buffTrackerMending ,{
-		{ 33076, canHeal(myTank) , myTank , "Tracker_Mending_Tank" },
 		{ 33076, type(MendingFriend) == "string" , MendingFriend , "Tracker_Mending_Friend" },
 		{ 33076, not jps.buff(41635,LowestImportantUnit) , LowestImportantUnit , "Tracker_Mending_" },
 	},},
@@ -790,8 +802,11 @@ spellTable = {
 	},},
 
 	{ "nested", not jps.Moving and type(POHTarget) == "string" and canHeal(POHTarget) ,{
+		-- "Prière de guérison" 33076 -- Buff POM 41635
+		{ 33076, not jps.buff(41635,POHTarget) , "Mending_POH_" },
+		{ 33076, type(MendingFriend) == "string" , MendingFriend , "Mending_POH_Friend_" },
 		-- "Cascade" Holy 121135 Shadow 127632
-		{ 121135, CountInRange > 2 and AvgHealthLoss < 0.80 , LowestImportantUnit ,  "Cascade_POH_" },
+		{ 121135, true , POHTarget ,  "Cascade_POH_" },
 		-- "POH" 596 -- "Archange surpuissant" 172359  100 % critique POH or FH
 		{ 596, jps.buff(172359,"player") , POHTarget , "Archange_POH_" },
 		-- "POH" 596 -- "Power Infusion" 10060 "Infusion de puissance"
@@ -849,14 +864,17 @@ spellTable = {
 
 	-- GROUP HEAL --
 	-- "Cascade" Holy 121135 Shadow 127632
-	{ 121135, not jps.Moving and CountInRange > 2 and AvgHealthLoss < 0.80 , LowestImportantUnit ,  "Cascade_" },
-	{ "nested", type(POHTarget) == "string" ,{
+	{ 121135, not jps.Moving and CountInRange > 2 and AvgHealthLoss < 0.85 , LowestImportantUnit ,  "Cascade_" },
+	{ "nested", type(POHTarget) == "string" and canHeal(POHTarget) ,{
+		-- "Prière de guérison" 33076 -- Buff POM 41635
+		{ 33076, not jps.buff(41635,POHTarget) , "Mending_POH_" },
+		{ 33076, type(MendingFriend) == "string" , MendingFriend , "Mending_POH_Friend_" },
 		-- "Power Word: Shield" 17 -- Keep Buff "Borrowed" 59889 always
 		{ 17, type(ShieldFriend) == "string" and not jps.buff(59889,"player") , ShieldFriend , "Timer_ShieldFriend" },
 		-- "Carapace spirituelle" spell & buff "player" 109964 buff target 114908
 		{ 109964, jps.IsSpellKnown(109964) , POHTarget , "Carapace_POH_" },
 		-- "Prière de soins" 596 "Prayer of Healing"
-		{ 596, not jps.Moving and canHeal(POHTarget) , POHTarget , "POH_" },
+		{ 596, not jps.Moving , POHTarget , "POH_" },
 	},},
 
 	-- HEAL --
@@ -887,7 +905,7 @@ spellTable = {
 		{ 585, jps.castEverySeconds(585,2) , rangedTarget , "|cFFFF0000Chatiment_" },
 		-- "Pénitence" 47540 -- jps.glyphInfo(119866) -- allows Penance to be cast while moving.
 		{ 47540, true , rangedTarget,"|cFFFF0000Penance_" },
-		-- "Mot de l'ombre: Douleur" 589 
+		-- "Mot de l'ombre: Douleur" 589
 		{ 589, jps.myDebuffDuration(589,rangedTarget) == 0 and not IsInGroup() , rangedTarget , "|cFFFF0000Douleur_" },
 	},},
 	

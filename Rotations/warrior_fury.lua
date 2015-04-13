@@ -27,6 +27,7 @@ end
 
 -- Debuff EnemyTarget NOT DPS
 local DebuffUnitCyclone = function (unit)
+	if not UnitAffectingCombat(unit) then return false end
 	local Cyclone = false
 	local i = 1
 	local auraName = select(1,UnitDebuff(unit, i))
@@ -100,7 +101,7 @@ end
 
 if canDPS("target") and not DebuffUnitCyclone("target") then rangedTarget =  "target"
 elseif canDPS("targettarget") and not DebuffUnitCyclone("targettarget") then rangedTarget = "targettarget"
-elseif canDPS("mouseover") and not DebuffUnitCyclone("mouseover") and UnitAffectingCombat("mouseover") then rangedTarget = "mouseover"
+elseif canDPS("mouseover") and not DebuffUnitCyclone("mouseover") then rangedTarget = "mouseover"
 end
 if canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
 

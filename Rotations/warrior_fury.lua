@@ -140,7 +140,7 @@ local spellTable = {
 	-- "Enraged Regeneration" 55694 "Régénération enragée"
 	{ warrior.spells["EnragedRegeneration"] , playerhealth_pct < 0.55 , rangedTarget , "_EnragedRegeneration" },
 	-- "Pierre de soins" 5512
-	{ {"macro","/use item:5512"} , jps.combatStart > 0 and jps.itemCooldown(5512)==0 and jps.hp("player") < 0.55 , rangedTarget , "_UseItem"},
+	{ {"macro","/use item:5512"} , jps.itemCooldown(5512)==0 and jps.hp("player") < 0.55 , rangedTarget , "_UseItem"},
 	-- "Die by the Sword" 118038
 	{ warrior.spells["DieSword"] , playerAggro and playerhealth_pct < 0.65 , rangedTarget , "_DieSword" },
 	-- "Stoneform" 20594 "Forme de pierre"
@@ -158,7 +158,7 @@ local spellTable = {
 	{ jps.useTrinket(0), jps.useTrinketBool(0) and not playerWasControl and jps.combatStart > 0 , rangedTarget , "Trinket0"},
 	{ jps.useTrinket(1), jps.useTrinketBool(1) and not playerWasControl and jps.combatStart > 0 , rangedTarget , "Trinket1"},
 
-	-- "Bloodthirst" 23881 "Sanguinaire"
+	-- "Bloodthirst" 23881 "Sanguinaire" -- 4.5 cd
 	{ warrior.spells["Bloodthirst"], not Enrage , rangedTarget , "_Bloodthirst" },
 	-- "Berserker Rage" 18499 "Rage de berserker"
 	{ warrior.spells["BerserkerRage"], not Enrage , rangedTarget , "_BerserkerRage" },
@@ -173,6 +173,16 @@ local spellTable = {
 	{ warrior.spells["WildStrike"] , jps.buff(46916) , rangedTarget ,"_WildStrike_Bloodsurge" },
 	{ warrior.spells["WildStrike"] , jps.rage() > 89 , rangedTarget ,"_WildStrike_Rage89" },
 	
+	-- TALENTS --
+	-- "Storm Bolt" 107570 "Eclair de tempete" -- 30 yd range
+	{ warrior.spells["StormBolt"] , jps.IsSpellKnown(107570) , rangedTarget ,"_StormBolt" },
+	-- "Dragon Roar " 118000 -- 8 yards
+	{ warrior.spells["DragonRoar"] , jps.IsSpellKnown(118000) and jps.IsSpellInRange(118000,rangedTarget) , rangedTarget , "_DragonRoar" },
+	-- "Ravager" 152277 -- 40 yd range
+	{ warrior.spells["Ravager"] , jps.IsSpellKnown(152277) , rangedTarget , "_Ravager" },
+	-- "Siegebreaker" 176289 "Briseur de siège"
+	{ warrior.spells["Siegebreaker"] , jps.IsSpellKnown(176289) , rangedTarget ,"_Siegebreaker" },
+	
 	{"nested", jps.hp(rangedTarget) < 0.20 and inMelee ,{
 		-- "Execute" 5308 "Exécution" -- cost 30 rage
 		{ warrior.spells["Execute"] , Enrage , rangedTarget , "_Execute_Enrage" },
@@ -180,8 +190,9 @@ local spellTable = {
 		-- "Raging Blow" 85288 "Coup déchaîné" -- buff Raging Blow! 131116 -- "Meat Cleaver" 85739 "Fendoir à viande"
 		{ warrior.spells["RagingBlow"] , jps.buff(131116) , rangedTarget , "_RagingBlow_Buff" },
 	}},
-	
-	{"nested", jps.MultiTarget and EnemyCount > 2 and inMelee ,{
+
+	-- MULTITARGRT -- and EnemyCount > 2
+	{"nested", jps.MultiTarget and inMelee ,{
 		-- "Whirlwind" 1680 -- "Raging Wind" 115317 -- Raging Blow hits increase the damage of your next Whirlwind by 10%
 		{ warrior.spells["Whirlwind"], jps.buff(115317) , rangedTarget , "_Whirlwind_Buff" },
 		-- "Raging Blow" 85288 "Coup déchaîné" -- buff Raging Blow! 131116 -- "Meat Cleaver" 85739 "Fendoir à viande"
@@ -194,19 +205,11 @@ local spellTable = {
 		-- "Shockwave" 46968 "Onde de choc"
 		{ warrior.spells["Shockwave"] , true , rangedTarget , "_Shockwave" },
 	}},
-	
-	-- TALENTS --
-	-- "Storm Bolt" 107570 "Eclair de tempete" -- 30 yd range
-	{ warrior.spells["StormBolt"] , jps.IsSpellKnown(107570) , rangedTarget ,"_StormBolt" },
-	-- "Dragon Roar " 118000 -- 8 yards
-	{ warrior.spells["DragonRoar"] , jps.IsSpellKnown(118000) and jps.IsSpellInRange(118000,rangedTarget) , rangedTarget , "_DragonRoar" },
-	-- "Ravager" 152277 -- 40 yd range
-	{ warrior.spells["Ravager"] , jps.IsSpellKnown(152277) , rangedTarget , "_Ravager" },
-	-- "Siegebreaker" 176289 "Briseur de siège"
-	{ warrior.spells["Siegebreaker"] , jps.IsSpellKnown(176289) , rangedTarget ,"_Siegebreaker" },
 
 	-- "Raging Blow" 85288 "Coup déchaîné" -- buff Raging Blow! 131116 -- "Meat Cleaver" 85739 "Fendoir à viande"
 	{ warrior.spells["RagingBlow"] , jps.buff(131116) , rangedTarget , "_RagingBlow_Buff" },
+	-- "Wild Strike" 100130 "Frappe sauvage" 
+	{ warrior.spells["WildStrike"] , Enrage , rangedTarget ,"_WildStrike_Enrage" },
 	-- "Bloodthirst" 23881 "Sanguinaire"
 	{ warrior.spells["Bloodthirst"], true , rangedTarget , "_Bloodthirst_End" },
 

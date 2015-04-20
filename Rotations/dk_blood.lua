@@ -120,7 +120,7 @@ local TargetMoving = select(1,GetUnitSpeed(rangedTarget)) > 0
 local Dr,Fr,Ur = dk.updateRune()
 local DepletedRunes = (Dr == 0) or (Fr == 0) or (Ur == 0)
 local AllDepletedRunes = (Dr + Fr + Ur) == 0
-local DeathRuneCount = dk.updateRuneType()
+local DeathRuneCount = dk.updateDeathRune()
 
 ------------------------
 -- SPELL TABLE ---------

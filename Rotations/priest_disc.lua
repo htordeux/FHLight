@@ -252,7 +252,7 @@ spellTable = {
 	-- "Suppression de la douleur" 33206 "Pain Suppression"
 	{ 33206, playerIsStun and LowestImportantUnitHpct < 0.30 , LowestImportantUnit, "StunPain_" },
 	-- "Power Word: Shield" 17
-	{ 17, jps.Defensive and not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Aggro_Shield" },
+	{ 17, jps.Defensive and jps.Moving and not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Aggro_Shield" },
 	-- PLAYER AGGRO
 	{ "nested", jps.hp() < 0.75 ,{
 		-- "Power Word: Shield" 17
@@ -730,7 +730,7 @@ spellTable = {
 	-- "Suppression de la douleur" 33206 "Pain Suppression"
 	{ 33206, playerIsStun and LowestImportantUnitHpct < 0.30 , LowestImportantUnit, "StunPain_" },
 	-- "Power Word: Shield" 17
-	{ 17, jps.Defensive and not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Aggro_Shield" },
+	{ 17, jps.Defensive and jps.Moving and not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Aggro_Shield" },
 	-- PLAYER AGGRO
 	{ "nested", jps.hp() < 0.75 ,{
 		-- "Power Word: Shield" 17

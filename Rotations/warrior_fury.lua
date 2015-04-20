@@ -1,4 +1,3 @@
-
 local L = MyLocalizationTable
 local canDPS = jps.canDPS
 local strfind = string.find
@@ -104,6 +103,7 @@ elseif canDPS("targettarget") and not DebuffUnitCyclone("targettarget") then ran
 elseif canDPS("mouseover") and not DebuffUnitCyclone("mouseover") then rangedTarget = "mouseover"
 end
 if canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
+local TargetMoving = select(1,GetUnitSpeed(rangedTarget)) > 0
 
 ------------------------
 -- SPELL TABLE ---------

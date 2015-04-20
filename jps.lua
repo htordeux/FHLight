@@ -136,12 +136,12 @@ function GetHarmfulSpell()
 		if maxRange == nil then maxRange = 0 end
 		local harmful = IsHarmfulSpell(index, booktype)
 		local helpful = IsHelpfulSpell(index, booktype)
-		if harmful and maxRange > 0 and minRange == 0 then
+		if harmful and maxRange > 0 and jps.IsSpellKnown(spellID) then
 			if maxRange > harm then
 				harm = maxRange
 				jps.HarmSpell = spell
 			end
-		elseif helpful and maxRange > 0 and minRange == 0 then
+		elseif helpful and maxRange > 0 and jps.IsSpellKnown(spellID) then
 			if maxRange > help then
 				help = maxRange
 				jps.HelpSpell = spell

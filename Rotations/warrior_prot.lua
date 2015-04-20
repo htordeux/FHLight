@@ -35,7 +35,7 @@ local playerIsStun = jps.StunEvents(2) -- return true/false ONLY FOR PLAYER -- "
 -- {"STUN_MECHANIC","STUN","FEAR","CHARM","CONFUSE","PACIFY","SILENCE","PACIFYSILENCE"}
 local playerIsInterrupt = jps.InterruptEvents() -- return true/false ONLY FOR PLAYER
 local playerWasControl = jps.ControlEvents() -- return true/false Player was interrupt or stun 2 sec ago ONLY FOR PLAYER
-local Enrage = jps.buff(12880) -- "Enrage" 12880 "Enrager"
+local Enrage = jps.buff(12880) -- "Enrage" 12880 "Enrager" -- 30 sec cd
 local inMelee = jps.IsSpellInRange(5308,"target") -- "Execute" 5308
 local inRanged = jps.IsSpellInRange(57755,"target") -- "Heroic Throw" 57755 "Lancer héroïque"
 	
@@ -78,15 +78,16 @@ elseif canDPS("targettarget") then rangedTarget = "targettarget"
 elseif canDPS("mouseover") and UnitAffectingCombat("mouseover") then rangedTarget = "mouseover"
 end
 if canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
+local TargetMoving = select(1,GetUnitSpeed(rangedTarget)) > 0
 
 ------------------------
 -- SPELL TABLE ---------
 ------------------------
 
-local spellTable ={
+local spellTable = {
 
 	-- "Heroic Leap" 6544 "Bond héroïque"
-	{ 6544, IsShiftKeyDown() , "player" },
+	{ warrior.spells["HeroicLeap"] , IsShiftKeyDown() , "player" },
 	
 	-- BUFFS
 	-- "Gladiator Stance" 156291 -- Talent "Gladiator's Resolve" 152276
@@ -155,8 +156,8 @@ local spellTable ={
 	-- "Revenge" 6572 "Revanche"
 	{ warrior.spells["Revenge"] , inMelee , rangedTarget , "_Revenge" },
 	
-	-- MULTITARGET --
-	{"nested", jps.MultiTarget and EnemyCount > 2 ,{
+	-- MULTITARGET -- and EnemyCount > 2
+	{"nested", jps.MultiTarget ,{
 
 		-- "Ravager" 152277 -- 40 yd range
 		{ warrior.spells["Ravager"] , jps.IsSpellKnown(152277) , rangedTarget , "_Ravager" },

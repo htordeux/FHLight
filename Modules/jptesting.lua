@@ -46,11 +46,11 @@ function jps_Test()
 	write("CountInRange: ",CountInRange,"AvgHealthLoss: ", AvgHealthLoss)
 	local mytank,Tanks = jps.findTankInRaid()
 	for i=1,#Tanks do
-		print(GetUnitName(Tanks[i]))
+		print("Tank:",GetUnitName(Tanks[i]))
 	end
 	local mytank,Tanks = jps.findAggroInRaid()
 	for i=1,#Tanks do
-		write(GetUnitName(Tanks[i]))
+		write("Aggro :",GetUnitName(Tanks[i]))
 	end
 
 --	local mastery = GetMasteryEffect()

@@ -315,10 +315,12 @@ local spellTable = {
 	-- SNM "Levitate" 1706 -- "Dark Simulacrum" debuff 77606
 	{ 1706, jps.fallingFor() > 1.5 and not jps.buff(111759) , "player" },
 	{ 1706, jps.debuff(77606,"player") , "player" , "DarkSim_Levitate" },
-	
+	{ 121536, IsShiftKeyDown() },
+
 	-- TRINKETS -- jps.useTrinket(0) est "Trinket0Slot" est slotId  13 -- "jps.useTrinket(1) est "Trinket1Slot" est slotId  14
 	{ jps.useTrinket(0), jps.useTrinketBool(0) and jps.combatStart > 0 and jps.hp(rangedTarget) < 0.9 },
 	{ jps.useTrinket(1), jps.useTrinketBool(1) and playerIsStun },
+
 	-- PLAYER AGGRO
 	{ "nested", playerAggro , parseAggro },
 	

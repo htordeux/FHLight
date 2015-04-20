@@ -149,7 +149,7 @@ function dk.updateRune()
 	return Dr, Fr, Ur
 end
 
-function dk.updateRuneType()
+function dk.updateDeathRune()
 	local DeathRuneCount = 0
 	for i=1,6 do
 		local DeathRune = GetRuneType(i)
@@ -194,15 +194,12 @@ function dk.shouldDarkSimFocus()
 	return dk.shoulDarkSimUnit("focus")
 end
 
--- debuff Frost Fever 55095 debuff Blood Plague 55078
+-- debuff Frost Fever 55095 -- debuff Blood Plague 55078
 --"Outbreak" 77575 "Poussée de fièvre"
 function dk.canCastPlagueLeech(timeLeft)
-	if timeLeft == nil then timeLeft = 30 end
+	if timeLeft == nil then timeLeft = 15 end
 	if not jps.myDebuff(55095) then return false end
 	if not jps.myDebuff(55078) then return false end
-	if jps.myDebuffDuration(55095) < timeLeft then
-		return true
-	end
 	if jps.myDebuffDuration(55078) < timeLeft then
 		return true
 	end

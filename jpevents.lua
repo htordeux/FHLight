@@ -943,7 +943,7 @@ end
 local FriendTable = {}
 jps.FriendAggroTable = function()
 	table.wipe(FriendTable)
-	for unit,index in pairs (EnemyDamager) do
+	for unit,index in pairs(EnemyDamager) do
 		FriendTable[#FriendTable+1] = index.friendname
 		-- table.insert(FriendTable, index.friendname) -- { "Bob" , "Fred" , "Bob" }
 	end

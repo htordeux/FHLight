@@ -84,8 +84,6 @@ local priestHoly = function()
 	-- {"STUN_MECHANIC","STUN","FEAR","CHARM","CONFUSE","PACIFY","SILENCE","PACIFYSILENCE"}
 	local playerIsInterrupt = jps.InterruptEvents() -- return true/false ONLY FOR PLAYER
 	local playerWasControl = jps.ControlEvents() -- return true/false Player was interrupt or stun 2 sec ago ONLY FOR PLAYER
-
-	-- SNM
 	local playerTTD = jps.TimeToDie("player")
 	local buffTrackerMending = jps.buffTracker(41635)
 	local PlayerIsFacingLowest = jps.PlayerIsFacing(LowestImportantUnit,30)	-- angle value between 10-180
@@ -255,7 +253,6 @@ local priestHoly = function()
 		{priest.Spell.FlashHeal, 0.75 , jps.buff(27827) }, -- "Esprit de rédemption" 27827
 		{priest.Spell.Heal, 0.90 , jps.buff(27827) },
 		{priest.Spell.PrayerOfHealing, 0.80, jps.buffId(81206) or jps.buff(27827) }, -- Chakra: Sanctuary 81206
-		{priest.Spell.HolyCascade, 0.90 , false}
 	}
 
 -- Avoid Overhealing

@@ -163,7 +163,7 @@ end
 function jps.findTankInRaid()
 	local TankUnit = {}
 	for unit,_ in pairs(RaidStatus) do
-		if jps.RoleInRaid(unit) == "TANK" then
+		if jps.RoleInRaid(unit) == "TANK" and canHeal(unit) then
 			TankUnit[#TankUnit+1] = unit
 		end
 	end
@@ -175,7 +175,7 @@ function jps.findAggroInRaid()
 	local AggroUnit = {}
 	for unit,_ in pairs(RaidStatus) do
 		local unitThreat = UnitThreatSituation(unit)
-		if unitThreat then
+		if unitThreat and canHeal(unit) then
 			if unitThreat == 1 then AggroUnit[#AggroUnit+1] = unit
 			elseif unitThreat == 3 then AggroUnit[#AggroUnit+1] = unit 
 			end

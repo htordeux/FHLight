@@ -10,6 +10,12 @@
 |cFFFF0000 = red
 ]]
 
+--[[
+ShiftKeyIsDown = IsShiftKeyDown();
+AltKeyIsDown = IsAltKeyDown();
+CtrlKeyIsDown = IsControlKeyDown();
+]]
+
 -----------------------
 -- FUNCTION TEST 
 -----------------------

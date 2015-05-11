@@ -82,10 +82,10 @@ local inRanged = jps.IsSpellInRange(57755,"target") -- "Heroic Throw" 57755 "Lan
 -- TARGET ENEMY
 ----------------------
 
-local isBoss = UnitLevel("target") == -1 or UnitClassification("target") == "elite"
 -- rangedTarget returns "target" by default, sometimes could be friend
 local rangedTarget, EnemyUnit, TargetCount = jps.LowestTarget()
 local EnemyCount = jps.RaidEnemyCount()
+local isBoss = (UnitLevel("target") == -1) or (UnitClassification("target") == "elite")
 
 -- Config FOCUS with MOUSEOVER
 local name = GetUnitName("focus") or ""
@@ -114,9 +114,9 @@ end
 
 if canDPS("target") and not DebuffUnitCyclone("target") then rangedTarget =  "target"
 elseif canDPS("targettarget") and not DebuffUnitCyclone("targettarget") then rangedTarget = "targettarget"
-elseif canDPS("mouseover") and not DebuffUnitCyclone("mouseover") then rangedTarget = "mouseover"
 end
 if canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
+local TargetMoving = select(1,GetUnitSpeed(rangedTarget)) > 0
 
 ------------------------
 -- SPELL TABLE ---------
@@ -129,9 +129,9 @@ local spellTable = {
 	
 	-- BUFFS 
 	-- "Battle Stance"" 2457 -- "Defensive Stance" 71
-	{ warrior.spells["BattleStance"], not jps.buff(71) and not jps.buff(2457) , "player" },
+	{ warrior.spells["BattleStance"] , not jps.buff(71) and not jps.buff(2457) , "player" },
 	-- "Battle Shout" 6673 "Cri de guerre"
-	{ warrior.spells["BattleShout"], not jps.hasAttackPowerBuff("player") and not jps.buff(469) , "player" },
+	{ warrior.spells["BattleShout"] , not jps.hasAttackPowerBuff("player") and not jps.buff(469) , "player" },
 	-- "Commanding Shout" 469 "Cri de commandement"
 	{ warrior.spells["CommandingShout"] , not jps.buff(469) and jps.hasAttackPowerBuff("player") and not jps.buff(6673) , rangedTarget , "_CommandingShout" },
 

@@ -24,6 +24,31 @@ local EnemyCaster = function(unit)
 	return ClassEnemy[classTarget]
 end
 
+-- Debuff EnemyTarget NOT DPS
+local DebuffUnitCyclone = function (unit)
+	if not UnitAffectingCombat(unit) then return false end
+	local Cyclone = false
+	local i = 1
+	local auraName = select(1,UnitDebuff(unit, i))
+	while auraName do
+		if strfind(auraName,L["Polymorph"]) then
+			Cyclone = true
+		elseif strfind(auraName,L["Cyclone"]) then
+			Cyclone = true
+		elseif strfind(auraName,L["Hex"]) then
+			Cyclone = true
+		end
+		if Cyclone then break end
+		i = i + 1
+		auraName = select(1,UnitDebuff(unit, i))
+	end
+	return Cyclone
+end
+
+----------------------------------------------------------------------------------------------------------------
+-------------------------------------------------- ROTATION ----------------------------------------------------
+----------------------------------------------------------------------------------------------------------------
+
 jps.registerRotation("WARRIOR","PROTECTION",function()
 
 local spell = nil
@@ -43,10 +68,10 @@ local inRanged = jps.IsSpellInRange(57755,"target") -- "Heroic Throw" 57755 "Lan
 -- TARGET ENEMY
 ----------------------
 
-local isBoss = UnitLevel("target") == -1 or UnitClassification("target") == "elite"
 -- rangedTarget returns "target" by default, sometimes could be friend
 local rangedTarget, EnemyUnit, TargetCount = jps.LowestTarget()
 local EnemyCount = jps.RaidEnemyCount()
+local isBoss = (UnitLevel("target") == -1) or (UnitClassification("target") == "elite")
 
 -- Config FOCUS with MOUSEOVER
 local name = GetUnitName("focus") or ""
@@ -73,9 +98,8 @@ elseif jps.UnitExists("focus") and not canDPS("focus") then
 	if jps.getConfigVal("keep focus") == false then jps.Macro("/clearfocus") end
 end
 
-if canDPS("target") then rangedTarget =  "target"
-elseif canDPS("targettarget") then rangedTarget = "targettarget"
-elseif canDPS("mouseover") and UnitAffectingCombat("mouseover") then rangedTarget = "mouseover"
+if canDPS("target") and not DebuffUnitCyclone("target") then rangedTarget =  "target"
+elseif canDPS("targettarget") and not DebuffUnitCyclone("targettarget") then rangedTarget = "targettarget"
 end
 if canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
 local TargetMoving = select(1,GetUnitSpeed(rangedTarget)) > 0
@@ -93,12 +117,12 @@ local spellTable = {
 	-- "Gladiator Stance" 156291 -- Talent "Gladiator's Resolve" 152276
 	{ 156291, jps.IsSpellKnown(152276) and not jps.buff(156291) and not jps.buff(71) , "player" },
 	-- "Defensive Stance" 71
-	{ warrior.spells["DefensiveStance"], not jps.buff(71) and not jps.buff(156291), "player" },
+	{ warrior.spells["DefensiveStance"] , not jps.buff(71) and not jps.buff(156291), "player" },
 	-- "Battle Shout" 6673 "Cri de guerre"
 	{ warrior.spells["BattleShout"] , not jps.hasAttackPowerBuff("player") , "player" },
 	
 	-- INTERRUPTS --
-	{ "nested", jps.Interrupts,{
+	{ "nested", jps.Interrupts ,{
 		-- "Pummel" 6552 "Volée de coups"
 		{ warrior.spells["Pummel"] , jps.ShouldKick(rangedTarget) , rangedTarget , "_Pummel" },
 		{ warrior.spells["Pummel"] , jps.ShouldKick("focus") , "focus" , "_Pummel" },

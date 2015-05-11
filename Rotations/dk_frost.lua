@@ -74,21 +74,18 @@ local isBoss = UnitLevel("target") == -1 or UnitClassification("target") == "eli
 local rangedTarget, EnemyUnit, TargetCount = jps.LowestTarget()
 local EnemyCount = jps.RaidEnemyCount()
 
--- Config FOCUS with MOUSEOVER
-local name = GetUnitName("focus") or ""
-if not jps.UnitExists("focus") and canDPS("mouseover") and UnitAffectingCombat("mouseover") then
+-- Config FOCUS
+if not jps.UnitExists("focus") and canDPS("mouseover") then
 	-- set focus an enemy targeting you
 	if jps.UnitIsUnit("mouseovertarget","player") and not jps.UnitIsUnit("target","mouseover") then
 		jps.Macro("/focus mouseover")
+		local name = GetUnitName("focus")
 		print("Enemy DAMAGER|cff1eff00 "..name.." |cffffffffset as FOCUS")
 	-- set focus an enemy healer
 	elseif jps.EnemyHealer("mouseover") then
 		jps.Macro("/focus mouseover")
+		local name = GetUnitName("focus")
 		print("Enemy HEALER|cff1eff00 "..name.." |cffffffffset as FOCUS")
-	-- set focus an enemy in combat
-	elseif canDPS("mouseover") and not jps.UnitIsUnit("target","mouseover") then
-		jps.Macro("/focus mouseover")
-		print("Enemy COMBAT|cff1eff00 "..name.." |cffffffffset as FOCUS")
 	end
 end
 
@@ -167,6 +164,7 @@ local spellTable = {
 	{ dk.spells["PlagueLeech"] , dk.canCastPlagueLeech(5) and DepletedRunes and jps.cooldown(dk.spells["OutBreak"]) == 0 , rangedTarget , "|cff1eff00PlagueLeech_DepletedRunes" },
 	{ dk.spells["PlagueLeech"] , dk.canCastPlagueLeech(5) and DepletedRunes and jps.buff(59057) , rangedTarget , "|cff1eff00PlagueLeech_DepletedRunes" },
 	{ dk.spells["PlagueLeech"] , dk.canCastPlagueLeech(5) and DepletedRunes and jps.buff(59052) , rangedTarget , "|cff1eff00PlagueLeech_DepletedRunes" },
+	{ dk.spells["PlagueLeech"] , dk.canCastPlagueLeech() and AllDepletedRunes , rangedTarget , "|cff1eff00PlagueLeech_AllDepletedRunes" },
 
 	-- "BloodTap" 45529 -- Buff "Drain sanglant" 114851
 	{ dk.spells["BloodTap"] , jps.buffStacks(114851) > 9 and DepletedRunes , rangedTarget , "DrainSanglant_10" },
@@ -190,6 +188,8 @@ local spellTable = {
 	-- "Death Strike" 49998 "Frappe de Mort" -- 1 Unholy, 1 Frost
 	-- "Dark Succor" 101568 "Sombre secours" -- Your next Death Strike in Frost or Unholy Presence is free and its healing is increased by 100%.
 	{ dk.spells["DeathStrike"] , jps.buff(101568) , rangedTarget, "|cff1eff00DeathStrike_Buff" },
+	-- "Death Strike" 49998 "Frappe de Mort" -- 1 Unholy, 1 Frost
+	{ dk.spells["DeathStrike"] , jps.hp() < 0.65 , rangedTarget, "|cff1eff00DeathStrike_Health" },
 
 	-- KICK --
 	-- "Dark Simulacrum" 77606 "Sombre simulacre"
@@ -212,6 +212,15 @@ local spellTable = {
 		{ dk.spells["MindFreeze"] , jps.ShouldKick(rangedTarget) , rangedTarget , "_MINDFREEZE" },
 		{ dk.spells["MindFreeze"] , jps.ShouldKick("focus"), "focus" },
 	}},
+	
+	-- "Soul Reaper" 130735 "Faucheur d’âme"
+	{ dk.spells["SoulReaper"] , jps.hp(rangedTarget) < 0.35 , rangedTarget , "_SoulReaper" },
+	-- "Pillar of Frost" 51271 "Pilier de givre" -- increases the Death Knight's Strength by 15%
+	{ dk.spells["PillarOfFrost"] , inMelee and not DepletedRunes , rangedTarget , "Pillar_Of_Frost" },
+	-- "Killing Machine" 51124 "Machine à tuer" -- next Obliterate or Frost Strike automatically critically strike.
+	-- "Frost Strike" 49143 "Frappe de givre" -- 25 Runic Power 
+	{ dk.spells["FrostStrike"] , jps.buff(dk.spells["KillingMachine"]) , rangedTarget , "FrostStrike_KillingMachine" },
+	{ dk.spells["Obliterate"] , jps.buff(dk.spells["KillingMachine"]) , rangedTarget , "Obliterate_KillingMachine" },
 
 	-- DISEASES --
 	--"Outbreak" 77575 "Poussée de fièvre" -- 30 yd range 
@@ -230,20 +239,8 @@ local spellTable = {
 	{ dk.spells["PlagueStrike"] , not jps.myDebuff(55078,rangedTarget) and not jps.isRecast(45462,rangedTarget) , rangedTarget , "PlagueStrike_Debuff" },
 	{ dk.spells["PlagueStrike"] , not jps.myDebuff(55078,"focus") and not jps.isRecast(45462,"focus") , "focus" , "PlagueStrike_Debuff_focus" },
 
-	-- "Pillar of Frost" 51271 "Pilier de givre" -- increases the Death Knight's Strength by 15%
-	{ dk.spells["PillarOfFrost"] , inMelee and (Dr + Fr + Ur) > 4 , rangedTarget , "Pillar_Of_Frost" },
-
-	-- "Killing Machine" 51124 "Machine à tuer" -- next Obliterate or Frost Strike automatically critically strike.
-	-- "Frost Strike" 49143 "Frappe de givre" -- 25 Runic Power 
-	{ dk.spells["FrostStrike"] , jps.buff(dk.spells["KillingMachine"]) , rangedTarget , "FrostStrike_KillingMachine" },
+	-- "Frost Strike" 49143 "Frappe de givre" -- 25 Runic Power
 	{ dk.spells["FrostStrike"] , jps.runicPower() > 74 , rangedTarget , "FrostStrike_RunicPower" },
-	{ dk.spells["Obliterate"] , jps.buff(dk.spells["KillingMachine"]) , rangedTarget , "Obliterate_KillingMachine" },
-
-	-- "Soul Reaper" 130735 "Faucheur d’âme"
-	{ dk.spells["SoulReaper"] , jps.hp(rangedTarget) < 0.35 , rangedTarget , "_SoulReaper" },
-	-- "Death Strike" 49998 "Frappe de Mort" -- 1 Unholy, 1 Frost
-	{ dk.spells["DeathStrike"] , jps.hp() < 0.65 , rangedTarget, "|cff1eff00DeathStrike_Health" },
-
 	-- "Howling Blast" 49184 "Rafale hurlante" -- 1 Frost -- 30 yd range
 	{ dk.spells["HowlingBlast"] , Fr == 2 , rangedTarget , "HowlingBlast_Fr" },
 	-- "Obliterate" 49020 "Anéantissement" -- 1 Unholy, 1 Frost
@@ -263,6 +260,8 @@ local spellTable = {
 		{ dk.spells["DeathAndDecay"] , true },
 	}},
 
+	-- "Obliterate" 49020 "Anéantissement" -- 1 Unholy, 1 Frost
+	{ dk.spells["Obliterate"] ,  DeathRuneCount > 0 , rangedTarget , "Obliterate_Dr" },
 	-- "Howling Blast" 49184 "Rafale hurlante" -- 1 Frost -- 30 yd range
 	{ dk.spells["HowlingBlast"] , DeathRuneCount > 0 , rangedTarget , "HowlingBlast_Dr" },
 
@@ -326,6 +325,7 @@ local inMelee = jps.IsSpellInRange(49998,"target") -- "Death Strike" 49998 "Frap
 -- TARGET ENEMY
 ----------------------
 
+local isBoss = UnitLevel("target") == -1 or UnitClassification("target") == "elite"
 -- rangedTarget returns "target" by default, sometimes could be friend
 local rangedTarget, EnemyUnit, TargetCount = jps.LowestTarget()
 local EnemyCount = jps.RaidEnemyCount()
@@ -420,6 +420,7 @@ local spellTable = {
 	{ dk.spells["PlagueLeech"] , dk.canCastPlagueLeech(5) and DepletedRunes and jps.cooldown(dk.spells["OutBreak"]) == 0 , rangedTarget , "|cff1eff00PlagueLeech_DepletedRunes" },
 	{ dk.spells["PlagueLeech"] , dk.canCastPlagueLeech(5) and DepletedRunes and jps.buff(59057) , rangedTarget , "|cff1eff00PlagueLeech_DepletedRunes" },
 	{ dk.spells["PlagueLeech"] , dk.canCastPlagueLeech(5) and DepletedRunes and jps.buff(59052) , rangedTarget , "|cff1eff00PlagueLeech_DepletedRunes" },
+	{ dk.spells["PlagueLeech"] , dk.canCastPlagueLeech() and AllDepletedRunes , rangedTarget , "|cff1eff00PlagueLeech_AllDepletedRunes" },
 
 	-- "BloodTap" 45529 -- Buff "Drain sanglant" 114851
 	{ dk.spells["BloodTap"] , jps.buffStacks(114851) > 9 and DepletedRunes , rangedTarget , "DrainSanglant_10" },
@@ -466,6 +467,15 @@ local spellTable = {
 		{ dk.spells["MindFreeze"] , jps.ShouldKick("focus"), "focus" },
 	}},
 
+	-- "Soul Reaper" 130735 "Faucheur d’âme"
+	{ dk.spells["SoulReaper"] , jps.hp(rangedTarget) < 0.35 , rangedTarget , "_SoulReaper" },
+	-- "Pillar of Frost" 51271 "Pilier de givre" -- increases the Death Knight's Strength by 15%
+	{ dk.spells["PillarOfFrost"] , inMelee and not DepletedRunes , rangedTarget , "Pillar_Of_Frost" },
+	-- "Killing Machine" 51124 "Machine à tuer" -- next Obliterate or Frost Strike automatically critically strike.
+	-- "Frost Strike" 49143 "Frappe de givre" -- 25 Runic Power 
+	{ dk.spells["Obliterate"] , jps.buff(dk.spells["KillingMachine"]) , rangedTarget , "Obliterate_KillingMachine" },
+	{ dk.spells["FrostStrike"] , jps.buff(dk.spells["KillingMachine"]) , rangedTarget , "FrostStrike_KillingMachine" },
+
 	-- DISEASES --
 	--"Outbreak" 77575 "Poussée de fièvre" -- 30 yd range 
 	{ dk.spells["OutBreak"] , jps.myDebuffDuration(55078,rangedTarget) < 5 and not jps.isRecast(77575,rangedTarget) , rangedTarget },
@@ -483,20 +493,8 @@ local spellTable = {
 	{ dk.spells["PlagueStrike"] , not jps.myDebuff(55078,rangedTarget) and not jps.isRecast(45462,rangedTarget) , rangedTarget , "PlagueStrike_Debuff" },
 	{ dk.spells["PlagueStrike"] , not jps.myDebuff(55078,"focus") and not jps.isRecast(45462,"focus") , "focus" , "PlagueStrike_Debuff_focus" },
 
-	-- "Pillar of Frost" 51271 "Pilier de givre" -- increases the Death Knight's Strength by 15%
-	{ dk.spells["PillarOfFrost"] , inMelee and (Dr + Fr + Ur) > 4 , rangedTarget , "Pillar_Of_Frost" },
-
-	-- "Killing Machine" 51124 "Machine à tuer" -- next Obliterate or Frost Strike automatically critically strike.
 	-- "Frost Strike" 49143 "Frappe de givre" -- 25 Runic Power
-	{ dk.spells["Obliterate"] , jps.buff(dk.spells["KillingMachine"]) , rangedTarget , "Obliterate_KillingMachine" },
 	{ dk.spells["FrostStrike"] , jps.runicPower() > 74 , rangedTarget , "FrostStrike_RunicPower" },
-	{ dk.spells["FrostStrike"] , jps.buff(dk.spells["KillingMachine"]) , rangedTarget , "FrostStrike_KillingMachine" },
-
-	-- "Soul Reaper" 130735 "Faucheur d’âme"
-	{ dk.spells["SoulReaper"] , jps.hp(rangedTarget) < 0.35 , rangedTarget , "_SoulReaper" },
-	-- "Death Strike" 49998 "Frappe de Mort" -- 1 Unholy, 1 Frost
-	{ dk.spells["DeathStrike"] , jps.hp() < 0.65 , rangedTarget, "|cff1eff00DeathStrike_Health" },
-
 	-- "Howling Blast" 49184 "Rafale hurlante" -- 1 Frost -- 30 yd range
 	{ dk.spells["HowlingBlast"] , Fr == 2 , rangedTarget , "HowlingBlast_Fr" },
 	-- "Obliterate" 49020 "Anéantissement" -- 1 Unholy, 1 Frost
@@ -517,7 +515,9 @@ local spellTable = {
 	}},
 
 	-- "Obliterate" 49020 "Anéantissement" -- 1 Unholy, 1 Frost
-	{ dk.spells["Obliterate"] , DeathRuneCount > 0 , rangedTarget , "HowlingBlast" },
+	{ dk.spells["Obliterate"] ,  DeathRuneCount > 0 , rangedTarget , "Obliterate_Dr" },
+	-- "Howling Blast" 49184 "Rafale hurlante" -- 1 Frost -- 30 yd range
+	{ dk.spells["HowlingBlast"] , DeathRuneCount > 0 , rangedTarget , "HowlingBlast_Dr" },
 
 }
 
@@ -580,6 +580,7 @@ local inMelee = jps.IsSpellInRange(49998,"target") -- "Death Strike" 49998 "Frap
 -- TARGET ENEMY
 ----------------------
 
+local isBoss = UnitLevel("target") == -1 or UnitClassification("target") == "elite"
 -- rangedTarget returns "target" by default, sometimes could be friend
 local rangedTarget, EnemyUnit, TargetCount = jps.LowestTarget()
 local EnemyCount = jps.RaidEnemyCount()
@@ -674,6 +675,7 @@ local spellTable = {
 	{ dk.spells["PlagueLeech"] , dk.canCastPlagueLeech(5) and DepletedRunes and jps.cooldown(dk.spells["OutBreak"]) == 0 , rangedTarget , "|cff1eff00PlagueLeech_DepletedRunes" },
 	{ dk.spells["PlagueLeech"] , dk.canCastPlagueLeech(5) and DepletedRunes and jps.buff(59057) , rangedTarget , "|cff1eff00PlagueLeech_DepletedRunes" },
 	{ dk.spells["PlagueLeech"] , dk.canCastPlagueLeech(5) and DepletedRunes and jps.buff(59052) , rangedTarget , "|cff1eff00PlagueLeech_DepletedRunes" },
+	{ dk.spells["PlagueLeech"] , dk.canCastPlagueLeech() and AllDepletedRunes , rangedTarget , "|cff1eff00PlagueLeech_AllDepletedRunes" },
 
 	-- "BloodTap" 45529 -- Buff "Drain sanglant" 114851
 	{ dk.spells["BloodTap"] , jps.buffStacks(114851) > 9 and DepletedRunes , rangedTarget , "DrainSanglant_10" },
@@ -738,7 +740,7 @@ local spellTable = {
 	{ dk.spells["PlagueStrike"] , not jps.myDebuff(55078,"focus") and not jps.isRecast(45462,"focus") , "focus" , "PlagueStrike_Debuff_focus" },
 
 	-- "Pillar of Frost" 51271 "Pilier de givre" -- increases the Death Knight's Strength by 15%
-	{ dk.spells["PillarOfFrost"] , inMelee and (Dr + Fr + Ur) > 4 , rangedTarget , "Pillar_Of_Frost" },
+	{ dk.spells["PillarOfFrost"] , inMelee and not DepletedRunes , rangedTarget , "Pillar_Of_Frost" },
 
 	-- "Killing Machine" 51124 "Machine à tuer" -- next Obliterate or Frost Strike automatically critically strike.
 	-- "Frost Strike" 49143 "Frappe de givre" -- 25 Runic Power
@@ -812,7 +814,9 @@ local spellTable = {
 	{ dk.spells["SoulReaper"] , jps.hp(rangedTarget) < 0.35 , rangedTarget , "_SoulReaper" },
 
 	-- "Obliterate" 49020 "Anéantissement" -- 1 Unholy, 1 Frost
-	{ dk.spells["Obliterate"] , DeathRuneCount > 0 , rangedTarget , "HowlingBlast" },
+	{ dk.spells["Obliterate"] ,  DeathRuneCount > 0 , rangedTarget , "Obliterate_Dr" },
+	-- "Howling Blast" 49184 "Rafale hurlante" -- 1 Frost -- 30 yd range
+	{ dk.spells["HowlingBlast"] , DeathRuneCount > 0 , rangedTarget , "HowlingBlast_Dr" },
 
 }
 

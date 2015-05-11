@@ -64,12 +64,14 @@ jps.registerRotation("PRIEST","SHADOW",function()
 
 local spell = nil
 local target = nil
-
 local CountInRange, AvgHealthLoss, FriendUnit = jps.CountInRaidStatus(1)
 local playermana = jps.roundValue(UnitPower("player",0)/UnitPowerMax("player",0),2)
 local Orbs = UnitPower("player",13) -- SPELL_POWER_SHADOW_ORBS 	13
-local COP = jps.IsSpellKnown(155246)
 local myTank,_ = jps.findTankInRaid() -- default "focus"
+-- "Body and Soul" 64129
+local BodyAndSoul = jps.IsSpellKnown(64129)
+-- "Clarity of Power" 155246 "Clarté de pouvoir"
+local COP = jps.IsSpellKnown(155246)
 local NbOrbs = 4
 
 ---------------------
@@ -235,8 +237,8 @@ if canCastMindBlast then
 	SpellStopCasting()
 	spell = 8092;
 	target = rangedTarget;
-	write("MIND_BLAST")
-return end
+	if jps.combatStart > 0 then write("MIND_BLAST") end
+return spell,target end
 
 -- Avoid interrupt Channeling
 if jps.ChannelTimeLeft() > 0 then return nil end
@@ -370,7 +372,6 @@ local spellTable = {
 	{ 2944, Orbs > 2 and jps.hp(rangedTarget) < 0.20 , rangedTarget , "PLAGUE_LowHealth" },
 	{ 2944, Orbs > 2 and jps.hp("focus") < 0.20 , "focus" , "PLAGUE_LowHealth" },
 	{ 2944, Orbs > 2 and jps.hp("player") < 0.75 , rangedTarget , "PLAGUE_LowHealth" },
-	-- "Devouring Plague" 2944 now consumes 3 Shadow Orbs, you don't have the ability to use with less Orbs
 	{ 2944, Orbs > 4 , rangedTarget , "PLAGUE_Orbs" },
 
 	-- "Shadow Word: Death" 32379 "Mot de l'ombre : Mort"

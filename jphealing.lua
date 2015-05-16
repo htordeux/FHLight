@@ -37,7 +37,9 @@ local function toSpellName(spell)
 --	if type(spell) == "number" then spellname = GetSpellInfo(spell) end
 	return spellname
 end
+
 local function HealthPct(unit)
+	if UnitHealthMax(unit) == 0 then return 0 end
 	return UnitHealth(unit) / UnitHealthMax(unit)
 end
 

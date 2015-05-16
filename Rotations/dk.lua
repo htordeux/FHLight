@@ -113,6 +113,8 @@ dk.spells["Lichborne"] = 49039
 dk.spells["DesecratedGround"] = 108201
 -- "Conversion" 119975
 dk.spells["Conversion"] = 119975
+-- "Breath of Sindragosa" 152279 "Souffle de Sindragosa"
+dk.spells["Sindragosa"] = 152279
 	
 --------------------------------
 -- RUNES -----------------------

@@ -58,6 +58,9 @@ function jps_Test()
 	for i=1,#Tanks do
 		write("Aggro :",GetUnitName(Tanks[i]))
 	end
+	
+	local lowest = jps.LowestImportantUnit()
+	print("Lowest: ",lowest,":",GetUnitName(lowest))
 
 --	local mastery = GetMasteryEffect()
 --	local masteryValue = math.ceil(mastery)/100

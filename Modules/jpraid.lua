@@ -29,6 +29,7 @@ end
 
 function jps.hp(unit,message)
 	if unit == nil then unit = "player" end
+	if UnitHealthMax(unit) == 0 then return 0 end
 	if message == "abs" then
 		return UnitHealthMax(unit) - UnitHealth(unit)
 	else
@@ -38,6 +39,7 @@ end
 
 function jps.hpInc(unit,message)
 	if unit == nil then unit = "player" end
+	if UnitHealthMax(unit) == 0 then return 0 end
 	local hpInc = UnitGetIncomingHeals(unit)
 	if not hpInc then hpInc = 0 end
 	if message == "abs" then
@@ -49,6 +51,7 @@ end
 
 function jps.hpAbs(unit,message)
 	if unit == nil then unit = "player" end
+	if UnitHealthMax(unit) == 0 then return 0 end
 	local hpInc = UnitGetIncomingHeals(unit)
 	if not hpInc then hpInc = 0 end
 	local hpAbs = UnitGetTotalAbsorbs(unit)

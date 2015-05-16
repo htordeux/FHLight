@@ -134,9 +134,9 @@ end
 
 priest.unitForClarity = function(unit)
 	if not jps.UnitExists(unit) then return false end
+	if jps.buff(152118,unit) then return false end
 	if not jps.FriendAggro(unit) then return false end
 	if jps.isRecast(152118,unit) then return false end
-	if jps.buff(152118,unit) then return false end
 	return true
 end
 

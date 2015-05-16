@@ -1,5 +1,5 @@
 -- jps.MultiTarget for "MindSear" 48045
--- jps.Interrupts for "Semblance spectrale" 112833 -- because lose the orbs in Kotmogu Temple
+-- jps.Interrupts for "Semblance spectrale" 112833 -- PvP it loses the orb in Kotmogu Temple
 -- jps.UseCds for "Cascade" or "Divine Star"
 
 local L = MyLocalizationTable
@@ -341,21 +341,20 @@ local spellTable = {
 	{ 15286, jps.hp("player") < 0.75 and not IsInGroup() , rangedTarget , "VampiricEmbrace"  },
 	{ "nested", jps.hp("player") < 0.75 , parseHeal },
 
-	-- "Shadow Word: Death" 32379 "Mot de l'ombre : Mort"
-	{ 32379, type(DeathEnemyTarget) == "string" and not jps.buff(132573) and Orbs < 5 , DeathEnemyTarget , "Death_MultiUnit_Orbs" },
-	
+	-- "Power Infusion" "Infusion de puissance" 10060
+	{ 10060, jps.FinderLastMessage("PLAGUE") , rangedTarget , "PowerInfusion" },
+
+	-- "Devouring Plague" 2944 consumes 3 Shadow Orbs, you don't have the ability to use with less Orbs
+	{ 2944, Orbs > 4 , rangedTarget , "PLAGUE_Orbs" },
+
 	-- MULTITARGET
 	-- "MindSear" 48045 -- "Insanité incendiaire" 179338 "Searing Insanity"
-	{ 48045, not jps.Moving and jps.MultiTarget and jps.cooldown(8092) > 0 and jps.buff(132573) , myTank , "MINDSEARORBS_Tank" },
-	{ 48045, not jps.Moving and jps.MultiTarget and jps.cooldown(8092) > 0 and jps.buff(132573) , rangedTarget , "MINDSEARORBS" },
+	{ 48045, not jps.Moving and jps.MultiTarget and jps.buff(132573) , rangedTarget , "MINDSEARORBS" },
+	{ 48045, not jps.Moving and jps.MultiTarget and jps.buff(132573) , myTank , "MINDSEARORBS_Tank" },
+
 	-- "Mind Flay" 15407 -- "Shadow Word: Insanity" buff 132573 -- "Insanity" 129197
 	{ 15407, not jps.Moving and jps.buff(132573) , rangedTarget , "MINDFLAYORBS" },
-	
-	-- "Shadow Word: Pain" 589 -- "Shadow Word: Insanity" buff 132573
-	{ 589, Orbs > 3 and jps.myDebuffDuration(589,rangedTarget) < 3 and not jps.isRecast(589,rangedTarget) , rangedTarget , "Pain_Orbs" },
-	-- "Vampiric Touch" 34914 -- "Shadow Word: Insanity" buff 132573
-	{ 34914, Orbs > 3 and not jps.Moving and jps.myDebuffDuration(34914,rangedTarget) < 3 and not jps.isRecast(34914,rangedTarget) , rangedTarget , "VT_Orbs" },
-	
+
 	-- "Mind Blast" 8092 -- "Shadowy Insight" 162452 gives buff 124430
 	{ 8092, jps.buff(124430) , rangedTarget , "Blast_Shadowy" },
 	-- "Mind Blast" 8092 -- "Glyph of Mind Spike" 33371 gives buff 81292 
@@ -364,20 +363,21 @@ local spellTable = {
 	{ 8092, COP , rangedTarget , "Blast_CD" },
 	{ 8092, not jps.Moving , "Blast_CD" },
 	
-	-- "Power Infusion" "Infusion de puissance" 10060
-	{ 10060, jps.FinderLastMessage("PLAGUE") , rangedTarget , "PowerInfusion" },
+	-- "Shadow Word: Death" 32379 "Mot de l'ombre : Mort"
+	{ 32379, type(DeathEnemyTarget) == "string" and not jps.buff(132573) and Orbs < 5 , DeathEnemyTarget , "Death_MultiUnit_Orbs" },
+	{ 32379, jps.hp(rangedTarget) < 0.20 and Orbs < 5 , rangedTarget, "Death" },
+	{ 32379, jps.hp("focus") < 0.20 and Orbs < 5 , "focus", "Death" },
 	
-	-- "Devouring Plague" 2944 now consumes 3 Shadow Orbs, you don't have the ability to use with less Orbs
-	{ 2944, Orbs > 2 and jps.MultiTarget, rangedTarget , "PLAGUE_MultiTarget" },
+	-- "Shadow Word: Pain" 589 -- "Shadow Word: Insanity" buff 132573
+	{ 589, Orbs > 3 and jps.myDebuffDuration(589,rangedTarget) < 3 and not jps.isRecast(589,rangedTarget) , rangedTarget , "Pain_Orbs" },
+	-- "Vampiric Touch" 34914 -- "Shadow Word: Insanity" buff 132573
+	{ 34914, Orbs > 3 and not jps.Moving and jps.myDebuffDuration(34914,rangedTarget) < 3 and not jps.isRecast(34914,rangedTarget) , rangedTarget , "VT_Orbs" },
+
+	-- "Devouring Plague" 2944 consumes 3 Shadow Orbs, you don't have the ability to use with less Orbs
+	{ 2944, Orbs > 3 and jps.MultiTarget , rangedTarget , "PLAGUE_MultiTarget" },
+	{ 2944, Orbs > 3 and jps.hp("player") < 0.75 , rangedTarget , "PLAGUE_LowHealth" },
 	{ 2944, Orbs > 2 and jps.hp(rangedTarget) < 0.20 , rangedTarget , "PLAGUE_LowHealth" },
 	{ 2944, Orbs > 2 and jps.hp("focus") < 0.20 , "focus" , "PLAGUE_LowHealth" },
-	{ 2944, Orbs > 2 and jps.hp("player") < 0.75 , rangedTarget , "PLAGUE_LowHealth" },
-	{ 2944, Orbs > 4 , rangedTarget , "PLAGUE_Orbs" },
-
-	-- "Shadow Word: Death" 32379 "Mot de l'ombre : Mort"
-	{ 32379, jps.hp(rangedTarget) < 0.20 , rangedTarget, "Death" },
-	{ 32379, jps.hp("focus") < 0.20 , "focus", "Death" },
-	{ 32379, type(DeathEnemyTarget) == "string" , DeathEnemyTarget , "Death_MultiUnit" },
 
 	-- "Shadow Word: Pain" 589 -- "Shadow Word: Insanity" buff 132573	
 	{ 589, not jps.buff(132573) and fnPainEnemyTarget("mouseover") and not jps.UnitIsUnit("target","mouseover") , "mouseover" , "Pain_MOUSEOVER_ORBS" },
@@ -388,12 +388,15 @@ local spellTable = {
 	{ 73510, jps.buffStacks(87160,"player") > 1 , rangedTarget , "Spike_SurgeofDarkness_Stacks" },
 	{ 73510, jps.buff(87160) and jps.hp(rangedTarget) < 0.20 , rangedTarget , "Spike_SurgeofDarkness_LowHealth" },
 	{ 73510, jps.buff(87160) and jps.buffDuration(87160) < 4 , rangedTarget , "Spike_SurgeofDarkness_CD" },
-
-	-- "Mind Spike" 73510 -- "Clarity of Power" 155246 "Clarté de pouvoir" -- "Devouring Plague" debuff 158831
-	{ 2944, COP and Orbs > 2 and not jps.myDebuff(158831,rangedTarget) and jps.myDebuffDuration(34914,rangedTarget) > 3 and jps.myDebuffDuration(589,rangedTarget) > 3 , rangedTarget , "PLAGUE_Debuff" },
-	{ 2944, COP and Orbs > 2 and not jps.myDebuff(158831,rangedTarget) and jps.myDebuffDuration(34914,rangedTarget) > 3 and not jps.myDebuff(589,rangedTarget) , rangedTarget , "PLAGUE_Debuff" },
-	{ 2944, COP and Orbs > 2 and not jps.myDebuff(158831,rangedTarget) and not jps.myDebuff(34914,rangedTarget) and jps.myDebuffDuration(589,rangedTarget) > 3 , rangedTarget , "PLAGUE_Debuff" },
 	{ 73510, not jps.Moving and COP and Orbs < NbOrbs and not jps.myDebuff(158831,rangedTarget) and jps.myDebuffDuration(34914,rangedTarget) < 3 and jps.myDebuffDuration(589,rangedTarget) < 3 , rangedTarget , "Spike_CoP" },
+
+	-- "Devouring Plague" 2944 consumes 3 Shadow Orbs, you don't have the ability to use with less Orbs
+	{ "nested", COP and Orbs > 3 and jps.cooldown(8092) > jps.GCD , {
+		-- "Devouring Plague" debuff 158831 -- "Clarity of Power" 155246 "Clarté de pouvoir" 
+		{ 2944, not jps.myDebuff(158831,rangedTarget) and jps.myDebuffDuration(34914,rangedTarget) > 3 and jps.myDebuffDuration(589,rangedTarget) > 3 , rangedTarget , "PLAGUE_Debuff" },
+		{ 2944, not jps.myDebuff(158831,rangedTarget) and jps.myDebuffDuration(34914,rangedTarget) > 3 and not jps.myDebuff(589,rangedTarget) , rangedTarget , "PLAGUE_Debuff" },
+		{ 2944, not jps.myDebuff(158831,rangedTarget) and not jps.myDebuff(34914,rangedTarget) and jps.myDebuffDuration(589,rangedTarget) > 3 , rangedTarget , "PLAGUE_Debuff" },
+	}},
 
 	-- "Shadow Word: Pain" 589 -- "Shadow Word: Insanity" buff 132573
 	{ 589, jps.myDebuffDuration(589,rangedTarget) < 3 and not jps.isRecast(589,rangedTarget) , rangedTarget , "Pain_Target" },

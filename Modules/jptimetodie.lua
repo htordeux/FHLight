@@ -181,7 +181,7 @@ jps.TimeToDie = function(unit, percent)
 	local time = GetTime()
 	local timeToDie = timeToDieFunctions[timeToDieAlgorithm][1](jps.TimeToDieData[unitGuid],health_unit,time)
 	
-	if percent ~= nil and timeToDie ~= nil then
+	if percent ~= nil and timeToDie ~= nil and UnitHealthMax(unit) > 0 then
 		curPercent = health_unit/UnitHealthMax(unit)
 		if curPercent > percent then
 			timeToDie = (curPercent-percent)/(curPercent/timeToDie)

@@ -239,8 +239,10 @@ local spellTable = {
 	{ dk.spells["PlagueStrike"] , not jps.myDebuff(55078,rangedTarget) and not jps.isRecast(45462,rangedTarget) , rangedTarget , "PlagueStrike_Debuff" },
 	{ dk.spells["PlagueStrike"] , not jps.myDebuff(55078,"focus") and not jps.isRecast(45462,"focus") , "focus" , "PlagueStrike_Debuff_focus" },
 
+	-- "Breath of Sindragosa" 152279 "Souffle de Sindragosa"
+	{ dk.spells["Sindragosa"] , jps.runicPower() > 74 , rangedTarget , "Breath_Sindragosa" },
 	-- "Frost Strike" 49143 "Frappe de givre" -- 25 Runic Power
-	{ dk.spells["FrostStrike"] , jps.runicPower() > 74 , rangedTarget , "FrostStrike_RunicPower" },
+	{ dk.spells["FrostStrike"] , jps.runicPower() > 74 and jps.cooldown(152279) > 0 , rangedTarget , "FrostStrike_RunicPower" },
 	-- "Howling Blast" 49184 "Rafale hurlante" -- 1 Frost -- 30 yd range
 	{ dk.spells["HowlingBlast"] , Fr == 2 , rangedTarget , "HowlingBlast_Fr" },
 	-- "Obliterate" 49020 "Anéantissement" -- 1 Unholy, 1 Frost
@@ -444,6 +446,8 @@ local spellTable = {
 	-- "Death Strike" 49998 "Frappe de Mort" -- 1 Unholy, 1 Frost
 	-- "Dark Succor" 101568 "Sombre secours" -- Your next Death Strike in Frost or Unholy Presence is free and its healing is increased by 100%.
 	{ dk.spells["DeathStrike"] , jps.buff(101568) , rangedTarget, "|cff1eff00DeathStrike_Buff" },
+	-- "Death Strike" 49998 "Frappe de Mort" -- 1 Unholy, 1 Frost
+	{ dk.spells["DeathStrike"] , jps.hp() < 0.65 , rangedTarget, "|cff1eff00DeathStrike_Health" },
 
 	-- KICK --
 	-- "Dark Simulacrum" 77606 "Sombre simulacre"
@@ -493,8 +497,10 @@ local spellTable = {
 	{ dk.spells["PlagueStrike"] , not jps.myDebuff(55078,rangedTarget) and not jps.isRecast(45462,rangedTarget) , rangedTarget , "PlagueStrike_Debuff" },
 	{ dk.spells["PlagueStrike"] , not jps.myDebuff(55078,"focus") and not jps.isRecast(45462,"focus") , "focus" , "PlagueStrike_Debuff_focus" },
 
+	-- "Breath of Sindragosa" 152279 "Souffle de Sindragosa"
+	{ dk.spells["Sindragosa"] , jps.runicPower() > 74 , rangedTarget , "Breath_Sindragosa" },
 	-- "Frost Strike" 49143 "Frappe de givre" -- 25 Runic Power
-	{ dk.spells["FrostStrike"] , jps.runicPower() > 74 , rangedTarget , "FrostStrike_RunicPower" },
+	{ dk.spells["FrostStrike"] , jps.runicPower() > 74 and jps.cooldown(152279) > 0 , rangedTarget , "FrostStrike_RunicPower" },
 	-- "Howling Blast" 49184 "Rafale hurlante" -- 1 Frost -- 30 yd range
 	{ dk.spells["HowlingBlast"] , Fr == 2 , rangedTarget , "HowlingBlast_Fr" },
 	-- "Obliterate" 49020 "Anéantissement" -- 1 Unholy, 1 Frost
@@ -699,6 +705,8 @@ local spellTable = {
 	-- "Death Strike" 49998 "Frappe de Mort" -- 1 Unholy, 1 Frost
 	-- "Dark Succor" 101568 "Sombre secours" -- Your next Death Strike in Frost or Unholy Presence is free and its healing is increased by 100%.
 	{ dk.spells["DeathStrike"] , jps.buff(101568) , rangedTarget, "|cff1eff00DeathStrike_Buff" },
+	-- "Death Strike" 49998 "Frappe de Mort" -- 1 Unholy, 1 Frost
+	{ dk.spells["DeathStrike"] , jps.hp() < 0.65 , rangedTarget, "|cff1eff00DeathStrike_Health" },
 
 	-- KICK --
 	-- "Dark Simulacrum" 77606 "Sombre simulacre"
@@ -739,20 +747,19 @@ local spellTable = {
 	{ dk.spells["PlagueStrike"] , not jps.myDebuff(55078,rangedTarget) and not jps.isRecast(45462,rangedTarget) , rangedTarget , "PlagueStrike_Debuff" },
 	{ dk.spells["PlagueStrike"] , not jps.myDebuff(55078,"focus") and not jps.isRecast(45462,"focus") , "focus" , "PlagueStrike_Debuff_focus" },
 
+	-- "Soul Reaper" 130735 "Faucheur d’âme"
+	{ dk.spells["SoulReaper"] , jps.hp(rangedTarget) < 0.35 , rangedTarget , "_SoulReaper" },
 	-- "Pillar of Frost" 51271 "Pilier de givre" -- increases the Death Knight's Strength by 15%
 	{ dk.spells["PillarOfFrost"] , inMelee and not DepletedRunes , rangedTarget , "Pillar_Of_Frost" },
-
 	-- "Killing Machine" 51124 "Machine à tuer" -- next Obliterate or Frost Strike automatically critically strike.
 	-- "Frost Strike" 49143 "Frappe de givre" -- 25 Runic Power
 	{ dk.spells["Obliterate"] , jps.buff(dk.spells["KillingMachine"]) , rangedTarget , "Obliterate_KillingMachine" },
-	{ dk.spells["FrostStrike"] , jps.runicPower() > 74 , rangedTarget , "FrostStrike_RunicPower" },
 	{ dk.spells["FrostStrike"] , jps.buff(dk.spells["KillingMachine"]) , rangedTarget , "FrostStrike_KillingMachine" },
 
-	-- "Soul Reaper" 130735 "Faucheur d’âme"
-	{ dk.spells["SoulReaper"] , jps.hp(rangedTarget) < 0.35 , rangedTarget , "_SoulReaper" },
-	-- "Death Strike" 49998 "Frappe de Mort" -- 1 Unholy, 1 Frost
-	{ dk.spells["DeathStrike"] , jps.hp() < 0.65 , rangedTarget, "|cff1eff00DeathStrike_Health" },
-
+	-- "Breath of Sindragosa" 152279 "Souffle de Sindragosa"
+	{ dk.spells["Sindragosa"] , jps.runicPower() > 74 , rangedTarget , "Breath_Sindragosa" },
+	-- "Frost Strike" 49143 "Frappe de givre" -- 25 Runic Power
+	{ dk.spells["FrostStrike"] , jps.runicPower() > 74 and jps.cooldown(152279) > 0 , rangedTarget , "FrostStrike_RunicPower" },
 	-- "Howling Blast" 49184 "Rafale hurlante" -- 1 Frost -- 30 yd range
 	{ dk.spells["HowlingBlast"] , Fr == 2 , rangedTarget , "HowlingBlast_Fr" },
 	-- "Obliterate" 49020 "Anéantissement" -- 1 Unholy, 1 Frost

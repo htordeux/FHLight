@@ -29,7 +29,7 @@ local function toSpellName(spell)
 	return spellname
 end
 
-function jps_Test()
+local function Test()
 
 	write("***************************")
 	print("Stun:|cff0070dd ",jps.checkTimer("PlayerStun"))
@@ -75,6 +75,12 @@ function jps_Test()
 --	local Lowest = jps.LowestImportantUnit() 
 --	local face,angle = jps.PlayerIsFacing(Lowest)
 --	write("Facing: ",face," Radians: ",angle," Name: ",GetUnitName(Lowest))
+
+end
+
+function jps_Test()
+
+	Test()
 
 end
 

@@ -320,9 +320,9 @@ local spellTable = {
 	{ 121536, IsShiftKeyDown() },
 
 	-- TRINKETS -- jps.useTrinket(0) est "Trinket0Slot" est slotId  13 -- "jps.useTrinket(1) est "Trinket1Slot" est slotId  14
-	{ jps.useTrinket(0), jps.useTrinketBool(0) and jps.combatStart > 0 and jps.hp(rangedTarget) < 0.9 },
-	{ jps.useTrinket(1), jps.useTrinketBool(1) and playerIsStun },
-
+	{ jps.useTrinket(0), jps.useTrinketBool(0) and not playerWasControl and jps.combatStart > 0 , "player" , "useTrinket0" },
+	{ jps.useTrinket(1), jps.useTrinketBool(1) and playerIsStun , "player" , "useTrinket1" },
+	
 	-- PLAYER AGGRO
 	{ "nested", playerAggro , parseAggro },
 	
@@ -337,7 +337,7 @@ local spellTable = {
 	
 	-- HEAL --
 	-- "Vampiric Embrace" 15286
-	{ 15286, AvgHealthLoss < 0.75 , rangedTarget , "VampiricEmbrace"  },
+	{ 15286, AvgHealthLoss < 0.80 , rangedTarget , "VampiricEmbrace"  },
 	{ 15286, jps.hp("player") < 0.75 and not IsInGroup() , rangedTarget , "VampiricEmbrace"  },
 	{ "nested", jps.hp("player") < 0.75 , parseHeal },
 
@@ -346,9 +346,11 @@ local spellTable = {
 
 	-- "Devouring Plague" 2944 consumes 3 Shadow Orbs, you don't have the ability to use with less Orbs
 	{ 2944, Orbs > 4 , rangedTarget , "PLAGUE_Orbs" },
+	{ 2944, Orbs > 3 and jps.MultiTarget , rangedTarget , "PLAGUE_MultiTarget" },
 
 	-- MULTITARGET
 	-- "MindSear" 48045 -- "Insanité incendiaire" 179338 "Searing Insanity"
+	{ 15407, not jps.Moving and jps.MultiTarget and jps.buffDuration(132573) > 3.12 , rangedTarget , "MINDFLAYORBS_Multi" },
 	{ 48045, not jps.Moving and jps.MultiTarget and jps.buff(132573) , rangedTarget , "MINDSEARORBS" },
 	{ 48045, not jps.Moving and jps.MultiTarget and jps.buff(132573) , myTank , "MINDSEARORBS_Tank" },
 
@@ -368,21 +370,30 @@ local spellTable = {
 	{ 32379, jps.hp(rangedTarget) < 0.20 and Orbs < 5 , rangedTarget, "Death" },
 	{ 32379, jps.hp("focus") < 0.20 and Orbs < 5 , "focus", "Death" },
 	
+	-- MULTITARGET
+	-- "Cascade" Holy 121135 Shadow 127632
+	{ 127632, jps.IsSpellKnown(127632) and jps.UseCDs and jps.MultiTarget , rangedTarget , "Cascade"  },
+	-- "Divine Star" Holy 110744 Shadow 122121
+	{ 122121, jps.IsSpellKnown(122121) and jps.UseCDs and jps.MultiTarget , rangedTarget , "DivineStar"  },
+	
 	-- "Shadow Word: Pain" 589 -- "Shadow Word: Insanity" buff 132573
 	{ 589, Orbs > 3 and jps.myDebuffDuration(589,rangedTarget) < 3 and not jps.isRecast(589,rangedTarget) , rangedTarget , "Pain_Orbs" },
 	-- "Vampiric Touch" 34914 -- "Shadow Word: Insanity" buff 132573
 	{ 34914, Orbs > 3 and not jps.Moving and jps.myDebuffDuration(34914,rangedTarget) < 3 and not jps.isRecast(34914,rangedTarget) , rangedTarget , "VT_Orbs" },
 
 	-- "Devouring Plague" 2944 consumes 3 Shadow Orbs, you don't have the ability to use with less Orbs
-	{ 2944, Orbs > 3 and jps.MultiTarget , rangedTarget , "PLAGUE_MultiTarget" },
-	{ 2944, Orbs > 3 and jps.hp("player") < 0.75 , rangedTarget , "PLAGUE_LowHealth" },
+	{ 2944, Orbs > 2 and jps.hp("player") < 0.75 , rangedTarget , "PLAGUE_LowHealth" },
 	{ 2944, Orbs > 2 and jps.hp(rangedTarget) < 0.20 , rangedTarget , "PLAGUE_LowHealth" },
 	{ 2944, Orbs > 2 and jps.hp("focus") < 0.20 , "focus" , "PLAGUE_LowHealth" },
 
 	-- "Shadow Word: Pain" 589 -- "Shadow Word: Insanity" buff 132573	
-	{ 589, not jps.buff(132573) and fnPainEnemyTarget("mouseover") and not jps.UnitIsUnit("target","mouseover") , "mouseover" , "Pain_MOUSEOVER_ORBS" },
+	{ 589, not jps.buff(132573) and fnPainEnemyTarget("mouseover") and not jps.UnitIsUnit("target","mouseover") , "mouseover" , "Pain_Mouseover_Orbs" },
+	{ 589, not jps.buff(132573) and fnPainEnemyTarget("focus") , "focus" , "Pain_Focus_Orbs" },
+	{ 589, type(PainEnemyTarget) == "string" and not jps.UnitIsUnit(PainEnemyTarget,"target") , PainEnemyTarget , "Pain_MultiUnit" },
 	-- "Vampiric Touch" 34914 -- "Shadow Word: Insanity" buff 132573
-	{ 34914, not jps.buff(132573) and fnVampEnemyTarget("mouseover") and not jps.UnitIsUnit("target","mouseover") , "mouseover" , "Vamp_MOUSEOVER_ORBS" },
+	{ 34914, not jps.buff(132573) and fnVampEnemyTarget("mouseover") and not jps.UnitIsUnit("target","mouseover") , "mouseover" , "VT_Mouseover_Orbs" },
+	{ 34914, not jps.buff(132573) and fnVampEnemyTarget("focus") , "focus" , "VT_Focus_Orbs" },
+	{ 34914, type(VampEnemyTarget) == "string" and not jps.UnitIsUnit(VampEnemyTarget,"target") , VampEnemyTarget , "VT_MultiUnit" },
 
 	-- "Mind Spike" 73510 -- "Surge of Darkness" gives buff -- "Surge of Darkness" 87160
 	{ 73510, jps.buffStacks(87160,"player") > 1 , rangedTarget , "Spike_SurgeofDarkness_Stacks" },
@@ -398,22 +409,6 @@ local spellTable = {
 		{ 2944, not jps.myDebuff(158831,rangedTarget) and not jps.myDebuff(34914,rangedTarget) and jps.myDebuffDuration(589,rangedTarget) > 3 , rangedTarget , "PLAGUE_Debuff" },
 	}},
 
-	-- "Shadow Word: Pain" 589 -- "Shadow Word: Insanity" buff 132573
-	{ 589, jps.myDebuffDuration(589,rangedTarget) < 3 and not jps.isRecast(589,rangedTarget) , rangedTarget , "Pain_Target" },
-	{ 589, type(PainEnemyTarget) == "string" , PainEnemyTarget , "Pain_MultiUnit" },
-
-	-- MULTITARGET
-	-- "Cascade" Holy 121135 Shadow 127632
-	{ 127632, jps.IsSpellKnown(127632) and EnemyCount > 2 , rangedTarget , "Cascade"  },
-	{ 127632, jps.IsSpellKnown(127632) and jps.UseCDs , rangedTarget , "Cascade"  },
-	-- "Divine Star" Holy 110744 Shadow 122121
-	{ 122121, jps.IsSpellKnown(122121) and EnemyCount > 2 , rangedTarget , "DivineStar"  },
-	{ 122121, jps.IsSpellKnown(122121) and jps.UseCDs , rangedTarget , "DivineStar"  },
-	
-	-- "Vampiric Touch" 34914 -- "Shadow Word: Insanity" buff 132573
-	{ 34914, not jps.Moving and jps.myDebuffDuration(34914,rangedTarget) < 3 and not jps.isRecast(34914,rangedTarget) , rangedTarget , "VT_Target" },
-	{ 34914, type(VampEnemyTarget) == "string" , VampEnemyTarget , "Vamp_MultiUnit" },
-	
 	-- "Mindbender" "Torve-esprit" 123040 -- "Ombrefiel" 34433 "Shadowfiend"
 	{ 34433, priest.canShadowfiend(rangedTarget) , rangedTarget },
 	{ 123040, priest.canShadowfiend(rangedTarget) , rangedTarget },

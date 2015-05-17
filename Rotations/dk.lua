@@ -129,11 +129,14 @@ dk.spells["Sindragosa"] = 152279
 -- 2 - Unholy rune
 -- 3 - Frost rune
 -- 4 - Death rune
-	
-local GetRuneReady = function(id)
-	local _,_,ready = GetRuneCooldown(id)
-	if ready == true then return 1 end
-	return 0
+
+function dk.runeCooldown(id)
+	local runeCD = 0
+	local start,duration,ready = GetRuneCooldown(id)
+	if not ready then
+		runeCD = start + duration - GetTime()
+	end
+	return runeCD
 end
 
 function dk.updateRune()

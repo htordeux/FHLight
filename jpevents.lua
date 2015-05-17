@@ -271,29 +271,6 @@ end
 -- ON UPDATE
 --------------------------
 
---[[[
-@function jps.cachedValue
-@description
-This function generates a function which will store a value which might be too expensive to generate everytime. You must provide
-a function which generates the value which will be called every [code]updateInterval[/code] seconds to refresh the cached value.
-@param fn function which generates the value
-@param updateInterval [i]Optional:[/i] max age in seconds before the value is fetched again from the function - defaults to [code]jps.UpdateInterval[/code]
-@returns A function which will return the cached value
-]]--
-
-jps.cachedValue = function(fn,updateInterval)
-    if not updateInterval then updateInterval = jps.UpdateInterval end
-    local value = fn()
-    local maxAge = GetTime() + updateInterval
-    return function()
-        if maxAge < GetTime() then
-            value = fn()
-            maxAge = GetTime() + updateInterval
-        end
-        return value
-    end
-end
-
 -- UPDATE HANDLER
 jpsFrame:SetScript("OnUpdate", function(self, elapsed)
 	if self.TimeSinceLastUpdate == nil then self.TimeSinceLastUpdate = 0 end
@@ -351,11 +328,48 @@ end)
 -- UPDATE FUNCTIONS
 --------------------------
 
+--[[[
+@function jps.cachedValue
+@description
+This function generates a function which will store a value which might be too expensive to generate everytime. You must provide
+a function which generates the value which will be called every [code]updateInterval[/code] seconds to refresh the cached value.
+@param fn function which generates the value
+@param updateInterval [i]Optional:[/i] max age in seconds before the value is fetched again from the function - defaults to [code]jps.UpdateInterval[/code]
+@returns A function which will return the cached value
+]]--
+
+jps.cachedValue = function(fn,updateInterval)
+    if not updateInterval then updateInterval = jps.UpdateInterval end
+    local maxAge = GetTime() + updateInterval
+    local value = fn()
+    return function()
+        if maxAge < GetTime() then
+            value = fn()
+            maxAge = GetTime() + updateInterval
+        end
+        return value
+    end
+end
+
+local LastUpdateFrequency = GetTime()
+jps.cachedValueUpdate = function(fn,updateInterval)
+	if not updateInterval then updateInterval = 1 end
+	local curTime = GetTime()
+	local diff = curTime - LastUpdateFrequency
+	if diff < updateInterval then return end
+	LastUpdateFrequency = curTime
+	local value = fn()
+	return value
+end
+
 -- Garbage Collection is automatic in lua every 30 sec
 local collectGarbage = function()
 	UpdateAddOnMemoryUsage()
-	write("Memory: ",GetAddOnMemoryUsage("JPS"))
-	if GetAddOnMemoryUsage("JPS") > 5120 then collectgarbage("collect") end
+	local Memory = GetAddOnMemoryUsage("JPS")
+	if Memory > 5120 then
+		write("Memory: ", Memory)
+		collectgarbage("collect")
+	end
 end
 
 -- TimeToDie Update
@@ -368,6 +382,11 @@ jps.registerOnUpdate(function()
     	elseif jps.hasOOCRotation() > 0 then jps.Cycle()
     	end
 	end
+end)
+
+jps.registerOnUpdate(function()
+	jps.cachedValueUpdate(collectGarbage,30)
+	--jps.cachedValue(collectGarbage,30)
 end)
 
 --------------------------

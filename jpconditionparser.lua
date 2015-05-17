@@ -71,140 +71,6 @@ local function fnParseMacro(macro, conditions, target)
 	end
 end
 
-parser.compiledTables = {}
-
---[[[
-@function parseStaticSpellTable
-@description
-Parses a static spell table and returns the spell which should be cast or nil if no spell can be cast.
-Spell Tables are Tables containing other Tables:[br]
-[code]
-{[br]
-[--]...[br]
-[--]{[SPELL], [CONDITION], [TARGET]},[br]
-[--]{"nested", [CONDITION], [NESTED SPELL TABLE]},[br]
-[--]{[MACRO], [CONDITION], [TARGET]},[br]
-[--]...[br]
-}[br]
-[/code]
-e.g:[br]
-[code]
-{[br]
-[--]...[br]
-[--]{"Greater Heal", 'jps.hp("target") <= 0.5', "target"},[br]
-[--]{{"macro", "/cast Flash Heal"}, 'jps.hp("player") < 0.6', "player"},[br]
-[--]{"nested", 'jps.MultiTarget', {...}},[br]
-[--]...[br]
-}[br]
-[/code][br]
-[i]SPELL[/i]:[br]
-Can either be a spell name or a spell id - id's are preferred since they will work on all client languages! This can also be
-the keyword [code]"nested"[/code] - in this case the third paramter is not the target, but a nested spell table which should
-be executed if the condition is true.[br]
-[br]
-[i]MACRO[/i]:[br]
-Macro is a table (see example) which replaces the spell and has two elements: they keyword [code]"macro"[/code] and the macro itself.[br]
-[br]
-[i]CONDITION[/i]:[br]
-The condition determines if the spell should be executed - it can either be a boolean value, a function returning a boolean value
-or a string. The string must contain a valid boolean expression which will then be re-evaluated every update interval. If there is no
-condition the spell will be used on cooldown[br]
-[br]
-[i]TARGET[/i]:[br]
-A WoW unit String or player name - can also be a function which returns this string! If there is no target [code]"target"[/code]
-will be used as a default value.[br]
-[br]
-
-@param hydraTable static spell table
-@returns Tupel [code]spell,target[/code] if a spell should be cast, else [code]nil[/code]
-]]--
-
-parseStaticSpellTable = function(hydraTable)
-
-    if not parser.compiledTables[tostring(hydraTable)] then
-        jps.compileSpellTable(hydraTable)
-        parser.compiledTables[tostring(hydraTable)] = true
-    end
-
-    for _,spellTable in ipairs(hydraTable) do
-
-        if type(spellTable) == "function" then spellTable = spellTable() end
-        local spell = nil
-		local conditions = nil
-		local target = nil
-		local message = ""
-
-		-- MACRO -- BE SURE THAT CONDITION TAKES CARE OF CANCAST -- TRUE or FALSE NOT NIL
-		if type(spellTable[1]) == "table" and spellTable[1][1] == "macro" then
-			fnParseMacro(spellTable[1][2], fnConditionEval(spellTable[2]), fnTargetEval(spellTable[3]))
-			
-		-- NESTED TABLE
-		elseif spellTable[1] == "nested" and type(spellTable[3]) == "table" then
-			if fnConditionEval(spellTable[2]) then
-				spell,target = parseStaticSpellTable(spellTable[3])
-			end
-
-		-- DEFAULT {spell[[, condition[, target]]}
-		else 
-		    spell = spellTable[1]
-            conditions = fnConditionEval(spellTable[2])
-            target = fnTargetEval(spellTable[3])
-        end
-
-        -- Return spell if conditions are true and spell is castable.
-        if spell ~= nil and conditions and jps.canCast(spell,target) then
-            return spell,target
-        end
-    end
-end
-
-------------------------
--- PARSE STATIC
-------------------------
-
-local function TargetEval(target)
-    if target == nil then
-        return "target"
-    elseif type(target) == "string" then
-    	if string.gsub(target, "%s", "") == "LowestImportantUnit" then return jps.LowestImportantUnit()
-    	elseif string.gsub(target, "%s", "") == "rangedTarget" then return jps.findMeRangedTarget() end
-    end
-end
-
-local function ConditionEval(conditions)
-    if conditions == nil then
-        return true
-    elseif type(conditions) == "boolean" then
-        return conditions
-    elseif type(conditions) == "number" then
-        return conditions ~= 0
-    elseif type(conditions) == "function" then
-        return conditions()
-    else
-        return false
-    end
-end
-
-parseMyStaticSpellTable = function(hydraTable)
-	
-	local spell = nil
-	local conditions = nil
-	local target = nil
-	local message = ""
-
-	for i,spellTable in ipairs(hydraTable) do
-        spell = spellTable[1] -- spell
-		local cond, targ = strsplit("|", spellTable[2])
-		conditions = ConditionEval(jps.conditionParser(cond))
-		target = TargetEval(targ)
-		
-		-- Return spell if conditions are true and spell is castable.
-		if spell ~= nil and conditions and jps.canCast(spell,target) then
-			return spell,target
-		end
-	end
-end
-
 ------------------------
 -- FUNCTIONS USED IN SPELL TABLE
 ------------------------
@@ -312,9 +178,6 @@ local function ERROR(condition,msg)
         return false
     end
 end
-
-
-
 
 --[[
     PARSER:
@@ -518,32 +381,37 @@ end
 
 ---[[[ Internal Parsing function - DON'T USE !!! ]]--
 local function alwaysTrue() return true end
-function jps.conditionParser(str)
-    if type(str) == "function" then return str end
-    if str == "onCD" then return alwaysTrue() end
-    if str == nil then return alwaysTrue() end
-    local tokens = {}
-    local i = 0
-
-    for t,v in jps.lexer.lua(str) do
-        i = i+1
-        tokens[i] = {t,v}
+local function alwaysFalse() return false end
+local function conditionParser(conditions)
+	if conditions == nil then return alwaysTrue()
+	elseif type(conditions) == "boolean" then return conditions
+	elseif type(conditions) == "function" then return conditions()
+	elseif type(conditions) == "string" then
+		local tokens = {}
+		local i = 0
+	
+		for t,v in jps.lexer.lua(conditions) do
+			i = i+1
+			tokens[i] = {t,v}
+		end
+		local retOK, fn  = pcall(parser.conditions, tokens, 0)
+		if not retOK then
+			return ERROR(conditions,fn)
+		end
+		parser.testMode = true
+		local retOK, err = pcall(fn)
+		parser.testMode = false
+		if not retOK then
+			return ERROR(conditions,err)
+		end
+		return fn
+    else
+        return alwaysFalse
     end
-    local retOK, fn  = pcall(parser.conditions, tokens, 0)
-    if not retOK then
-        return ERROR(str,fn)
-    end
-    parser.testMode = true
-    local retOK, err = pcall(fn)
-    parser.testMode = false
-    if not retOK then
-        return ERROR(str,err)
-    end
-    return fn
 end
 
 ---[[[ Internal Parsing function - DON'T USE !!! ]]--
-function jps.compileSpellTable(unparsedTable)
+local function compileSpellTable(unparsedTable)
     local spell = nil
     local conditions = nil
     local target = nil
@@ -554,13 +422,54 @@ function jps.compileSpellTable(unparsedTable)
             spell = spellTable[1]
             conditions = spellTable[2]
             if conditions ~= nil and type(conditions)=="string" then
-                spellTable[2] = jps.conditionParser(conditions)
+                spellTable[2] = conditionParser(conditions)
             end
             if spell == "nested" then
-                jps.compileSpellTable(spellTable[3])
+                compileSpellTable(spellTable[3])
             end
         end
     end
     return unparsedTable
 end
+
+parser.compiledTables = {}
+parseStaticSpellTable = function(hydraTable)
+
+    if not parser.compiledTables[tostring(hydraTable)] then
+        compileSpellTable(hydraTable)
+        parser.compiledTables[tostring(hydraTable)] = true
+    end
+
+    for _,spellTable in ipairs(hydraTable) do
+
+        if type(spellTable) == "function" then spellTable = spellTable() end
+        local spell = nil
+		local conditions = nil
+		local target = nil
+		local message = ""
+
+		-- MACRO -- BE SURE THAT CONDITION TAKES CARE OF CANCAST -- TRUE or FALSE NOT NIL
+		if type(spellTable[1]) == "table" and spellTable[1][1] == "macro" then
+			fnParseMacro(spellTable[1][2], fnConditionEval(spellTable[2]), fnTargetEval(spellTable[3]))
+			
+		-- NESTED TABLE
+		elseif spellTable[1] == "nested" and type(spellTable[3]) == "table" then
+			if fnConditionEval(spellTable[2]) then
+				spell,target = parseStaticSpellTable(spellTable[3])
+			end
+
+		-- DEFAULT {spell[[, condition[, target]]}
+		else 
+		    spell = spellTable[1]
+            conditions = fnConditionEval(spellTable[2])
+            target = fnTargetEval(spellTable[3])
+        end
+
+        -- Return spell if conditions are true and spell is castable.
+        if spell ~= nil and conditions and jps.canCast(spell,target) then
+            return spell,target
+        end
+    end
+end
+
 

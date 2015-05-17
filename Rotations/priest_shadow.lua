@@ -447,7 +447,10 @@ jps.registerRotation("PRIEST","SHADOW",function()
 	
 	local ShadowForm = tostring(select(1,GetSpellInfo(15473)))
 	local macroCancelaura = "/cancelaura "..ShadowForm
-
+	
+	if jps.ChannelTimeLeft() > 0 then return nil end
+	if jps.CastTimeLeft() > 0 then return nil end
+	
 	local spellTableOOC = {
 
 	-- SNM "Levitate" 1706	

@@ -13,6 +13,7 @@ jprotations.lua
 jplexer.lua
 jpconditionparser.lua
 jphealing.lua
+jptesting.lua
 
 Modules\jpglobal.lua
 Modules\jpauras.lua
@@ -23,7 +24,6 @@ Modules\jpitems.lua
 Modules\jpspellbook.lua
 Modules\jptimetodie.lua
 Modules\jpdots.lua
-Modules\jptesting.lua
 
 Lib\jpgui.lua
 Lib\jpconfig.lua

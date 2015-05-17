@@ -263,18 +263,29 @@ spellTable = {
 	{ 33206, jps.hp("player") < 0.30 , "player" , "StunPain_" },
 	{ 33206, LowestImportantUnitHpct < 0.30 , LowestImportantUnit , "StunPain_" },
 	
+	-- CONTROL --
+	{ 15487, type(SilenceEnemyTarget) == "string" , SilenceEnemyTarget , "Silence_MultiUnit" },
+	--{ "nested", not jps.LoseControl(rangedTarget) and canDPS(rangedTarget) , parseControl },
+	-- "Leap of Faith" 73325 -- "Saut de foi"
+	--{ 73325, type(LeapFriend) == "string" , LeapFriend , "|cff1eff00Leap_MultiUnit_" },
+	
+	-- DISPEL -- "Glyph of Purify" 55677 Your Purify spell also heals your target for 5% of maximum health
+	{ "nested", jps.Interrupts , parseDispel },
+	-- OFFENSIVE Dispel -- "Dissipation de la magie" 528
+	{ 528, jps.castEverySeconds(528,10) and jps.DispelOffensive(rangedTarget) , rangedTarget , "|cff1eff00DispelOffensive_" },
+	
 	-- "Power Word: Shield" 17
 	{ 17, jps.Defensive and jps.Moving and BodyAndSoul and not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Aggro_Moving" },
 	-- PLAYER AGGRO
 	{ "nested", jps.hp() < 0.75 ,{
 		-- "Power Word: Shield" 17
 		{ 17, not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Aggro_Shield" },
+		-- "Don des naaru" 59544
+		{ 59544, true , "player" , "Aggro_Naaru" },
 		-- "Pierre de soins" 5512
 		{ {"macro","/use item:5512"}, jps.itemCooldown(5512) == 0 , "player" , "Item5512" },
 		-- "Prière du désespoir" 19236
 		{ 19236, jps.IsSpellKnown(19236) , "player" , "Aggro_DESESPERATE" },
-		-- "Don des naaru" 59544
-		{ 59544, true , "player" , "Aggro_Naaru" },
 	},},
 	{ "nested", playerAggro or playerWasControl or playerIsTargeted ,{
 		-- "Power Word: Shield" 17
@@ -291,8 +302,6 @@ spellTable = {
 		{ 527, jps.canDispel("player",{"Magic"}) , "player" , "Aggro_Dispel" },
 	},},
 
-	-- "Leap of Faith" 73325 -- "Saut de foi"
-	--{ 73325, type(LeapFriend) == "string" , LeapFriend , "|cff1eff00Leap_MultiUnit_" },
 	-- "Soins rapides" 2061 -- "Vague de Lumière" 114255 "Surge of Light"
 	{ 2061, jps.buff(114255) and LowestImportantUnitHpct < 0.75 , LowestImportantUnit , "FlashHeal_Light_" },
 	{ 2061, jps.buff(114255) and jps.buffDuration(114255) < 4 , LowestImportantUnit , "FlashHeal_Light_" },
@@ -303,7 +312,7 @@ spellTable = {
 	{ 14914, canDPS(rangedTarget) , rangedTarget , "|cFFFF0000Flammes_" },
 	
 	-- SHIELD BOSS TARGET
-	{ "nested", canDPS("target") and isBoss and jps.IsCasting("target") ,{
+	{ "nested", canDPS("target") and jps.IsCasting("target") ,{
 		{ 17, not jps.buff(17,"targettarget") and not jps.debuff(6788,"targettarget") , "targettarget" , "Shield_TargetTarget" },
 		{ 152118, jps.debuff(6788,"targettarget") and not jps.buff(152118,"targettarget") and not jps.isRecast(152118,"targettarget") , "targettarget" , "Clarity_TargetTarget" },
 	},},
@@ -319,7 +328,9 @@ spellTable = {
 		{ 33076, not jps.buff(41635,LowestImportantUnit) , LowestImportantUnit , "Tracker_Mending_" },
 	},},
 	-- ClarityTank -- "Clarity of Will" 152118 shields with protective ward for 20 sec
-	{ 152118, not jps.Moving and canHeal(myTank) and LowestImportantUnitHpct > 0.80 and priest.unitForClarity(myTank) , myTank , "Timer_ClarityTank" },
+	{ 152118, not jps.Moving and canHeal(myTank) and priest.unitForClarity(myTank) and LowestImportantUnitHpct > 0.50 and jps.hp(myTank) > 0.80  , myTank , "Timer_ClarityTank" },
+	-- "Soins" 2060
+	{ 2060, groupHealth > 0.80 and not jps.Moving and canHeal(myTank) and jps.debuff(6788,myTank) and LowestImportantUnitHpct > 0.50 and jps.hpAbs(myTank) < 0.90 , myTank , "Soins_myTank_"  },
 
 	{ "nested", type(POHTarget) == "string" ,{
 		-- "Archange" 81700 -- Buff 81700 -- "Archange surpuissant" 172359  100 % critique POH or FH
@@ -331,8 +342,6 @@ spellTable = {
 	},},
 
 	{ "nested", not jps.Moving and type(POHTarget) == "string" and canHeal(POHTarget) ,{
-		-- "Prière de guérison" 33076 -- Buff POM 41635
-		{ 33076, not jps.buff(41635,POHTarget) , "Mending_POH_" },
 		-- "Cascade" Holy 121135 Shadow 127632
 		{ 121135, true , POHTarget ,  "Cascade_POH_" },
 		-- "POH" 596 -- "Archange surpuissant" 172359  100 % critique POH or FH
@@ -375,15 +384,6 @@ spellTable = {
 		{ 2061, not jps.Moving , LowestImportantUnit , "Emergency_FlashHeal_50_" },
 	},},
 
-	-- DISPEL -- "Glyph of Purify" 55677 Your Purify spell also heals your target for 5% of maximum health
-	{ "nested", jps.Interrupts , parseDispel },
-	-- OFFENSIVE Dispel -- "Dissipation de la magie" 528
-	{ 528, jps.castEverySeconds(528,10) and jps.DispelOffensive(rangedTarget) , rangedTarget , "|cff1eff00DispelOffensive_" },
-
-	-- CONTROL --
-	{ 15487, type(SilenceEnemyTarget) == "string" , SilenceEnemyTarget , "Silence_MultiUnit" },
-	--{ "nested", not jps.LoseControl(rangedTarget) and canDPS(rangedTarget) , parseControl },
-
 	-- "Carapace spirituelle" spell & buff "player" 109964 buff target 114908
 	{ "nested", jps.buffId(109964) and not jps.Moving , parseShell },
 
@@ -411,7 +411,7 @@ spellTable = {
 		{ 59544, true , LowestImportantUnit , "Naaru_" },
 		-- "Shield" 17
 		{ 17, not jps.buff(17,LowestImportantUnit) and not jps.debuff(6788,LowestImportantUnit) , LowestImportantUnit , "Shield_" },
-		-- "Soins" 2060 -- Buff "Borrowed" 59889 -- Buff "Clarity of Will" 152118 -- 2.5 sec cast
+		-- "Soins" 2060 -- Buff "Borrowed" 59889 -- Buff "Clarity of Will" 152118
 		{ 2060, not jps.Moving and jps.buff(152118,LowestImportantUnit) , LowestImportantUnit , "Soins_Clarity_"  },
 		{ 2060, not jps.Moving and jps.buff(17,LowestImportantUnit) , LowestImportantUnit , "Soins_Shield_"  },
 		{ 2060, not jps.Moving and jps.buff(59889) , LowestImportantUnit , "Soins_Borrowed_"  },
@@ -434,9 +434,9 @@ spellTable = {
 		{ 585, jps.castEverySeconds(585,2) and not IsInGroup() , rangedTarget , "|cFFFF0000Chatiment_" },
 		{ 585, jps.castEverySeconds(585,2) and jps.buffStacks(81661) < 5 , rangedTarget , "|cFFFF0000Chatiment_Stacks" },
 		{ 585, jps.castEverySeconds(585,2) and jps.hp(myTank) < 1 , rangedTarget , "|cFFFF0000Chatiment_Tank" },
-		{ 585, jps.castEverySeconds(585,2) and LowestImportantUnitHpct > 0.95 and jps.mana("player") > 0.75 , rangedTarget , "|cFFFF0000Chatiment_Mana" },
+		{ 585, jps.castEverySeconds(585,2) and LowestImportantUnitHpct < 1 and jps.mana("player") > 0.75 , rangedTarget , "|cFFFF0000Chatiment_Mana" },
 		-- "Pénitence" 47540 -- jps.glyphInfo(119866) -- allows Penance to be cast while moving.
-		{ 47540, not IsInGroup() , rangedTarget,"|cFFFF0000Penance_" },
+		{ 47540, not IsInGroup() , rangedTarget ,"|cFFFF0000Penance_" },
 	},},
 	
 	-- "Nova" 132157 -- "Words of Mending" 155362 "Mot de guérison"
@@ -747,18 +747,34 @@ spellTable = {
 	{ 33206, jps.hp(myTank) < 0.30 , myTank , "StunPain_" },
 	{ 33206, jps.hp("player") < 0.30 , "player" , "StunPain_" },
 	{ 33206, LowestImportantUnitHpct < 0.30 , LowestImportantUnit , "StunPain_" },
+	
+	-- CONTROL --
+	{ 15487, type(SilenceEnemyTarget) == "string" , SilenceEnemyTarget , "Silence_MultiUnit" },
+	{ "nested", not jps.LoseControl(rangedTarget) and canDPS(rangedTarget) , parseControl },
+	-- "Leap of Faith" 73325 -- "Saut de foi"
+	{ 73325, type(LeapFriend) == "string" , LeapFriend , "|cff1eff00Leap_MultiUnit_" },
+	
+	-- DISPEL -- "Glyph of Purify" 55677 Your Purify spell also heals your target for 5% of maximum health
+	{ "nested", jps.Interrupts , parseDispel },
+	-- OFFENSIVE Dispel -- "Dissipation de la magie" 528
+	{ 528, jps.castEverySeconds(528,10) and jps.DispelOffensive(rangedTarget) , rangedTarget , "|cff1eff00DispelOffensive_" },
+
+	-- FAKE CAST -- 6948 -- "Hearthstone"
+	{ {"macro","/use item:6948"}, LowestImportantUnitHpct > 0.85 and not jps.Moving and playerAggro and jps.itemCooldown(6948) == 0 , "player" , "Aggro_FAKECAST" },
+
+
 	-- "Power Word: Shield" 17
 	{ 17, jps.Defensive and jps.Moving and BodyAndSoul and not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Aggro_Shield" },
 	-- PLAYER AGGRO
 	{ "nested", jps.hp() < 0.75 ,{
 		-- "Power Word: Shield" 17
 		{ 17, not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Aggro_Shield" },
+		-- "Don des naaru" 59544
+		{ 59544, true , "player" , "Aggro_Naaru" },
 		-- "Pierre de soins" 5512
 		{ {"macro","/use item:5512"}, jps.itemCooldown(5512) == 0 , "player" , "Item5512" },
 		-- "Prière du désespoir" 19236
 		{ 19236, jps.IsSpellKnown(19236) , "player" , "Aggro_DESESPERATE" },
-		-- "Don des naaru" 59544
-		{ 59544, true , "player" , "Aggro_Naaru" },
 	},},
 	{ "nested", playerAggro or playerWasControl or playerIsTargeted ,{
 		-- "Power Word: Shield" 17
@@ -785,8 +801,6 @@ spellTable = {
 		{ 132157, jps.hp() < 0.40 , "player" , "Aggro_Nova" },
 	},},
 
-	-- "Leap of Faith" 73325 -- "Saut de foi"
-	{ 73325, type(LeapFriend) == "string" , LeapFriend , "|cff1eff00Leap_MultiUnit_" },
 	-- "Soins rapides" 2061 -- "Vague de Lumière" 114255 "Surge of Light"
 	{ 2061, jps.buff(114255) and LowestImportantUnitHpct < 0.75 , LowestImportantUnit , "FlashHeal_Light_" },
 	{ 2061, jps.buff(114255) and jps.buffDuration(114255) < 4 , LowestImportantUnit , "FlashHeal_Light_" },
@@ -795,6 +809,12 @@ spellTable = {
 	{ 129250, canDPS(rangedTarget) , rangedTarget, "|cFFFF0000Solace_" },
 	-- "Flammes sacrées" 14914  -- "Evangélisme" 81661
 	{ 14914, canDPS(rangedTarget) , rangedTarget , "|cFFFF0000Flammes_" },
+	
+	-- SHIELD BOSS TARGET
+	{ "nested", canDPS("target") and jps.IsCasting("target") ,{
+		{ 17, not jps.buff(17,"targettarget") and not jps.debuff(6788,"targettarget") , "targettarget" , "Shield_TargetTarget" },
+		{ 152118, jps.debuff(6788,"targettarget") and not jps.buff(152118,"targettarget") and not jps.isRecast(152118,"targettarget") , "targettarget" , "Clarity_TargetTarget" },
+	},},
 
 	-- "Pénitence" 47540
 	{ 47540, canHeal(myTank) and jps.hp(myTank) < 0.80 , myTank , "Penance_myTank_" },
@@ -807,7 +827,9 @@ spellTable = {
 		{ 33076, not jps.buff(41635,LowestImportantUnit) , LowestImportantUnit , "Tracker_Mending_" },
 	},},
 	-- ClarityTank -- "Clarity of Will" 152118 shields with protective ward for 20 sec
-	{ 152118, not jps.Moving and canHeal(myTank) and LowestImportantUnitHpct > 0.80 and priest.unitForClarity(myTank) , myTank , "Timer_ClarityTank" },
+	{ 152118, not jps.Moving and canHeal(myTank) and priest.unitForClarity(myTank) and LowestImportantUnitHpct > 0.50 and jps.hp(myTank) > 0.80  , myTank , "Timer_ClarityTank" },
+	-- "Soins" 2060
+	{ 2060, groupHealth > 0.80 and not jps.Moving and canHeal(myTank) and jps.debuff(6788,myTank) and LowestImportantUnitHpct > 0.50 and jps.hpAbs(myTank) < 0.90 , myTank , "Soins_myTank_"  },
 
 	{ "nested", type(POHTarget) == "string" ,{
 		-- "Archange" 81700 -- Buff 81700 -- "Archange surpuissant" 172359  100 % critique POH or FH
@@ -819,8 +841,6 @@ spellTable = {
 	},},
 
 	{ "nested", not jps.Moving and type(POHTarget) == "string" and canHeal(POHTarget) ,{
-		-- "Prière de guérison" 33076 -- Buff POM 41635
-		{ 33076, not jps.buff(41635,POHTarget) , "Mending_POH_" },
 		-- "Cascade" Holy 121135 Shadow 127632
 		{ 121135, true , POHTarget ,  "Cascade_POH_" },
 		-- "POH" 596 -- "Archange surpuissant" 172359  100 % critique POH or FH
@@ -862,18 +882,6 @@ spellTable = {
 		-- "Soins rapides" 2061
 		{ 2061, not jps.Moving , LowestImportantUnit , "Emergency_FlashHeal_50_" },
 	},},
-
-	-- CONTROL --
-	{ 15487, type(SilenceEnemyTarget) == "string" , SilenceEnemyTarget , "Silence_MultiUnit" },
-	{ "nested", not jps.LoseControl(rangedTarget) and canDPS(rangedTarget) , parseControl },
-	
-	-- DISPEL -- "Glyph of Purify" 55677 Your Purify spell also heals your target for 5% of maximum health
-	{ "nested", jps.Interrupts , parseDispel },
-	-- OFFENSIVE Dispel -- "Dissipation de la magie" 528
-	{ 528, jps.castEverySeconds(528,10) and jps.DispelOffensive(rangedTarget) , rangedTarget , "|cff1eff00DispelOffensive_" },
-
-	-- FAKE CAST -- 6948 -- "Hearthstone"
-	{ {"macro","/use item:6948"}, not jps.Moving and playerAggro and jps.itemCooldown(6948) == 0 and LowestImportantUnitHpct > 0.85 , "player" , "Aggro_FAKECAST" },
 
 	-- "Carapace spirituelle" spell & buff "player" 109964 buff target 114908
 	{ "nested", jps.buffId(109964) and not jps.Moving , parseShell },
@@ -924,13 +932,11 @@ spellTable = {
 		-- "Châtiment" 585
 		{ 585, jps.castEverySeconds(585,2) , rangedTarget , "|cFFFF0000Chatiment_" },
 		-- "Pénitence" 47540 -- jps.glyphInfo(119866) -- allows Penance to be cast while moving.
-		{ 47540, true , rangedTarget,"|cFFFF0000Penance_" },
+		{ 47540, true , rangedTarget ,"|cFFFF0000Penance_" },
 	},},
 	
 	-- "Nova" 132157 -- "Words of Mending" 155362 "Mot de guérison"
 	{ 132157, jps.Moving and countFriendNearby > 3 , "player" , "_Nova" },
-	-- "Pénitence" 47540
-	{ 47540, LowestImportantUnitHealth > priest.AvgAmountGreatHeal , LowestImportantUnit },
 	-- "Soins" 2060
 	{ 2060, not jps.Moving and LowestImportantUnitHealth > priest.AvgAmountGreatHeal , LowestImportantUnit },
 	-- "Gardien de peur" 6346
@@ -965,8 +971,11 @@ jps.registerRotation("PRIEST","DISCIPLINE",function()
 	end
 	-- if your target is friendly keep it as target
 	if not canHeal("target") and canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
-
-local spellTableOOC = {
+	
+	if jps.ChannelTimeLeft() > 0 then return nil end
+	if jps.CastTimeLeft() > 0 then return nil end
+	
+	local spellTableOOC = {
 
 	-- SNM "Levitate" 1706	
 	{ 1706, jps.fallingFor() > 1.5 and not jps.buff(111759) , "player" },

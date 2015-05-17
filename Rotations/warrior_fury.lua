@@ -218,6 +218,9 @@ local spellTable = {
 	return spell,target
 end, "Warrior Default Fury")
 
+----------------------------------------------------------------------------------------------------------------
+-------------------------------------------------- STATIC ------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------
 
 jps.registerStaticTable("WARRIOR","FURY",
 	{
@@ -231,7 +234,7 @@ jps.registerStaticTable("WARRIOR","FURY",
 		-- Normal Rotation
 		{ warrior.spells["RagingBlow"] ,'jps.buffStacks(131116)', warrior.rangedTarget },
 		{ warrior.spells["WildStrike"] ,'jps.buff(46916)', warrior.rangedTarget },
-		{ warrior.spells["Bloodthirst"] ,'true', warrior.rangedTarget},
+		{ warrior.spells["Bloodthirst"] },
 
 	}
 , "Warrior Static Fury")

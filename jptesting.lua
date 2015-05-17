@@ -78,9 +78,26 @@ local function Test()
 
 end
 
+local function DkTest()
+
+	local Dr, Fr, Ur = dk.updateRune()
+	local DeathRuneCount = dk.updateDeathRune()
+	print("Dr:", Dr ,"Fr:", Fr ,"Ur:", Ur )
+	print("DeathRune:",DeathRuneCount)
+	
+	local RunesCD = 0
+	for i=1,6 do
+		local cd = dk.runeCooldown(i)
+		RunesCD = RunesCD + cd
+	end
+	print("RunesCD:",RunesCD)
+
+end
+
 function jps_Test()
 
 	Test()
+	--DkTest()
 
 end
 

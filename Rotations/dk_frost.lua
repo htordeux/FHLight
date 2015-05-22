@@ -122,8 +122,6 @@ end
 local Dr,Fr,Ur = dk.updateRune()
 local DepletedRunes = (Dr == 0) or (Fr == 0) or (Ur == 0)
 local RuneCount = Dr + Fr + Ur
-local AllDepletedRunes = false
-if RuneCount == 0 then AllDepletedRunes = true end
 local DeathRuneCount = dk.updateDeathRune()
 local CompletedRunes = (Dr > 0) and (Fr > 0) and (Ur > 0)
 local RunesCD = 0
@@ -139,11 +137,11 @@ end
 local spellTable = {
 
 	-- "FrostPresence" 48266 "Présence de givre"
-	{ dk.spells["FrostPresence"] , not jps.buff(dk.spells["FrostPresence"]) and jps.hp() > 0.50 , "player" },
+	{ dk.spells["FrostPresence"] , not jps.buff(dk.spells.FrostPresence) and jps.hp() > 0.50 , "player" },
 	-- "Blood Presence" 48263 "Présence de sang" -- stamina + 20%, armor + 30%, damage - 10%
-	{ dk.spells["BloodPresence"] , not jps.buff(dk.spells["BloodPresence"]) and jps.hpInc() < 0.50 and playerAggro , "player" },
+	{ dk.spells["BloodPresence"] , not jps.buff(dk.spells.BloodPresence) and jps.hpInc() < 0.50 and playerAggro , "player" },
 	-- "Horn of Winter" 57330 "Cor de l’hiver" -- + 10% attack power
-	{ dk.spells["HornOfWinter"] , not jps.buff(dk.spells["HornOfWinter"]) , "player" },
+	{ dk.spells["HornOfWinter"] , not jps.buff(dk.spells.HornOfWinter) , "player" },
 
 	-- AGGRO --
 	{ dk.spells["Icebound"] , playerAggro and jps.hp() < 0.75 , "player" , "_Icebound" },
@@ -169,20 +167,20 @@ local spellTable = {
 
 	-- RUNE MANAGEMENT --
 	-- "Plague Leech" 123693 "Parasite de peste"
-	{ dk.spells["PlagueLeech"] , dk.canCastPlagueLeech(5) and DepletedRunes and jps.cooldown(dk.spells["OutBreak"]) == 0 , rangedTarget , "|cff1eff00PlagueLeech_DepletedRunes" },
-	{ dk.spells["PlagueLeech"] , dk.canCastPlagueLeech(5) and DepletedRunes and jps.buff(59057) , rangedTarget , "|cff1eff00PlagueLeech_DepletedRunes" },
-	{ dk.spells["PlagueLeech"] , dk.canCastPlagueLeech(5) and DepletedRunes and jps.buff(59052) , rangedTarget , "|cff1eff00PlagueLeech_DepletedRunes" },
-	{ dk.spells["PlagueLeech"] , dk.canCastPlagueLeech() and AllDepletedRunes , rangedTarget , "|cff1eff00PlagueLeech_AllDepletedRunes" },
+	{ dk.spells["PlagueLeech"] , dk.canCastPlagueLeech(5) and dk.Runes("DepletedRunes") and jps.cooldown(dk.spells.OutBreak) == 0 , rangedTarget , "|cff1eff00PlagueLeech_DepletedRunes" },
+	{ dk.spells["PlagueLeech"] , dk.canCastPlagueLeech(5) and dk.Runes("DepletedRunes") and jps.buff(59057) , rangedTarget , "|cff1eff00PlagueLeech_DepletedRunes" },
+	{ dk.spells["PlagueLeech"] , dk.canCastPlagueLeech(5) and dk.Runes("DepletedRunes") and jps.buff(59052) , rangedTarget , "|cff1eff00PlagueLeech_DepletedRunes" },
+	{ dk.spells["PlagueLeech"] , dk.canCastPlagueLeech() and dk.Runes("RuneCount") == 0 , rangedTarget , "|cff1eff00PlagueLeech_AllDepletedRunes" },
 
 	-- "BloodTap" 45529 -- Buff "Drain sanglant" 114851
-	{ dk.spells["BloodTap"] , jps.buffStacks(114851) > 9 and DepletedRunes , rangedTarget , "DrainSanglant_10" },
-	{ dk.spells["BloodTap"] , jps.buffStacks(114851) > 4 and DepletedRunes and jps.buff(152279) , rangedTarget , "|cff1eff00DrainSanglant_5_Sindragosa" },
-	{ dk.spells["BloodTap"] , jps.buffStacks(114851) > 4 and DepletedRunes and jps.buff(51124) , rangedTarget , "|cff1eff00DrainSanglant_5_Killing" },
+	{ dk.spells["BloodTap"] , jps.buffStacks(114851) > 9 and dk.Runes("DepletedRunes") , rangedTarget , "DrainSanglant_10" },
+	{ dk.spells["BloodTap"] , jps.buffStacks(114851) > 4 and dk.Runes("DepletedRunes") and jps.buff(152279) , rangedTarget , "|cff1eff00DrainSanglant_5_Sindragosa" },
+	{ dk.spells["BloodTap"] , jps.buffStacks(114851) > 4 and dk.Runes("DepletedRunes") and jps.buff(51124) , rangedTarget , "|cff1eff00DrainSanglant_5_Killing" },
 
 	-- "Empower Rune Weapon" 47568 "Renforcer l'arme runique"
-	{ dk.spells["EmpowerRuneWeapon"] , jps.runicPower() < 76 and AllDepletedRunes , rangedTarget , "|cff1eff00EmpowerRuneWeapon" },
-	{ dk.spells["EmpowerRuneWeapon"] , jps.buff(152279) and RunesCD > 50 , rangedTarget , "|cff1eff00EmpowerRuneWeapon_Sindragosa" },
-	{ dk.spells["EmpowerRuneWeapon"] , jps.cooldown(152279) == 0 and RunesCD > 50 , rangedTarget , "|cff1eff00EmpowerRuneWeapon_Sindragosa" },
+	{ dk.spells["EmpowerRuneWeapon"] , jps.runicPower() < 76 and dk.Runes("RuneCount") == 0 , rangedTarget , "|cff1eff00EmpowerRuneWeapon" },
+	{ dk.spells["EmpowerRuneWeapon"] , jps.buff(152279) and dk.Runes("RunesCD") > 50 , rangedTarget , "|cff1eff00EmpowerRuneWeapon_Sindragosa" },
+	{ dk.spells["EmpowerRuneWeapon"] , jps.cooldown(152279) == 0 and dk.Runes("RunesCD") > 50 , rangedTarget , "|cff1eff00EmpowerRuneWeapon_Sindragosa" },
 
 	-- TRINKETS -- jps.useTrinket(0) est "Trinket0Slot" est slotId  13 -- "jps.useTrinket(1) est "Trinket1Slot" est slotId  14
 	{ jps.useTrinket(0), jps.UseCDs and jps.useTrinketBool(0) and not playerWasControl and jps.combatStart > 0 },
@@ -245,17 +243,17 @@ local spellTable = {
 	{ dk.spells["HowlingBlast"] , not jps.myDebuff(55095,rangedTarget) and not jps.isRecast(49184,rangedTarget) , rangedTarget , "HowlingBlast_Debuff" },
 
 	-- "Breath of Sindragosa" 152279 "Souffle de Sindragosa"
-	{ dk.spells["Sindragosa"] , jps.runicPower() > 75 and CompletedRunes , rangedTarget , "SINDRAGOSA" },
+	{ dk.spells["Sindragosa"] , jps.runicPower() > 75 and CompletedRunes and jps.cooldown(dk.spells.PlagueLeech) == 0, rangedTarget , "SINDRAGOSA" },
 	-- "Frost Strike" 49143 "Frappe de givre" -- 25 Runic Power
 	-- "Killing Machine" 51124 "Machine à tuer" -- next Obliterate or Frost Strike automatically critically strike.
 	{ dk.spells["FrostStrike"] , jps.buff(51124) and not jps.buff(152279) , rangedTarget , "FrostStrike_KillingMachine" },
 	{ dk.spells["FrostStrike"] , jps.runicPower() > 75 and not jps.buff(152279) , rangedTarget , "FrostStrike_RunicPower" },
 	-- "Obliterate" 49020 "Anéantissement" -- 1 Unholy, 1 Frost 
 	-- "Killing Machine" 51124 "Machine à tuer" -- next Obliterate or Frost Strike automatically critically strike.
-	{ dk.spells["Obliterate"] , Ur > 0 and jps.runicPower() < 76 , rangedTarget , "Obliterate_Ur" },
+	{ dk.spells["Obliterate"] , dk.Runes("Ur") > 0 and jps.runicPower() < 76 , rangedTarget , "Obliterate_Ur" },
 	{ dk.spells["Obliterate"] , jps.buff(51124) , rangedTarget , "Obliterate_KillingMachine" },
 	-- "Howling Blast" 49184 "Rafale hurlante" -- 1 Frost -- 30 yd range
-	{ dk.spells["HowlingBlast"] , Fr > 0 , rangedTarget , "HowlingBlast_Fr" },
+	{ dk.spells["HowlingBlast"] , dk.Runes("Fr") > 0 , rangedTarget , "HowlingBlast_Fr" },
 	
 	-- MULTITARGET -- and EnemyCount > 2
 	-- "Defile" 152280 "Profanation" -- 1 Unholy
@@ -272,9 +270,11 @@ local spellTable = {
 	}},
 
 	-- "Obliterate" 49020 "Anéantissement" -- 1 Unholy, 1 Frost
-	{ dk.spells["Obliterate"] ,  DeathRuneCount > 1 , rangedTarget , "Obliterate_Dr" },
+	{ dk.spells["Obliterate"] ,  dk.Runes("DeathRuneCount") > 1 , rangedTarget , "Obliterate_Dr" },
 	-- "Howling Blast" 49184 "Rafale hurlante" -- 1 Frost -- 30 yd range
-	{ dk.spells["HowlingBlast"] , DeathRuneCount > 0 , rangedTarget , "HowlingBlast_Dr" },
+	{ dk.spells["HowlingBlast"] , dk.Runes("DeathRuneCount") > 0 , rangedTarget , "HowlingBlast_Dr" },
+	-- "Frost Strike" 49143 "Frappe de givre" -- 25 Runic Power
+	{ dk.spells["FrostStrike"] , jps.cooldown(152279) > 8 and jps.runicPower() > 25 , rangedTarget , "FrostStrike_RP" },
 
 }
 
@@ -389,8 +389,6 @@ end
 local Dr,Fr,Ur = dk.updateRune()
 local DepletedRunes = (Dr == 0) or (Fr == 0) or (Ur == 0)
 local RuneCount = Dr + Fr + Ur
-local AllDepletedRunes = false
-if RuneCount == 0 then AllDepletedRunes = true end
 local DeathRuneCount = dk.updateDeathRune()
 local CompletedRunes = (Dr > 0) and (Fr > 0) and (Ur > 0)
 local RunesCD = 0
@@ -406,11 +404,11 @@ end
 local spellTable = {
 
 	-- "FrostPresence" 48266 "Présence de givre"
-	{ dk.spells["FrostPresence"] , not jps.buff(dk.spells["FrostPresence"]) and jps.hp() > 0.50 , "player" },
+	{ dk.spells["FrostPresence"] , not jps.buff(dk.spells.FrostPresence) and jps.hp() > 0.50 , "player" },
 	-- "Blood Presence" 48263 "Présence de sang" -- stamina + 20%, armor + 30%, damage - 10%
-	{ dk.spells["BloodPresence"] , not jps.buff(dk.spells["BloodPresence"]) and jps.hpInc() < 0.50 and playerAggro , "player" },
+	{ dk.spells["BloodPresence"] , not jps.buff(dk.spells.BloodPresence) and jps.hpInc() < 0.50 and playerAggro , "player" },
 	-- "Horn of Winter" 57330 "Cor de l’hiver" -- + 10% attack power
-	{ dk.spells["HornOfWinter"] , not jps.buff(dk.spells["HornOfWinter"]) , "player" },
+	{ dk.spells["HornOfWinter"] , not jps.buff(dk.spells.HornOfWinter) , "player" },
 
 	-- AGGRO --
 	{ dk.spells["Icebound"] , playerAggro and jps.hp() < 0.75 , "player" , "_Icebound" },
@@ -436,10 +434,10 @@ local spellTable = {
 
 	-- RUNE MANAGEMENT --
 	-- "Plague Leech" 123693 "Parasite de peste"
-	{ dk.spells["PlagueLeech"] , dk.canCastPlagueLeech(5) and DepletedRunes and jps.cooldown(dk.spells["OutBreak"]) == 0 , rangedTarget , "|cff1eff00PlagueLeech_DepletedRunes" },
+	{ dk.spells["PlagueLeech"] , dk.canCastPlagueLeech(5) and DepletedRunes and jps.cooldown(dk.spells.OutBreak) == 0 , rangedTarget , "|cff1eff00PlagueLeech_DepletedRunes" },
 	{ dk.spells["PlagueLeech"] , dk.canCastPlagueLeech(5) and DepletedRunes and jps.buff(59057) , rangedTarget , "|cff1eff00PlagueLeech_DepletedRunes" },
 	{ dk.spells["PlagueLeech"] , dk.canCastPlagueLeech(5) and DepletedRunes and jps.buff(59052) , rangedTarget , "|cff1eff00PlagueLeech_DepletedRunes" },
-	{ dk.spells["PlagueLeech"] , dk.canCastPlagueLeech() and AllDepletedRunes , rangedTarget , "|cff1eff00PlagueLeech_AllDepletedRunes" },
+	{ dk.spells["PlagueLeech"] , dk.canCastPlagueLeech() and RuneCount == 0 , rangedTarget , "|cff1eff00PlagueLeech_AllDepletedRunes" },
 
 	-- "BloodTap" 45529 -- Buff "Drain sanglant" 114851
 	{ dk.spells["BloodTap"] , jps.buffStacks(114851) > 9 and DepletedRunes , rangedTarget , "DrainSanglant_10" },
@@ -447,8 +445,9 @@ local spellTable = {
 	{ dk.spells["BloodTap"] , jps.buffStacks(114851) > 4 and DepletedRunes and jps.buff(51124) , rangedTarget , "|cff1eff00DrainSanglant_5_Killing" },
 
 	-- "Empower Rune Weapon" 47568 "Renforcer l'arme runique"
-	{ dk.spells["EmpowerRuneWeapon"] , AllDepletedRunes , rangedTarget , "|cff1eff00EmpowerRuneWeapon" },
+	{ dk.spells["EmpowerRuneWeapon"] , jps.runicPower() < 76 and RuneCount == 0 , rangedTarget , "|cff1eff00EmpowerRuneWeapon" },
 	{ dk.spells["EmpowerRuneWeapon"] , jps.buff(152279) and RunesCD > 50 , rangedTarget , "|cff1eff00EmpowerRuneWeapon_Sindragosa" },
+	{ dk.spells["EmpowerRuneWeapon"] , jps.cooldown(152279) == 0 and RunesCD > 50 , rangedTarget , "|cff1eff00EmpowerRuneWeapon_Sindragosa" },
 
 	-- TRINKETS -- jps.useTrinket(0) est "Trinket0Slot" est slotId  13 -- "jps.useTrinket(1) est "Trinket1Slot" est slotId  14
 	{ jps.useTrinket(0), jps.UseCDs and jps.useTrinketBool(0) and not playerWasControl and jps.combatStart > 0 },
@@ -511,7 +510,7 @@ local spellTable = {
 	{ dk.spells["HowlingBlast"] , not jps.myDebuff(55095,rangedTarget) and not jps.isRecast(49184,rangedTarget) , rangedTarget , "HowlingBlast_Debuff" },
 
 	-- "Breath of Sindragosa" 152279 "Souffle de Sindragosa"
-	{ dk.spells["Sindragosa"] , jps.runicPower() > 75 and CompletedRunes , rangedTarget , "SINDRAGOSA" },
+	{ dk.spells["Sindragosa"] , jps.runicPower() > 75 and CompletedRunes and jps.cooldown(dk.spells.PlagueLeech) == 0, rangedTarget , "SINDRAGOSA" },
 	-- "Obliterate" 49020 "Anéantissement" -- 1 Unholy, 1 Frost 
 	-- "Killing Machine" 51124 "Machine à tuer" -- next Obliterate or Frost Strike automatically critically strike.
 	{ dk.spells["Obliterate"] , jps.buff(51124) , rangedTarget , "Obliterate_KillingMachine" },
@@ -541,6 +540,8 @@ local spellTable = {
 	{ dk.spells["Obliterate"] ,  DeathRuneCount > 1 , rangedTarget , "Obliterate_Dr" },
 	-- "Howling Blast" 49184 "Rafale hurlante" -- 1 Frost -- 30 yd range
 	{ dk.spells["HowlingBlast"] , DeathRuneCount > 0 , rangedTarget , "HowlingBlast_Dr" },
+	-- "Frost Strike" 49143 "Frappe de givre" -- 25 Runic Power
+	{ dk.spells["FrostStrike"] , jps.cooldown(152279) > 8 and jps.runicPower() > 25 , rangedTarget , "FrostStrike_RP" },
 
 }
 
@@ -626,8 +627,6 @@ end
 local Dr,Fr,Ur = dk.updateRune()
 local DepletedRunes = (Dr == 0) or (Fr == 0) or (Ur == 0)
 local RuneCount = Dr + Fr + Ur
-local AllDepletedRunes = false
-if RuneCount == 0 then AllDepletedRunes = true end
 local DeathRuneCount = dk.updateDeathRune()
 local CompletedRunes = (Dr > 0) and (Fr > 0) and (Ur > 0)
 local RunesCD = 0
@@ -643,11 +642,11 @@ end
 local spellTable = {
 
 	-- "FrostPresence" 48266 "Présence de givre"
-	{ dk.spells["FrostPresence"] , not jps.buff(dk.spells["FrostPresence"]) and jps.hp() > 0.50 , "player" },
+	{ dk.spells["FrostPresence"] , not jps.buff(dk.spells.FrostPresence) and jps.hp() > 0.50 , "player" },
 	-- "Blood Presence" 48263 "Présence de sang" -- stamina + 20%, armor + 30%, damage - 10%
-	{ dk.spells["BloodPresence"] , not jps.buff(dk.spells["BloodPresence"]) and jps.hpInc() < 0.50 and playerAggro , "player" },
+	{ dk.spells["BloodPresence"] , not jps.buff(dk.spells.BloodPresence) and jps.hpInc() < 0.50 and playerAggro , "player" },
 	-- "Horn of Winter" 57330 "Cor de l’hiver" -- + 10% attack power
-	{ dk.spells["HornOfWinter"] , not jps.buff(dk.spells["HornOfWinter"]) , "player" },
+	{ dk.spells["HornOfWinter"] , not jps.buff(dk.spells.HornOfWinter) , "player" },
 
 	-- AGGRO --
 	{ dk.spells["Icebound"] , playerAggro and jps.hp() < 0.75 , "player" , "_Icebound" },
@@ -673,10 +672,10 @@ local spellTable = {
 
 	-- RUNE MANAGEMENT --
 	-- "Plague Leech" 123693 "Parasite de peste"
-	{ dk.spells["PlagueLeech"] , dk.canCastPlagueLeech(5) and DepletedRunes and jps.cooldown(dk.spells["OutBreak"]) == 0 , rangedTarget , "|cff1eff00PlagueLeech_DepletedRunes" },
+	{ dk.spells["PlagueLeech"] , dk.canCastPlagueLeech(5) and DepletedRunes and jps.cooldown(dk.spells.OutBreak) == 0 , rangedTarget , "|cff1eff00PlagueLeech_DepletedRunes" },
 	{ dk.spells["PlagueLeech"] , dk.canCastPlagueLeech(5) and DepletedRunes and jps.buff(59057) , rangedTarget , "|cff1eff00PlagueLeech_DepletedRunes" },
 	{ dk.spells["PlagueLeech"] , dk.canCastPlagueLeech(5) and DepletedRunes and jps.buff(59052) , rangedTarget , "|cff1eff00PlagueLeech_DepletedRunes" },
-	{ dk.spells["PlagueLeech"] , dk.canCastPlagueLeech() and AllDepletedRunes , rangedTarget , "|cff1eff00PlagueLeech_AllDepletedRunes" },
+	{ dk.spells["PlagueLeech"] , dk.canCastPlagueLeech() and RuneCount == 0 , rangedTarget , "|cff1eff00PlagueLeech_AllDepletedRunes" },
 
 	-- "BloodTap" 45529 -- Buff "Drain sanglant" 114851
 	{ dk.spells["BloodTap"] , jps.buffStacks(114851) > 9 and DepletedRunes , rangedTarget , "DrainSanglant_10" },
@@ -684,8 +683,9 @@ local spellTable = {
 	{ dk.spells["BloodTap"] , jps.buffStacks(114851) > 4 and DepletedRunes and jps.buff(51124) , rangedTarget , "|cff1eff00DrainSanglant_5_Killing" },
 
 	-- "Empower Rune Weapon" 47568 "Renforcer l'arme runique"
-	{ dk.spells["EmpowerRuneWeapon"] , AllDepletedRunes , rangedTarget , "|cff1eff00EmpowerRuneWeapon" },
+	{ dk.spells["EmpowerRuneWeapon"] , jps.runicPower() < 76 and RuneCount == 0 , rangedTarget , "|cff1eff00EmpowerRuneWeapon" },
 	{ dk.spells["EmpowerRuneWeapon"] , jps.buff(152279) and RunesCD > 50 , rangedTarget , "|cff1eff00EmpowerRuneWeapon_Sindragosa" },
+	{ dk.spells["EmpowerRuneWeapon"] , jps.cooldown(152279) == 0 and RunesCD > 50 , rangedTarget , "|cff1eff00EmpowerRuneWeapon_Sindragosa" },
 
 	-- TRINKETS -- jps.useTrinket(0) est "Trinket0Slot" est slotId  13 -- "jps.useTrinket(1) est "Trinket1Slot" est slotId  14
 	{ jps.useTrinket(0), jps.UseCDs and jps.useTrinketBool(0) and not playerWasControl and jps.combatStart > 0 },
@@ -748,7 +748,7 @@ local spellTable = {
 	{ dk.spells["HowlingBlast"] , not jps.myDebuff(55095,rangedTarget) and not jps.isRecast(49184,rangedTarget) , rangedTarget , "HowlingBlast_Debuff" },
 
 	-- "Breath of Sindragosa" 152279 "Souffle de Sindragosa"
-	{ dk.spells["Sindragosa"] , jps.runicPower() > 75 and CompletedRunes , rangedTarget , "SINDRAGOSA" },
+	{ dk.spells["Sindragosa"] , jps.runicPower() > 75 and CompletedRunes and jps.cooldown(dk.spells.PlagueLeech) == 0, rangedTarget , "SINDRAGOSA" },
 	-- "Obliterate" 49020 "Anéantissement" -- 1 Unholy, 1 Frost 
 	-- "Killing Machine" 51124 "Machine à tuer" -- next Obliterate or Frost Strike automatically critically strike.
 	{ dk.spells["Obliterate"] , jps.buff(51124) , rangedTarget , "Obliterate_KillingMachine" },
@@ -819,6 +819,8 @@ local spellTable = {
 	{ dk.spells["Obliterate"] ,  DeathRuneCount > 1 , rangedTarget , "Obliterate_Dr" },
 	-- "Howling Blast" 49184 "Rafale hurlante" -- 1 Frost -- 30 yd range
 	{ dk.spells["HowlingBlast"] , DeathRuneCount > 0 , rangedTarget , "HowlingBlast_Dr" },
+	-- "Frost Strike" 49143 "Frappe de givre" -- 25 Runic Power
+	{ dk.spells["FrostStrike"] , jps.cooldown(152279) > 8 and jps.runicPower() > 25 , rangedTarget , "FrostStrike_RP" },
 
 }
 
@@ -831,47 +833,49 @@ end, "Frost 2H PvP", false, true)
 -------------------------------------------------- ROTATION STATIC TABLE ---------------------------------------
 ----------------------------------------------------------------------------------------------------------------
 
-local Dr,Fr,Ur = dk.updateRune()
-local DepletedRunes = (Dr == 0) or (Fr == 0) or (Ur == 0)
-local AllDepletedRunes = (Dr + Fr + Ur) == 0
-local DeathRuneCount = dk.updateDeathRune()
-
-dk.runes = {}
-dk.runes.Dr = select(1,dk.updateRune())
-dk.runes.Fr = select(2,dk.updateRune())
-dk.runes.Ur = select(3,dk.updateRune())
-dk.runes.depleted = (select(1,dk.updateRune()) == 0) or (select(2,dk.updateRune()) == 0) or (select(3,dk.updateRune()) == 0)
+dk.player = {}
+dk.player.aggro = jps.FriendAggro("player")
 
 jps.registerStaticTable("DEATHKNIGHT","FROST",
 {
+
+	-- "FrostPresence" 48266 "Présence de givre"
+	{ dk.spells["FrostPresence"] , ' not jps.buff(dk.spells.FrostPresence) and jps.hp() > 0.50 ' , "player" },
+	-- "Blood Presence" 48263 "Présence de sang" -- stamina + 20%, armor + 30%, damage - 10%
+	{ dk.spells["BloodPresence"] , ' dk.player.aggro and not jps.buff(dk.spells.BloodPresence) and jps.hpInc() < 0.50 ' , "player" },
+	-- "Horn of Winter" 57330 "Cor de l’hiver" -- + 10% attack power
+	{ dk.spells["HornOfWinter"] , ' not jps.buff(dk.spells.HornOfWinter) ' , "player" },
+
 	-- "Plague Leech" 123693 "Parasite de peste"
-	{ dk.spells["PlagueLeech"] , 'dk.runes.depleted' , rangedTarget , "|cff1eff00PlagueLeech_AllDepletedRunes" },
+	{ dk.spells["PlagueLeech"] , ' dk.Runes("DepletedRunes") ' , rangedTarget , "|cff1eff00PlagueLeech_AllDepletedRunes" },
+	-- "BloodTap" 45529 -- Buff "Drain sanglant" 114851
+	{ dk.spells["BloodTap"] , ' jps.buffStacks(114851) > 9 and dk.Runes("DepletedRunes") ' , rangedTarget , "DrainSanglant_10" },
 	
 	--"Outbreak" 77575 "Poussée de fièvre"
-	{ dk.spells["OutBreak"] , 'jps.myDebuffDuration(55078,rangedTarget) < 5 and not jps.isRecast(77575,rangedTarget)' , rangedTarget },
-	{ dk.spells["OutBreak"] , 'jps.myDebuffDuration(55095,rangedTarget) < 5 and not jps.isRecast(77575,rangedTarget)' , rangedTarget },
+	{ dk.spells["OutBreak"] , ' jps.myDebuffDuration(55078,rangedTarget) < 5 and not jps.isRecast(77575,rangedTarget) ' , rangedTarget },
+	{ dk.spells["OutBreak"] , ' jps.myDebuffDuration(55095,rangedTarget) < 5 and not jps.isRecast(77575,rangedTarget) ' , rangedTarget },
 	-- "Howling Blast" 49184 "Rafale hurlante" 
-	{ dk.spells["HowlingBlast"] , 'jps.buff(59057)' , rangedTarget , "HowlingBlast_Rime" },
-	{ dk.spells["HowlingBlast"] , 'jps.buff(59052)' , rangedTarget , "HowlingBlast_FreezingFog" },
-	{ dk.spells["HowlingBlast"] , 'not jps.myDebuff(55095,rangedTarget) and not jps.isRecast(49184,rangedTarget)' , rangedTarget , "HowlingBlast_Debuff" },
+	{ dk.spells["HowlingBlast"] , ' jps.buff(59057) ' , rangedTarget , "HowlingBlast_Rime" },
+	{ dk.spells["HowlingBlast"] , ' jps.buff(59052) ' , rangedTarget , "HowlingBlast_FreezingFog" },
+	{ dk.spells["HowlingBlast"] , ' not jps.myDebuff(55095,rangedTarget) and not jps.isRecast(49184,rangedTarget) ' , rangedTarget , "HowlingBlast_Debuff" },
 	-- "Plague Strike" 45462 "Frappe de peste"
-	{ dk.spells["PlagueStrike"] , 'not jps.myDebuff(55078,rangedTarget) and not jps.isRecast(45462,rangedTarget)' , rangedTarget , "PlagueStrike_Debuff" },
+	{ dk.spells["PlagueStrike"] , ' not jps.myDebuff(55078,rangedTarget) and not jps.isRecast(45462,rangedTarget) ' , rangedTarget , "PlagueStrike_Debuff" },
 
 	-- "Pillar of Frost" 51271 "Pilier de givre"
-	{ dk.spells["PillarOfFrost"] , 'true' , rangedTarget , "Pillar_Of_Frost" },
+	{ dk.spells["PillarOfFrost"] , ' true ' , rangedTarget , "Pillar_Of_Frost" },
 	-- "Killing Machine" 51124 "Machine à tuer" -- next Obliterate or Frost Strike automatically critically strike.
 	-- "Frost Strike" 49143 "Frappe de givre" -- 25 Runic Power
-	{ dk.spells["Obliterate"] , 'jps.buff(dk.spells.KillingMachine)' , rangedTarget , "Obliterate_KillingMachine" },
-	{ dk.spells["FrostStrike"] , 'jps.buff(dk.spells.KillingMachine)' , rangedTarget , "FrostStrike_KillingMachine" },
+	{ dk.spells["Obliterate"] , ' jps.buff(dk.spells.KillingMachine) ' , rangedTarget , "Obliterate_KillingMachine" },
+	{ dk.spells["FrostStrike"] , ' jps.buff(dk.spells.KillingMachine) ' , rangedTarget , "FrostStrike_KillingMachine" },
 	
 	-- "Breath of Sindragosa" 152279 "Souffle de Sindragosa"
-	{ dk.spells["Sindragosa"] , 'jps.runicPower() > 74' , rangedTarget , "Breath_Sindragosa" },
+	{ dk.spells["Sindragosa"] , ' jps.runicPower() > 74 ' , rangedTarget , "Breath_Sindragosa" },
 	-- "Frost Strike" 49143 "Frappe de givre" -- 25 Runic Power
-	{ dk.spells["FrostStrike"] , 'jps.runicPower() > 74 and jps.cooldown(152279) > 0' , rangedTarget , "FrostStrike_RunicPower" },
-	-- "Howling Blast" 49184 "Rafale hurlante" -- 1 Frost -- 30 yd range
-	{ dk.spells["HowlingBlast"] , 'dk.runes.Fr == 2' , rangedTarget , "HowlingBlast_Fr" },
+	{ dk.spells["FrostStrike"] , ' jps.runicPower() > 74 and jps.cooldown(152279) > 0 ' , rangedTarget , "FrostStrike_RunicPower" },
 	-- "Obliterate" 49020 "Anéantissement" -- 1 Unholy, 1 Frost
-	{ dk.spells["Obliterate"] , 'dk.runes.Ur == 2' , rangedTarget , "Obliterate_Ur" },	
-
+	{ dk.spells["Obliterate"] , ' dk.Runes("Ur") > 0 and jps.runicPower() < 76 ' , rangedTarget , "Obliterate_Ur" },
+	-- "Howling Blast" 49184 "Rafale hurlante" -- 1 Frost -- 30 yd range
+	{ dk.spells["HowlingBlast"] , ' dk.Runes("Fr") > 0 ' , rangedTarget , "HowlingBlast_Fr" },
+	
 }
 , "Frost Static")

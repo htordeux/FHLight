@@ -19,6 +19,7 @@ local L = MyLocalizationTable
 local canDPS = jps.canDPS
 local strfind = string.find
 local UnitClass = UnitClass
+local UnitAffectingCombat = UnitAffectingCombat
 
 local ClassEnemy = {
 	["WARRIOR"] = "cac",
@@ -75,11 +76,13 @@ local playerIsStun = jps.StunEvents(2) -- return true/false ONLY FOR PLAYER -- "
 -- {"STUN_MECHANIC","STUN","FEAR","CHARM","CONFUSE","PACIFY","SILENCE","PACIFYSILENCE"}
 local playerIsInterrupt = jps.InterruptEvents() -- return true/false ONLY FOR PLAYER
 local playerWasControl = jps.ControlEvents() -- return true/false Player was interrupt or stun 2 sec ago ONLY FOR PLAYER
+local inMelee = jps.IsSpellInRange(49998,"target") -- "Death Strike" 49998 "Frappe de Mort"
 
 ----------------------
 -- TARGET ENEMY
 ----------------------
 
+local isBoss = UnitLevel("target") == -1 or UnitClassification("target") == "elite"
 -- rangedTarget returns "target" by default, sometimes could be friend
 local rangedTarget, EnemyUnit, TargetCount = jps.LowestTarget()
 local EnemyCount = jps.RaidEnemyCount()
@@ -119,8 +122,14 @@ local TargetMoving = select(1,GetUnitSpeed(rangedTarget)) > 0
 
 local Dr,Fr,Ur = dk.updateRune()
 local DepletedRunes = (Dr == 0) or (Fr == 0) or (Ur == 0)
-local AllDepletedRunes = (Dr + Fr + Ur) == 0
+local RuneCount = Dr + Fr + Ur
 local DeathRuneCount = dk.updateDeathRune()
+local CompletedRunes = (Dr > 0) and (Fr > 0) and (Ur > 0)
+local RunesCD = 0
+for i=1,6 do
+	local cd = dk.runeCooldown(i)
+	RunesCD = RunesCD + cd
+end
 
 ------------------------
 -- SPELL TABLE ---------

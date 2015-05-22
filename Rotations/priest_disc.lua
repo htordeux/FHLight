@@ -139,6 +139,7 @@ local priestDisc = function()
 	end
 
 	-- DISPEL --
+	local BossDebuffFriend = jps.FindMeBossDebuff()
 	local DispelFriend = jps.FindMeDispelTarget( {"Magic"} ) -- {"Magic", "Poison", "Disease", "Curse"}
 
 	local DispelFriendRole = nil
@@ -316,13 +317,18 @@ spellTable = {
 		{ 17, not jps.buff(17,"targettarget") and not jps.debuff(6788,"targettarget") , "targettarget" , "Shield_TargetTarget" },
 		{ 152118, jps.debuff(6788,"targettarget") and not jps.buff(152118,"targettarget") and not jps.isRecast(152118,"targettarget") , "targettarget" , "Clarity_TargetTarget" },
 	},},
+	-- BOSS DEBUFF
+	{ "nested", type(BossDebuffFriend) == "string" ,{
+		{ 17, not jps.buff(17,BossDebuffFriend) and not jps.debuff(6788,BossDebuffFriend) , BossDebuffFriend , "Shield_BossDebuff" },
+		{ 152118, jps.debuff(6788,BossDebuffFriend) and not jps.buff(152118,BossDebuffFriend) and not jps.isRecast(152118,BossDebuffFriend) , BossDebuffFriend , "Clarity_BossDebuff" },
+	},},
 
 	-- "Pénitence" 47540
 	{ 47540, canHeal(myTank) and jps.hp(myTank) < 0.80 , myTank , "Penance_myTank_" },
 	-- SHIELD TANK
 	{ 17, canHeal(myTank) and not jps.buff(17,myTank) and not jps.debuff(6788,myTank) , myTank , "Timer_Shield_Tank" },
 	-- TIMER POM -- "Prière de guérison" 33076 -- Buff POM 41635
-	{ 33076, canHeal(myTank) and not jps.buff(41635,myTank) , myTank , "Timer_Mending_Tank" },
+	{ 33076, not jps.Moving and canHeal(myTank) and not jps.buff(41635,myTank) , myTank , "Timer_Mending_Tank" },
 	{ "nested", not jps.Moving and not buffTrackerMending ,{
 		{ 33076, type(MendingFriend) == "string" , MendingFriend , "Tracker_Mending_Friend" },
 		{ 33076, not jps.buff(41635,LowestImportantUnit) , LowestImportantUnit , "Tracker_Mending_" },

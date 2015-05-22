@@ -168,6 +168,43 @@ function dk.updateDeathRune()
 	return DeathRuneCount
 end
 
+function dk.Runes(rune)
+
+	local Dr,Fr,Ur = dk.updateRune()
+	local DepletedRunes = (Dr == 0) or (Fr == 0) or (Ur == 0)
+	local CompletedRunes = (Dr > 0) and (Fr > 0) and (Ur > 0)
+	local RuneCount = Dr + Fr + Ur
+	local DeathRuneCount = dk.updateDeathRune()
+	local RunesCD = 0
+	for i=1,6 do
+		local cd = dk.runeCooldown(i)
+		RunesCD = RunesCD + cd
+	end
+
+	local runeTable = {
+		["Dr"] = Dr,
+		["Fr"] = Fr,
+		["Ur"] = Ur,		
+		["DepletedRunes"] = DepletedRunes,
+		["CompletedRunes"] = CompletedRunes,
+		["RuneCount"] = RuneCount,		
+		["DeathRuneCount"] = DeathRuneCount,
+		["RunesCD"] = RunesCD,
+	}
+
+	local result = 0
+	if rune == "Dr" then result = Dr
+	elseif rune == "Fr" then result = Fr
+	elseif rune == "Ur" then result = Ur
+	elseif rune == "DepletedRunes" then result = DepletedRunes
+	elseif rune == "CompletedRunes" then result = CompletedRunes
+	elseif rune == "RuneCount" then result = RuneCount
+	elseif rune == "DeathRuneCount" then result = DeathRuneCount
+	elseif rune == "RunesCD" then result = RunesCD
+	end
+	return runeTable[rune]
+end
+
 --------------------------------
 -- FUNCTIONS
 --------------------------------

@@ -551,20 +551,25 @@ function jps.DispelCurseTarget()
 	end
 end
 
-function jps.FindMeBossDebuff(Boss)
-	local BossDebuff = jps.RaidBossDebuff[Boss]
-	if BossDebuff == nil then return false end
-	for i=1,#BossDebuff do
-		local debuff = BossDebuff[i]
-		if jps.debuff(debuff,unit) then return true end
+function jps.BossDebuff(unit)
+	local auraName, debuffType, expirationTime, castBy, spellId, isBossDebuff
+	local i = 1
+	auraName, _, _, _, debuffType, _, expirationTime, castBy, _, _, spellId, _, isBossDebuff = UnitDebuff(unit, i) 
+	while auraName do
+		if isBossDebuff and expirationTime-GetTime() > 1 then
+			return true
+		end
+		i = i + 1
+		auraName, _, _, _, debuffType, _, expirationTime, castBy, _, _, spellId, _, isBossDebuff = UnitDebuff(unit, i) 
 	end
 	return false
 end
 
-jps.FindMeRaidBossDebuff = function(Boss)
+function jps.FindMeBossDebuff()
 	for unit,_ in pairs(RaidStatus) do
-		if jps.FindMeBossDebuff(Boss) then return unit end
+		if jps.BossDebuff(unit) then return unit end
 	end
+	return nil
 end
 
 -----------------------

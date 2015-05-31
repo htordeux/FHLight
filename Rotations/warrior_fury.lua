@@ -176,11 +176,11 @@ local spellTable = {
 	-- "Storm Bolt" 107570 "Eclair de tempete" -- 30 yd range
 	{ warrior.spells["StormBolt"] , jps.IsSpellKnown(107570) , rangedTarget ,"_StormBolt" },
 	-- "Dragon Roar " 118000 -- 8 yards
-	{ warrior.spells["DragonRoar"] , jps.IsSpellKnown(118000) and jps.IsSpellInRange(118000,rangedTarget) , rangedTarget , "_DragonRoar" },
+	{ warrior.spells["DragonRoar"] , jps.IsSpellKnown(118000) and inMelee , rangedTarget , "_DragonRoar" },
 	-- "Ravager" 152277 -- 40 yd range
 	{ warrior.spells["Ravager"] , jps.IsSpellKnown(152277) , rangedTarget , "_Ravager" },
 	-- "Siegebreaker" 176289 "Briseur de siège"
-	{ warrior.spells["Siegebreaker"] , jps.IsSpellKnown(176289) , rangedTarget ,"_Siegebreaker" },
+	{ warrior.spells["Siegebreaker"] , jps.IsSpellKnown(176289) and inMelee , rangedTarget ,"_Siegebreaker" },
 	
 	{"nested", jps.hp(rangedTarget) < 0.20 and inMelee ,{
 		-- "Execute" 5308 "Exécution" -- cost 30 rage
@@ -199,10 +199,10 @@ local spellTable = {
 		{ warrior.spells["RagingBlow"] , jps.buff(131116) and jps.buffStacks(85739) > 1 , rangedTarget , "_RagingBlow_MeatCleaver" },
 		-- "Whirlwind" 1680 -- 8 yd range -- "Meat Cleaver" 85739 "Fendoir à viande"
 		{ warrior.spells["Whirlwind"], jps.rage() > 59 , rangedTarget , "_Whirlwind" },
-		-- "Bladestorm" 46924 "Tempête de lames" -- "Enrage" 12880 "Enrager" -- While Bladestorm is active, you cannot perform any actions except for using your Taunt
-		{ warrior.spells["Bladestorm"], true , rangedTarget , "_Bladestorm" },
 		-- "Shockwave" 46968 "Onde de choc"
 		{ warrior.spells["Shockwave"] , true , rangedTarget , "_Shockwave" },
+		-- "Bladestorm" 46924 "Tempête de lames" -- "Enrage" 12880 "Enrager" -- While Bladestorm is active, you cannot perform any actions except for using your Taunt
+		{ warrior.spells["Bladestorm"], true , rangedTarget , "_Bladestorm" },
 	}},
 
 	-- "Raging Blow" 85288 "Coup déchaîné" -- buff Raging Blow! 131116 -- "Meat Cleaver" 85739 "Fendoir à viande"

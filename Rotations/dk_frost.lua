@@ -157,9 +157,9 @@ local spellTable = {
 	-- "Lichborne" 49039 "Changeliche" -- vous rend insensible aux effets de charme, de peur et de sommeil pendant 10 s.
 	{ dk.spells["Lichborne"] , playerIsStun , rangedTarget , "_Lichborne" },
 	-- "Death Grip" 49576 "Poigne de la mort"
-	{ dk.spells["DeathGrip"] , jps.PvP and not inMelee },
+	{ dk.spells["DeathGrip"] , jps.PvP and not inMelee , rangedTarget },
 	-- "Chains of Ice" 45524 "Chaînes de glace"
-	{ dk.spells["ChainsOfIce"] , jps.PvP and TargetMoving and not inMelee },
+	{ dk.spells["ChainsOfIce"] , jps.PvP and TargetMoving and not inMelee and jps.cooldown(49576) > 0 , rangedTarget },
 	-- "Icy Touch" 45477 "Toucher de glace" -- for use with Glyph of Icy Touch 43546
 	{ dk.spells["IcyTouch"] , jps.glyphInfo(43546) and jps.castEverySeconds(45477,10) and jps.DispelOffensive(rangedTarget) , rangedTarget , "|cff1eff00DispelOffensive_" },
 	-- "Icebound Fortitude" 48792 "Robustesse glaciale" -- The Death Knight freezes his blood to become immune to Stun effects and reduce all damage taken by 20% for 8 sec.

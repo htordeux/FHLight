@@ -178,7 +178,7 @@ local spellTable = {
 	-- "Dragon Roar " 118000 -- 8 yards
 	{ warrior.spells["DragonRoar"] , jps.IsSpellKnown(118000) and inMelee , rangedTarget , "_DragonRoar" },
 	-- "Revenge" 6572 "Revanche"
-	{ warrior.spells["Revenge"] , inMelee , rangedTarget , "_Revenge" },
+	{ warrior.spells["Revenge"] , true , rangedTarget , "_Revenge" },
 	
 	-- MULTITARGET -- and EnemyCount > 2
 	{"nested", jps.MultiTarget ,{
@@ -215,7 +215,9 @@ local spellTable = {
 	-- "Heroic Strike" 78 "Frappe héroïque" -- "Ultimatum" 122509
 	{ warrior.spells["HeroicStrike"] , jps.rage() > 89 , rangedTarget , "_HeroicStrike_DumpRage" },
 	-- "Dévaster" 20243 "Devastate"
-	{ warrior.spells["Devastate"] , inMelee , rangedTarget , "_Devastate_End" },
+	{ warrior.spells["Devastate"] , true , rangedTarget , "_Devastate_End" },
+	-- "Heroic Strike" 78 "Frappe héroïque" -- "Ultimatum" 122509
+	{ warrior.spells["HeroicStrike"] , jps.rage() > 59 , rangedTarget , "_HeroicStrike_DumpRage" },
 
 }
 

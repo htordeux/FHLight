@@ -1,7 +1,6 @@
 -- jps.Interrupts for Dispel
 -- jps.Defensive changes the LowestImportantUnit to table = { "player","focus","target","mouseover" } with table.insert TankUnit  = jps.findTankInRaid()
 -- jps.FaceTarget to DPSing
--- jps.MultiTarget for Chakra: Sanctuary 81206
 
 local L = MyLocalizationTable
 local spellTable = {}
@@ -75,7 +74,7 @@ local priestHoly = function()
 	local POHTarget, groupToHeal, groupHealth = jps.FindSubGroupHeal(0.75) -- Target to heal with POH in RAID with AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
 	--local POHTarget, groupToHeal = jps.FindSubGroupTarget(0.75) -- Target to heal with POH in RAID with AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
 
-	local myTank,TankUnit = jps.findTankInRaid() -- return Table with UnitThreatSituation == 3 (tanking) or == 1 (Overnuking) or "focus" default
+	local myTank,TankUnit = jps.findTankInRaid() -- return Table with UnitThreatSituation == 3 (tanking) or == 1 (Overnuking) or default "focus"
 	local TankTarget = "target"
 	if canHeal(myTank) then TankTarget = myTank.."target" end
 
@@ -155,6 +154,7 @@ local priestHoly = function()
 	end
 
 	-- DISPEL --
+	local BossDebuffFriend = jps.FindMeBossDebuff()
 	local DispelFriend = jps.FindMeDispelTarget( {"Magic"} ) -- {"Magic", "Poison", "Disease", "Curse"}
 
 	local DispelFriendRole = nil
@@ -175,6 +175,15 @@ local priestHoly = function()
 				RenewFriend = unit
 				RenewFriendHealth = unitHP
 			end
+		end
+	end
+	
+	-- CASCADE
+	local CountFriendLowest = 0
+	for i=1,#FriendUnit do -- for _,unit in ipairs(FriendUnit) do
+		local unit = FriendUnit[i]
+		if jps.hp(unit) < 0.80 and canHeal(unit) then
+			CountFriendLowest = CountFriendLowest + 1
 		end
 	end
 
@@ -255,8 +264,8 @@ local priestHoly = function()
 		{priest.Spell.PrayerOfHealing, 0.80, jps.buffId(81206) or jps.buff(27827) }, -- Chakra: Sanctuary 81206
 	}
 
--- Avoid Overhealing
-	priest.ShouldInterruptCasting( InterruptTable , AvgHealthLoss ,  CountInRange )
+	-- AVOID OVERHEALING
+	priest.ShouldInterruptCasting(InterruptTable , groupHealth , CountFriendLowest)
 
 ------------------------
 -- SPELL TABLE ---------
@@ -309,7 +318,7 @@ local spellTable = {
 		{ 586, jps.glyphInfo(55684) , "player" , "Aggro_Oubli" },
 		-- "Glyph of Purify" 55677 Your Purify spell also heals your target for 5% of maximum health
 		{ 527, jps.canDispel("player",{"Magic"}) , "player" , "Aggro_Dispel" },
-	},},
+	}},
 
 	-- "Leap of Faith" 73325 -- "Saut de foi"
 	--{ 73325, type(LeapFriend) == "string" , LeapFriend , "|cff1eff00Leap_MultiUnit_" },
@@ -333,7 +342,7 @@ local spellTable = {
 		{ 33076, canHeal(myTank) , myTank , "Tracker_Mending_Tank" },
 		{ 33076, type(MendingFriend) == "string" , MendingFriend , "Tracker_Mending_Friend" },
 		{ 33076, not jps.buff(41635,LowestImportantUnit) , LowestImportantUnit , "Tracker_Mending_" },
-	},},
+	}},
 
 	-- CHAKRA
 	-- Chakra: Serenity 81208 -- "Holy Word: Serenity" 88684
@@ -353,7 +362,7 @@ local spellTable = {
 		-- "Prayer of Healing" 596 -- Chakra: Sanctuary 81206 -- increase 25 % Prayer of Mending, Circle of Healing, Divine Star, Cascade, Halo, Divine Hymn
 		{ {"macro",sanctuaryPOH}, not jps.buffId(81206) and jps.cooldown(81206) == 0 and jps.cooldown(596) == 0 , POHTarget , "|cffa335eeSanctuary_POH"},
 		{ 596, canHeal(POHTarget) , POHTarget },
-	},},
+	}},
 
 	-- EMERGENCY HEAL -- "Serendipity" 63735
 	{ "nested", LowestImportantUnitHpct < 0.50 ,{
@@ -370,7 +379,7 @@ local spellTable = {
 		-- "Soins rapides" 2061
 		{ 2061, true , LowestImportantUnit , "Emergency_FlashHeal_" },
 
-	},},
+	}},
 	
 	-- DISPEL -- "Glyph of Purify" 55677 Your Purify spell also heals your target for 5% of maximum health
 	{ "nested", jps.Interrupts , parseDispel },
@@ -395,7 +404,7 @@ local spellTable = {
 		{ 32546 , not jps.Moving and type(BindingHealFriend) == "string" , BindingHealFriend , "Lien_" },
 		-- "Soins supérieurs" 2060
 		{ 2060,  not jps.Moving , LowestImportantUnit , "Soins_"  },
-	},},
+	}},
 	
 	-- "Torve-esprit" 123040 -- "Ombrefiel" 34433 "Shadowfiend"
 	{ 34433, priest.canShadowfiend(rangedTarget) , rangedTarget },

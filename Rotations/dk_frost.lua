@@ -803,7 +803,7 @@ local spellTable = {
 		{ 7744, jps.debuff("mind control","player") }, -- Charm
 		{ 7744, jps.debuff("seduction","player") }, -- Charm
 		{ 7744, jps.debuff("wyvern sting","player") }, -- Sleep
-	},},
+	}},
 
 	-- COUNTERS, ABILITIES -- icebound as last resort on Stun
 	-- "Icebound Fortitude" 48792 "Robustesse glaciale"

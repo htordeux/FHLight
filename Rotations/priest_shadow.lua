@@ -2,11 +2,11 @@
 -- jps.Interrupts for "Semblance spectrale" 112833 -- PvP it loses the orb in Kotmogu Temple
 -- jps.UseCds for "Cascade" or "Divine Star"
 -- jps.Defensive to keep Shield up
--- jps.Defensive to cast Devouring Plague with 3 Shadow Orbs
 
 local L = MyLocalizationTable
 local canDPS = jps.canDPS
 local canHeal = jps.canHeal
+local UnitGetTotalAbsorbs = UnitGetTotalAbsorbs
 local strfind = string.find
 local UnitClass = UnitClass
 local UnitChannelInfo = UnitChannelInfo
@@ -313,14 +313,15 @@ local parseAggro = {
 	{ 17, not jps.debuff(6788,"player") and not jps.buff(17,"player") , "player" },
 	-- "Semblance spectrale" 112833
 	{ 112833, jps.Interrupts and jps.IsSpellKnown(112833) , "player" , "Aggro_Spectral" },
-	-- "Dispersion" 47585
-	{ 47585, jps.PvP and jps.hp("player") < 0.40 , "player" , "Aggro_Dispersion" },
 	-- "Oubli" 586 -- Fantasme 108942 -- vous dissipez tous les effets affectant le déplacement sur vous-même et votre vitesse de déplacement ne peut être réduite pendant 5 s
 	{ 586, jps.IsSpellKnown(108942) and jps.hp("player") < 0.70 , "player" , "Aggro_Oubli" },
 	-- "Oubli" 586 -- Glyphe d'oubli 55684 -- Votre technique Oubli réduit à présent tous les dégâts subis de 10%.
 	{ 586, jps.glyphInfo(55684) and jps.hp("player") < 0.70 , "player" , "Aggro_Oubli" },
 	-- "Oubli" 586
 	{ 586, not jps.PvP , "player" , "Aggro_Oubli" },
+	-- "Dispersion" 47585
+	{ 47585, jps.PvP and jps.hp("player") < 0.40 , "player" , "Aggro_Dispersion" },
+	{ 47585, jps.cooldown(112833) > 0 and jps.cooldown(112833) > 0 and jps.debuff(6788,"player") and jps.hp("player") < 0.40 , "player" , "Aggro_Dispersion" },
 }
 
 -----------------------------
@@ -365,6 +366,7 @@ local spellTable = {
 	-- "Devouring Plague" 2944 consumes 3 Shadow Orbs, you don't have the ability to use with less Orbs
 	{ 2944, Orbs > 4 , rangedTarget , "PLAGUE_Orbs" },
 	{ 2944, Orbs > 2 and jps.MultiTarget , rangedTarget , "PLAGUE_MultiTarget" },
+	{ 2944, Orbs == 3 and jps.myDebuffDuration(34914,rangedTarget) > 3 and jps.myDebuffDuration(589,rangedTarget) > 3 , rangedTarget , "PLAGUE_Debuff_3Orbs" },
 
 	-- MULTITARGET
 	-- "MindSear" 48045 -- "Insanité incendiaire" 179338 "Searing Insanity"
@@ -404,7 +406,6 @@ local spellTable = {
 	{ 2944, Orbs > 2 and jps.hp("player") < 0.75 , rangedTarget , "PLAGUE_LowHealth" },
 	{ 2944, Orbs > 2 and jps.hp(rangedTarget) < 0.20 , rangedTarget , "PLAGUE_LowHealth" },
 	{ 2944, Orbs > 2 and jps.hp("focus") < 0.20 , "focus" , "PLAGUE_LowHealth" },
-	{ 2944, Orbs > 2 and jps.Defensive , rangedTarget , "PLAGUE_LowHealth" },
 
 	-- "Shadow Word: Pain" 589 -- "Shadow Word: Insanity" buff 132573	
 	{ 589, not jps.buff(132573) and fnPainEnemyTarget("mouseover") and not jps.UnitIsUnit("target","mouseover") , "mouseover" , "Pain_Mouseover_Orbs" },
@@ -486,7 +487,7 @@ jps.registerRotation("PRIEST","SHADOW",function()
 		{ 8092, true , rangedTarget , "Blast_CD" },
 		-- "Mind Flay" 15407
 		{ 15407, true , rangedTarget , "Fouet_Mental" },
-	},},
+	}},
 	
 	-- "Fortitude" 21562 -- "Commanding Shout" 469 -- "Blood Pact" 166928
 	{ 21562, not jps.PvP and jps.buffMissing(21562) , "player" },
@@ -497,7 +498,7 @@ jps.registerRotation("PRIEST","SHADOW",function()
 		{ 21562, jps.buffMissing(21562) and jps.buffMissing(469) and jps.buffMissing(166928) , "player" },
 		-- SNM "Levitate" 1706 -- try to keep buff for enemy dispel -- Buff "Lévitation" 111759
 		{ 1706, not jps.buff(111759) , "player" },
-	},},
+	}},
 
 	-- "Don des naaru" 59544
 	{ 59544, jps.hp("player") < 0.75 , "player" },

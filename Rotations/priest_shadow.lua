@@ -360,9 +360,10 @@ local spellTable = {
 	{ 15286, jps.hp("player") < 0.75 and not IsInGroup() , rangedTarget , "VampiricEmbrace"  },
 	{ "nested", jps.hp("player") < 0.75 , parseHeal },
 
+	-- "Mind Blast" 8092 -- "Shadowy Insight" 162452 gives buff 124430
+	{ 8092, Orbs < 5 and Orbs > 1 and COP , rangedTarget , "Blast_Plague" },
 	-- "Power Infusion" "Infusion de puissance" 10060
 	{ 10060, jps.FinderLastMessage("PLAGUE") , rangedTarget , "PowerInfusion" },
-
 	-- "Devouring Plague" 2944 consumes 3 Shadow Orbs, you don't have the ability to use with less Orbs
 	{ 2944, Orbs > 4 , rangedTarget , "PLAGUE_Orbs" },
 	{ 2944, Orbs > 2 and jps.MultiTarget , rangedTarget , "PLAGUE_MultiTarget" },
@@ -370,7 +371,6 @@ local spellTable = {
 
 	-- MULTITARGET
 	-- "MindSear" 48045 -- "Insanité incendiaire" 179338 "Searing Insanity"
-	--{ 15407, not jps.Moving and jps.MultiTarget and jps.buffDuration(132573) > 3.36 , rangedTarget , "MINDFLAYORBS_Multi" },
 	{ 48045, not jps.Moving and jps.MultiTarget and jps.buff(132573) , rangedTarget , "MINDSEARORBS_Target" },
 	{ 48045, not jps.Moving and jps.MultiTarget and jps.buff(132573) , myTank , "MINDSEARORBS_Tank" },
 
@@ -441,8 +441,8 @@ local spellTable = {
 	-- "Gardien de peur" 634
 	{ 6346, jps.PvP and not jps.buff(6346,"player") , "player" },
 	-- "Mind Spike" 73510 -- "Surge of Darkness" gives buff -- "Surge of Darkness" 87160
-	{ 34914, fnMindSpike("mouseover") , "mouseover" , "Spike_Mouseover" },
 	{ 34914, type(MindSpikeTarget) == "string" , MindSpikeTarget , "Spike_MultiUnit" },
+	{ 34914, fnMindSpike("mouseover") , "mouseover" , "Spike_Mouseover" },
 	-- "Mind Flay" 15407
 	{ 15407, true , rangedTarget , "_FouetMental" },
 }

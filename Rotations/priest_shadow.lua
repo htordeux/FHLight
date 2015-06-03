@@ -74,7 +74,6 @@ local myTank,_ = jps.findTankInRaid() -- default "focus"
 local BodyAndSoul = jps.IsSpellKnown(64129)
 -- "Clarity of Power" 155246 "Clarté de pouvoir"
 local COP = jps.IsSpellKnown(155246)
-local NbOrbs = 4
 
 ---------------------
 -- TIMER
@@ -361,13 +360,12 @@ local spellTable = {
 	{ "nested", jps.hp("player") < 0.75 , parseHeal },
 
 	-- "Mind Blast" 8092 -- "Shadowy Insight" 162452 gives buff 124430
-	{ 8092, Orbs < 5 and Orbs > 1 and COP , rangedTarget , "Blast_Plague" },
+	--{ 8092, Orbs < 5 and Orbs > 1 and COP , rangedTarget , "Blast_Plague" },
 	-- "Power Infusion" "Infusion de puissance" 10060
 	{ 10060, jps.FinderLastMessage("PLAGUE") , rangedTarget , "PowerInfusion" },
 	-- "Devouring Plague" 2944 consumes 3 Shadow Orbs, you don't have the ability to use with less Orbs
-	{ 2944, Orbs > 4 , rangedTarget , "PLAGUE_Orbs" },
+	{ 2944, Orbs == 5 , rangedTarget , "PLAGUE_5Orbs" },
 	{ 2944, Orbs > 2 and jps.MultiTarget , rangedTarget , "PLAGUE_MultiTarget" },
-	{ 2944, Orbs == 3 and jps.myDebuffDuration(34914,rangedTarget) > 3 and jps.myDebuffDuration(589,rangedTarget) > 3 , rangedTarget , "PLAGUE_Debuff_3Orbs" },
 
 	-- MULTITARGET
 	-- "MindSear" 48045 -- "Insanité incendiaire" 179338 "Searing Insanity"
@@ -396,7 +394,19 @@ local spellTable = {
 	{ 127632, jps.IsSpellKnown(127632) and jps.UseCDs , rangedTarget , "Cascade"  },
 	-- "Divine Star" Holy 110744 Shadow 122121
 	{ 122121, jps.IsSpellKnown(122121) and jps.UseCDs , rangedTarget , "DivineStar"  },
-	
+	{ "nested", jps.MultiTarget , {
+		-- "Shadow Word: Pain" 589 -- "Shadow Word: Insanity" buff 132573	
+		{ 589, not jps.buff(132573) and fnPainEnemyTarget("mouseover") and not jps.UnitIsUnit("target","mouseover") , "mouseover" , "Pain_Mouseover_Orbs" },
+		{ 589, not jps.buff(132573) and fnPainEnemyTarget("focus") , "focus" , "Pain_Focus_Orbs" },
+		{ 589, type(PainEnemyTarget) == "string" and not jps.UnitIsUnit(PainEnemyTarget,"target") , PainEnemyTarget , "Pain_MultiUnit" },
+		-- "Vampiric Touch" 34914 -- "Shadow Word: Insanity" buff 132573
+		{ 34914, not jps.buff(132573) and fnVampEnemyTarget("mouseover") and not jps.UnitIsUnit("target","mouseover") , "mouseover" , "VT_Mouseover_Orbs" },
+		{ 34914, not jps.buff(132573) and fnVampEnemyTarget("focus") , "focus" , "VT_Focus_Orbs" },
+		{ 34914, type(VampEnemyTarget) == "string" and not jps.UnitIsUnit(VampEnemyTarget,"target") , VampEnemyTarget , "VT_MultiUnit" },
+	}},
+	-- "MindSear" 48045 -- "Insanité incendiaire" 179338 "Searing Insanity"
+	{ 48045, not jps.Moving and jps.MultiTarget and EnemyCount > 3, rangedTarget , "MINDSEAR_Target" },
+
 	-- "Shadow Word: Pain" 589 -- "Shadow Word: Insanity" buff 132573
 	{ 589, Orbs > 3 and jps.myDebuffDuration(589,rangedTarget) < 3 and not jps.isRecast(589,rangedTarget) , rangedTarget , "Pain_Orbs" },
 	-- "Vampiric Touch" 34914 -- "Shadow Word: Insanity" buff 132573
@@ -406,6 +416,7 @@ local spellTable = {
 	{ 2944, Orbs > 2 and jps.hp("player") < 0.75 , rangedTarget , "PLAGUE_LowHealth" },
 	{ 2944, Orbs > 2 and jps.hp(rangedTarget) < 0.20 , rangedTarget , "PLAGUE_LowHealth" },
 	{ 2944, Orbs > 2 and jps.hp("focus") < 0.20 , "focus" , "PLAGUE_LowHealth" },
+	{ 2944, Orbs > 2 and jps.myDebuffDuration(34914,rangedTarget) > 3 and jps.myDebuffDuration(589,rangedTarget) > 3 , rangedTarget , "PLAGUE_Debuff" },
 
 	-- "Shadow Word: Pain" 589 -- "Shadow Word: Insanity" buff 132573	
 	{ 589, not jps.buff(132573) and fnPainEnemyTarget("mouseover") and not jps.UnitIsUnit("target","mouseover") , "mouseover" , "Pain_Mouseover_Orbs" },
@@ -420,15 +431,7 @@ local spellTable = {
 	{ 73510, jps.buffStacks(87160,"player") > 1 , rangedTarget , "Spike_SurgeofDarkness_Stacks" },
 	{ 73510, jps.buff(87160) and jps.hp(rangedTarget) < 0.20 , rangedTarget , "Spike_SurgeofDarkness_LowHealth" },
 	{ 73510, jps.buff(87160) and jps.buffDuration(87160) < 4 , rangedTarget , "Spike_SurgeofDarkness_CD" },
-	{ 73510, not jps.Moving and COP and Orbs < NbOrbs and not jps.myDebuff(158831,rangedTarget) and jps.myDebuffDuration(34914,rangedTarget) < 3 and jps.myDebuffDuration(589,rangedTarget) < 3 , rangedTarget , "Spike_CoP" },
-
-	-- "Devouring Plague" 2944 consumes 3 Shadow Orbs, you don't have the ability to use with less Orbs
-	{ "nested", COP and Orbs > 3 and jps.cooldown(8092) > jps.GCD , {
-		-- "Devouring Plague" debuff 158831 -- "Clarity of Power" 155246 "Clarté de pouvoir" 
-		{ 2944, not jps.myDebuff(158831,rangedTarget) and jps.myDebuffDuration(34914,rangedTarget) > 3 and jps.myDebuffDuration(589,rangedTarget) > 3 , rangedTarget , "PLAGUE_Debuff" },
-		{ 2944, not jps.myDebuff(158831,rangedTarget) and jps.myDebuffDuration(34914,rangedTarget) > 3 and not jps.myDebuff(589,rangedTarget) , rangedTarget , "PLAGUE_Debuff" },
-		{ 2944, not jps.myDebuff(158831,rangedTarget) and not jps.myDebuff(34914,rangedTarget) and jps.myDebuffDuration(589,rangedTarget) > 3 , rangedTarget , "PLAGUE_Debuff" },
-	}},
+	{ 73510, not jps.Moving and COP and Orbs < 4 and not jps.myDebuff(158831,rangedTarget) and jps.myDebuffDuration(34914,rangedTarget) < 3 and jps.myDebuffDuration(589,rangedTarget) < 3 , rangedTarget , "Spike_CoP" },
 
 	-- "Mindbender" "Torve-esprit" 123040 -- "Ombrefiel" 34433 "Shadowfiend"
 	{ 34433, priest.canShadowfiend(rangedTarget) , rangedTarget },

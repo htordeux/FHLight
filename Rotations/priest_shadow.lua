@@ -360,7 +360,7 @@ local spellTable = {
 	{ "nested", jps.hp("player") < 0.75 , parseHeal },
 
 	-- "Mind Blast" 8092 -- "Shadowy Insight" 162452 gives buff 124430
-	--{ 8092, Orbs < 5 and Orbs > 1 and COP , rangedTarget , "Blast_Plague" },
+	{ 8092, jps.Moving and COP and jps.buff(132573) , rangedTarget , "Blast_Plague" },
 	-- "Power Infusion" "Infusion de puissance" 10060
 	{ 10060, jps.FinderLastMessage("PLAGUE") , rangedTarget , "PowerInfusion" },
 	-- "Devouring Plague" 2944 consumes 3 Shadow Orbs, you don't have the ability to use with less Orbs

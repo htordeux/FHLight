@@ -16,6 +16,7 @@ local GetSpellInfo = GetSpellInfo
 local MindFlay = GetSpellInfo(15407)
 local Insanity = GetSpellInfo(129197)
 local MindSear = GetSpellInfo(48045)
+local Searing = GetSpellInfo(179338)
 
 local ClassEnemy = {
 	["WARRIOR"] = "cac",
@@ -244,20 +245,22 @@ if jps.buff(47585,"player") then return end -- "Dispersion" 47585
 
 local canCastMindBlast = false
 local Channeling = UnitChannelInfo("player") -- "Mind Flay" is a channeling spell
-if Channeling and Channeling == MindFlay then
+if Channeling and Channeling == MindFlay and jps.cooldown(8092) == 0 then
 	-- "Glyph of Mind Spike" 33371 gives buff 81292
-	if jps.cooldown(8092) == 0 and jps.buffStacks(81292) == 2 then 
+	if jps.buffStacks(81292) == 2 then 
 		canCastMindBlast = true
 	-- "Shadowy Insight" 162452 gives BUFF 124430
 	elseif jps.buff(124430) then
 		canCastMindBlast = true
 	-- "Mind Blast" 8092 -- Instant with COP 155246
-	elseif jps.cooldown(8092) == 0 and COP then 
+	elseif COP then 
 		canCastMindBlast = true
 	-- "OnCD"
-	elseif jps.cooldown(8092) == 0 and not jps.Moving then
+	elseif not jps.Moving then
 		canCastMindBlast = true
 	end
+elseif Channeling and Channeling == MindSear and jps.cooldown(8092) == 0 then
+	canCastMindBlast = true
 end
 
 if canCastMindBlast then
@@ -265,6 +268,13 @@ if canCastMindBlast then
 	spell = 8092;
 	target = rangedTarget;
 	if jps.combatStart > 0 then write("MIND_BLAST") end
+return spell,target end
+
+if Channeling and Channeling == Searing and jps.buff(132573) and jps.buffDuration(132573) < 1.25 and jps.ChannelTimeLeft() < 1.75 then
+	SpellStopCasting()
+	spell = 179338;
+	target = rangedTarget;
+	if jps.combatStart > 0 then write("MIND_SEAR") end
 return spell,target end
 
 -- Avoid interrupt Channeling
@@ -362,7 +372,7 @@ local spellTable = {
 	-- "Mind Blast" 8092 -- "Shadowy Insight" 162452 gives buff 124430
 	{ 8092, jps.Moving and COP and jps.buff(132573) , rangedTarget , "Blast_Plague" },
 	-- "Power Infusion" "Infusion de puissance" 10060
-	{ 10060, jps.FinderLastMessage("PLAGUE") , rangedTarget , "PowerInfusion" },
+	{ 10060, jps.FinderLastMessage("PLAGUE") and jps.hp("player") > jps.hp(rangedTarget) , rangedTarget , "PowerInfusion" },
 	-- "Devouring Plague" 2944 consumes 3 Shadow Orbs, you don't have the ability to use with less Orbs
 	{ 2944, Orbs == 5 , rangedTarget , "PLAGUE_5Orbs" },
 	{ 2944, Orbs > 2 and jps.MultiTarget , rangedTarget , "PLAGUE_MultiTarget" },
@@ -445,7 +455,6 @@ local spellTable = {
 	{ 6346, jps.PvP and not jps.buff(6346,"player") , "player" },
 	-- "Mind Spike" 73510 -- "Surge of Darkness" gives buff -- "Surge of Darkness" 87160
 	{ 34914, type(MindSpikeTarget) == "string" , MindSpikeTarget , "Spike_MultiUnit" },
-	{ 34914, fnMindSpike("mouseover") , "mouseover" , "Spike_Mouseover" },
 	-- "Mind Flay" 15407
 	{ 15407, true , rangedTarget , "_FouetMental" },
 }

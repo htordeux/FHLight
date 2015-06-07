@@ -1,7 +1,8 @@
+-- jps.UseCds for "Cascade" or "Divine Star"
 -- jps.MultiTarget for "MindSear" 48045
 -- jps.Interrupts for "Semblance spectrale" 112833 -- PvP it loses the orb in Kotmogu Temple
--- jps.UseCds for "Cascade" or "Divine Star"
 -- jps.Defensive to keep Shield up
+-- jps.FaceTarget to DPSing
 
 local L = MyLocalizationTable
 local canDPS = jps.canDPS
@@ -134,16 +135,6 @@ if canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
 
 -- take care if "focus" not Polymorph and not Cyclone
 if canDPS("focus") and not DebuffUnitCyclone("focus") then EnemyUnit[#EnemyUnit+1] = "focus" end
-
-local fnOrbs = function(unit)
-	if not jps.PvP then return false end
-	if jps.LoseControl(unit) then return false end
-	if Orbs == 0 then return false end
-	if Orbs < 3 and jps.ShouldKick(unit) then return true end
-	if Orbs < 3 and jps.EnemyHealer(unit) then return true end
-	if Orbs < 3 and jps.UnitIsUnit(unit.."target","player") then return true end
-	return false
-end
 
 local fnMindSpike = function(unit)
 	if jps.Moving then return false end
@@ -284,11 +275,24 @@ if jps.ChannelTimeLeft() > 0 then return nil end
 ------------------------ TABLES
 -------------------------------------------------------------
 
+-- "Psychic Horror" 64044 Consumes up to 3 Shadow Orbs to terrify the target
+-- incapacitating the target for 1 sec plus 1 sec per Shadow Orb consumed.
+local fnOrbs = function(unit)
+	if not jps.PvP then return false end
+	if Orbs == 0 then return false end
+	if jps.LoseControl(unit) then return false end
+	if DebuffUnitCyclone(unit) then return false end
+	if jps.ShouldKick(unit) then return true end
+	if jps.EnemyHealer(unit) then return true end
+	if jps.UnitIsUnit(unit.."target","player") then return true end
+	return false
+end
+
 local parseControl = {
 	-- "Psychic Scream" "Cri psychique" 8122 -- FARMING OR PVP -- NOT PVE -- debuff same ID 8122
 	{ 8122, jps.PvP and priest.canFear(rangedTarget) , rangedTarget },
 	-- "Silence" 15487
-	{ 15487, jps.IsSpellInRange(15487,rangedTarget) and EnemyCaster(rangedTarget) == "caster" , rangedTarget },
+	{ 15487, jps.PvP and jps.IsSpellInRange(15487,rangedTarget) and EnemyCaster(rangedTarget) == "caster" , rangedTarget },
 	-- "Psychic Horror" 64044 "Horreur psychique" -- 30 yd range
 	{ 64044, jps.IsSpellInRange(64044,rangedTarget) and fnOrbs(rangedTarget) , rangedTarget },
 	-- "Void Tendrils" 108920 -- debuff "Void Tendril's Grasp" 114404
@@ -299,7 +303,7 @@ local parseControlFocus = {
 	-- "Psychic Scream" "Cri psychique" 8122 -- FARMING OR PVP -- NOT PVE -- debuff same ID 8122
 	{ 8122, jps.PvP and priest.canFear("focus") , "focus" , "Fear_focus" },
 	-- "Silence" 15487
-	{ 15487, jps.IsSpellInRange(15487,"focus") and EnemyCaster("focus") == "caster" , "focus" , "Silence_focus" },
+	{ 15487, jps.PvP and jps.IsSpellInRange(15487,"focus") and EnemyCaster("focus") == "caster" , "focus" , "Silence_focus" },
 	-- "Psychic Horror" 64044 "Horreur psychique" -- 30 yd range
 	{ 64044, jps.IsSpellInRange(64044,"focus") and fnOrbs("focus") , "focus" , "Horror_focus" },
 	-- "Void Tendrils" 108920 -- debuff "Void Tendril's Grasp" 114404
@@ -351,9 +355,6 @@ local spellTable = {
 	{ jps.useTrinket(0), jps.useTrinketBool(0) and not playerWasControl and jps.combatStart > 0 , "player" , "useTrinket0" },
 	{ jps.useTrinket(1), jps.useTrinketBool(1) and playerIsStun , "player" , "useTrinket1" },
 	
-	-- PLAYER AGGRO
-	{ "nested", playerAggro , parseAggro },
-	
 	-- FOCUS CONTROL
 	-- "Silence" 15487
 	{ 15487, type(SilenceEnemyTarget) == "string" , SilenceEnemyTarget , "Silence_MultiUnit_Target" },
@@ -363,6 +364,9 @@ local spellTable = {
 	{ 528, jps.castEverySeconds(528,10) and jps.DispelOffensive(rangedTarget) , rangedTarget , "|cff1eff00Dispel_Offensive" },
 	{ 528, jps.castEverySeconds(528,10) and type(DispelOffensiveTarget) == "string"  , DispelOffensiveTarget , "|cff1eff00Dispel_Offensive_MultiUnit" },
 	
+	-- PLAYER AGGRO
+	{ "nested", playerAggro , parseAggro },
+	
 	-- HEAL --
 	-- "Vampiric Embrace" 15286
 	{ 15286, CountInRange > 5 , rangedTarget , "VampiricEmbrace"  },
@@ -370,7 +374,7 @@ local spellTable = {
 	{ "nested", jps.hp("player") < 0.75 , parseHeal },
 
 	-- "Mind Blast" 8092 -- "Shadowy Insight" 162452 gives buff 124430
-	{ 8092, jps.Moving and COP and jps.buff(132573) , rangedTarget , "Blast_Plague" },
+	{ 8092, jps.Moving and COP and jps.buff(132573) , rangedTarget , "BLAST_PLAGUE" },
 	-- "Power Infusion" "Infusion de puissance" 10060
 	{ 10060, jps.FinderLastMessage("PLAGUE") and jps.hp("player") > jps.hp(rangedTarget) , rangedTarget , "PowerInfusion" },
 	-- "Devouring Plague" 2944 consumes 3 Shadow Orbs, you don't have the ability to use with less Orbs
@@ -502,7 +506,8 @@ jps.registerRotation("PRIEST","SHADOW",function()
 	}},
 	
 	-- "Fortitude" 21562 -- "Commanding Shout" 469 -- "Blood Pact" 166928
-	{ 21562, not jps.PvP and jps.buffMissing(21562) , "player" },
+	{ 21562, jps.buffMissing(21562) , "player" },
+
 	{"nested", jps.PvP , {
 		-- "Gardien de peur" 6346
 		{ 6346, not jps.buff(6346,"player") , "player" },

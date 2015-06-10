@@ -147,7 +147,7 @@ local spellTable = {
 	{ warrior.spells["Stoneform"] , jps.canDispel("player",{"Magic","Poison","Disease","Curse"}) , rangedTarget , "_Stoneform" },
 
 	-- "Heroic Throw" 57755 "Lancer héroïque"
-	{ warrior.spells["HeroicThrow"] , inRanged , rangedTarget , "_Heroic Throw" },
+	{ warrior.spells["HeroicThrow"] , inRanged and not inMelee , rangedTarget , "_Heroic Throw" },
 	-- "Charge" 100
 	{ warrior.spells["Charge"], jps.UseCDs and jps.IsSpellInRange(100,rangedTarget) , rangedTarget , "_Charge"},
 	-- "Intimidating Shout" 5246
@@ -176,11 +176,11 @@ local spellTable = {
 	-- "Storm Bolt" 107570 "Eclair de tempete" -- 30 yd range
 	{ warrior.spells["StormBolt"] , jps.IsSpellKnown(107570) , rangedTarget ,"_StormBolt" },
 	-- "Dragon Roar " 118000 -- 8 yards
-	{ warrior.spells["DragonRoar"] , jps.IsSpellKnown(118000) and inMelee , rangedTarget , "_DragonRoar" },
+	{ warrior.spells["DragonRoar"] , jps.IsSpellKnown(118000) and jps.IsSpellInRange(118000,rangedTarget) , rangedTarget , "_DragonRoar" },
 	-- "Ravager" 152277 -- 40 yd range
 	{ warrior.spells["Ravager"] , jps.IsSpellKnown(152277) , rangedTarget , "_Ravager" },
 	-- "Siegebreaker" 176289 "Briseur de siège"
-	{ warrior.spells["Siegebreaker"] , jps.IsSpellKnown(176289) and inMelee , rangedTarget ,"_Siegebreaker" },
+	{ warrior.spells["Siegebreaker"] , jps.IsSpellKnown(176289) , rangedTarget ,"_Siegebreaker" },
 	
 	{"nested", jps.hp(rangedTarget) < 0.20 and inMelee ,{
 		-- "Execute" 5308 "Exécution" -- cost 30 rage

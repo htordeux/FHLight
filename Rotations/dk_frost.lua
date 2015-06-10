@@ -142,6 +142,10 @@ local spellTable = {
 	{ dk.spells["BloodPresence"] , not jps.buff(dk.spells.BloodPresence) and jps.hpInc() < 0.50 and playerAggro , "player" },
 	-- "Horn of Winter" 57330 "Cor de l’hiver" -- + 10% attack power
 	{ dk.spells["HornOfWinter"] , not jps.buff(dk.spells.HornOfWinter) , "player" },
+	
+	-- TRINKETS -- jps.useTrinket(0) est "Trinket0Slot" est slotId  13 -- "jps.useTrinket(1) est "Trinket1Slot" est slotId  14
+	{ jps.useTrinket(0), jps.UseCDs and jps.useTrinketBool(0) and not playerWasControl and jps.combatStart > 0 },
+	{ jps.useTrinket(1), jps.UseCDs and jps.useTrinketBool(1) and not playerWasControl and jps.combatStart > 0 },
 
 	-- AGGRO --
 	{ dk.spells["Icebound"] , playerAggro and jps.hp() < 0.75 , "player" , "_Icebound" },
@@ -181,10 +185,6 @@ local spellTable = {
 	{ dk.spells["EmpowerRuneWeapon"] , jps.runicPower() < 76 and dk.Runes("RuneCount") == 0 , rangedTarget , "|cff1eff00EmpowerRuneWeapon" },
 	{ dk.spells["EmpowerRuneWeapon"] , jps.buff(152279) and dk.Runes("RunesCD") > 50 , rangedTarget , "|cff1eff00EmpowerRuneWeapon_Sindragosa" },
 	{ dk.spells["EmpowerRuneWeapon"] , jps.cooldown(152279) == 0 and dk.Runes("RunesCD") > 50 , rangedTarget , "|cff1eff00EmpowerRuneWeapon_Sindragosa" },
-
-	-- TRINKETS -- jps.useTrinket(0) est "Trinket0Slot" est slotId  13 -- "jps.useTrinket(1) est "Trinket1Slot" est slotId  14
-	{ jps.useTrinket(0), jps.UseCDs and jps.useTrinketBool(0) and not playerWasControl and jps.combatStart > 0 },
-	{ jps.useTrinket(1), jps.UseCDs and jps.useTrinketBool(1) and not playerWasControl and jps.combatStart > 0 },
 
 	-- HEALS --	
 	-- "Pierre de soins" 5512
@@ -241,9 +241,15 @@ local spellTable = {
 	{ dk.spells["HowlingBlast"] , jps.buff(59057) , rangedTarget , "HowlingBlast_Rime" },
 	{ dk.spells["HowlingBlast"] , jps.buff(59052) , rangedTarget , "HowlingBlast_FreezingFog" },
 	{ dk.spells["HowlingBlast"] , not jps.myDebuff(55095,rangedTarget) and not jps.isRecast(49184,rangedTarget) , rangedTarget , "HowlingBlast_Debuff" },
+	
+	-- MULTITARGET --
+	-- "Defile" 152280 "Profanation" -- 1 Unholy
+	{ dk.spells["Defile"] , IsShiftKeyDown() },
+	-- "Death and Decay" 43265 "Mort et decomposition" -- 1 Unholy
+	{ dk.spells["DeathAndDecay"], IsShiftKeyDown() },
 
 	-- "Breath of Sindragosa" 152279 "Souffle de Sindragosa"
-	{ dk.spells["Sindragosa"] , jps.runicPower() > 75 and CompletedRunes and jps.cooldown(dk.spells.PlagueLeech) == 0, rangedTarget , "SINDRAGOSA" },
+	{ dk.spells["Sindragosa"] , jps.runicPower() > 75 and CompletedRunes , rangedTarget , "SINDRAGOSA" },
 	-- "Frost Strike" 49143 "Frappe de givre" -- 25 Runic Power
 	-- "Killing Machine" 51124 "Machine à tuer" -- next Obliterate or Frost Strike automatically critically strike.
 	{ dk.spells["FrostStrike"] , jps.buff(51124) and not jps.buff(152279) , rangedTarget , "FrostStrike_KillingMachine" },
@@ -255,12 +261,8 @@ local spellTable = {
 	-- "Howling Blast" 49184 "Rafale hurlante" -- 1 Frost -- 30 yd range
 	{ dk.spells["HowlingBlast"] , dk.Runes("Fr") > 0 , rangedTarget , "HowlingBlast_Fr" },
 	
-	-- MULTITARGET -- and EnemyCount > 2
-	-- "Defile" 152280 "Profanation" -- 1 Unholy
-	{ dk.spells["Defile"] , IsShiftKeyDown() },
-	-- "Death and Decay" 43265 "Mort et decomposition" -- 1 Unholy
-	{ dk.spells["DeathAndDecay"], IsShiftKeyDown() },
-	{"nested", jps.MultiTarget ,{
+	-- MULTITARGET --
+	{"nested", jps.MultiTarget and inMelee ,{
 		-- "Defile" 152280 "Profanation" -- 1 Unholy
 		{ dk.spells["Defile"] , true },
 		-- "Blood Boil" 50842 "Furoncle sanglant"
@@ -527,7 +529,8 @@ local spellTable = {
 	{ dk.spells["Defile"] , IsShiftKeyDown() },
 	-- "Death and Decay" 43265 "Mort et decomposition" -- 1 Unholy
 	{ dk.spells["DeathAndDecay"], IsShiftKeyDown() },
-	{"nested", jps.MultiTarget ,{
+
+	{"nested", jps.MultiTarget and inMelee ,{
 		-- "Defile" 152280 "Profanation" -- 1 Unholy
 		{ dk.spells["Defile"] , true },
 		-- "Blood Boil" 50842 "Furoncle sanglant"
@@ -765,7 +768,8 @@ local spellTable = {
 	{ dk.spells["Defile"] , IsShiftKeyDown() },
 	-- "Death and Decay" 43265 "Mort et decomposition" -- 1 Unholy
 	{ dk.spells["DeathAndDecay"], IsShiftKeyDown() },
-	{"nested", jps.MultiTarget ,{
+
+	{"nested", jps.MultiTarget and inMelee ,{
 		-- "Defile" 152280 "Profanation" -- 1 Unholy
 		{ dk.spells["Defile"] , true },
 		-- "Blood Boil" 50842 "Furoncle sanglant"

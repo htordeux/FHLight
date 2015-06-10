@@ -225,7 +225,7 @@ local priestDisc = function()
 	
 	local parseControl = {
 		-- "Silence" 15487
-		{ 15487, jps.IsCastingControl(rangedTarget) , rangedTarget , "Silence_" },
+		{ 15487, jps.IsSpellInRange(15487,rangedTarget) and EnemyCaster(rangedTarget) == "caster" , rangedTarget },
 		-- "Psychic Scream" "Cri psychique" 8122 -- debuff same ID 8122
 		{ 8122, priest.canFear(rangedTarget) , rangedTarget },
 		-- "Void Tendrils" 108920 -- debuff "Void Tendril's Grasp" 114404
@@ -323,7 +323,7 @@ spellTable = {
 	{ 15487, type(SilenceEnemyTarget) == "string" , SilenceEnemyTarget , "Silence_MultiUnit" },
 	{ "nested", jps.PvP and not jps.LoseControl(rangedTarget) and canDPS(rangedTarget) , parseControl },
 	-- "Leap of Faith" 73325 -- "Saut de foi"
-	{ 73325, type(LeapFriend) == "string" , LeapFriend , "|cff1eff00Leap_MultiUnit_" },
+	{ 73325, jps.PvP and type(LeapFriend) == "string" , LeapFriend , "|cff1eff00Leap_MultiUnit_" },
 	
 	-- DISPEL -- "Glyph of Purify" 55677 Your Purify spell also heals your target for 5% of maximum health
 	{ "nested", jps.Interrupts , parseDispel },
@@ -331,10 +331,10 @@ spellTable = {
 	{ 528, jps.castEverySeconds(528,10) and jps.DispelOffensive(rangedTarget) , rangedTarget , "|cff1eff00DispelOffensive_" },
 
 	-- FAKE CAST -- 6948 -- "Hearthstone"
-	{ {"macro","/use item:6948"}, LowestImportantUnitHpct > 0.85 and not jps.Moving and playerAggro and jps.itemCooldown(6948) == 0 , "player" , "Aggro_FAKECAST" },
+	{ {"macro","/use item:6948"}, jps.PvP and LowestImportantUnitHpct > 0.85 and not jps.Moving and playerAggro and jps.itemCooldown(6948) == 0 , "player" , "Aggro_FAKECAST" },
 
 	-- "Power Word: Shield" 17
-	{ 17, jps.Defensive and jps.Moving and BodyAndSoul and not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Aggro_Moving" },
+	{ 17, jps.Defensive and jps.Moving and BodyAndSoul and not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Shield_Moving" },
 	-- PLAYER AGGRO
 	{ "nested", jps.hp() < 0.75 ,{
 		-- "Power Word: Shield" 17
@@ -350,7 +350,7 @@ spellTable = {
 		-- "Power Word: Shield" 17
 		{ 17, not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Aggro_Shield" },
 		-- "Spectral Guise" 112833 "Semblance spectrale"
-		{ 112833, jps.IsSpellKnown(112833) , "player" , "Aggro_Spectral" },
+		{ 112833, jps.useCDs and jps.IsSpellKnown(112833) , "player" , "Aggro_Spectral" },
 		-- "Oubli" 586 -- Fantasme 108942 -- vous dissipez tous les effets affectant le déplacement sur vous-même
 		{ 586, jps.IsSpellKnown(108942) , "player" , "Aggro_Oubli" },
 		-- "Oubli" 586 -- Glyphe d'oubli 55684 -- Votre technique Oubli réduit à présent tous les dégâts subis de 10%.
@@ -505,9 +505,14 @@ spellTable = {
 		-- "Mot de l'ombre: Douleur" 589
 		{ 589, jps.myDebuffDuration(589,rangedTarget) == 0 and not IsInGroup() , rangedTarget , "|cFFFF0000Douleur_" },
 		-- "Châtiment" 585
-		{ 585, jps.castEverySeconds(585,2) , rangedTarget , "|cFFFF0000Chatiment_" },
+		{ 585, jps.castEverySeconds(585,2) and jps.PvP , rangedTarget , "|cFFFF0000Chatiment_" },
+		{ 585, jps.castEverySeconds(585,2) and not IsInGroup() , rangedTarget , "|cFFFF0000Chatiment_" },
+		{ 585, jps.castEverySeconds(585,2) and jps.buffStacks(81661) < 5 , rangedTarget , "|cFFFF0000Chatiment_Stacks" },
+		{ 585, jps.castEverySeconds(585,2) and jps.hp(myTank) < 1 , rangedTarget , "|cFFFF0000Chatiment_Tank" },
+		{ 585, jps.castEverySeconds(585,2) and LowestImportantUnitHpct < 1 and jps.mana("player") > 0.75 , rangedTarget , "|cFFFF0000Chatiment_Mana" },
 		-- "Pénitence" 47540 -- jps.glyphInfo(119866) -- allows Penance to be cast while moving.
-		{ 47540, true , rangedTarget ,"|cFFFF0000Penance_" },
+		{ 47540, not IsInGroup() , rangedTarget ,"|cFFFF0000Penance_" },
+		{ 47540, jps.PvP , rangedTarget ,"|cFFFF0000Penance_" },
 	}},
 	
 	-- "Nova" 132157 -- "Words of Mending" 155362 "Mot de guérison"
@@ -523,7 +528,7 @@ spellTable = {
 	return spell,target
 end
 
-jps.registerRotation("PRIEST","DISCIPLINE", priestDiscPvP , "Disc Priest PVP" , false, true)
+jps.registerRotation("PRIEST","DISCIPLINE", priestDisc , "Disc Priest")
 
 ----------------------------------------------------------------------------------------------------------------
 -------------------------------------------------- ROTATION OOC ------------------------------------------------
@@ -557,7 +562,7 @@ jps.registerRotation("PRIEST","DISCIPLINE",function()
 	{ 1706, playerIsSwimming and not jps.buff(111759) , "player" },
 
 	-- "Fortitude" 21562 -- "Commanding Shout" 469 -- "Blood Pact" 166928
-	{ 21562, not jps.PvP and jps.buffMissing(21562) , "player" },
+	{ 21562, jps.buffMissing(21562) , "player" },
 
 	{"nested", jps.PvP , {
 		-- "Gardien de peur" 6346
@@ -567,7 +572,7 @@ jps.registerRotation("PRIEST","DISCIPLINE",function()
 		-- SNM "Levitate" 1706 -- try to keep buff for enemy dispel -- Buff "Lévitation" 111759
 		{ 1706, not jps.buff(111759) , "player" },
 		-- SNM "Nova" 132157 -- keep buff "Words of Mending" 155362 "Mot de guérison" 
-		{ 132157, jps.IsSpellKnown(155362) and jps.buffStacks(155362) < 5 , "player" , "Nova_WoM" },
+		{ 132157, jps.UseCDs and jps.buffStacks(155362) < 5 , "player" , "Nova_WoM" },
 	}},
 		
 	-- "Shield" 17 "Body and Soul" 64129 -- figure out how to speed buff everyone as they move
@@ -594,8 +599,24 @@ jps.registerRotation("PRIEST","DISCIPLINE",function()
 
 end,"OOC Disc Priest",nil,nil,nil,true)
 
+-- REMOVED -- http://fr.wowhead.com/guide=2298/warlords-of-draenor-priest-changes#specializations-removed
+-- Borrowed Time has been redesigned. It now increases the Priest's stat gains to Haste from all sources by 40% for 6 seconds.
+-- Void Shift
+-- Inner Focus has been removed.
+-- Inner Will has been removed.
+-- Rapture has been removed.( Removes the cooldown on Power Word: Shield)
+-- Hymn of Hope has been removed.
+-- Heal has been removed.
+
+-- CHANGED --
+-- Greater has been renamed to Heal.
+-- Renew Holy -- HOLY
+-- Binding Heal -- HOLY
+-- Mot de l'ombre : Mort 32379 -- SHADOW
+-- Divine Insight -- HOLY
+
 -------------------
--- SNM, MY TO DO --
+-- TO DO --
 -------------------
 -- jpevents.lua: jps.whoIsCapping.
    -- Look for flag capture event and honorable defender buff 68652 on player?

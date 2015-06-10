@@ -168,7 +168,7 @@ local spellTable = {
 	}},
 
 	-- "Heroic Throw" 57755 "Lancer héroïque"
-	{ 57755, inRanged , rangedTarget , "_Heroic Throw" },
+	{ 57755, inRanged and not inMelee , rangedTarget , "_Heroic Throw" },
 	-- "Charge" 100
 	{ 100, jps.UseCDs and jps.IsSpellInRange(100,rangedTarget) , rangedTarget , "_Charge"},
 	-- "Intimidating Shout" 5246
@@ -196,7 +196,7 @@ local spellTable = {
 	{ 163201, jps.buff(29725) , rangedTarget , "Execute_SuddenDeath" },
 
 	-- MULTI-TARGET 
-	{ "nested", jps.MultiTarget and EnemyCount > 2 and inMelee ,{
+	{ "nested", jps.MultiTarget and inMelee ,{
 		-- "Sweeping Strikes" 12328 "Attaques circulaires" 
 		{ 12328, not jps.myDebuff(12328) , rangedTarget , "_SweepingStrikes" },
 		-- "Rend" 772 "Pourfendre" -- Apply if tab-target has no debuff

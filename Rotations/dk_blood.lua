@@ -1,20 +1,3 @@
--- Talents:
--- Tier 1: Roiling Blood (for trash / add fights) or Plague Leech for Single Target
--- Tier 2: Anti-Magic Zone
--- Tier 3: Death's Advance
--- Tier 4: Death Pact
--- Tier 5: Runic Corruption
--- Tier 6: Remorseless Winter
--- Major Glyphs: Icebound Fortitude, Anti-Magic Shell
-
--- Usage info:
--- Shift to DnD at mouse
--- left alt for anti magic zone
--- left ctrl for army of death
--- shift + left alt for battle rezz at your focus or (if focus is not death , or no focus or focus target out of range) mouseover
--- Cooldowns: trinkets, raise dead, dancing rune weapon, synapse springs
--- focus on other tank in raids
-
 local L = MyLocalizationTable
 local canDPS = jps.canDPS
 local strfind = string.find
@@ -61,6 +44,10 @@ local DebuffUnitCyclone = function (unit)
 	end
 	return Cyclone
 end
+
+----------------------------------------------------------------------------------------------------------------
+-------------------------------------------------- ROTATION PvE ------------------------------------------------
+----------------------------------------------------------------------------------------------------------------
 
 jps.registerRotation("DEATHKNIGHT","BLOOD",function()
 
@@ -137,24 +124,24 @@ end
 
 local parseControl = {
 	-- "Lichborne" 49039 "Changeliche" -- vous rend insensible aux effets de charme, de peur et de sommeil pendant 10 s.
-	{ dk.spells["Lichborne"] , playerIsStun , rangedTarget , "_Lichborne" },
+	{ dk.spells["Lichborne"] , playerIsStun , "target" , "LICHBORNE" },
 	--"Strangulate" 47476 "Strangulation" -- 30 yd range
-	{ dk.spells["Strangulate"] , jps.Interrupts and jps.ShouldKick(rangedTarget) , "_STRANGULATE" },
-	{ dk.spells["Strangulate"] , jps.Interrupts and jps.ShouldKick("focus") , "focus" },
+	{ dk.spells["Strangulate"] , jps.Interrupts and jps.ShouldKick("target") , "target" , "STRANGULATE" },
+	{ dk.spells["Strangulate"] , jps.Interrupts and jps.ShouldKick("focus") , "focus" , "STRANGULATE" },
 	-- "Asphyxiate" 108194 "Asphyxier" -- 30 yd range
-	{ dk.spells["Asphyxiate"] , jps.Interrupts and jps.ShouldKick(rangedTarget) , rangedTarget , "_ASPHYXIATE" },
-	{ dk.spells["Asphyxiate"] , jps.Interrupts and jps.ShouldKick("focus") , "focus" },
+	{ dk.spells["Asphyxiate"] , jps.Interrupts and jps.ShouldKick("target") , "target" , "ASPHYXIATE" },
+	{ dk.spells["Asphyxiate"] , jps.Interrupts and jps.ShouldKick("focus") , "focus" , "ASPHYXIATE" },
 	--"Mind Freeze" 47528 "Gel de l'esprit"
-	{ dk.spells["MindFreeze"] , jps.Interrupts and jps.ShouldKick(rangedTarget) , rangedTarget , "_MINDFREEZE" },
-	{ dk.spells["MindFreeze"] , jps.Interrupts and jps.ShouldKick("focus"), "focus" },
+	{ dk.spells["MindFreeze"] , jps.Interrupts and jps.ShouldKick("target") , "target" , "MINDFREEZE" },
+	{ dk.spells["MindFreeze"] , jps.Interrupts and jps.ShouldKick("focus"), "focus" , "MINDFREEZE" },
 	-- "Dark Simulacrum" 77606 "Sombre simulacre"
-	{ dk.spells["DarkSimulacrum"], dk.shouldDarkSimTarget() , "target" , "_DARKSIMULACRUM" },
-	{ dk.spells["DarkSimulacrum"], dk.shouldDarkSimFocus() , "focus"},
+	{ dk.spells["DarkSimulacrum"], dk.shouldDarkSimTarget() , "target" , "DARKSIMULACRUM" },
+	{ dk.spells["DarkSimulacrum"], dk.shouldDarkSimFocus() , "focus" , "DARKSIMULACRUM" },
 	-- "Remorseless Winter" 108200 "Hiver impitoyable"
-	{ dk.spells["RemorselessWinter"] , jps.combatStart > 0 and jps.IsSpellInRange(49998) , "target" , "_Remorseless" },
+	{ dk.spells["RemorselessWinter"] , jps.combatStart > 0 and jps.IsSpellInRange(49998) , "target" , "Remorseless" },
 	-- "Anti-Magic Shell" 48707 "Carapace anti-magie"
-	{ dk.spells["AntiMagicShell"] , jps.IsCasting("target") and jps.UnitIsUnit("targettarget","player") , "target" , "_AntiMagic" },
-	{ dk.spells["AntiMagicShell"] , jps.IsCasting("focus") and jps.UnitIsUnit("focustarget","player") , "focus" , "_AntiMagic" },
+	{ dk.spells["AntiMagicShell"] , jps.IsCasting("target") and jps.UnitIsUnit("targettarget","player") , "target" , "AntiMagic" },
+	{ dk.spells["AntiMagicShell"] , jps.IsCasting("focus") and jps.UnitIsUnit("focustarget","player") , "focus" , "AntiMagic" },
 }
 
 local spellTable = {
@@ -172,93 +159,89 @@ local spellTable = {
 	-- "Chains of Ice" 45524 "Chaînes de glace"
 	{ dk.spells["ChainsofIce"] , jps.PvP and TargetMoving and not jps.IsSpellInRange(49998,"target") },
 	-- "Dark Command" 56222
-	{ 56222 , IsInGroup() and not jps.UnitIsUnit("targettarget","player") , "target", "_DarkCommand" },
+	{ 56222 , IsInGroup() and not jps.UnitIsUnit("targettarget","player") , "target", "DarkCommand" },
 
 	-- DISEASES -- debuff Frost Fever 55095 -- debuff Blood Plague 55078
 	-- "Outbreak" 77575 "Poussée de fièvre" -- 30 yd range 
-	{ dk.spells["OutBreak"] , jps.myBuffDuration(55078,"target") < 0 and not jps.isRecast(77575,"target") , "target" , "_OutBreak" },
-	{ dk.spells["OutBreak"] , jps.myBuffDuration(55095,"target") < 0 and not jps.isRecast(77575,"target") , "target" , "_OutBreak" },
+	{ dk.spells["OutBreak"] , jps.myBuffDuration(55078,"target") < 0 and not jps.isRecast(77575,"target") , "target" , "OutBreak" },
+	{ dk.spells["OutBreak"] , jps.myBuffDuration(55095,"target") < 0 and not jps.isRecast(77575,"target") , "target" , "OutBreak" },
 	-- "Plague Strike" 45462 "Frappe de peste" -- 1 Unholy Rune
-	{ dk.spells["PlagueStrike"] , not jps.myDebuff(55078,"target") , "target" , "_PlagueStrike" },
+	{ dk.spells["PlagueStrike"] , not jps.myDebuff(55078,"target") , "target" , "PlagueStrike" },
 	-- "Icy Touch" 45477 "Toucher de glace" -- 1 Frost Rune
-	{ dk.spells["IcyTouch"] , not jps.myDebuff(55095,"target") , "target" , "_IcyTouch" },
+	{ dk.spells["IcyTouch"] , not jps.myDebuff(55095,"target") , "target" , "IcyTouch" },
 	
 	-- "Crimson Scourge" buff 81141 "Fléau cramoisi"--  your next Blood Boil or Death and Decay cost no runes.
-	{ dk.spells["BloodBoil"] , jps.buff(81141) ,"target" , "_OutBreak" },
+	{ dk.spells["BloodBoil"] , jps.buff(81141) ,"target" , "BloodBoil_Buff" },
 	-- "Soul Reaper" 130735 "Faucheur d’âme"
-	{ dk.spells["SoulReaper"] , jps.hp("target") < 0.35 , "target" , "_SoulReaper " },
-
-	-- CONTROL --
-	{"nested", jps.combatStart > 0 , parseControl },
+	{ dk.spells["SoulReaper"] , jps.hp("target") < 0.35 , "target" , "SoulReaper " },
 	
 	-- TRINKETS -- jps.useTrinket(0) est "Trinket0Slot" est slotId  13 -- "jps.useTrinket(1) est "Trinket1Slot" est slotId  14
 	{ jps.useTrinket(0), jps.UseCDs and jps.useTrinketBool(0) and not playerWasControl and jps.combatStart > 0 },
 	{ jps.useTrinket(1), jps.UseCDs and jps.useTrinketBool(1) and not playerWasControl and jps.combatStart > 0 },
+	-- CONTROL --
+	{"nested", jps.combatStart > 0 , parseControl },
 	
-	-- PLAGUE LEECH --
-	-- "Plague Leech" 123693 "Parasite de peste"
-	{ dk.spells["PlagueLeech"] , dk.canCastPlagueLeech() and DepletedRunes , rangedTarget , "|cff1eff00PlagueLeech_DepletedRunes" },
-
-	-- HEALS --
-	-- "Death Strike" 49998 "Frappe de Mort" -- 1 Unholy, 1 Frost -- "Blood Shield" 77535 "Bouclier de sang" -- jps.buffDuration(77535) max 9 sec
-	{ dk.spells["DeathStrike"] , Fr > 0 and Ur > 0 , "target" , "_|cff1eff00DeathStrike_Runes" },
-	-- "Rune Tap" 48982 "Connexion runique" -- "Rune Tap" Buff 171049 -- 1 Blood pour réduire tous les dégâts subis de 40% pendant 3 s.
-	{ dk.spells["RuneTap"] , jps.combatStart > 0 and jps.hp() < 0.40 and not jps.buff(171049) , "target" , "_RuneTap" },
-	-- "Vampiric Blood" 55233 "Sang vampirique" -- Augmente le maximum de points de vie de 15% et les soins reçus de 15% pendant 10 s. from other healers and from Death Strike and Death Siphon.
-	{ dk.spells["VampiricBlood"] , jps.hp() < 0.75 , "target" , "_VampiricBlood" },
-	-- "Pierre de soins" 5512
-	{ {"macro","/use item:5512"}, jps.hp("player") < 0.75 and jps.itemCooldown(5512)==0 , "target" , "_Item5512" },
-	-- "Death Pact" 48743 "Pacte mortel" -- - Heals the Death Knight for 50% of max health, and absorbs incoming healing equal to 25% of max health for 15 sec.
-	{ dk.spells["DeathPact"] , jps.hp() < 0.40 , "target" , "_Death Pact" },
-	-- "Death Siphon" 108196 "Siphon mortel"
-	{ dk.spells["DeathSiphon"] , jps.hp() < 0.40 , "target" , "_DeathSiphon" },
-	-- "Stoneform" 20594 "Forme de pierre"
-	{ warrior.spells["Stoneform"] , jps.hp("player") < 0.75 , "target" , "_Stoneform" },
-	-- "Icebound Fortitude" 48792 "Robustesse glaciale"
-	{ dk.spells["Icebound"] , jps.combatStart > 0 and jps.hp("player") < 0.75 , "target" , "_Icebound" },
-
-	-- "Death Coil" 47541 "Voile mortel"
-	{ dk.spells["DeathCoil"] , jps.runicPower() > 60 , "target" , "_DeathCoil_RunicPower" },
-	-- "Blood Boil" 50842 "Furoncle sanglant" -- 1 Blood -- refresh diseases to full duration
-	-- "Scent of Blood" 50421 "Odeur du sang" -- jps.buffStacks(50421) max 5 -- increases the healing from your next Death Strike by 20% 
-	{ dk.spells["BloodBoil"] , Dr > 0 , "target" , "_BloodBoil" },
-
 	-- RUNE MANAGEMENT --
 	-- "Plague Leech" 123693 "Parasite de peste"
-	{ dk.spells["PlagueLeech"] , dk.canCastPlagueLeech(9) and DepletedRunes , "target", "_PlagueLeech" },
+	{ dk.spells["PlagueLeech"] , dk.canCastPlagueLeech(9) and DepletedRunes , "target", "PlagueLeech" },
+	{ dk.spells["PlagueLeech"] , dk.canCastPlagueLeech() and RuneCount == 0 , "target" , "|cff1eff00PlagueLeech_DepletedRunes" },
 	--"BloodTap" 45529 -- "Drain sanglant" 114851
-	{ dk.spells["BloodTap"] , jps.buffStacks(114851) > 9 and DepletedRunes , "target", "_BloodTap9" },
-	{ dk.spells["BloodTap"] , jps.buffStacks(114851) > 5 and AllDepletedRunes , "target", "_BloodTap5" },
+	{ dk.spells["BloodTap"] , jps.buffStacks(114851) > 9 and DepletedRunes , "target", "BloodTap_9" },
+	{ dk.spells["BloodTap"] , jps.buffStacks(114851) > 5 and RuneCount == 0 , "target", "BloodTap_5" },
 	-- "Empower Rune Weapon" 47568 "Renforcer l'arme runique"
-	{ dk.spells["EmpowerRuneWeapon"] , jps.IsSpellInRange(49998,"target") and AllDepletedRunes , "target", "_EmpowerRuneWeapon" },
+	{ dk.spells["EmpowerRuneWeapon"] , jps.IsSpellInRange(49998,"target") and RuneCount == 0 , "target", "EmpowerRuneWeapon" },
+
+	-- HEALS --
+	-- "Death Coil" 47541 "Voile mortel"
+	{ dk.spells["DeathCoil"] , jps.runicPower() > 59 , "target" , "DeathCoil_RunicPower" },
+	-- "Death Strike" 49998 "Frappe de Mort" -- 1 Unholy, 1 Frost -- "Blood Shield" 77535 "Bouclier de sang" -- jps.buffDuration(77535) max 9 sec
+	{ dk.spells["DeathStrike"] , jps.hp() < 0.85 , "target" , "|cff1eff00DeathStrike_Health" },
+	{ dk.spells["DeathStrike"] , jps.buffDuration(77735) < 2 , "target" , "|cff1eff00DeathStrike_Buff" },
+	-- "Blood Boil" 50842 "Furoncle sanglant" -- 1 Blood -- refresh diseases to full duration
+	-- "Scent of Blood" 50421 "Odeur du sang" -- jps.buffStacks(50421) max 5 -- increases the healing from your next Death Strike by 20% 
+	{ dk.spells["BloodBoil"] , jps.buffStacks(50421) < 5 , "target" , "BloodBoil_Stacks" },
+	-- "Rune Tap" 48982 "Connexion runique" -- "Rune Tap" Buff 171049 -- 1 Blood pour réduire tous les dégâts subis de 40% pendant 3 s.
+	{ dk.spells["RuneTap"] , jps.combatStart > 0 and jps.hp() < 0.40 and not jps.buff(171049) , "target" , "RuneTap" },
+	-- "Vampiric Blood" 55233 "Sang vampirique" -- Augmente le maximum de points de vie de 15% et les soins reçus de 15% pendant 10 s. from other healers and from Death Strike and Death Siphon.
+	{ dk.spells["VampiricBlood"] , jps.hp() < 0.75 , "target" , "VampiricBlood" },
+	-- "Pierre de soins" 5512
+	{ {"macro","/use item:5512"}, jps.hp("player") < 0.75 and jps.itemCooldown(5512)==0 , "target" , "Item5512" },
+	-- "Death Pact" 48743 "Pacte mortel" -- - Heals the Death Knight for 50% of max health, and absorbs incoming healing equal to 25% of max health for 15 sec.
+	{ dk.spells["DeathPact"] , jps.hp() < 0.40 , "target" , "Death Pact" },
+	-- "Death Siphon" 108196 "Siphon mortel"
+	{ dk.spells["DeathSiphon"] , jps.hp() < 0.40 , "target" , "DeathSiphon" },
+	-- "Stoneform" 20594 "Forme de pierre"
+	{ warrior.spells["Stoneform"] , playerAggro and jps.hp() < 0.85 , "target" , "Stoneform" },
+	{ warrior.spells["Stoneform"] , jps.canDispel("player",{"Magic","Poison","Disease","Curse"}) , "target" , "Stoneform" },
+	-- "Icebound Fortitude" 48792 "Robustesse glaciale"
+	{ dk.spells["Icebound"] , jps.combatStart > 0 and jps.hp("player") < 0.75 , "target" , "Icebound" },
 
 	-- MULTITARGET
-	{"nested", jps.MultiTarget and EnemyCount > 2 ,{
+	-- "Defile" 152280 "Profanation" -- 1 Unholy
+	{ dk.spells["Defile"] , IsShiftKeyDown() },
+	-- "Death and Decay" 43265 "Mort et decomposition" -- 1 Unholy
+	{ dk.spells["DeathAndDecay"], IsShiftKeyDown() },
+
+	{"nested", jps.MultiTarget and inMelee ,{
 		-- "Crimson Scourge" buff 81141 "Fléau cramoisi"
 		--  your next Blood Boil or Death and Decay cost no runes.
 		-- "Death and Decay" 43265 "Mort et decomposition" -- 1 Unholy
-		{ dk.spells["DeathAndDecay"] , jps.buff(81141) },
+		{ dk.spells["DeathAndDecay"] , jps.buff(81141) , "target" , "DeathAndDecay_MultiTarget" },
 		-- "Defile" 152280 "Profanation" -- 1 Unholy -- 30 s cd
-		{ dk.spells["Defile"] , true , "target" , "_Defile_MultiTarget" },
+		{ dk.spells["Defile"] , true , "target" , "Defile_MultiTarget" },
 		-- "Blood Boil" 50842 "Furoncle sanglant" -- 1 Blood
-		{ dk.spells["BloodBoil"] , true , "target" , "_BloodBoil_MultiTarget" },
+		{ dk.spells["BloodBoil"] , true , "target" , "BloodBoil_MultiTarget" },
 		-- "Dancing Rune Weapon" 49028 "Arme runique dansante" -- Summons a second rune weapon for 8 sec granting an additional 20% parry chance.
 		{ dk.spells["DancingRune"] , EnemyCount > 4 },
 
 	}},
 	
 	-- "Death Coil" 47541 "Voile mortel"
-	{ dk.spells["DeathCoil"] , AllDepletedRunes , "target" , "_DeathCoil_DepletedRunes" },
+	{ dk.spells["DeathCoil"] , jps.runicPower() > 29 , "target" , "DeathCoil" },
 
 }
 	spell,target = parseSpellTable(spellTable)
 	return spell,target
 	
 end, "DK Blood Main")
-
--- [Rune Strike] has been removed. Blood death knights should now use [Death Coil] in its place.
--- [Heart Strike] has been removed. Blood death knights should use [Pestilence] in its place.
--- "Runic Strikes" 165394 "Frappes runiques" -- Passif -- Vous gagnez 5% de score de frappe multiple supplémentaire de toutes les sources
--- et les frappes multiples de vos attaques automatiques avec les armes à deux mains génèrent 15 points de puissance runique.
-
 

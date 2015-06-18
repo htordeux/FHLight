@@ -135,8 +135,10 @@ local spellTable = {
 	{ warrior.spells["DefensiveStance"] , not jps.buff(71) and not jps.buff(156291), "player" },
 	-- "Battle Shout" 6673 "Cri de guerre"
 	{ warrior.spells["BattleShout"] , not jps.hasAttackPowerBuff("player") , "player" },
+	-- "Commanding Shout" 469 "Cri de commandement"
+	{ 469 , jps.hasAttackPowerBuff("player") and jps.myBuffDuration(6673,"player") == 0 and not jps.buff(469) , "player" },
 	-- "Proteger" 114029
-	{ 114029, jps.hp(myTank) < 0.25 and jps.hp() > 0.85, myTank , "PROTEGER_myTank" },
+	{ 114029, jps.hp(myTank) < 0.30 and jps.hp() > 0.85, myTank , "PROTEGER_myTank" },
 	
 	-- INTERRUPTS --
 	-- "Spell Reflection" 23920 "Renvoi de sort" --renvoyez le prochain sort lancé sur vous. Dure 5 s. Buff same spellId
@@ -149,7 +151,7 @@ local spellTable = {
 	{ warrior.spells["Pummel"] , jps.Interrupts and jps.ShouldKick("focus") , "focus" , "Pummel" },
 
 	-- "Provocation" 355
-	{ 355, jps.Defensive and jps.buff(71) , rangedTarget , "Provocation" },
+	{ 355, jps.Defensive and jps.buff(71) and not jps.UnitIsUnit("targettarget","player") , rangedTarget , "Provocation" },
 	-- "Demoralizing Shout" 1160 "Cri démoralisant"
 	{ 1160, jps.buff(71) and not jps.debuff(1160,rangedTarget) , rangedTarget , "Demoralizing" },
 	-- "Shield Block" 2565 "Maîtrise du blocage" -- works against physical attacks, it does nothing against magic
@@ -189,18 +191,18 @@ local spellTable = {
 	--{ warrior.spells["PiercingHowl"] , not jps.debuff(12323,rangedTarget) , rangedTarget , "PiercingHowl"},
 	-- "Intimidating Shout" 5246
 	{ warrior.spells["IntimidatingShout"] , jps.PvP and not jps.debuff(5246,rangedTarget) , rangedTarget , "IntimidatingShout"},
-	-- "Bloodbath" 12292 "Bain de sang" -- Buff 12292
-	{ warrior.spells["Bloodbath"], jps.combatStart > 0 and Enrage and inMelee , rangedTarget , "|cFFFF0000Bloodbath" },
 	-- "Berserker Rage" 18499 "Rage de berserker"
 	{ warrior.spells["BerserkerRage"] , not Enrage and jps.cooldown(23922) > 0 , rangedTarget , "|cFFFF0000BerserkerRage" },
 
 	-- TALENTS --
+	-- "Bloodbath" 12292 "Bain de sang" -- Buff 12292
+	{ warrior.spells["Bloodbath"], jps.combatStart > 0 and jps.rage() > 29 , rangedTarget , "|cFFFF0000Bloodbath" },
+	-- "Revenge" 6572 "Revanche"
+	{ warrior.spells["Revenge"] , inMelee , rangedTarget , "Revenge" },
 	-- "Storm Bolt" 107570 "Eclair de tempete" -- 30 yd range
 	{ warrior.spells["StormBolt"] , jps.IsSpellKnown(107570) , rangedTarget ,"StormBolt" },
 	-- "Dragon Roar " 118000 -- 8 yards
 	{ warrior.spells["DragonRoar"] , jps.IsSpellKnown(118000) and inMelee , rangedTarget , "DragonRoar" },
-	-- "Revenge" 6572 "Revanche"
-	{ warrior.spells["Revenge"] , inMelee , rangedTarget , "Revenge" },
 
 	-- "Shield Charge" 156321 "Charge de bouclier" -- Buff "Shield Charge" 169667 -- Increasing the damage of Shield Slam, Revenge, and Heroic Strike by 25% for 7 sec.
 	{ 156321, jps.buff(156291) and jps.buffDuration(169667) < 2 and jps.rage() > 29 and jps.cooldown(23922) == 0 , rangedTarget , "|cffa335eeShieldCharge_Slam" },
@@ -222,6 +224,8 @@ local spellTable = {
 		{ warrior.spells["Ravager"] , jps.IsSpellKnown(152277) , rangedTarget , "Ravager" },
 		-- "Shockwave" 46968 "Onde de choc"
 		{ warrior.spells["Shockwave"] , jps.IsSpellKnown(46968) , rangedTarget , "Shockwave" },
+		-- "Bladestorm" 46924 "Tempête de lames"
+		{ warrior.spells["Bladestorm"] , jps.IsSpellKnown(46924) , rangedTarget , "Bladestorm" },
 		-- "Thunder Clap" 6343 "Coup de tonnerre"
 		{ warrior.spells["ThunderClap"] , true , rangedTarget , "ThunderClap" },
 	}},

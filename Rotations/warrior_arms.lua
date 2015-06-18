@@ -187,7 +187,7 @@ local spellTable = {
 	-- "Storm Bolt" 107570 "Eclair de tempete"
 	{ 107570, jps.IsSpellKnown(107570) , rangedTarget , "_StormBolt_Health" },
 	-- "Dragon Roar" 118000 "Rugissement de dragon"
-	{ 118000, jps.IsSpellKnown(118000) and jps.IsSpellInRange(118000,rangedTarget) , rangedTarget , "_DragonRoar" },
+	{ 118000, jps.IsSpellKnown(118000) and inMelee , rangedTarget , "_DragonRoar" },
 	-- "Ravager" 152277 -- "Colossus Smash" 167105
 	{ 152277, jps.IsSpellKnown(152277) and jps.debuff(167105,rangedTarget) , rangedTarget , "_Ravager"},
 	-- "Siegebreaker" 176289 "Briseur de siège"

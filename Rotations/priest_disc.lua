@@ -55,7 +55,7 @@ local priestDisc = function()
 	local POHTarget, groupToHeal, groupHealth = jps.FindSubGroupHeal(0.75) -- Target to heal with POH in RAID with AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
 	--local POHTarget, groupToHeal = jps.FindSubGroupTarget(0.75) -- Target to heal with POH in RAID with AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
 
-	local myTank,TankUnit = jps.findTankInRaid() -- return Table with UnitThreatSituation == 3 (tanking) or == 1 (Overnuking) or default "focus"
+	local myTank,TankUnit = jps.findTankInRaid() -- default "focus"
 	local TankTarget = "target"
 	if canHeal(myTank) then TankTarget = myTank.."target" end
 
@@ -78,10 +78,9 @@ local priestDisc = function()
 	-- rangedTarget returns "target" by default, sometimes could be friend
 	local rangedTarget, EnemyUnit, TargetCount = jps.LowestTarget()
 
-	if canDPS("target") then rangedTarget =  "target"
-	elseif canDPS(TankTarget) then rangedTarget = TankTarget 
-	elseif canDPS("targettarget") then rangedTarget = "targettarget"
-	elseif canDPS("focustarget") then rangedTarget = "focustarget"
+	if canDPS("target") and UnitAffectingCombat("target") then rangedTarget =  "target"
+	elseif canDPS(TankTarget) and UnitAffectingCombat(TankTarget) then rangedTarget = TankTarget 
+	elseif canDPS("targettarget") and UnitAffectingCombat("targettarget") then rangedTarget = "targettarget"
 	elseif canDPS("mouseover") and UnitAffectingCombat("mouseover") then rangedTarget = "mouseover"
 	end
 	-- if your target is friendly keep it as target
@@ -379,17 +378,6 @@ spellTable = {
 	{ 129250, canDPS(rangedTarget) , rangedTarget, "|cFFFF0000Solace_" },
 	-- "Flammes sacrées" 14914  -- "Evangélisme" 81661
 	{ 14914, canDPS(rangedTarget) , rangedTarget , "|cFFFF0000Flammes_" },
-	
-	-- SHIELD BOSS TARGET
-	{ "nested", canDPS("target") and jps.IsCasting("target") ,{
-		{ 17, not jps.buff(17,"targettarget") and not jps.debuff(6788,"targettarget") , "targettarget" , "Shield_TargetTarget" },
-		{ 152118, jps.debuff(6788,"targettarget") and not jps.buff(152118,"targettarget") and not jps.isRecast(152118,"targettarget") , "targettarget" , "Clarity_TargetTarget" },
-	}},
-	-- BOSS DEBUFF
-	{ "nested", type(BossDebuffFriend) == "string" ,{
-		{ 17, not jps.buff(17,BossDebuffFriend) and not jps.debuff(6788,BossDebuffFriend) , BossDebuffFriend , "Shield_BossDebuff" },
-		{ 152118, jps.debuff(6788,BossDebuffFriend) and not jps.buff(152118,BossDebuffFriend) and not jps.isRecast(152118,BossDebuffFriend) , BossDebuffFriend , "Clarity_BossDebuff" },
-	}},
 
 	-- "Pénitence" 47540
 	{ 47540, canHeal(myTank) and jps.hp(myTank) < 0.80 , myTank , "Penance_myTank_" },
@@ -405,6 +393,17 @@ spellTable = {
 	{ 152118, not jps.Moving and canHeal(myTank) and priest.unitForClarity(myTank) and LowestImportantUnitHpct > 0.50 and jps.hp(myTank) > 0.80  , myTank , "Timer_ClarityTank" },
 	-- "Soins" 2060
 	{ 2060, groupHealth > 0.80 and not jps.Moving and canHeal(myTank) and jps.debuff(6788,myTank) and LowestImportantUnitHpct > 0.50 and jps.hpAbs(myTank) < 0.90 , myTank , "Soins_myTank_"  },
+
+	-- SHIELD BOSS TARGET
+	{ "nested", canDPS("target") and jps.IsCasting("target") ,{
+		{ 17, not jps.buff(17,"targettarget") and not jps.debuff(6788,"targettarget") , "targettarget" , "Shield_TargetTarget" },
+		{ 152118, jps.debuff(6788,"targettarget") and not jps.buff(152118,"targettarget") and not jps.isRecast(152118,"targettarget") , "targettarget" , "Clarity_TargetTarget" },
+	}},
+	-- BOSS DEBUFF
+	{ "nested", type(BossDebuffFriend) == "string" ,{
+		{ 17, not jps.buff(17,BossDebuffFriend) and not jps.debuff(6788,BossDebuffFriend) , BossDebuffFriend , "Shield_BossDebuff" },
+		{ 152118, jps.debuff(6788,BossDebuffFriend) and not jps.buff(152118,BossDebuffFriend) and not jps.isRecast(152118,BossDebuffFriend) , BossDebuffFriend , "Clarity_BossDebuff" },
+	}},
 
 	{ "nested", type(POHTarget) == "string" ,{
 		-- "Archange" 81700 -- Buff 81700 -- "Archange surpuissant" 172359  100 % critique POH or FH
@@ -540,7 +539,7 @@ jps.registerRotation("PRIEST","DISCIPLINE",function()
 	local LowestImportantUnit = jps.LowestImportantUnit()
 	local LowestImportantUnitHpct = jps.hp(LowestImportantUnit) -- UnitHealth(unit) / UnitHealthMax(unit)
 	local POHTarget, _, _ = jps.FindSubGroupHeal(0.50)
-	local myTank,_ = jps.findTankInRaid() -- default "focus"
+	local myTank,TankUnit = jps.findTankInRaid() -- default "focus"
 	local rangedTarget, _, _ = jps.LowestTarget() -- default "target"
 	-- "Body and Soul" 64129
 	local BodyAndSoul = jps.IsSpellKnown(64129)

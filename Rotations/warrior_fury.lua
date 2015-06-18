@@ -1,5 +1,6 @@
 local L = MyLocalizationTable
 local canDPS = jps.canDPS
+local canHeal = jps.canHeal
 local strfind = string.find
 local UnitClass = UnitClass
 local UnitAffectingCombat = UnitAffectingCombat
@@ -63,6 +64,10 @@ local playerWasControl = jps.ControlEvents() -- return true/false Player was int
 local Enrage = jps.buff(12880) -- "Enrage" 12880 "Enrager" -- 30 sec cd
 local inMelee = jps.IsSpellInRange(5308,"target") -- "Execute" 5308
 local inRanged = jps.IsSpellInRange(57755,"target") -- "Heroic Throw" 57755 "Lancer héroïque"
+
+local myTank,TankUnit = jps.findTankInRaid() -- default "focus"
+local TankTarget = "target"
+if canHeal(myTank) then TankTarget = myTank.."target" end
 	
 ----------------------
 -- TARGET ENEMY
@@ -99,7 +104,9 @@ elseif jps.UnitExists("focus") and not canDPS("focus") then
 end
 
 if canDPS("target") and not DebuffUnitCyclone("target") then rangedTarget =  "target"
+elseif canDPS(TankTarget) and not DebuffUnitCyclone(TankTarget) then rangedTarget = TankTarget 
 elseif canDPS("targettarget") and not DebuffUnitCyclone("targettarget") then rangedTarget = "targettarget"
+elseif canDPS("mouseover") and not DebuffUnitCyclone("mouseover") then rangedTarget = "mouseover"
 end
 if canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
 local TargetMoving = select(1,GetUnitSpeed(rangedTarget)) > 0
@@ -176,7 +183,7 @@ local spellTable = {
 	-- "Storm Bolt" 107570 "Eclair de tempete" -- 30 yd range
 	{ warrior.spells["StormBolt"] , jps.IsSpellKnown(107570) , rangedTarget ,"_StormBolt" },
 	-- "Dragon Roar " 118000 -- 8 yards
-	{ warrior.spells["DragonRoar"] , jps.IsSpellKnown(118000) and jps.IsSpellInRange(118000,rangedTarget) , rangedTarget , "_DragonRoar" },
+	{ warrior.spells["DragonRoar"] , jps.IsSpellKnown(118000) and inMelee , rangedTarget , "_DragonRoar" },
 	-- "Ravager" 152277 -- 40 yd range
 	{ warrior.spells["Ravager"] , jps.IsSpellKnown(152277) , rangedTarget , "_Ravager" },
 	-- "Siegebreaker" 176289 "Briseur de siège"

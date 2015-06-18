@@ -1,5 +1,6 @@
 local L = MyLocalizationTable
 local canDPS = jps.canDPS
+local canHeal = jps.canHeal
 local strfind = string.find
 local UnitClass = UnitClass
 local UnitAffectingCombat = UnitAffectingCombat

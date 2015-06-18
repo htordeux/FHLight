@@ -1,5 +1,6 @@
 local L = MyLocalizationTable
 local canDPS = jps.canDPS
+local canHeal = jps.canHeal
 local strfind = string.find
 local UnitClass = UnitClass
 local UnitAffectingCombat = UnitAffectingCombat
@@ -65,6 +66,10 @@ local playerIsInterrupt = jps.InterruptEvents() -- return true/false ONLY FOR PL
 local playerWasControl = jps.ControlEvents() -- return true/false Player was interrupt or stun 2 sec ago ONLY FOR PLAYER
 local inMelee = jps.IsSpellInRange(49998,"target") -- "Death Strike" 49998 "Frappe de Mort"
 
+local myTank,TankUnit = jps.findTankInRaid() -- default "focus"
+local TankTarget = "target"
+if canHeal(myTank) then TankTarget = myTank.."target" end
+
 ----------------------
 -- TARGET ENEMY
 ----------------------
@@ -97,6 +102,7 @@ elseif jps.UnitExists("focus") and not canDPS("focus") then
 end
 
 if canDPS("target") and not DebuffUnitCyclone("target") then rangedTarget =  "target"
+elseif canDPS(TankTarget) and not DebuffUnitCyclone(TankTarget) then rangedTarget = TankTarget 
 elseif canDPS("targettarget") and not DebuffUnitCyclone("targettarget") then rangedTarget = "targettarget"
 elseif canDPS("mouseover") and not DebuffUnitCyclone("mouseover") then rangedTarget = "mouseover"
 end

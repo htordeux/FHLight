@@ -71,11 +71,14 @@ local target = nil
 local CountInRange, AvgHealthLoss, FriendUnit = jps.CountInRaidStatus(0.75)
 local playermana = jps.roundValue(UnitPower("player",0)/UnitPowerMax("player",0),2)
 local Orbs = UnitPower("player",13) -- SPELL_POWER_SHADOW_ORBS 	13
-local myTank,_ = jps.findTankInRaid() -- default "focus"
 -- "Body and Soul" 64129
 local BodyAndSoul = jps.IsSpellKnown(64129)
 -- "Clarity of Power" 155246 "Clarté de pouvoir"
 local COP = jps.IsSpellKnown(155246)
+
+local myTank,TankUnit = jps.findTankInRaid() -- default "focus"
+local TankTarget = "target"
+if canHeal(myTank) then TankTarget = myTank.."target" end
 
 ---------------------
 -- TIMER
@@ -123,10 +126,10 @@ elseif jps.UnitExists("focus") and not canDPS("focus") then
 end
 
 if canDPS("target") and not DebuffUnitCyclone("target") then rangedTarget =  "target"
+elseif canDPS(TankTarget) and not DebuffUnitCyclone(TankTarget) then rangedTarget = TankTarget 
 elseif canDPS("targettarget") and not DebuffUnitCyclone("targettarget") then rangedTarget = "targettarget"
 elseif canDPS("mouseover") and not DebuffUnitCyclone("mouseover") then rangedTarget = "mouseover"
 end
-
 if canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
 
 ------------------------
@@ -382,6 +385,8 @@ local spellTable = {
 	{ 2944, Orbs > 2 and jps.MultiTarget , rangedTarget , "PLAGUE_MultiTarget" },
 
 	-- MULTITARGET
+	-- "Cascade" Holy 121135 Shadow 127632
+	{ 127632, jps.MultiTarget and jps.UseCDs , rangedTarget , "Cascade"  },
 	-- "MindSear" 48045 -- "Insanité incendiaire" 179338 "Searing Insanity"
 	{ 48045, not jps.Moving and jps.MultiTarget and jps.buff(132573) , rangedTarget , "MINDSEARORBS_Target" },
 	{ 48045, not jps.Moving and jps.MultiTarget and jps.buff(132573) , myTank , "MINDSEARORBS_Tank" },
@@ -405,9 +410,9 @@ local spellTable = {
 	
 	-- MULTITARGET
 	-- "Cascade" Holy 121135 Shadow 127632
-	{ 127632, jps.IsSpellKnown(127632) and jps.UseCDs , rangedTarget , "Cascade"  },
+	{ 127632, jps.UseCDs , rangedTarget , "Cascade"  },
 	-- "Divine Star" Holy 110744 Shadow 122121
-	{ 122121, jps.IsSpellKnown(122121) and jps.UseCDs , rangedTarget , "DivineStar"  },
+	{ 122121, jps.UseCDs , rangedTarget , "DivineStar"  },
 	{ "nested", jps.MultiTarget , {
 		-- "Shadow Word: Pain" 589 -- "Shadow Word: Insanity" buff 132573	
 		{ 589, not jps.buff(132573) and fnPainEnemyTarget("mouseover") and not jps.UnitIsUnit("target","mouseover") , "mouseover" , "Pain_Mouseover_Orbs" },

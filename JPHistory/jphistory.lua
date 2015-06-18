@@ -5,8 +5,8 @@ local GetSpellInfo = GetSpellInfo
 local jpsCastFn = jps.Cast
 
 function jps.Cast(spell)
-    if jps.Target==nil then jps.Target = "target" end
-    jps.history.updateTarget(jps.Target)
+    if jps.Target == nil then jps.Target = "target" end
+    jps.history.updateTarget(GetUnitName(jps.Target))
     jpsCastFn(spell)
 end
 

@@ -134,11 +134,12 @@ jps.registerRotation("MAGE","ARCANE", function()
 	local playerAggro = jps.FriendAggro("player")
 	local playerhealth = jps.hp("player","abs")
 	local playerhealthpct = jps.hp("player")
-	local myTank,_ = jps.findTankInRaid()
-	local TankTarget = "target"
-	if canHeal(myTank) then TankTarget = myTank.."target" end
 	local playerIsStun = jps.StunEvents(2) -- return true/false ONLY FOR PLAYER -- "ROOT" was removed of Stuntype
 	-- {"STUN_MECHANIC","STUN","FEAR","CHARM","CONFUSE","PACIFY","SILENCE","PACIFYSILENCE"}
+
+	local myTank,TankUnit = jps.findTankInRaid() -- default "focus"
+	local TankTarget = "target"
+	if canHeal(myTank) then TankTarget = myTank.."target" end
 
 ---------------------
 -- ENEMY TARGET

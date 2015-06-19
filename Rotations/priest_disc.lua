@@ -34,6 +34,27 @@ local EnemyCaster = function(unit)
 	return ClassEnemy[classTarget]
 end
 
+-- Debuff EnemyTarget NOT DPS
+local DebuffUnitCyclone = function (unit)
+	if not UnitAffectingCombat(unit) then return false end
+	local Cyclone = false
+	local i = 1
+	local auraName = select(1,UnitDebuff(unit, i))
+	while auraName do
+		if strfind(auraName,L["Polymorph"]) then
+			Cyclone = true
+		elseif strfind(auraName,L["Cyclone"]) then
+			Cyclone = true
+		elseif strfind(auraName,L["Hex"]) then
+			Cyclone = true
+		end
+		if Cyclone then break end
+		i = i + 1
+		auraName = select(1,UnitDebuff(unit, i))
+	end
+	return Cyclone
+end
+
 ----------------------------------------------------------------------------------------------------------------
 ---------------------------------------------- ROTATION PVP & PVP ----------------------------------------------
 ----------------------------------------------------------------------------------------------------------------
@@ -78,10 +99,10 @@ local priestDisc = function()
 	-- rangedTarget returns "target" by default, sometimes could be friend
 	local rangedTarget, EnemyUnit, TargetCount = jps.LowestTarget()
 
-	if canDPS("target") and UnitAffectingCombat("target") then rangedTarget =  "target"
-	elseif canDPS(TankTarget) and UnitAffectingCombat(TankTarget) then rangedTarget = TankTarget 
-	elseif canDPS("targettarget") and UnitAffectingCombat("targettarget") then rangedTarget = "targettarget"
-	elseif canDPS("mouseover") and UnitAffectingCombat("mouseover") then rangedTarget = "mouseover"
+	if canDPS("target") and not DebuffUnitCyclone("target") then rangedTarget =  "target"
+	elseif canDPS(TankTarget) and not DebuffUnitCyclone(TankTarget) then rangedTarget = TankTarget 
+	elseif canDPS("targettarget") and not DebuffUnitCyclone("targettarget") then rangedTarget = "targettarget"
+	elseif canDPS("mouseover") and not DebuffUnitCyclone("mouseover") then rangedTarget = "mouseover"
 	end
 	-- if your target is friendly keep it as target
 	if not canHeal("target") and canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end

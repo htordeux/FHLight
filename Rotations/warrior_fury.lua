@@ -1,3 +1,7 @@
+-- jps.MultiTarget for "Provocation" 
+-- jps.UseCDs for "Charge"
+-- jps.Interrupts for "Pummel"
+
 local L = MyLocalizationTable
 local canDPS = jps.canDPS
 local canHeal = jps.canHeal
@@ -61,7 +65,6 @@ local playerIsStun = jps.StunEvents(2) -- return true/false ONLY FOR PLAYER -- "
 -- {"STUN_MECHANIC","STUN","FEAR","CHARM","CONFUSE","PACIFY","SILENCE","PACIFYSILENCE"}
 local playerIsInterrupt = jps.InterruptEvents() -- return true/false ONLY FOR PLAYER
 local playerWasControl = jps.ControlEvents() -- return true/false Player was interrupt or stun 2 sec ago ONLY FOR PLAYER
-local Enrage = jps.buff(12880) -- "Enrage" 12880 "Enrager" -- 30 sec cd
 local inMelee = jps.IsSpellInRange(5308,"target") -- "Execute" 5308
 local inRanged = jps.IsSpellInRange(57755,"target") -- "Heroic Throw" 57755 "Lancer héroïque"
 
@@ -164,15 +167,13 @@ local spellTable = {
 	{ jps.useTrinket(0), jps.useTrinketBool(0) and not playerWasControl and jps.combatStart > 0 , rangedTarget , "Trinket0"},
 	{ jps.useTrinket(1), jps.useTrinketBool(1) and not playerWasControl and jps.combatStart > 0 , rangedTarget , "Trinket1"},
 
-	-- "Bloodthirst" 23881 "Sanguinaire" -- 4.5 cd
-	{ warrior.spells["Bloodthirst"], not Enrage , rangedTarget , "_Bloodthirst" },
-	-- "Berserker Rage" 18499 "Rage de berserker"
-	{ warrior.spells["BerserkerRage"], not Enrage , rangedTarget , "_BerserkerRage" },
+	-- "Bloodthirst" 23881 "Sanguinaire" -- "Enrage" 12880 "Enrager"
+	{ warrior.spells["Bloodthirst"], not jps.buff(12880) , rangedTarget , "_Bloodthirst" },
+	-- "Berserker Rage" 18499 "Rage de berserker" -- "Enrage" 12880 "Enrager"
+	{ warrior.spells["BerserkerRage"], not jps.buff(12880) , rangedTarget , "_BerserkerRage" },
 
-	-- "Recklessness" 1719 "Témérité" -- buff Raging Blow! 131116 -- "Bloodsurge" 46916 "Afflux sanguin"
-	{ warrior.spells["Recklessness"], jps.combatStart > 0 and Enrage and inMelee , rangedTarget , "_Recklessness" },
-	-- "Bloodbath" 12292 "Bain de sang"  -- jps.buff(12292)
-	{ warrior.spells["Bloodbath"], jps.combatStart > 0 and Enrage and inMelee , rangedTarget , "_Bloodbath" },
+	-- "Recklessness" 1719 "Témérité" -- buff Raging Blow! 131116 -- "Bloodsurge" 46916 "Afflux sanguin" -- "Enrage" 12880 "Enrager"
+	{ warrior.spells["Recklessness"], jps.combatStart > 0 and jps.rage() > 29 and jps.buff(12880) and inMelee , rangedTarget , "_Recklessness" },
 	-- "Execute" 5308 "Exécution" -- "Mort soudaine" 29725
 	{ warrior.spells["Execute"], jps.buff(29725) , rangedTarget , "Execute_SuddenDeath" },
 	-- "Wild Strike" 100130 "Frappe sauvage" -- Alone cost 45 rage -- "Bloodsurge" 46916 "Afflux sanguin"
@@ -180,6 +181,8 @@ local spellTable = {
 	{ warrior.spells["WildStrike"] , jps.rage() > 89 , rangedTarget ,"_WildStrike_Rage89" },
 	
 	-- TALENTS --
+	-- "Bloodbath" 12292 "Bain de sang"  -- jps.buff(12292)
+	{ warrior.spells["Bloodbath"], jps.combatStart > 0 and jps.rage() > 29 and inMelee , rangedTarget , "_Bloodbath" },
 	-- "Storm Bolt" 107570 "Eclair de tempete" -- 30 yd range
 	{ warrior.spells["StormBolt"] , jps.IsSpellKnown(107570) , rangedTarget ,"_StormBolt" },
 	-- "Dragon Roar " 118000 -- 8 yards
@@ -190,8 +193,8 @@ local spellTable = {
 	{ warrior.spells["Siegebreaker"] , jps.IsSpellKnown(176289) , rangedTarget ,"_Siegebreaker" },
 	
 	{"nested", jps.hp(rangedTarget) < 0.20 and inMelee ,{
-		-- "Execute" 5308 "Exécution" -- cost 30 rage
-		{ warrior.spells["Execute"] , Enrage , rangedTarget , "_Execute_Enrage" },
+		-- "Execute" 5308 "Exécution" -- "Enrage" 12880 "Enrager"
+		{ warrior.spells["Execute"] , jps.buff(12880) , rangedTarget , "_Execute_Enrage" },
 		{ warrior.spells["Execute"] , jps.rage() > 59 , rangedTarget , "_Execute_Rage" },
 		-- "Raging Blow" 85288 "Coup déchaîné" -- buff Raging Blow! 131116 -- "Meat Cleaver" 85739 "Fendoir à viande"
 		{ warrior.spells["RagingBlow"] , jps.buff(131116) , rangedTarget , "_RagingBlow_Buff" },
@@ -208,14 +211,14 @@ local spellTable = {
 		{ warrior.spells["Whirlwind"], jps.rage() > 59 , rangedTarget , "_Whirlwind" },
 		-- "Shockwave" 46968 "Onde de choc"
 		{ warrior.spells["Shockwave"] , true , rangedTarget , "_Shockwave" },
-		-- "Bladestorm" 46924 "Tempête de lames" -- "Enrage" 12880 "Enrager" -- While Bladestorm is active, you cannot perform any actions except for using your Taunt
+		-- "Bladestorm" 46924 "Tempête de lames" -- While Bladestorm is active, you cannot perform any actions except for using your Taunt
 		{ warrior.spells["Bladestorm"], true , rangedTarget , "_Bladestorm" },
 	}},
 
 	-- "Raging Blow" 85288 "Coup déchaîné" -- buff Raging Blow! 131116 -- "Meat Cleaver" 85739 "Fendoir à viande"
 	{ warrior.spells["RagingBlow"] , jps.buff(131116) , rangedTarget , "_RagingBlow_Buff" },
-	-- "Wild Strike" 100130 "Frappe sauvage" 
-	{ warrior.spells["WildStrike"] , Enrage , rangedTarget ,"_WildStrike_Enrage" },
+	-- "Wild Strike" 100130 "Frappe sauvage" -- "Enrage" 12880 "Enrager"
+	{ warrior.spells["WildStrike"] , jps.buff(12880) , rangedTarget ,"_WildStrike_Enrage" },
 	-- "Bloodthirst" 23881 "Sanguinaire"
 	{ warrior.spells["Bloodthirst"], true , rangedTarget , "_Bloodthirst_End" },
 

@@ -119,6 +119,13 @@ end
 if canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
 local TargetMoving = select(1,GetUnitSpeed(rangedTarget)) > 0
 
+--if jps.buff(156291) and jps.UnitIsUnit("targettarget","player") then
+--	SpellStopCasting()
+--	spell = 20243;
+--	target = "target";
+--	if jps.combatStart > 0 then write("AGGRO_STOPCASTING") end
+--return spell,target end
+
 ------------------------
 -- SPELL TABLE ---------
 ------------------------
@@ -148,21 +155,21 @@ local spellTable = {
 	{ warrior.spells["SpellReflection"] , jps.ShouldKick("focus") and jps.UnitIsUnit("focustarget","player") , "focus" , "SpellReflection" },
 	-- "Mass Spell Reflection" 114028 "Renvoi de sort de masse"
 	{ warrior.spells["MassSpellReflection"] , jps.UnitIsUnit("targettarget","player") and jps.IsCasting(rangedTarget) , rangedTarget , "MassSpell" },
+	{ warrior.spells["MassSpellReflection"] , jps.UnitIsUnit("focustarget","player") and jps.IsCasting("focus") , "focus" , "MassSpell" },
 	-- "Pummel" 6552 "Volée de coups"
 	{ warrior.spells["Pummel"] , jps.Interrupts and jps.ShouldKick(rangedTarget) , rangedTarget , "Pummel" },
 	{ warrior.spells["Pummel"] , jps.Interrupts and jps.ShouldKick("focus") , "focus" , "Pummel" },
 
 	-- "Provocation" 355
 	{ 355, jps.Defensive and jps.buff(71) and not jps.UnitIsUnit("targettarget","player") , rangedTarget , "Provocation" },
-	-- "Demoralizing Shout" 1160 "Cri démoralisant"
-	{ 1160, jps.buff(71) and not jps.debuff(1160,rangedTarget) , rangedTarget , "Demoralizing" },
-	-- "Shield Block" 2565 "Maîtrise du blocage" -- works against physical attacks, it does nothing against magic
-	{ warrior.spells["ShieldBlock"] , jps.buff(71) and PhysicalDmg and jps.hp() < 0.80 , rangedTarget , "|cff1eff00ShieldBlock_School" },
-	-- "Shield Barrier" 112048 "Barrière protectrice" -- Shield Barrier works against all types of damage (excluding fall damage).
-	{ warrior.spells["ShieldBarrier"] , jps.buff(71) and MagicDmg and jps.hp() < 0.80 , rangedTarget , "|cff1eff00ShieldBarrier_School" },
-	{ warrior.spells["ShieldBarrier"] , jps.hp() < 0.50 , rangedTarget , "|cff1eff00ShieldBarrier" },
-		
+	-- TRINKETS -- jps.useTrinket(0) est "Trinket0Slot" est slotId  13 -- "jps.useTrinket(1) est "Trinket1Slot" est slotId  14
+
+	{ jps.useTrinket(0), jps.useTrinketBool(0) and not playerWasControl and jps.combatStart > 0 , rangedTarget , "Trinket0"},
+	{ jps.useTrinket(1), jps.useTrinketBool(1) and not playerWasControl and jps.combatStart > 0 , rangedTarget , "Trinket1"},
+
 	-- DEFENSIVE
+	-- "Demoralizing Shout" 1160 "Cri démoralisant"
+	{ 1160, playerAggro and not jps.debuff(1160,rangedTarget) , rangedTarget , "Demoralizing" },
 	-- "Shield Wall" 871 "Mur protecteur"
 	{ warrior.spells["ShieldWall"] , jps.hp() < 0.50 , rangedTarget , "|cff1eff00ShieldWall" },
 	-- "Last Stand" 12975 "Dernier rempart" 
@@ -180,26 +187,25 @@ local spellTable = {
 	{ warrior.spells["Stoneform"] , jps.canDispel("player",{"Magic","Poison","Disease","Curse"}) , rangedTarget , "|cff1eff00Stoneform" },
 	-- "Pierre de soins" 5512
 	{ {"macro","/use item:5512"}, jps.hp() < 0.80 and jps.itemCooldown(5512) == 0 , "player" , "Item5512" },
-
-	-- TRINKETS -- jps.useTrinket(0) est "Trinket0Slot" est slotId  13 -- "jps.useTrinket(1) est "Trinket1Slot" est slotId  14
-	{ jps.useTrinket(0), jps.useTrinketBool(0) and not playerWasControl and jps.combatStart > 0 , rangedTarget , "Trinket0"},
-	{ jps.useTrinket(1), jps.useTrinketBool(1) and not playerWasControl and jps.combatStart > 0 , rangedTarget , "Trinket1"},
+	-- "Shield Block" 2565 "Maîtrise du blocage" -- works against physical attacks, it does nothing against magic
+	{ warrior.spells["ShieldBlock"] , jps.buff(71) and PhysicalDmg and jps.hp() < 0.80 , rangedTarget , "|cff1eff00ShieldBlock_School" },
+	-- "Shield Barrier" 112048 "Barrière protectrice" -- Shield Barrier works against all types of damage (excluding fall damage).
+	{ warrior.spells["ShieldBarrier"] , jps.buff(71) and MagicDmg and jps.hp() < 0.80 , rangedTarget , "|cff1eff00ShieldBarrier_School" },
+	{ warrior.spells["ShieldBarrier"] , jps.hp() < 0.50 , rangedTarget , "|cff1eff00ShieldBarrier" },
 
 	-- "Heroic Throw" 57755 "Lancer héroïque"
 	{ warrior.spells["HeroicThrow"] , inRanged and not inMelee , rangedTarget , "Heroic Throw" },
 	-- "Charge" 100
 	{ warrior.spells["Charge"], jps.UseCDs and jps.IsSpellInRange(100,rangedTarget) , rangedTarget , "Charge"},
-	-- "Piercing Howl" 12323 "Hurlement percant"
-	--{ warrior.spells["PiercingHowl"] , not jps.debuff(12323,rangedTarget) , rangedTarget , "PiercingHowl"},
 	-- "Intimidating Shout" 5246
-	{ warrior.spells["IntimidatingShout"] , jps.PvP and not jps.debuff(5246,rangedTarget) , rangedTarget , "IntimidatingShout"},
+	{ warrior.spells["IntimidatingShout"] , playerAggro and not jps.debuff(5246,rangedTarget) , rangedTarget , "IntimidatingShout"},
 	-- "Berserker Rage" 18499 "Rage de berserker" -- "Enrage" 12880 "Enrager"
 	{ warrior.spells["BerserkerRage"] , not jps.buff(12880) and jps.cooldown(23922) > 0 , rangedTarget , "|cFFFF0000BerserkerRage" },
 
 	-- TALENTS --
 	-- "Bloodbath" 12292 "Bain de sang" -- Buff 12292
-	--{ warrior.spells["Bloodbath"], jps.combatStart > 0 and inMelee and jps.rage() > 29  , rangedTarget , "|cFFFF0000Bloodbath" },
 	{ warrior.spells["Bloodbath"], inMelee and jps.MultiTarget , rangedTarget , "|cFFFF0000Bloodbath" },
+	{ warrior.spells["Bloodbath"], jps.buff(71) and inMelee and jps.rage() > 89 , rangedTarget , "|cFFFF0000Bloodbath_DumpRage" },
 	{ warrior.spells["Bloodbath"], inMelee and jps.buff(169667) , rangedTarget , "|cFFFF0000Bloodbath_ShieldCharge" },
 	-- "Storm Bolt" 107570 "Eclair de tempete" -- 30 yd range
 	{ warrior.spells["StormBolt"] , jps.IsSpellKnown(107570) , rangedTarget ,"StormBolt" },
@@ -262,5 +268,7 @@ jps.listener.registerCombatLogEventUnfiltered("SPELL_DAMAGE", function(...)
 	local spellSchool =  select(17,...)
 	if destGUID == UnitGUID("player") and spellSchool then
 		SchoolDamagePlayer = spellSchool
+	else
+		SchoolDamagePlayer = 0
 	end
 end)

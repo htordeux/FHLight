@@ -1,4 +1,4 @@
--- jps.MultiTarget for "Provocation" 
+-- jps.MultiTarget for Multitarget
 -- jps.UseCDs for "Charge"
 -- jps.Interrupts for "Pummel"
 
@@ -161,7 +161,9 @@ local spellTable = {
 	-- "Charge" 100
 	{ warrior.spells["Charge"], jps.UseCDs and jps.IsSpellInRange(100,rangedTarget) , rangedTarget , "_Charge"},
 	-- "Intimidating Shout" 5246
-	{ warrior.spells["IntimidatingShout"] , not jps.debuff(5246,rangedTarget) and isBoss , rangedTarget , "_IntimidatingShout"},
+	{ warrior.spells["IntimidatingShout"] , playerAggro and not jps.debuff(5246,rangedTarget) , rangedTarget , "_IntimidatingShout"},
+	-- "Piercing Howl" 12323 "Hurlement percant"
+	--{ warrior.spells["PiercingHowl"] , jps.PvP and not jps.debuff(12323,rangedTarget) , rangedTarget , "PiercingHowl"},
 	
 	-- TRINKETS -- jps.useTrinket(0) est "Trinket0Slot" est slotId  13 -- "jps.useTrinket(1) est "Trinket1Slot" est slotId  14
 	{ jps.useTrinket(0), jps.useTrinketBool(0) and not playerWasControl and jps.combatStart > 0 , rangedTarget , "Trinket0"},

@@ -463,7 +463,7 @@ end)
 
 -- Leave Combat
 local leaveCombat = function()
-	if jps.checkTimer("FacingBug") > 0 then TurnLeftStop() end
+	TurnLeftStop()
 	jps.Opening = true
 	jps.Combat = false
 	jps.gui_toggleCombat(false)
@@ -538,8 +538,8 @@ jps.listener.registerEvent("UI_ERROR_MESSAGE", function(event_error)
 				local TargetObject = GetObjectFromGUID(TargetGuid)
 				TargetObject:Face ()
 			else
-				jps.createTimer("Facing",0.6)
-				jps.createTimer("FacingBug",1.2)
+				jps.createTimer("Facing",1)
+				jps.createTimer("FacingBug",2)
 				TurnLeftStart()
 			end
 		elseif (event_error == SPELL_FAILED_LINE_OF_SIGHT) or (event_error == SPELL_FAILED_VISION_OBSCURED) then
@@ -715,8 +715,8 @@ end
 local SpellTimer = function(unitGuid)
 	local dataset = EnemyCooldowns[unitGuid]
 	for spell,index in pairs(dataset) do
-		local endSpell = index[1] --local start, duration, _ = GetSpellCooldown(spell)
-		local timeLeft = math.ceil(endSpell - GetTime()) --local timeLeft = start + duration - GetTime()
+		local endSpell = index[1] -- local start, duration, _ = GetSpellCooldown(spell)
+		local timeLeft = math.ceil(endSpell - GetTime()) -- local timeLeft = start + duration - GetTime()
 		EnemyCooldowns[unitGuid][spell][2] = timeLeft
 		if timeLeft < 1 then -- GCD 1 sec
 			EnemyCooldowns[unitGuid][spell][2] = 0
@@ -742,14 +742,6 @@ end
 -----------------------
 -- UPDATE HEALERBLACKLIST
 -----------------------
-
---local GetNumGroupMembers = GetNumGroupMembers
---local isArena, _ = IsActiveBattlefieldArena()
---local UpdateScoreFrequency = function()
---	if isArena == true then scoreFrequency  = 0.2
---	elseif GetNumGroupMembers() <= 10 then scoreFrequency  = 0.4
---	else scoreFrequency  = 0.8 end
---end
 
 local scoreLastUpdate = GetTime()
 local scoreFrequency  = 2 -- sec

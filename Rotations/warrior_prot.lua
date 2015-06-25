@@ -145,10 +145,11 @@ local spellTable = {
 	-- "Commanding Shout" 469 "Cri de commandement"
 	{ 469 , jps.hasAttackPowerBuff("player") and jps.myBuffDuration(6673,"player") == 0 and not jps.buff(469) , "player" },
 	-- "Proteger" 114029 -- "Intervention" 3411
-	{ 3411, jps.buff(156291) and jps.hp(myTank) < 0.30 and jps.hp() > 0.85, myTank , "Intervention_myTank" },
-	{ 3411, jps.buff(71) and not jps.UnitIsUnit("targettarget","player") and jps.hp("targettarget") < 0.50 , "targettarget" , "Intervention_Aggro" },
+	{ 3411, jps.hp(myTank) < 0.30 and jps.hp() > 0.85, myTank , "Intervention_myTank" },
 	{ 114029, jps.hp(myTank) < 0.30 and jps.hp() > 0.85, myTank , "Proteger_myTank" },
-	
+	{ 3411, not jps.UnitIsUnit("targettarget","player") and jps.hp("targettarget") < 0.30 , "targettarget" , "Intervention_Aggro" },
+	{ 114029, not jps.UnitIsUnit("targettarget","player") and jps.hp("targettarget") < 0.30 , "targettarget" , "Proteger_Aggro" },
+
 	-- INTERRUPTS --
 	-- "Spell Reflection" 23920 "Renvoi de sort" --renvoyez le prochain sort lancé sur vous. Dure 5 s. Buff same spellId
 	{ warrior.spells["SpellReflection"] , jps.ShouldKick(rangedTarget) and jps.UnitIsUnit("targettarget","player") , rangedTarget , "SpellReflection" },
@@ -187,11 +188,11 @@ local spellTable = {
 	{ warrior.spells["Stoneform"] , jps.canDispel("player",{"Magic","Poison","Disease","Curse"}) , rangedTarget , "|cff1eff00Stoneform" },
 	-- "Pierre de soins" 5512
 	{ {"macro","/use item:5512"}, jps.hp() < 0.80 and jps.itemCooldown(5512) == 0 , "player" , "Item5512" },
-	-- "Shield Block" 2565 "Maîtrise du blocage" -- works against physical attacks, it does nothing against magic
-	{ warrior.spells["ShieldBlock"] , jps.buff(71) and PhysicalDmg and jps.hp() < 0.80 , rangedTarget , "|cff1eff00ShieldBlock_School" },
+	-- "Shield Block" 2565 "Maîtrise du blocage" -- works against physical attacks, it does nothing against magic -- Buff "Shield Block" 132404
+	{ warrior.spells["ShieldBlock"] , not jps.buff(132404) and jps.buff(71) and PhysicalDmg and jps.hp() < 0.80 , rangedTarget , "|cff1eff00ShieldBlock_School" },
 	-- "Shield Barrier" 112048 "Barrière protectrice" -- Shield Barrier works against all types of damage (excluding fall damage).
-	{ warrior.spells["ShieldBarrier"] , jps.buff(71) and MagicDmg and jps.hp() < 0.80 , rangedTarget , "|cff1eff00ShieldBarrier_School" },
-	{ warrior.spells["ShieldBarrier"] , jps.hp() < 0.50 , rangedTarget , "|cff1eff00ShieldBarrier" },
+	{ warrior.spells["ShieldBarrier"] , not jps.buff(112048) and jps.buff(71) and MagicDmg and jps.hp() < 0.80 , rangedTarget , "|cff1eff00ShieldBarrier_School" },
+	{ warrior.spells["ShieldBarrier"] , not jps.buff(112048) and jps.hp() < 0.50 , rangedTarget , "|cff1eff00ShieldBarrier" },
 
 	-- "Heroic Throw" 57755 "Lancer héroïque"
 	{ warrior.spells["HeroicThrow"] , inRanged and not inMelee , rangedTarget , "Heroic Throw" },
@@ -218,6 +219,8 @@ local spellTable = {
 		{ 156321, jps.rage() > 59 , rangedTarget , "|cffa335eeShieldCharge_Rage" },
 	}},
 
+	-- "Revenge" 6572 "Revanche"
+	{ warrior.spells["Revenge"] , inMelee , rangedTarget , "Revenge" },
 	-- "Shield Slam" 23922 "Heurt de bouclier" -- Buff "Sword and Board" 50227 "Epée et bouclier"
 	{ warrior.spells["ShieldSlam"] , jps.buff(50227) , rangedTarget , "ShieldSlam_SwordBoard" },
 	{ warrior.spells["ShieldSlam"] , true , rangedTarget , "ShieldSlam" },
@@ -226,8 +229,6 @@ local spellTable = {
 	{ warrior.spells["HeroicStrike"] , jps.buff(122509) , rangedTarget , "HeroicStrike_Ultimatum" },
 	-- "Dévaster" 20243 "Devastate" -- Buff "Unyielding Strikes" 169686 "Frappes inflexibles" 169686 -- Cumulable jusqu’à 6 fois
 	{ warrior.spells["Devastate"] , jps.buffDuration(169686) < 2 and jps.buffStacks(169686) < 6 , rangedTarget , "Devastate_BuffDuration" },
-	-- "Revenge" 6572 "Revanche"
-	{ warrior.spells["Revenge"] , inMelee , rangedTarget , "Revenge" },
 
 	-- MULTITARGET --
 	{"nested", jps.MultiTarget and inMelee ,{

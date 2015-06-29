@@ -38,73 +38,72 @@ end
 
 jps.HealerSpellID = {
 
-        -- Priests
-        -- [000017] = "PRIEST", -- Power word: Shield -- exists also for shadow priests
-        [047540] = "PRIEST", -- Penance
-        [062618] = "PRIEST", -- Power word: Barrier
-        [109964] = "PRIEST", -- Spirit shell
-        [047515] = "PRIEST", -- Divine Aegis
-        [081700] = "PRIEST", -- Archangel
-        [002060] = "PRIEST", -- Greater Heal
-        [002061] = "PRIEST", -- Flash Heal
-        [002050] = "PRIEST", -- Heal
-        [014914] = "PRIEST", -- Holy Fire
-        [089485] = "PRIEST", -- Inner Focus
-        [033206] = "PRIEST", -- Pain Suppression
-        [000596] = "PRIEST", -- Prayer of Healing
-        [000527] = "PRIEST", -- Purify
-        
-        -- Holy
-        [034861] = "PRIEST", -- Circle of Healing
-        [064843] = "PRIEST", -- Divine Hymn
-        [047788] = "PRIEST", -- Guardian Spirit
-        [000724] = "PRIEST", -- Lightwell
-        [088684] = "PRIEST", -- Holy Word: Serenity
-        [088685] = "PRIEST", -- Holy Word: Sanctuary
+	-- Priests
+	-- [000017] = "PRIEST", -- Power word: Shield (also true for shadow priests)
+	[047540] = "PRIEST", -- Penance
+	[062618] = "PRIEST", -- Power word: Barrier
+	[109964] = "PRIEST", -- Spirit shell
+	[047515] = "PRIEST", -- Divine Aegis
+	[081700] = "PRIEST", -- Archangel
+	[002060] = "PRIEST", -- Greater Heal
+	[002061] = "PRIEST", -- Flash Heal
+	[014914] = "PRIEST", -- Holy Fire
+	[089485] = "PRIEST", -- Inner Focus
+	[033206] = "PRIEST", -- Pain Suppression
+	[000596] = "PRIEST", -- Prayer of Healing
+	[000527] = "PRIEST", -- Purify
+	
+	-- Holy
+	[034861] = "PRIEST", -- Circle of Healing
+	[064843] = "PRIEST", -- Divine Hymn
+	[047788] = "PRIEST", -- Guardian Spirit
+	[000724] = "PRIEST", -- Lightwell
+	[088684] = "PRIEST", -- Holy Word: Serenity
+	[088685] = "PRIEST", -- Holy Word: Sanctuary
 
-        -- Druids
-        [018562] = "DRUID", -- Swiftmend
-        [102342] = "DRUID", -- Ironbark
-        [033763] = "DRUID", -- Lifebloom
-        [088423] = "DRUID", -- Nature's Cure
-        [050464] = "DRUID", -- Nourish
-        [008936] = "DRUID", -- Regrowth
-        [033891] = "DRUID", -- Incarnation: Tree of Life
-        [048438] = "DRUID", -- Wild Growth
-        [102791] = "DRUID", -- Wild Mushroom Bloom
+	-- Druids
+	[018562] = "DRUID", -- Swiftmend
+	[102342] = "DRUID", -- Ironbark
+	[033763] = "DRUID", -- Lifebloom
+	[088423] = "DRUID", -- Nature's Cure
+	[050464] = "DRUID", -- Nourish
+	[008936] = "DRUID", -- Regrowth
+	[033891] = "DRUID", -- Incarnation: Tree of Life
+	[048438] = "DRUID", -- Wild Growth
+	[102791] = "DRUID", -- Wild Mushroom Bloom
 
-        -- Shamans
-        [00974] = "SHAMAN", -- Earth Shield
-        [61295] = "SHAMAN", -- Riptide
-        [77472] = "SHAMAN", -- Greater Healing Wave
-        [98008] = "SHAMAN", -- Spirit link totem
-        [77130] = "SHAMAN", -- Purify Spirit
+	-- Shamans
+	[00974] = "SHAMAN", -- Earth Shield
+	[61295] = "SHAMAN", -- Riptide
+	[77472] = "SHAMAN", -- Greater Healing Wave
+	[98008] = "SHAMAN", -- Spirit link totem
+	[77130] = "SHAMAN", -- Purify Spirit
 
-        -- Paladins
-        [20473] = "PALADIN", -- Holy Shock
-        -- [85673] = "PALADIN", -- Word of Glory (also true for prot paladins)
-        [82327] = "PALADIN", -- Holy radiance
-        [53563] = "PALADIN", -- Beacon of Light
-        [02812] = "PALADIN", -- Denounce
-        [31842] = "PALADIN", -- Divine Favor
-        [82326] = "PALADIN", -- Divine Light
-        [54428] = "PALADIN", -- Divine Plea
-        -- [86669] = "PALADIN", -- Guardian of Ancient Kings (also true for ret paladins)
-        [00635] = "PALADIN", -- Holy Light
-        [82327] = "PALADIN", -- Holy Radiance
-        [85222] = "PALADIN", -- Light of Dawn
+	-- Paladins
+	[20473] = "PALADIN", -- Holy Shock
+	-- [85673] = "PALADIN", -- Word of Glory (also true for prot paladins)
+	[82327] = "PALADIN", -- Holy radiance
+	[53563] = "PALADIN", -- Beacon of Light
+	[02812] = "PALADIN", -- Denounce
+	[31842] = "PALADIN", -- Divine Favor
+	[82326] = "PALADIN", -- Divine Light
+	[54428] = "PALADIN", -- Divine Plea
+	-- [86669] = "PALADIN", -- Guardian of Ancient Kings (also true for ret paladins)
+	[00635] = "PALADIN", -- Holy Light
+	[82327] = "PALADIN", -- Holy Radiance
+	[85222] = "PALADIN", -- Light of Dawn
 
-        -- Monks
-        [115175] = "MONK", -- Soothing Mist
-        [115294] = "MONK", -- Mana Tea
-        [115310] = "MONK", -- Revival
-        [116670] = "MONK", -- Uplift
-        [116680] = "MONK", -- Thunder Focus Tea
-        [116849] = "MONK", -- Life Cocoon
-        [116995] = "MONK", -- Surging mist
-        [119611] = "MONK", -- Renewing mist
-        [132120] = "MONK", -- Envelopping Mist
-    };
+	-- Monks
+	[115175] = "MONK", -- Soothing Mist
+	[115294] = "MONK", -- Mana Tea
+	[115310] = "MONK", -- Revival
+	[116670] = "MONK", -- Uplift
+	[116680] = "MONK", -- Thunder Focus Tea
+	[116849] = "MONK", -- Life Cocoon
+	[116995] = "MONK", -- Surging mist
+	[119611] = "MONK", -- Renewing mist
+	[132120] = "MONK", -- Envelopping Mist
+}
 
 ---------------------------
 -- LOSE CONTROL TABLES -- Credits - to LoseControl Addon

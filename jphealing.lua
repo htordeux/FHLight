@@ -153,15 +153,6 @@ end
 -- TANK
 --------------------------
 
---status = UnitThreatSituation("unit"[, "otherunit"])
---Without otherunit specified
---nil = unit is not on any other unit's threat table.
---0 = not tanking anything.
---1 = not tanking anything, but have higher threat than tank on at least one unit.(Overnuking)
---Overnuking is where a player deals so much damage (therefore generating excess threat) that it pulls aggro away from the tank.
---2 = insecurely tanking at least one unit, but not securely tanking anything.
---3 = securely tanking at least one unit.
-
 function jps.findTankInRaid()
 	local TankUnit = {}
 	for unit,_ in pairs(RaidStatus) do
@@ -172,6 +163,19 @@ function jps.findTankInRaid()
 	tsort(TankUnit, function(a,b) return HealthPct(a) < HealthPct(b) end)
 	return TankUnit[1] or "focus" , TankUnit
 end
+
+--status = UnitThreatSituation("unit"[, "otherunit"])
+--Without otherunit specified
+--nil = unit is not on any other unit's threat table.
+--0 = not tanking anything.
+--1 = not tanking anything, but have higher threat than tank on at least one unit.(Overnuking)
+--Overnuking is where a player deals so much damage (therefore generating excess threat) that it pulls aggro away from the tank.
+--2 = insecurely tanking at least one unit, but not securely tanking anything.
+--3 = securely tanking at least one unit.
+
+--isTanking, status, threatpct, rawthreatpct, threatvalue = UnitDetailedThreatSituation("unit", "mob")
+--http://wow.gamepedia.com/API_UnitDetailedThreatSituation
+--Returns 100 if the unit is tanking and nil if the unit is not on the mob's threat list.
 
 function jps.findAggroInRaid()
 	local AggroUnit = {}
@@ -187,11 +191,20 @@ function jps.findAggroInRaid()
 	return AggroUnit[1] or "focus", AggroUnit
 end
 
-function TableMerge(t1,t2)
-	for _,v in ipairs(t2) do 
-		tinsert(t1,v)
+function jps.findThreatInRaid(target)
+	local TankUnit,AggroUnit = jps.findAggroInRaid()
+	local maxThreat = 0
+	for i=1,#AggroUnit do
+		local unit = AggroUnit[i]
+		local unitThreat = UnitThreatSituation(unit,"target")
+		if unitThreat and canHeal(unit) then
+			if unitThreat > maxThreat then
+				maxThreat = unitThreat
+				TankUnit = unit
+			end
+		end
 	end
-	return t1
+	return TankUnit
 end
 
 ---------------------------

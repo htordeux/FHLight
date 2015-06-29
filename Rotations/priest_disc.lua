@@ -583,6 +583,8 @@ jps.registerRotation("PRIEST","DISCIPLINE",function()
 
 	-- "Fortitude" 21562 -- "Commanding Shout" 469 -- "Blood Pact" 166928
 	{ 21562, jps.buffMissing(21562) , "player" },
+	-- SNM "Nova" 132157 -- keep buff "Words of Mending" 155362 "Mot de guérison" 
+	{ 132157, jps.UseCDs and jps.buffStacks(155362) < 5 , "player" , "Nova_WoM" },
 
 	{"nested", jps.PvP , {
 		-- "Gardien de peur" 6346
@@ -591,8 +593,7 @@ jps.registerRotation("PRIEST","DISCIPLINE",function()
 		{ 21562, jps.buffMissing(21562) and jps.buffMissing(469) and jps.buffMissing(166928) , "player" },
 		-- SNM "Levitate" 1706 -- try to keep buff for enemy dispel -- Buff "Lévitation" 111759
 		{ 1706, not jps.buff(111759) , "player" },
-		-- SNM "Nova" 132157 -- keep buff "Words of Mending" 155362 "Mot de guérison" 
-		{ 132157, jps.UseCDs and jps.buffStacks(155362) < 5 , "player" , "Nova_WoM" },
+
 	}},
 		
 	-- "Shield" 17 "Body and Soul" 64129 -- figure out how to speed buff everyone as they move

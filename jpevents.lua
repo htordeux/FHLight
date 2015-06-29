@@ -291,6 +291,8 @@ end)
 local debugFaceTarget = function ()
 	if jps.checkTimer("FacingBug") > 0 and jps.checkTimer("Facing") == 0 then
 		TurnLeftStop()
+	elseif jps.checkTimer("FarAwayBug") > 0 and jps.checkTimer("FarAway") == 0 then
+		MoveForwardStop()
 	end
 end
 
@@ -464,6 +466,7 @@ end)
 -- Leave Combat
 local leaveCombat = function()
 	TurnLeftStop()
+	if jps.Moving then MoveForwardStop() end
 	jps.Opening = true
 	jps.Combat = false
 	jps.gui_toggleCombat(false)
@@ -527,12 +530,11 @@ jps.listener.registerEvent("UI_ERROR_MESSAGE", function(event_error)
 	-- http://www.wowwiki.com/WoW_Constants/Errors
 	-- http://www.wowwiki.com/WoW_Constants/Spells
 		if (event_error == SPELL_FAILED_NOT_BEHIND) then -- "You must be behind your target."
-			LOG.debug("SPELL_FAILED_NOT_BEHIND - %s", event_error)
+			print("SPELL_FAILED_NOT_BEHIND - %s", event_error)
 			jps.isNotBehind = true
 			jps.isBehind = false
 		elseif jps.FaceTarget and not jps.Moving and ((event_error == SPELL_FAILED_UNIT_NOT_INFRONT) or (event_error == ERR_BADATTACKFACING)) then
-			--LOG.debug("ERR_BADATTACKFACING - %s", event_error)			
-
+			print("ERR_BADATTACKFACING - %s", event_error)			
 			local TargetGuid = UnitGUID("target")
 			if FireHack and (TargetGuid ~= nil) then
 				local TargetObject = GetObjectFromGUID(TargetGuid)
@@ -543,8 +545,17 @@ jps.listener.registerEvent("UI_ERROR_MESSAGE", function(event_error)
 				TurnLeftStart()
 			end
 		elseif (event_error == SPELL_FAILED_LINE_OF_SIGHT) or (event_error == SPELL_FAILED_VISION_OBSCURED) then
-			--LOG.debug("SPELL_FAILED - %s", event_error)
 			jps.BlacklistPlayer(jps.LastTarget)
+		elseif event_error == ERR_ABILITY_COOLDOWN or event_error == ERR_SPELL_COOLDOWN then
+			-- print("ERR_ABILITY_COOLDOWN - %s", event_error)
+			-- La technique n'est pas encore disponible
+		elseif jps.FaceTarget and not jps.Moving and event_error == ERR_BADATTACKPOS then
+			print("ERR_BADATTACKPOS - %s", event_error)
+			jps.createTimer("FarAway",1)
+			jps.createTimer("FarAwayBug",2)
+			MoveForwardStart()
+			-- Vous êtes trop loin !
+			-- Hors de portée
 		end
 end)
 
@@ -563,6 +574,7 @@ jps.listener.registerEvent("UNIT_SPELLCAST_SENT", function(unitID,spellname,_,sp
 		sendTime = GetTime()
 		jps.CurrentCastInterrupt = nil
 		if spellname == Shield then jps.createTimer("ShieldTimer", 12 ) end
+		--print("SPELLCAST_SENT: ",unitID,"spellname: ",spellname,"spellID: ",spellID)
 	end
 end)
 
@@ -611,9 +623,8 @@ jps.listener.registerEvent("UNIT_SPELLCAST_SUCCEEDED", function(unitID,spellname
 	if (unitID == "player") and spellID then
 		jps.CurrentCastInterrupt = nil
 		if jps.FaceTarget then
-			if jps.checkTimer("FacingBug") > 0 then
-				TurnLeftStop()
-			end
+			if jps.checkTimer("FacingBug") > 0 then TurnLeftStop() end
+			if jps.checkTimer("FarAwayBug") > 0 then MoveForwardStop() end
 		end
 		if ((jps.Class == "Druid" and jps.Spec == "Feral") or jps.Class == "Rogue") then
 			-- "Druid" -- 5221 -- "Shred" -- "Ambush" 8676
@@ -711,7 +722,6 @@ end
 --------------------------
 
 -- EnemyCooldowns[sourceGUID][spellId]
--- jps.registerOnUpdate(SpellTimer) on jpevents.lua ?
 local SpellTimer = function(unitGuid)
 	local dataset = EnemyCooldowns[unitGuid]
 	for spell,index in pairs(dataset) do

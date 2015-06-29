@@ -188,6 +188,13 @@ function jps.deepTableCopy(object)
     return _copy(object)
 end
 
+function jps.tableMerge(t1,t2)
+	for _,v in ipairs(t2) do 
+		tinsert(t1,v)
+	end
+	return t1
+end
+
 --------------------------
 -- STRING FUNCTION -- change a string "Bob" or "Bob-Garona" to "Bob"
 --------------------------

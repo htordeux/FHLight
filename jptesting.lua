@@ -38,7 +38,6 @@ local function Test()
 	print("Aggro:|cff0070dd ",jps.FriendAggro("player"))
 	print("LoseControl:|cff0070dd ",jps.LoseControl("player"))
 	print("ttd: ",jps.TimeToDie("target"))
-	print("Facing: ",jps.PlayerIsFacing("target",90))
 	print("GCD: ",jps.GCD)
 	print("Distance: ",jps.FriendNearby(12))
 	write("***************************")
@@ -50,17 +49,14 @@ local function Test()
 	print("POHTarget: ",POHTarget,"groupToHeal: ",groupToHeal,"groupHealth: ",groupHealth)
 	local CountInRange, AvgHealthLoss, FriendUnit = jps.CountInRaidStatus(100)
 	write("CountInRange: ",CountInRange,"AvgHealthLoss: ", AvgHealthLoss)
-	local mytank,Tanks = jps.findTankInRaid()
+	local myTank,Tanks = jps.findTankInRaid()
 	for i=1,#Tanks do
 		print("Tank:",GetUnitName(Tanks[i]))
 	end
-	local mytank,Tanks = jps.findAggroInRaid()
-	for i=1,#Tanks do
-		write("Aggro :",GetUnitName(Tanks[i]))
-	end
-	
-	local lowest = jps.LowestImportantUnit()
-	print("Lowest: ",lowest,":",GetUnitName(lowest))
+	local aggroTank = jps.findThreatInRaid()
+	write("Aggro :",GetUnitName(aggroTank))
+	local lowestUnit = jps.LowestImportantUnit()
+	print("Lowest: ",lowestUnit,":",GetUnitName(lowestUnit))
 
 --	local mastery = GetMasteryEffect()
 --	local masteryValue = math.ceil(mastery)/100

@@ -79,6 +79,7 @@ local priestDisc = function()
 	local myTank,TankUnit = jps.findTankInRaid() -- default "focus"
 	local TankTarget = "target"
 	if canHeal(myTank) then TankTarget = myTank.."target" end
+	local TankThreat = jps.findThreatInRaid()
 
 	local playerAggro = jps.FriendAggro("player")
 	local playerIsStun = jps.StunEvents(2) -- return true/false ONLY FOR PLAYER -- "ROOT" was removed of Stuntype
@@ -399,6 +400,12 @@ spellTable = {
 	{ 129250, canDPS(rangedTarget) , rangedTarget, "|cFFFF0000Solace_" },
 	-- "Flammes sacrées" 14914  -- "Evangélisme" 81661
 	{ 14914, canDPS(rangedTarget) , rangedTarget , "|cFFFF0000Flammes_" },
+	
+	-- SHIELD BOSS TARGET
+	{ "nested", canDPS("target") and canHeal(TankThreat) ,{
+		{ 17, not jps.buff(17,TankThreat) and not jps.debuff(6788,TankThreat) , TankThreat , "Shield_TankThreat" },
+		{ 152118, jps.debuff(6788,TankThreat) and not jps.buff(152118,TankThreat) and not jps.isRecast(152118,TankThreat) , TankThreat , "Clarity_TankThreat" },
+	}},
 
 	-- "Pénitence" 47540
 	{ 47540, canHeal(myTank) and jps.hp(myTank) < 0.80 , myTank , "Penance_myTank_" },
@@ -415,11 +422,6 @@ spellTable = {
 	-- "Soins" 2060
 	{ 2060, groupHealth > 0.80 and not jps.Moving and canHeal(myTank) and jps.debuff(6788,myTank) and LowestImportantUnitHpct > 0.50 and jps.hpAbs(myTank) < 0.90 , myTank , "Soins_myTank_"  },
 
-	-- SHIELD BOSS TARGET
-	{ "nested", canDPS("target") and jps.IsCasting("target") ,{
-		{ 17, not jps.buff(17,"targettarget") and not jps.debuff(6788,"targettarget") , "targettarget" , "Shield_TargetTarget" },
-		{ 152118, jps.debuff(6788,"targettarget") and not jps.buff(152118,"targettarget") and not jps.isRecast(152118,"targettarget") , "targettarget" , "Clarity_TargetTarget" },
-	}},
 	-- BOSS DEBUFF
 	{ "nested", type(BossDebuffFriend) == "string" ,{
 		{ 17, not jps.buff(17,BossDebuffFriend) and not jps.debuff(6788,BossDebuffFriend) , BossDebuffFriend , "Shield_BossDebuff" },

@@ -51,6 +51,7 @@ local function Test()
 	print("CountInRange: ",CountInRange,"AvgHealthLoss: ", AvgHealthLoss)
 
 	local myTank,Tanks = jps.findTankInRaid()
+	print("|cff0070ddmyTank: ",GetUnitName(myTank))
 	for i=1,#Tanks do
 		print("|cff0070ddTanks: ",GetUnitName(Tanks[i]))
 	end

@@ -499,7 +499,7 @@ local DebuffNotDispel = {
 	toSpellName(34914), 	-- "Vampiric Touch"
 	}
 -- Don't dispel if friend is affected by "Unstable Affliction" or "Vampiric Touch" or "Lifebloom"
-local NotDispelFriendly = function(unit)
+local UnstableAffliction = function(unit)
 	for i=1,#DebuffNotDispel do -- for _,debuff in ipairs(DebuffNotDispel) do
 		local debuff = DebuffNotDispel[i]
 		if jps.debuff(debuff,unit) then return true end
@@ -509,7 +509,7 @@ end
 
 jps.canDispel = function(unit,dispelTable) -- {"Magic", "Poison", "Disease", "Curse"}
 	if not canHeal(unit) then return false end
-	if NotDispelFriendly(unit) then return false end
+	if UnstableAffliction(unit) then return false end
 	if dispelTable == nil then dispelTable = {"Magic"} end
 	local auraName, debuffType, expirationTime, castBy, spellId
 	local i = 1
@@ -566,6 +566,7 @@ function jps.DispelCurseTarget()
 end
 
 function jps.BossDebuff(unit)
+	if UnstableAffliction(unit) then return false end
 	local auraName, debuffType, expirationTime, castBy, spellId, isBossDebuff
 	local i = 1
 	auraName, _, _, _, debuffType, _, expirationTime, castBy, _, _, spellId, _, isBossDebuff = UnitDebuff(unit, i) 

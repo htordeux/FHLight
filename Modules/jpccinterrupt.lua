@@ -172,7 +172,7 @@ local DebuffNotDispel = {
 	}
 
 -- Don't dispel if friend is affected by "Unstable Affliction" or "Vampiric Touch" or "Lifebloom"
-local NotDispelFriendly = function(unit)
+local UnstableAffliction = function(unit)
 	for i=1,#DebuffNotDispel do -- for _,debuff in ipairs(DebuffNotDispel) do
 		local debuff = DebuffNotDispel[i]
 		if jps.debuff(debuff,unit) then return true end
@@ -192,7 +192,7 @@ end
 -- Dispel all MAGIC debuff in the debuff TABLE DebuffToDispel EXCEPT if unit is affected by some debuffs
 jps.DispelFriendly = function (unit,timed)
 	if not canHeal(unit) then return false end
-	if NotDispelFriendly(unit) then return false end
+	if UnstableAffliction(unit) then return false end
 	if timed == nil then timed = 0 end
 	local timeControlled = 0
 	local auraName, debuffType, duration, expTime, spellId

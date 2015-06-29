@@ -165,7 +165,7 @@ local priestDisc = function()
 	local DispelFriendHealth = 100
 	for i=1,#FriendUnit do -- for _,unit in ipairs(FriendUnit) do
 		local unit = FriendUnit[i]
-		if jps.DispelFriendly(unit,2) then
+		if jps.DispelFriendly(unit,2) then -- jps.DispelFriendly includes UnstableAffliction
 			local unitHP = jps.hp(unit)
 			if unitHP < DispelFriendHealth then
 				DispelFriendPvP = unit
@@ -177,7 +177,7 @@ local priestDisc = function()
 	local DispelFriendRole = nil
 	for i=1,#TankUnit do -- for _,unit in ipairs(TankUnit) do
 		local unit = TankUnit[i]
-		if jps.canDispel(unit,{"Magic"}) then
+		if jps.canDispel(unit,{"Magic"}) then -- jps.canDispel includes UnstableAffliction
 			DispelFriendRole = unit -- if jps.RoleInRaid(unit) == "HEALER" then
 		break end
 	end

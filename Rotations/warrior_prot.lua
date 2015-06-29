@@ -1,4 +1,3 @@
--- jps.Defensive for "Provocation" 
 -- jps.UseCDs for "Charge"
 -- jps.Interrupts for "Pummel"
 
@@ -161,12 +160,10 @@ local spellTable = {
 	{ warrior.spells["Pummel"] , jps.Interrupts and jps.ShouldKick(rangedTarget) , rangedTarget , "Pummel" },
 	{ warrior.spells["Pummel"] , jps.Interrupts and jps.ShouldKick("focus") , "focus" , "Pummel" },
 
-	-- "Provocation" 355
-	{ 355, jps.Defensive and jps.buff(71) and not jps.UnitIsUnit("targettarget","player") , "target" , "Provocation" },
 	-- TRINKETS -- jps.useTrinket(0) est "Trinket0Slot" est slotId  13 -- "jps.useTrinket(1) est "Trinket1Slot" est slotId  14
-
-	{ jps.useTrinket(0), jps.useTrinketBool(0) and not playerWasControl and jps.combatStart > 0 , rangedTarget , "Trinket0"},
-	{ jps.useTrinket(1), jps.useTrinketBool(1) and not playerWasControl and jps.combatStart > 0 , rangedTarget , "Trinket1"},
+	{ jps.useTrinket(0), jps.useTrinketBool(0) and not playerWasControl and jps.combatStart > 0 },
+	{ jps.useTrinket(1), jps.PvP and jps.useTrinketBool(1) and playerIsStun },
+	{ jps.useTrinket(1), not jps.PvP and jps.useTrinketBool(1) and not playerWasControl and jps.combatStart > 0 },
 
 	-- DEFENSIVE
 	-- "Demoralizing Shout" 1160 "Cri démoralisant"
@@ -193,6 +190,9 @@ local spellTable = {
 	-- "Shield Barrier" 112048 "Barrière protectrice" -- Shield Barrier works against all types of damage (excluding fall damage).
 	{ warrior.spells["ShieldBarrier"] , jps.buff(71) and not jps.buff(112048) and MagicDmg and jps.hp() < 0.80 , rangedTarget , "|cff1eff00ShieldBarrier_School" },
 	{ warrior.spells["ShieldBarrier"] , not jps.buff(112048) and playerAggro and jps.hp() < 0.50 , rangedTarget , "|cff1eff00ShieldBarrier" },
+
+	-- "Provocation" 355
+	{ 355, not jps.PvP and jps.buff(71) and not jps.UnitIsUnit("targettarget","player") , "target" , "Provocation" },
 
 	-- "Heroic Throw" 57755 "Lancer héroïque"
 	{ warrior.spells["HeroicThrow"] , inRanged and not inMelee , rangedTarget , "Heroic Throw" },
@@ -265,7 +265,6 @@ end, "Default")
 ----------------------------------------------------------------------------------------------------------------
 -------------------------------------------------- ROTATION OOC ------------------------------------------------
 ----------------------------------------------------------------------------------------------------------------
-
 
 -- spellSchool == 1 Physical, 2 Holy, 4 Fire, 8 Nature, 16 Frost, 32 Shadow, 64 Arcane
 jps.listener.registerCombatLogEventUnfiltered("SPELL_DAMAGE", function(...)

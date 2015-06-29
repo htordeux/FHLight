@@ -194,6 +194,7 @@ end
 function jps.findThreatInRaid()
 	local TankUnit,AggroUnit = jps.findAggroInRaid()
 	local maxThreat = 0
+	if #AggroUnit == 0 then return TankUnit end
 	for i=1,#AggroUnit do
 		local unit = AggroUnit[i]
 		local unitThreat = UnitThreatSituation(unit,"target")

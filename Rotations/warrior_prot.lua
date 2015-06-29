@@ -162,7 +162,7 @@ local spellTable = {
 	{ warrior.spells["Pummel"] , jps.Interrupts and jps.ShouldKick("focus") , "focus" , "Pummel" },
 
 	-- "Provocation" 355
-	{ 355, jps.Defensive and jps.buff(71) and not jps.UnitIsUnit("targettarget","player") , rangedTarget , "Provocation" },
+	{ 355, jps.Defensive and jps.buff(71) and not jps.UnitIsUnit("targettarget","player") , "target" , "Provocation" },
 	-- TRINKETS -- jps.useTrinket(0) est "Trinket0Slot" est slotId  13 -- "jps.useTrinket(1) est "Trinket1Slot" est slotId  14
 
 	{ jps.useTrinket(0), jps.useTrinketBool(0) and not playerWasControl and jps.combatStart > 0 , rangedTarget , "Trinket0"},
@@ -261,6 +261,10 @@ local spellTable = {
 	local spell,target = parseSpellTable(spellTable)
 	return spell,target
 end, "Default")
+
+----------------------------------------------------------------------------------------------------------------
+-------------------------------------------------- ROTATION OOC ------------------------------------------------
+----------------------------------------------------------------------------------------------------------------
 
 
 -- spellSchool == 1 Physical, 2 Holy, 4 Fire, 8 Nature, 16 Frost, 32 Shadow, 64 Arcane

@@ -48,15 +48,16 @@ local function Test()
 	local POHTarget, groupToHeal, groupHealth = jps.FindSubGroupHeal(1)
 	print("POHTarget: ",POHTarget,"groupToHeal: ",groupToHeal,"groupHealth: ",groupHealth)
 	local CountInRange, AvgHealthLoss, FriendUnit = jps.CountInRaidStatus(100)
-	write("CountInRange: ",CountInRange,"AvgHealthLoss: ", AvgHealthLoss)
+	print("CountInRange: ",CountInRange,"AvgHealthLoss: ", AvgHealthLoss)
+
 	local myTank,Tanks = jps.findTankInRaid()
 	for i=1,#Tanks do
-		print("Tank:",GetUnitName(Tanks[i]))
+		print("|cff0070ddTanks: ",GetUnitName(Tanks[i]))
 	end
 	local aggroTank = jps.findThreatInRaid()
-	write("Aggro :",GetUnitName(aggroTank))
+	print("|cFFFF0000Aggro: ",GetUnitName(aggroTank))
 	local lowestUnit = jps.LowestImportantUnit()
-	print("Lowest: ",lowestUnit,":",GetUnitName(lowestUnit))
+	print("|cff1eff00Lowest: ",lowestUnit,":",GetUnitName(lowestUnit))
 
 --	local mastery = GetMasteryEffect()
 --	local masteryValue = math.ceil(mastery)/100

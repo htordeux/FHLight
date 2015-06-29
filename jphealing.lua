@@ -191,7 +191,7 @@ function jps.findAggroInRaid()
 	return AggroUnit[1] or "focus", AggroUnit
 end
 
-function jps.findThreatInRaid(target)
+function jps.findThreatInRaid()
 	local TankUnit,AggroUnit = jps.findAggroInRaid()
 	local maxThreat = 0
 	for i=1,#AggroUnit do

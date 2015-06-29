@@ -530,11 +530,11 @@ jps.listener.registerEvent("UI_ERROR_MESSAGE", function(event_error)
 	-- http://www.wowwiki.com/WoW_Constants/Errors
 	-- http://www.wowwiki.com/WoW_Constants/Spells
 		if (event_error == SPELL_FAILED_NOT_BEHIND) then -- "You must be behind your target."
-			print("SPELL_FAILED_NOT_BEHIND - %s", event_error)
+			--print("SPELL_FAILED_NOT_BEHIND - %s", event_error)
 			jps.isNotBehind = true
 			jps.isBehind = false
 		elseif jps.FaceTarget and not jps.Moving and ((event_error == SPELL_FAILED_UNIT_NOT_INFRONT) or (event_error == ERR_BADATTACKFACING)) then
-			print("ERR_BADATTACKFACING - %s", event_error)			
+			--print("ERR_BADATTACKFACING - %s", event_error)			
 			local TargetGuid = UnitGUID("target")
 			if FireHack and (TargetGuid ~= nil) then
 				local TargetObject = GetObjectFromGUID(TargetGuid)
@@ -550,7 +550,7 @@ jps.listener.registerEvent("UI_ERROR_MESSAGE", function(event_error)
 			-- print("ERR_ABILITY_COOLDOWN - %s", event_error)
 			-- La technique n'est pas encore disponible
 		elseif jps.FaceTarget and not jps.Moving and event_error == ERR_BADATTACKPOS then
-			print("ERR_BADATTACKPOS - %s", event_error)
+			--print("ERR_BADATTACKPOS - %s", event_error)
 			jps.createTimer("FarAway",1)
 			jps.createTimer("FarAwayBug",2)
 			MoveForwardStart()

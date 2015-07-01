@@ -9,6 +9,7 @@ local UnitClass = UnitClass
 local UnitAffectingCombat = UnitAffectingCombat
 local PhysicalDamage = false
 local MagicDamage = false
+local canAttack = jps.CanAttack
 
 local ClassEnemy = {
 	["WARRIOR"] = "cac",
@@ -28,27 +29,6 @@ local EnemyCaster = function(unit)
 	if not jps.UnitExists(unit) then return false end
 	local _, classTarget, classIDTarget = UnitClass(unit)
 	return ClassEnemy[classTarget]
-end
-
--- Debuff EnemyTarget NOT DPS
-local DebuffUnitCyclone = function (unit)
-	if not UnitAffectingCombat(unit) then return false end
-	local Cyclone = false
-	local i = 1
-	local auraName = select(1,UnitDebuff(unit, i))
-	while auraName do
-		if strfind(auraName,L["Polymorph"]) then
-			Cyclone = true
-		elseif strfind(auraName,L["Cyclone"]) then
-			Cyclone = true
-		elseif strfind(auraName,L["Hex"]) then
-			Cyclone = true
-		end
-		if Cyclone then break end
-		i = i + 1
-		auraName = select(1,UnitDebuff(unit, i))
-	end
-	return Cyclone
 end
 
 ----------------------------------------------------------------------------------------------------------------
@@ -108,10 +88,10 @@ elseif jps.UnitExists("focus") and not canDPS("focus") then
 	if jps.getConfigVal("keep focus") == false then jps.Macro("/clearfocus") end
 end
 
-if canDPS("target") and not DebuffUnitCyclone("target") then rangedTarget =  "target"
-elseif jps.buff(156291) and canDPS(TankTarget) and not DebuffUnitCyclone(TankTarget) then rangedTarget = TankTarget -- "Gladiator Stance" 156291
-elseif canDPS("targettarget") and not DebuffUnitCyclone("targettarget") then rangedTarget = "targettarget"
-elseif canDPS("mouseover") and not DebuffUnitCyclone("mouseover") then rangedTarget = "mouseover"
+if canAttack("target") then rangedTarget =  "target"
+elseif jps.buff(156291) and canAttack(TankTarget) then rangedTarget = TankTarget -- "Gladiator Stance" 156291
+elseif canAttack("targettarget") then rangedTarget = "targettarget"
+elseif canAttack("mouseover") then rangedTarget = "mouseover"
 end
 if canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
 local TargetMoving = select(1,GetUnitSpeed(rangedTarget)) > 0
@@ -168,13 +148,13 @@ local spellTable = {
 	{ warrior.spells["HeroicStrike"] , jps.buff(122509) , rangedTarget , "HeroicStrike_Ultimatum" },
 
 	-- DEFENSIVE
-	-- "Provocation" 355
-	{ 355, not jps.PvP and jps.buff(71) and not jps.UnitIsUnit("targettarget","player") , "target" , "Provocation" },
 	-- "Proteger" 114029 -- "Intervention" 3411
 	{ 3411, not jps.UnitIsUnit(myTank,"player") and jps.hp(myTank) < 0.30 and jps.hp("player") > 0.85, myTank , "Intervention_myTank" },
 	{ 114029, not jps.UnitIsUnit(myTank,"player") and jps.hp(myTank) < 0.30 and jps.hp("player") > 0.85, myTank , "Proteger_myTank" },
 	{ 3411, not jps.UnitIsUnit("targettarget","player") and jps.hp("targettarget") < 0.30 , "targettarget" , "Intervention_Aggro" },
 	{ 114029, not jps.UnitIsUnit("targettarget","player") and jps.hp("targettarget") < 0.30 , "targettarget" , "Proteger_Aggro" },
+	-- "Provocation" 355
+	{ 355, not jps.PvP and jps.buff(71) and not jps.UnitIsUnit("targettarget","player") , "target" , "Provocation" },
 	-- "Demoralizing Shout" 1160 "Cri démoralisant"
 	{ 1160, playerAggro and not jps.debuff(1160,rangedTarget) , rangedTarget , "Demoralizing" },
 	
@@ -192,8 +172,8 @@ local spellTable = {
 	{ warrior.spells["ImpendingVictory"] , jps.hp("player") < 0.80 , rangedTarget , "|cff1eff00ImpendingVictory" },
 	{ warrior.spells["VictoryRush"] , jps.hp("player") <  0.80 , rangedTarget , "|cff1eff00VictoryRush" },
 	-- "Victory Rush" 34428 "Ivresse de la victoire" -- "Victorious" 32216 "Victorieux" -- Ivresse de la victoire activée.
-	{ warrior.spells["ImpendingVictory"] , jps.buffDuration(32216) < 4 , rangedTarget , "|cff1eff00ImpendingVictory" },
-	{ warrior.spells["VictoryRush"] , jps.buffDuration(32216) < 4 , rangedTarget , "|cff1eff00VictoryRush" },
+	{ warrior.spells["ImpendingVictory"] , jps.buffDuration(32216) < 4 , rangedTarget , "|cff1eff00ImpendingVictory_Duration" },
+	{ warrior.spells["VictoryRush"] , jps.buffDuration(32216) < 4 , rangedTarget , "|cff1eff00VictoryRush_Duration" },
 	-- "Stoneform" 20594 "Forme de pierre"
 	{ warrior.spells["Stoneform"] , playerAggro and jps.hp() < 0.80 , rangedTarget , "|cff1eff00Stoneform_Health" },
 	{ warrior.spells["Stoneform"] , jps.canDispel("player",{"Magic","Poison","Disease","Curse"}) , rangedTarget , "|cff1eff00Stoneform_Dispel" },

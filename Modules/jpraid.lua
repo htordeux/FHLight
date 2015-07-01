@@ -27,40 +27,28 @@ function jps.UnitIsUnit(unit1,unit2)
 	return false
 end
 
-function jps.hp(unit,message)
+function jps.hp(unit)
 	if unit == nil then unit = "player" end
 	if UnitHealthMax(unit) == 0 then return 0 end
-	if message == "abs" then
-		return UnitHealthMax(unit) - UnitHealth(unit)
-	else
-		return UnitHealth(unit) / UnitHealthMax(unit)
-	end
+	return UnitHealth(unit) / UnitHealthMax(unit)
 end
 
-function jps.hpInc(unit,message)
+function jps.hpInc(unit)
 	if unit == nil then unit = "player" end
 	if UnitHealthMax(unit) == 0 then return 0 end
 	local hpInc = UnitGetIncomingHeals(unit)
 	if not hpInc then hpInc = 0 end
-	if message == "abs" then
-		return UnitHealthMax(unit) - (UnitHealth(unit) + hpInc)
-	else
-		return (UnitHealth(unit) + hpInc)/UnitHealthMax(unit)
-	end
+	return (UnitHealth(unit) + hpInc)/UnitHealthMax(unit)
 end
 
-function jps.hpAbs(unit,message)
+function jps.hpAbs(unit)
 	if unit == nil then unit = "player" end
 	if UnitHealthMax(unit) == 0 then return 0 end
 	local hpInc = UnitGetIncomingHeals(unit)
 	if not hpInc then hpInc = 0 end
 	local hpAbs = UnitGetTotalAbsorbs(unit)
 	if not hpAbs then hpAbs = 0 end
-	if message == "abs" then
-		return UnitHealthMax(unit) - (UnitHealth(unit) + hpInc + hpAbs)
-	else
-		return (UnitHealth(unit) + hpInc + hpAbs)/UnitHealthMax(unit)
-	end
+	return (UnitHealth(unit) + hpInc + hpAbs)/UnitHealthMax(unit)
 end
 
 function jps.rage()
@@ -196,4 +184,19 @@ function jps.getInstanceInfo()
 	jps.instance["difficulty"] = diffTable[difficultyID]
 
 	return jps.instance
+end
+
+-- Debuff EnemyTarget NOT DPS
+jps.CanAttack = function(unit)
+	if not canDPS(unit) then return false end
+	if not UnitAffectingCombat(unit) then return false end
+	local i = 1
+	local auraName = select(1,UnitDebuff(unit, i))
+	while auraName do
+		if strfind(auraName,L["Polymorph"]) or strfind(auraName,L["Cyclone"]) or strfind(auraName,L["Hex"]) then
+		return false end
+		i = i + 1
+		auraName = select(1,UnitDebuff(unit, i))
+	end
+	return true
 end

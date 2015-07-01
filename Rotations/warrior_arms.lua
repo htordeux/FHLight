@@ -67,7 +67,6 @@ jps.registerRotation("WARRIOR","ARMS",function()
 
 local spell = nil
 local target = nil
-local playerhealth_deficiency =  jps.hp("player","abs") -- UnitHealthMax(player) - UnitHealth(player)
 local playerhealth_pct = jps.hp("player") 
 local playerAggro = jps.FriendAggro("player")
 local playerIsStun = jps.StunEvents(2) -- return true/false ONLY FOR PLAYER -- "ROOT" was removed of Stuntype

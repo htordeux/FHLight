@@ -120,7 +120,7 @@ local TargetMoving = select(1,GetUnitSpeed(rangedTarget)) > 0
 local spellTable = {
 
 	-- "Heroic Leap" 6544 "Bond héroïque"
-	{ warrior.spells["HeroicLeap"] , IsShiftKeyDown() , "player" },
+	{ warrior.spells["HeroicLeap"] , IsControlKeyDown() , "player" },
 	
 	-- BUFFS 
 	-- "Battle Stance"" 2457 -- "Defensive Stance" 71

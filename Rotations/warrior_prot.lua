@@ -1,5 +1,6 @@
 -- jps.UseCDs for "Charge"
 -- jps.Interrupts for "Pummel"
+-- jps.Defensive for "Provocation"
 
 local L = MyLocalizationTable
 local canDPS = jps.canDPS
@@ -110,7 +111,7 @@ local TargetMoving = select(1,GetUnitSpeed(rangedTarget)) > 0
 local spellTable = {
 
 	-- "Heroic Leap" 6544 "Bond héroïque"
-	{ warrior.spells["HeroicLeap"] , IsShiftKeyDown() , "player" },
+	{ warrior.spells["HeroicLeap"] , IsControlKeyDown() , "player" },
 	
 	-- BUFFS
 	-- "Gladiator Stance" 156291 -- Talent "Gladiator's Resolve" 152276
@@ -148,13 +149,18 @@ local spellTable = {
 	{ warrior.spells["HeroicStrike"] , jps.buff(122509) , rangedTarget , "HeroicStrike_Ultimatum" },
 
 	-- DEFENSIVE
+	-- "Stoneform" 20594 "Forme de pierre"
+	{ warrior.spells["Stoneform"] , playerAggro and jps.hp() < 0.80 , rangedTarget , "|cff1eff00Stoneform_Health" },
+	{ warrior.spells["Stoneform"] , jps.canDispel("player",{"Magic","Poison","Disease","Curse"}) , rangedTarget , "|cff1eff00Stoneform_Dispel" },
+	-- "Pierre de soins" 5512
+	{ {"macro","/use item:5512"}, jps.hp("player") < 0.80 and jps.itemCooldown(5512) == 0 , "player" , "Item5512" },
 	-- "Proteger" 114029 -- "Intervention" 3411
 	{ 3411, not jps.UnitIsUnit(myTank,"player") and jps.hp(myTank) < 0.30 and jps.hp("player") > 0.85, myTank , "Intervention_myTank" },
 	{ 114029, not jps.UnitIsUnit(myTank,"player") and jps.hp(myTank) < 0.30 and jps.hp("player") > 0.85, myTank , "Proteger_myTank" },
-	{ 3411, not jps.UnitIsUnit("targettarget","player") and jps.hp("targettarget") < 0.30 , "targettarget" , "Intervention_Aggro" },
-	{ 114029, not jps.UnitIsUnit("targettarget","player") and jps.hp("targettarget") < 0.30 , "targettarget" , "Proteger_Aggro" },
+	{ 3411, not jps.UnitIsUnit("targettarget","player") and jps.hp("targettarget") < 0.30 and jps.hp("player") > 0.85 , "targettarget" , "Intervention_Aggro" },
+	{ 114029, not jps.UnitIsUnit("targettarget","player") and jps.hp("targettarget") < 0.30 and jps.hp("player") > 0.85 , "targettarget" , "Proteger_Aggro" },
 	-- "Provocation" 355
-	{ 355, not jps.PvP and jps.buff(71) and not jps.UnitIsUnit("targettarget","player") , "target" , "Provocation" },
+	{ 355, jps.Defensive and jps.buff(71) and not jps.UnitIsUnit("targettarget","player") , "target" , "Provocation" },
 	-- "Demoralizing Shout" 1160 "Cri démoralisant"
 	{ 1160, playerAggro and not jps.debuff(1160,rangedTarget) , rangedTarget , "Demoralizing" },
 	
@@ -174,11 +180,6 @@ local spellTable = {
 	-- "Victory Rush" 34428 "Ivresse de la victoire" -- "Victorious" 32216 "Victorieux" -- Ivresse de la victoire activée.
 	{ warrior.spells["ImpendingVictory"] , jps.buffDuration(32216) < 4 , rangedTarget , "|cff1eff00ImpendingVictory_Duration" },
 	{ warrior.spells["VictoryRush"] , jps.buffDuration(32216) < 4 , rangedTarget , "|cff1eff00VictoryRush_Duration" },
-	-- "Stoneform" 20594 "Forme de pierre"
-	{ warrior.spells["Stoneform"] , playerAggro and jps.hp() < 0.80 , rangedTarget , "|cff1eff00Stoneform_Health" },
-	{ warrior.spells["Stoneform"] , jps.canDispel("player",{"Magic","Poison","Disease","Curse"}) , rangedTarget , "|cff1eff00Stoneform_Dispel" },
-	-- "Pierre de soins" 5512
-	{ {"macro","/use item:5512"}, jps.hp("player") < 0.80 and jps.itemCooldown(5512) == 0 , "player" , "Item5512" },
 	-- "Enraged Regeneration" 55694 "Régénération enragée"
 	{ warrior.spells["EnragedRegeneration"] , playerAggro and jps.hp() < 0.80 , rangedTarget , "|cff1eff00EnragedRegeneration" },
 
@@ -197,7 +198,6 @@ local spellTable = {
 	{ warrior.spells["Bloodbath"], jps.buff(71) and inMelee and jps.rage() > 89 , rangedTarget , "|cFFFF0000Bloodbath_DumpRage" },
 	{ warrior.spells["Bloodbath"], inMelee and jps.buff(169667) , rangedTarget , "|cFFFF0000Bloodbath_ShieldCharge" },
 	{ warrior.spells["Bloodbath"], inMelee and jps.rage() > 19 and jps.buffStacks(169686) > 3 , rangedTarget , "|cFFFF0000Bloodbath_BuffStrikes" },
-
 	-- "Storm Bolt" 107570 "Eclair de tempete" -- 30 yd range
 	{ warrior.spells["StormBolt"] , jps.IsSpellKnown(107570) , rangedTarget ,"StormBolt" },
 	-- "Dragon Roar " 118000 -- 8 yards

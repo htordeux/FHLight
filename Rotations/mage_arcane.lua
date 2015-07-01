@@ -8,7 +8,7 @@ SimCraft 6.0.2
 ]]--
 
 -- IsAltKeyDown		--> mage.runeOfPower
--- IsShiftKeyDown	--> mage.prismaticCrystal
+-- IsControlKeyDown	--> mage.prismaticCrystal
 -- jps.Defensive	--> mage.iceblock
 -- jps.UseCDs		--> mage.iceFloes -- Iceberg
 -- jps.MultiTarget	--> mage.netherTempest
@@ -204,8 +204,8 @@ local spellTable = {
 		
 	}},
 	
-	--prepare crsytal IsShiftKeyDown
-	{"nested", jps.cooldown(mage.prismaticCrystal) == 0 and IsShiftKeyDown(), {
+	--prepare crsytal IsControlKeyDown
+	{"nested", jps.cooldown(mage.prismaticCrystal) == 0 and IsControlKeyDown(), {
 		{mage.prismaticCrystal, jps.debuffStacks(mage.arcaneCharge,"player") >= 4 and jps.cooldown(mage.arcanePower) < 0.5},
 		{mage.prismaticCrystal, jps.debuffStacks(mage.arcaneCharge,"player") >= 4 and jps.cooldown(mage.arcanePower) > 45 and jps.glyphInfo(62210)},
 	}},

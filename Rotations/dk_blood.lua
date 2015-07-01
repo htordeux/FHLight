@@ -224,9 +224,9 @@ local spellTable = {
 
 	-- MULTITARGET
 	-- "Defile" 152280 "Profanation" -- 1 Unholy
-	{ dk.spells["Defile"] , IsShiftKeyDown() },
+	{ dk.spells["Defile"] , IsControlKeyDown() },
 	-- "Death and Decay" 43265 "Mort et decomposition" -- 1 Unholy
-	{ dk.spells["DeathAndDecay"], IsShiftKeyDown() },
+	{ dk.spells["DeathAndDecay"], IsControlKeyDown() },
 
 	{"nested", jps.MultiTarget and inMelee ,{
 		-- "Crimson Scourge" buff 81141 "Fléau cramoisi"

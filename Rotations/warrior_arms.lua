@@ -124,7 +124,7 @@ local TargetMoving = select(1,GetUnitSpeed(rangedTarget)) > 0
 local spellTable = {
 
 	-- "Heroic Leap" 6544 "Bond héroïque"
-	{ 6544, IsShiftKeyDown() , "player" },
+	{ 6544, IsControlKeyDown() , "player" },
 	
 	-- BUFFS 
 	-- "Battle Stance"" 2457 -- "Defensive Stance" 71

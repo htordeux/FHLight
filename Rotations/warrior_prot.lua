@@ -202,15 +202,17 @@ local spellTable = {
 	{ warrior.spells["StormBolt"] , jps.IsSpellKnown(107570) , rangedTarget ,"StormBolt" },
 	-- "Dragon Roar " 118000 -- 8 yards
 	{ warrior.spells["DragonRoar"] , jps.IsSpellKnown(118000) and inMelee , rangedTarget , "DragonRoar" },
+	-- "Bladestorm" 46924 "Tempête de lames"
+	{ warrior.spells["Bladestorm"] , jps.IsSpellKnown(46924) and inMelee , rangedTarget , "Bladestorm" },
+	-- "Ravager" 152277 -- 40 yd range
+	{ warrior.spells["Ravager"] , jps.IsSpellKnown(152277) , rangedTarget , "Ravager" },
 
 	-- MULTITARGET --
 	{"nested", jps.MultiTarget and inMelee ,{
-		-- "Ravager" 152277 -- 40 yd range
-		{ warrior.spells["Ravager"] , jps.IsSpellKnown(152277) , rangedTarget , "Ravager" },
-		-- "Shockwave" 46968 "Onde de choc"
-		{ warrior.spells["Shockwave"] , jps.IsSpellKnown(46968) , rangedTarget , "Shockwave" },
 		-- "Bladestorm" 46924 "Tempête de lames"
 		{ warrior.spells["Bladestorm"] , jps.IsSpellKnown(46924) , rangedTarget , "Bladestorm" },
+		-- "Shockwave" 46968 "Onde de choc"
+		{ warrior.spells["Shockwave"] , jps.IsSpellKnown(46968) , rangedTarget , "Shockwave" },
 		-- "Thunder Clap" 6343 "Coup de tonnerre"
 		{ warrior.spells["ThunderClap"] , true , rangedTarget , "ThunderClap" },
 	}},

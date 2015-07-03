@@ -465,8 +465,8 @@ end)
 
 -- Leave Combat
 local leaveCombat = function()
-	TurnLeftStop()
-	if jps.Moving then MoveForwardStop() end
+	if jps.checkTimer("FacingBug") > 0 then TurnLeftStop() end
+	if jps.checkTimer("FarAwayBug") > 0 and jps.Moving then MoveForwardStop() end
 	jps.Opening = true
 	jps.Combat = false
 	jps.gui_toggleCombat(false)

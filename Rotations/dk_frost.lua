@@ -259,7 +259,7 @@ local spellTable = {
 	}},
 
 	-- "Breath of Sindragosa" 152279 "Souffle de Sindragosa"
-	{ dk.spells["Sindragosa"] , jps.runicPower() > 75 and CompletedRunes , rangedTarget , "SINDRAGOSA" },
+	{ dk.spells["Sindragosa"] , jps.runicPower() > 75 and CompletedRunes and inMelee , rangedTarget , "SINDRAGOSA" },
 	-- "Frost Strike" 49143 "Frappe de givre" -- 25 Runic Power
 	-- "Killing Machine" 51124 "Machine à tuer" -- next Obliterate or Frost Strike automatically critically strike.
 	{ dk.spells["FrostStrike"] , jps.buff(51124) and not jps.buff(152279) , rangedTarget , "FrostStrike_KillingMachine" },

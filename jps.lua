@@ -385,14 +385,14 @@ function jps.Cycle()
 
 	if not jps.Casting and jps.ThisCast ~= nil then
 		if jps.NextSpell ~= nil then
-			if jps.NextSpell ~= jps.SentCast then
+			if jps.NextSpell ~= jps.SentCast and jps.canCast(jps.NextSpell) then
 				jps.Cast(jps.NextSpell,jps.Target)
-			else
 				write("|cFFFF0000Next Spell "..jps.NextSpell.. " was casted")
 				jps.NextSpell = nil
+			else
 				jps.Cast(jps.ThisCast)
 			end
-			if jps.cooldown(jps.NextSpell) > 1 then jps.NextSpell = nil end
+			if jps.cooldown(jps.NextSpell) > 3 then jps.NextSpell = nil end
 		else
 			jps.Cast(jps.ThisCast)
 		end

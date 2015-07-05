@@ -147,6 +147,8 @@ local spellTable = {
 	-- "Heroic Strike" 78 "Frappe héroïque" -- Buff "Ultimatum" 122509 -- HS cost no rage & crtique
 	{ warrior.spells["HeroicStrike"] , jps.buffStacks(169686) == 6 , rangedTarget , "HeroicStrike_6_Strikes" },
 	{ warrior.spells["HeroicStrike"] , jps.buff(122509) , rangedTarget , "HeroicStrike_Ultimatum" },
+	-- "Execute" 5308 "Exécution" -- Buff "Mort soudaine" 29725
+	{ 5308, jps.buff(29725) , rangedTarget , "Execute_SuddenDeath" },
 
 	-- DEFENSIVE
 	-- "Stoneform" 20594 "Forme de pierre"
@@ -195,8 +197,7 @@ local spellTable = {
 	-- TALENTS --
 	-- "Bloodbath" 12292 "Bain de sang" -- Buff 12292
 	{ warrior.spells["Bloodbath"], inMelee and jps.MultiTarget , rangedTarget , "|cFFFF0000Bloodbath" },
-	{ warrior.spells["Bloodbath"], jps.buff(71) and inMelee and jps.rage() > 89 , rangedTarget , "|cFFFF0000Bloodbath_DumpRage" },
-	{ warrior.spells["Bloodbath"], inMelee and jps.buff(169667) , rangedTarget , "|cFFFF0000Bloodbath_ShieldCharge" },
+	{ warrior.spells["Bloodbath"], inMelee and jps.rage() > 89 , rangedTarget , "|cFFFF0000Bloodbath_DumpRage" },
 	{ warrior.spells["Bloodbath"], inMelee and jps.rage() > 19 and jps.buffStacks(169686) > 3 , rangedTarget , "|cFFFF0000Bloodbath_BuffStrikes" },
 	-- "Storm Bolt" 107570 "Eclair de tempete" -- 30 yd range
 	{ warrior.spells["StormBolt"] , jps.IsSpellKnown(107570) , rangedTarget ,"StormBolt" },
@@ -225,14 +226,12 @@ local spellTable = {
 
 	-- SINGLETARGET -- "Gladiator Stance" 156291
 	-- "Dévaster" 20243 "Devastate" -- Buff "Unyielding Strikes" 169686 "Frappes inflexibles" 169686 -- Cumulable jusqu’à 6 fois
-	{ warrior.spells["Devastate"] , jps.buffDuration(169686) < 2 and jps.buffStacks(169686) < 6 , rangedTarget , "Devastate_BuffDuration" },
+	{ warrior.spells["Devastate"] , jps.buffDuration(169686) < 2 , rangedTarget , "Devastate_BuffDuration" },
 	-- "Execute" 5308 "Exécution" -- Buff "Mort soudaine" 29725
-	{ 5308, jps.buff(29725) , rangedTarget , "Execute_SuddenDeath" },
-	{ 5308, jps.rage() > 59 and jps.hp(rangedTarget) < 0.20 , rangedTarget , "Execute_DumpRage" },
-	{ 5308, not jps.buff(169667) , rangedTarget , "Execute_UnBuff" },
+	{ 5308, not jps.buff(169667) and jps.hp(rangedTarget) < 0.20 , rangedTarget , "Execute_UnBuff" },
 	-- "Heroic Strike" 78 "Frappe héroïque" -- Buff "Shield Charge" 169667
-	{ warrior.spells["HeroicStrike"] , jps.rage() > 19 and jps.buffStacks(169686) > 3 , rangedTarget , "HeroicStrike_4_BuffStrikes" },
 	{ warrior.spells["HeroicStrike"] , jps.buff(169667) , rangedTarget , "HeroicStrike_ShieldCharge" },
+	{ warrior.spells["HeroicStrike"] , jps.rage() > 19 and jps.buffStacks(169686) > 3 , rangedTarget , "HeroicStrike_4_BuffStrikes" },
 	{ warrior.spells["HeroicStrike"] , jps.rage() > 89 and jps.hp(rangedTarget) > 0.20 , rangedTarget , "HeroicStrike_DumpRage" },
 	-- "Dévaster" 20243 "Devastate" -- Dévaster réduit le coût en rage de Frappe héroïque de 5 pendant 5 s.
 	{ warrior.spells["Devastate"] , true , rangedTarget , "Devastate" },

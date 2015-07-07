@@ -15,6 +15,7 @@ local UnitGUID = UnitGUID
 local canDPS = jps.canDPS
 local UnitThreatSituation = UnitThreatSituation
 local UnitPlayerControlled = UnitPlayerControlled
+local UnitIsUnit = UnitIsUnit
 
 ------------------------------
 -- HEALTH Functions

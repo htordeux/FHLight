@@ -139,7 +139,7 @@ jps.registerRotation("MAGE","ARCANE", function()
 
 	local myTank,TankUnit = jps.findTankInRaid() -- default "focus"
 	local TankTarget = "target"
-	if canHeal(myTank) then TankTarget = myTank.."target" end
+	if UnitCanAssist("player",myTank) then TankTarget = myTank.."target" end
 
 ---------------------
 -- ENEMY TARGET

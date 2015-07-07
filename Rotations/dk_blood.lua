@@ -68,7 +68,7 @@ local inMelee = jps.IsSpellInRange(49998,"target") -- "Death Strike" 49998 "Frap
 
 local myTank,TankUnit = jps.findTankInRaid() -- default "focus"
 local TankTarget = "target"
-if canHeal(myTank) then TankTarget = myTank.."target" end
+if UnitCanAssist("player",myTank) then TankTarget = myTank.."target" end
 
 ----------------------
 -- TARGET ENEMY

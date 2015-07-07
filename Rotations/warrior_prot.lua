@@ -53,7 +53,7 @@ local ShieldCharge  = GetSpellCharges(156321)
 
 local myTank,TankUnit = jps.findTankInRaid() -- default "focus"
 local TankTarget = "target"
-if canHeal(myTank) then TankTarget = myTank.."target" end
+if UnitCanAssist("player",myTank) then TankTarget = myTank.."target" end
 	
 ----------------------
 -- TARGET ENEMY
@@ -157,8 +157,8 @@ local spellTable = {
 	-- "Pierre de soins" 5512
 	{ {"macro","/use item:5512"}, jps.hp("player") < 0.80 and jps.itemCooldown(5512) == 0 , "player" , "Item5512" },
 	-- "Proteger" 114029 -- "Intervention" 3411
-	{ 3411, not jps.UnitIsUnit(myTank,"player") and jps.hp(myTank) < 0.30 and jps.hp("player") > 0.85, myTank , "Intervention_myTank" },
-	{ 114029, not jps.UnitIsUnit(myTank,"player") and jps.hp(myTank) < 0.30 and jps.hp("player") > 0.85, myTank , "Proteger_myTank" },
+	{ 3411, not jps.UnitIsUnit(myTank,"player") and jps.hp(myTank) < 0.30 and jps.hp("player") > 0.85 and UnitCanAssist("player",myTank) , myTank , "Intervention_myTank" },
+	{ 114029, not jps.UnitIsUnit(myTank,"player") and jps.hp(myTank) < 0.30 and jps.hp("player") > 0.85 and UnitCanAssist("player",myTank) , myTank , "Proteger_myTank" },
 	{ 3411, not jps.UnitIsUnit("targettarget","player") and jps.hp("targettarget") < 0.30 and jps.hp("player") > 0.85 , "targettarget" , "Intervention_Aggro" },
 	{ 114029, not jps.UnitIsUnit("targettarget","player") and jps.hp("targettarget") < 0.30 and jps.hp("player") > 0.85 , "targettarget" , "Proteger_Aggro" },
 	-- "Provocation" 355

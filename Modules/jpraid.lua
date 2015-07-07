@@ -21,7 +21,7 @@ local UnitPlayerControlled = UnitPlayerControlled
 ------------------------------
 
 function jps.UnitIsUnit(unit1,unit2)
-	if unit2 == nil then unit2 = "player" end
+	if unit2 == nil then return false end
 	if unit1 == nil then return false end
 	if UnitGUID(unit1) == UnitGUID(unit2) then return true end
 	return false

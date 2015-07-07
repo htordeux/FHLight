@@ -33,7 +33,6 @@ jps.Combat = false
 jps.Debug = false
 jps.DebugMsg = false
 jps.DebugLevel = 1
-jps.PLuaFlag = false
 jps.MoveToTarget = false
 jps.FaceTarget = true
 

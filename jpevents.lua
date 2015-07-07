@@ -437,8 +437,7 @@ end)
 jps.listener.registerEvent("PLAYER_LEAVING_WORLD", jps_SAVE_PROFILE)
 
 -- Hide Static Popup - thx here to Phelps & ProbablyEngine
-local hideStaticPopup = function(addon, eventBlocked)
-	jps.PLuaFlag = true
+local hideStaticPopup = function(addon, eventBlocked) 
 	if string.upper(addon) == "JPS" then
 		StaticPopup1:Hide()
 		LOG.debug("Addon Action Blocked: %s", eventBlocked)

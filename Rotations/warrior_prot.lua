@@ -165,7 +165,9 @@ local spellTable = {
 	{ 355, jps.Defensive and jps.buff(71) and not jps.UnitIsUnit("targettarget","player") , "target" , "Provocation" },
 	-- "Demoralizing Shout" 1160 "Cri démoralisant"
 	{ 1160, playerAggro and not jps.debuff(1160,rangedTarget) , rangedTarget , "Demoralizing" },
-	
+
+	-- "Last Stand" 12975 "Dernier rempart" -- 3 min
+	{ warrior.spells["LastStand"] , jps.hp("player") < 0.30 , rangedTarget , "|cff1eff00LastStand" },	
 	-- "Shield Block" 2565 "Maîtrise du blocage" -- works against physical attacks, it does nothing against magic -- Buff "Shield Block" 132404 -- 60 rage
 	{ warrior.spells["ShieldBlock"] , jps.buff(71) and PhysicalDamage and not jps.buff(132404) and jps.hp("player") < 0.80 , rangedTarget , "|cff1eff00ShieldBlock_PhysicalDmg" },
 	-- "Shield Barrier" 112048 "Barrière protectrice" -- Shield Barrier works against all types of damage (excluding fall damage) -- 20 + 40 rage
@@ -173,8 +175,6 @@ local spellTable = {
 	{ warrior.spells["ShieldBarrier"] , not jps.buff(112048) and playerAggro and jps.hp("player") < 0.50 , rangedTarget , "|cff1eff00ShieldBarrier" },
 	-- "Shield Wall" 871 "Mur protecteur" -- cd 2 min
 	{ warrior.spells["ShieldWall"] , jps.hp("player") < 0.50 , rangedTarget , "|cff1eff00ShieldWall" },
-	-- "Last Stand" 12975 "Dernier rempart" -- 3 min
-	{ warrior.spells["LastStand"] , jps.hp("player") < 0.30 , rangedTarget , "|cff1eff00LastStand" },
 
 	-- "Impending Victory" 103840 "Victoire imminente" -- Talent Replaces Victory Rush.
 	{ warrior.spells["ImpendingVictory"] , jps.hp("player") < 0.80 , rangedTarget , "|cff1eff00ImpendingVictory" },
@@ -192,13 +192,13 @@ local spellTable = {
 	-- "Intimidating Shout" 5246
 	{ warrior.spells["IntimidatingShout"] , playerAggro and not jps.debuff(5246,rangedTarget) , rangedTarget , "IntimidatingShout"},
 	-- "Berserker Rage" 18499 "Rage de berserker" -- "Enrage" 12880 "Enrager"
-	{ warrior.spells["BerserkerRage"] , not jps.buff(12880) and jps.cooldown(23922) > 0 , rangedTarget , "|cFFFF0000BerserkerRage" },
+	{ warrior.spells["BerserkerRage"] , not jps.buff(12880) , rangedTarget , "|cFFFF0000BerserkerRage" },
 
 	-- TALENTS --
 	-- "Bloodbath" 12292 "Bain de sang" -- Buff 12292
 	{ warrior.spells["Bloodbath"], inMelee and jps.MultiTarget , rangedTarget , "|cFFFF0000Bloodbath" },
 	{ warrior.spells["Bloodbath"], inMelee and jps.rage() > 89 , rangedTarget , "|cFFFF0000Bloodbath_DumpRage" },
-	{ warrior.spells["Bloodbath"], inMelee and jps.rage() > 19 and jps.buffStacks(169686) > 3 , rangedTarget , "|cFFFF0000Bloodbath_BuffStrikes" },
+	{ warrior.spells["Bloodbath"], inMelee and jps.rage() > 39 and jps.buffStacks(169686) > 3 , rangedTarget , "|cFFFF0000Bloodbath_BuffStrikes" },
 	-- "Storm Bolt" 107570 "Eclair de tempete" -- 30 yd range
 	{ warrior.spells["StormBolt"] , jps.IsSpellKnown(107570) , rangedTarget ,"StormBolt" },
 	-- "Dragon Roar " 118000 -- 8 yards
@@ -220,8 +220,9 @@ local spellTable = {
 
 	-- "Shield Charge" 156321 "Charge de bouclier" -- Buff "Shield Charge" 169667 -- Increasing the damage of Shield Slam, Revenge, and Heroic Strike by 25% for 7 sec.
 	{"nested", jps.buff(156291) and jps.buffDuration(169667) < 2 and jps.rage() > 29 and inMelee ,{
-		{ 156321, jps.buffStacks(169686) > 3 , rangedTarget , "|cffa335eeShieldCharge_Strikes" },
-		{ 156321, jps.rage() > 59 , rangedTarget , "|cffa335eeShieldCharge_Rage" },
+		{ 156321, inMelee and jps.rage() > 39 and jps.buffStacks(169686) > 3 , rangedTarget , "|cffa335eeShieldCharge_Strikes" },
+		{ 156321, inMelee and jps.rage() > 89 , rangedTarget , "|cffa335eeShieldCharge_Rage" },
+		{ 156321, inMelee and jps.buff(12292) , rangedTarget , "|cffa335eeShieldCharge_Bloodbath" },
 	}},
 
 	-- SINGLETARGET -- "Gladiator Stance" 156291

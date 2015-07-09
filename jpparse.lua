@@ -48,7 +48,7 @@ jps.UpdateHealerBlacklist = function(self)
 	if #jps.HealerBlacklist > 0 then
 		for i = #jps.HealerBlacklist, 1, -1 do
 			if GetTime() - jps.HealerBlacklist[i][2] > jps.BlacklistTimer then
-				print("Releasing ", jps.HealerBlacklist[i][1])
+				if jps.Debug then print("Releasing ", jps.HealerBlacklist[i][1]) end
 				tremove(jps.HealerBlacklist,i)
 			end
 		end
@@ -70,7 +70,7 @@ jps.BlacklistPlayer = function(unit)
 	tinsert(playerexclude, unit)
 	tinsert(playerexclude, GetTime())
 	tinsert(jps.HealerBlacklist,playerexclude)
-	print("|cffa335eeBlacklisting", unit)
+	if jps.Debug then print("|cffa335eeBlacklisting", unit) end
 	end
 
 end

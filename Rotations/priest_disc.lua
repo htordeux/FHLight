@@ -596,9 +596,6 @@ jps.registerRotation("PRIEST","DISCIPLINE",function()
 		{ 6346, not jps.buff(6346,"player") , "player" },
 		-- SNM "Fortitude" 21562 -- "Commanding Shout" 469 -- "Blood Pact" 166928
 		{ 21562, jps.buffMissing(21562) and jps.buffMissing(469) and jps.buffMissing(166928) , "player" },
-		-- SNM "Levitate" 1706 -- try to keep buff for enemy dispel -- Buff "Lévitation" 111759
-		{ 1706, not jps.buff(111759) , "player" },
-
 	}},
 		
 	-- "Shield" 17 "Body and Soul" 64129 -- figure out how to speed buff everyone as they move

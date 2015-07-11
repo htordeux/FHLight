@@ -56,6 +56,10 @@ local function toSpellName(spell)
 	return spellname
 end
 
+-- global
+jps.PhysicalDamage = false
+jps.MagicDamage = false
+
 --------------------------
 -- (UN)REGISTER FUNCTIONS 
 --------------------------
@@ -471,6 +475,8 @@ local leaveCombat = function()
 	jps.gui_toggleCombat(false)
 	jps.combatStart = 0
 	jps.NextSpell = nil
+	jps.PhysicalDamage = false
+	jps.MagicDamage = false
 
 	-- nil all tables
 	SpellFailedTable = {}
@@ -818,6 +824,8 @@ local RAID_AFFILIATION = bit.bor(COMBATLOG_OBJECT_AFFILIATION_PARTY, COMBATLOG_O
 local bitband = bit.band
 
 -- TABLE ENEMIES IN COMBAT
+-- http://wow.gamepedia.com/COMBAT_LOG_EVENT
+
 jps.listener.registerEvent("COMBAT_LOG_EVENT_UNFILTERED", function(...)
 	local event = select(2,...)
 	local sourceGUID = select(4,...)
@@ -896,6 +904,18 @@ jps.listener.registerEvent("COMBAT_LOG_EVENT_UNFILTERED", function(...)
 
 -- DAMAGE TABLE Note that for the SWING prefix, _DAMAGE starts at the 12th parameter
 	if sourceGUID and destGUID and damageEvents[event] then
+		-- SPELLSCHOOL -- 1 Physical, 2 Holy, 4 Fire, 8 Nature, 16 Frost, 32 Shadow, 64 Arcane
+		local spellSchool =  select(14,...)
+		if destGUID == UnitGUID("player") and spellSchool then
+			if spellSchool == 1 then
+				jps.PhysicalDamage = true
+				jps.MagicDamage = false
+				
+			else
+				jps.PhysicalDamage = false
+				jps.MagicDamage = true
+			end
+		end
 
 		if isSourceEnemy and isDestRaid then
 			local dmgTTD = 0
@@ -915,7 +935,6 @@ jps.listener.registerEvent("COMBAT_LOG_EVENT_UNFILTERED", function(...)
 				EnemyDamager[sourceGUID]["friendname"] = destName
 				EnemyDamager[sourceGUID]["friendaggro"] = {GetTime(), dmgTTD}
 			end
-
 		end
 	end
 end)

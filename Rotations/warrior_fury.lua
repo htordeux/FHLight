@@ -86,15 +86,15 @@ if not jps.UnitExists("focus") and canDPS("mouseover") and UnitAffectingCombat("
 	-- set focus an enemy targeting you
 	if jps.UnitIsUnit("mouseovertarget","player") and not jps.UnitIsUnit("target","mouseover") then
 		jps.Macro("/focus mouseover")
-		print("Enemy DAMAGER|cff1eff00 "..name.." |cffffffffset as FOCUS")
+		--print("Enemy DAMAGER|cff1eff00 "..name.." |cffffffffset as FOCUS")
 	-- set focus an enemy healer
 	elseif jps.EnemyHealer("mouseover") then
 		jps.Macro("/focus mouseover")
-		print("Enemy HEALER|cff1eff00 "..name.." |cffffffffset as FOCUS")
+		--print("Enemy HEALER|cff1eff00 "..name.." |cffffffffset as FOCUS")
 	-- set focus an enemy in combat
 	elseif canDPS("mouseover") and not jps.UnitIsUnit("target","mouseover") then
 		jps.Macro("/focus mouseover")
-		print("Enemy COMBAT|cff1eff00 "..name.." |cffffffffset as FOCUS")
+		--print("Enemy COMBAT|cff1eff00 "..name.." |cffffffffset as FOCUS")
 	end
 end
 

@@ -103,18 +103,18 @@ if not jps.UnitExists("focus") and canDPS("mouseover") and UnitAffectingCombat("
 	-- set focus an enemy targeting you
 	if jps.UnitIsUnit("mouseovertarget","player") and not jps.UnitIsUnit("target","mouseover") then
 		jps.Macro("/focus mouseover")
-		print("Enemy DAMAGER|cff1eff00 "..name.." |cffffffffset as FOCUS")
+		--print("Enemy DAMAGER|cff1eff00 "..name.." |cffffffffset as FOCUS")
 	-- set focus an enemy healer
 	elseif jps.EnemyHealer("mouseover") then
 		jps.Macro("/focus mouseover")
-		print("Enemy HEALER|cff1eff00 "..name.." |cffffffffset as FOCUS")
+		--print("Enemy HEALER|cff1eff00 "..name.." |cffffffffset as FOCUS")
 	-- set focus an enemy in combat
 	elseif canDPS("mouseover") and not jps.UnitIsUnit("target","mouseover") and not jps.myDebuff(589,"mouseover") then
 		jps.Macro("/focus mouseover")
-		print("Enemy COMBAT|cff1eff00 "..name.." |cffffffffset as FOCUS not DEBUFF")
+		--print("Enemy COMBAT|cff1eff00 "..name.." |cffffffffset as FOCUS not DEBUFF")
 	elseif canDPS("mouseover") and not jps.UnitIsUnit("target","mouseover") then
 		jps.Macro("/focus mouseover")
-		print("Enemy COMBAT|cff1eff00 "..name.." |cffffffffset as FOCUS")
+		--print("Enemy COMBAT|cff1eff00 "..name.." |cffffffffset as FOCUS")
 	end
 end
 
@@ -518,8 +518,6 @@ jps.registerRotation("PRIEST","SHADOW",function()
 		{ 6346, not jps.buff(6346,"player") , "player" },
 		-- SNM "Fortitude" 21562 -- "Commanding Shout" 469 -- "Blood Pact" 166928
 		{ 21562, jps.buffMissing(21562) and jps.buffMissing(469) and jps.buffMissing(166928) , "player" },
-		-- SNM "Levitate" 1706 -- try to keep buff for enemy dispel -- Buff "Lévitation" 111759
-		{ 1706, not jps.buff(111759) , "player" },
 	}},
 
 	-- "Don des naaru" 59544

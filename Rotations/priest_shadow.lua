@@ -1,4 +1,4 @@
--- jps.UseCds for "Cascade" or "Divine Star"
+-- jps.UseCds for "Cascade" or "Divine Star" or "Psychic Horror"
 -- jps.MultiTarget for "MindSear" 48045
 -- jps.Interrupts for "Semblance spectrale" 112833 -- PvP it loses the orb in Kotmogu Temple
 -- jps.Defensive to keep Shield up
@@ -218,11 +218,9 @@ end
 local LeapFriend = nil
 for i=1,#FriendUnit do -- for _,unit in ipairs(FriendUnit) do
 	local unit = FriendUnit[i]
-	if priest.unitForLeap(unit) and jps.hp(unit) < 0.25 then
-		if jps.RoleInRaid(unit) == "HEALER" then
-			LeapFriend = unit
-		break end
-	end
+	if priest.unitForLeap(unit) and jps.TimeToDie(unit) < 5 then 
+		LeapFriend = unit -- if jps.RoleInRaid(unit) == "HEALER" then
+	break end
 end
 
 -- if jps.debuffDuration(114404,"target") > 18 and jps.UnitExists("target") then MoveBackwardStart() end
@@ -281,7 +279,7 @@ if jps.ChannelTimeLeft() > 0 then return nil end
 -- "Psychic Horror" 64044 Consumes up to 3 Shadow Orbs to terrify the target
 -- incapacitating the target for 1 sec plus 1 sec per Shadow Orb consumed.
 local fnOrbs = function(unit)
-	if not jps.PvP then return false end
+	if not jps.PvP and not jps.UseCDs then return false end
 	if Orbs == 0 then return false end
 	if jps.LoseControl(unit) then return false end
 	if DebuffUnitCyclone(unit) then return false end

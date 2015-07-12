@@ -92,6 +92,7 @@ local priestDisc = function()
 	local ShellTarget = jps.FindSubGroupAura(114908) -- buff target Spirit Shell 114908 need SPELLID
 	-- "Body and Soul" 64129
 	local BodyAndSoul = jps.IsSpellKnown(64129)
+	local isArena, _ = IsActiveBattlefieldArena()
 
 ---------------------
 -- ENEMY TARGET
@@ -123,6 +124,18 @@ local priestDisc = function()
 -- LOCAL FUNCTIONS FRIENDS
 ----------------------------
 
+	-- LOWEST TTD 
+	local LowestFriendTTD = nil
+	local LowestTTD = 6 -- Second
+	for i=1,#FriendUnit do -- for _,unit in ipairs(FriendUnit) do
+		local unit = FriendUnit[i]
+		local TTD = jps.TimeToDie(unit)
+		if  TTD < LowestTTD then
+			LowestFriendTTD = unit
+			LowestTTD = TTD
+		end
+	end
+
 	local MendingFriend = nil
 	local MendingFriendHealth = 100
 	for i=1,#FriendUnit do -- for _,unit in ipairs(FriendUnit) do
@@ -140,7 +153,7 @@ local priestDisc = function()
 	local LeapFriend = nil
 	for i=1,#FriendUnit do -- for _,unit in ipairs(FriendUnit) do
 		local unit = FriendUnit[i]
-		if priest.unitForLeap(unit) and jps.hp(unit) < 0.25 then 
+		if priest.unitForLeap(unit) and jps.TimeToDie(unit) < 5 then 
 			LeapFriend = unit -- if jps.RoleInRaid(unit) == "HEALER" then
 		break end
 	end
@@ -240,7 +253,7 @@ local priestDisc = function()
 	--TANK not Buff Spirit Shell 114908
 		{ 2061, jps.buff(114255) , LowestImportantUnit , "Carapace_FlashHeal_Light_" },
 		{ 596, canHeal(ShellTarget) , ShellTarget , "Carapace_Shell_Target_" },
-		{ 2061, not jps.buffId(114908,LowestImportantUnit) , LowestImportantUnit , "Carapace_NoBuff_FlashHeal_" },	
+		{ 2061, not jps.buffId(114908,LowestImportantUnit) , LowestImportantUnit , "Carapace_NoBuff_FlashHeal_" },
 	--TANK Buff Spirit Shell 114908
 		{ 2060, jps.buffId(114908,LowestImportantUnit) , LowestImportantUnit , "Carapace_Buff_Soins_" },
 	}
@@ -262,28 +275,16 @@ local priestDisc = function()
 	}
 	
 	-- SNM RACIAL COUNTERS -- share 30s cd with trinket
---	local RacialCounters = {
---		-- Blood Elf "Arcane Torrent" 28730
---		{ 28730, jps.IsSpellInRange(8122,rangedTarget) and EnemyCaster(rangedTarget) == "caster" , rangedTarget },
---		-- Dwarf "Stoneform" 20594 Removes all poison, disease, curse, magic, and bleed effects and reduces all physical damage taken by 10% for 8 sec.
---		{ 20594, jps.hp() < 0.50 and playerAggro },
---		-- Gnome "Escape Artist" 20589
---		{ 20589, (jps.LoseControl("player",{"Root"}) or jps.LoseControl("player",{"Snare"})) },
---		-- Pandaren "Quaking Palm" 107079
---		{ 107079, EnemyCaster(rangedTarget) == "caster" , rangedTarget },
---		-- Tauren "War Stomp" 20549
---		{ 20549, jps.IsSpellInRange(8122,rangedTarget) and EnemyCaster(rangedTarget) == "caster" , rangedTarget },
---		-- Undead "Will of the Forsaken" 7744
---		{ 7744, jps.debuff("psychic scream","player") }, -- Fear
---		{ 7744, jps.debuff("fear","player") }, -- Fear
---		{ 7744, jps.debuff("intimidating shout","player") }, -- Fear
---		{ 7744, jps.debuff("howl of terror","player") }, -- Fear
---		{ 7744, jps.debuff("mind control","player") }, -- Charm
---		{ 7744, jps.debuff("seduction","player") }, -- Charm
---		{ 7744, jps.debuff("wyvern sting","player") }, -- Sleep
---	}
-	
-
+	local RacialCounters = {
+		-- Undead "Will of the Forsaken" 7744 -- SNM priest is undead ;)
+		{ 7744, jps.debuff("psychic scream","player") }, -- Fear
+		{ 7744, jps.debuff("fear","player") }, -- Fear
+		{ 7744, jps.debuff("intimidating shout","player") }, -- Fear
+		{ 7744, jps.debuff("howl of terror","player") }, -- Fear
+		{ 7744, jps.debuff("mind control","player") }, -- Charm
+		{ 7744, jps.debuff("seduction","player") }, -- Charm
+		{ 7744, jps.debuff("wyvern sting","player") }, -- Sleep
+	}
 
 ------------------------------------------------------
 -- OVERHEAL -- OPENING -- CANCELAURA -- STOPCASTING --
@@ -328,7 +329,8 @@ spellTable = {
 	{ 1706, jps.fallingFor() > 1.5 and not jps.buff(111759) , "player" },
 	{ 1706, jps.debuff(77606,"player") , "player" , "DarkSim_Levitate" },
 
-	--{"nested", jps.PvP and jps.UseCDs , RacialCounters },
+	-- SNM RACIAL COUNTERS -- share 30s cd with trinket
+	{"nested", jps.PvP and jps.UseCDs , RacialCounters },
 	-- SNM "Chacun pour soi" 59752 "Every Man for Himself" -- Human
 	{ 59752, playerIsStun , "player" , "Every_Man_for_Himself" },
 	-- TRINKETS -- jps.useTrinket(0) est "Trinket0Slot" est slotId  13 -- "jps.useTrinket(1) est "Trinket1Slot" est slotId  14
@@ -344,7 +346,7 @@ spellTable = {
 	-- CONTROL --
 	{ 15487, type(SilenceEnemyTarget) == "string" , SilenceEnemyTarget , "Silence_MultiUnit" },
 	{ "nested", jps.PvP and not jps.LoseControl(rangedTarget) and canDPS(rangedTarget) , parseControl },
-	-- "Leap of Faith" 73325 -- "Saut de foi"
+	-- "Leap of Faith" 73325 -- "Saut de foi" -- jps.TimeToDie is now a condition in LeapFriend
 	{ 73325, jps.PvP and type(LeapFriend) == "string" , LeapFriend , "|cff1eff00Leap_MultiUnit_" },
 	
 	-- DISPEL -- "Glyph of Purify" 55677 Your Purify spell also heals your target for 5% of maximum health
@@ -368,6 +370,11 @@ spellTable = {
 		-- "Prière du désespoir" 19236
 		{ 19236, jps.IsSpellKnown(19236) , "player" , "Aggro_DESESPERATE" },
 	}},
+	
+	-- PLAYER HEALS --
+	-- SNM "Fade" "Oubli" + "Glyph of Shadow Magic" 159628 -- Use if will die soon and have aggro
+	{ 586, jps.glyphInfo(159628) and jps.PvP and playerAggro and playerTTD < 6 , "player" , "Aggro_Oubli" },
+	
 	{ "nested", playerAggro or playerWasControl or playerIsTargeted ,{
 		-- "Power Word: Shield" 17
 		{ 17, not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Aggro_Shield" },
@@ -450,6 +457,15 @@ spellTable = {
 	}},
 
 	-- EMERGENCY HEAL --
+	-- LowestFriendTTD -- look for lowest friend unit in raid with TTD < 6 sec
+	-- SNM "Fade" "Oubli" + "Glyph of Shadow Magic" 159628
+	{ 586, jps.glyphInfo(159628) and jps.PvP and playerWasControl and playerTTD < 6 , "player" , "Control_Oubli" },
+	{ 586, jps.glyphInfo(159628) and jps.PvP and playerWasControl and type(LowestFriendTTD) == "string" , "player" , "Control_Oubli" },
+	-- SNM "Power Word: Shield
+	{ 17, type(LowestFriendTTD) == "string" and not jps.buff(17,LowestFriendTTD) and not jps.debuff(6788,LowestFriendTTD) , LowestFriendTTD , "Bubble_Lowest_TTD" },
+	-- SNM "Flash Heal"
+	{ 2061, type(LowestFriendTTD) == "string" , LowestFriendTTD , "Flash_Heal_Lowest_TTD" },
+
 	{ "nested", LowestImportantUnitHpct < 0.50 ,{
 		-- "Power Infusion" 10060 "Infusion de puissance"
 		{ 10060, jps.hp(myTank) < 0.50 , "player" , "Emergency_POWERINFUSION" },
@@ -501,6 +517,9 @@ spellTable = {
 	}},
 
 	-- HEAL --
+	-- SNM Flash Heal top off -- Less important to be conservative with mana in PvP
+	{ 2061, isArena and LowestImportantUnitHpct < 0.75 and jps.mana() > 0.50 , LowestImportantUnit , "Flash_Heal_Topoff" },
+	
 	{ "nested", LowestImportantUnitHpct < 0.80 ,{
 		-- "Pénitence" 47540
 		{ 47540, true , LowestImportantUnit , "Penance_" },
@@ -582,13 +601,13 @@ jps.registerRotation("PRIEST","DISCIPLINE",function()
 	
 	local spellTableOOC = {
 
-	-- SNM "Levitate" 1706	
+	-- SNM "Levitate" 1706
 	{ 1706, jps.fallingFor() > 1.5 and not jps.buff(111759) , "player" },
 	{ 1706, playerIsSwimming and not jps.buff(111759) , "player" },
 
 	-- "Fortitude" 21562 -- "Commanding Shout" 469 -- "Blood Pact" 166928
 	{ 21562, jps.buffMissing(21562) , "player" },
-	-- SNM "Nova" 132157 -- keep buff "Words of Mending" 155362 "Mot de guérison" 
+	-- SNM "Nova" 132157 -- keep buff "Words of Mending" 155362 "Mot de guérison"
 	{ 132157, jps.UseCDs and jps.buffStacks(155362) < 5 , "player" , "Nova_WoM" },
 
 	{"nested", jps.PvP , {
@@ -597,7 +616,7 @@ jps.registerRotation("PRIEST","DISCIPLINE",function()
 		-- SNM "Fortitude" 21562 -- "Commanding Shout" 469 -- "Blood Pact" 166928
 		{ 21562, jps.buffMissing(21562) and jps.buffMissing(469) and jps.buffMissing(166928) , "player" },
 	}},
-		
+
 	-- "Shield" 17 "Body and Soul" 64129 -- figure out how to speed buff everyone as they move
 	{ 17, jps.Moving and BodyAndSoul and not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Shield_BodySoul" },
 	-- "Pénitence" 47540
@@ -647,11 +666,11 @@ end,"OOC Disc Priest",nil,nil,nil,true)
       -- Maybe use subzone location for others?
    -- if both == true target flag capper and attack
    -- if both == true and attack cast on cd cast HN
-      
+     
 -- jpevents.lua: look for long lasting and channeled ccs being cast(cyclone).
    -- if caster targeting player, target caster
       -- silence 3/4 of way through cast
-      
+     
 -- OOC ACTIONS ON ENTERING INSTANCE, TALENT/GLYPH SWAP ACCORDING TO ENEMY COMP --
 -- http://www.wowinterface.com/downloads/info22148-GlyphKeeper-TalentGlyphMgmt.html#info
 -- http://www.wowinterface.com/downloads/info23452-AutoConfirmTalents.html

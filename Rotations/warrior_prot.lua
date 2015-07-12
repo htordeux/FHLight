@@ -248,3 +248,23 @@ end, "Default")
 ----------------------------------------------------------------------------------------------------------------
 -------------------------------------------------- ROTATION OOC ------------------------------------------------
 ----------------------------------------------------------------------------------------------------------------
+jps.registerRotation("WARRIOR","PROTECTION",function()
+
+	if canDPS("target") then rangedTarget =  "target"
+	elseif canDPS("targettarget") then rangedTarget = "targettarget"
+	elseif canDPS("focustarget") then rangedTarget = "focustarget"
+	end
+	-- if your target is friendly keep it as target
+	if not canHeal("target") and canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
+
+	local spellTableOOC = {
+
+	-- "Oralius' Whispering Crystal" 118922 "Cristal murmurant d’Oralius"
+	{ {"macro","/use item:118922"}, not jps.buff(105691) and not jps.buff(156070) and not jps.buff(156079) and jps.itemCooldown(118922) == 0 and not jps.buff(176151) , "player" , "Item_Oralius"},
+
+}
+
+	local spell,target = parseSpellTable(spellTableOOC)
+	return spell,target
+
+end,"OOC Warrior",nil,nil,nil,true)

@@ -24,18 +24,7 @@ local strfind = string.find
 local tinsert = table.insert
 local tremove = table.remove
 local tinsert = table.insert
-
---Pre-6.0:
--- name, rank, icon, cost, isFunnel, powerType, castTime, minRange, maxRange = GetSpellInfo(spellId or spellName)
---6.0:
--- name, rank, icon, castTime, minRange, maxRange, spellId = GetSpellInfo(spellId or spellName)
-local GetSpellInfo = GetSpellInfo
-local function toSpellName(spell)
-	local spellname = GetSpellInfo(spell)
---	if type(spell) == "string" then spellname = spell end
---	if type(spell) == "number" then spellname = GetSpellInfo(spell) end
-	return spellname
-end
+local toSpellName = jps.toSpellName
 
 ----------------------------
 -- Blacklistplayer Functions 

@@ -22,10 +22,12 @@ local GetInventorySlotInfo = GetInventorySlotInfo
 
 function jps.itemCooldown(item)
 	if item == nil then return 999 end
-	local start,duration,isNotBlocked = GetItemCooldown(item) -- GetItemCooldown(ItemID) you MUST pass in the itemID.
+	local start,duration,enable = GetItemCooldown(item) -- GetItemCooldown(ItemID) you MUST pass in the itemID.
 	local usable = select(1,IsUsableItem(item))
+	local itemName,_ = GetItemSpell(item) -- Useful for determining whether an item is usable.
 	if not usable then return 999 end
-	if isNotBlocked == 0 then return 999 end 
+	if not itemName then return 999 end
+	if enable == 0 then return 999 end 
 	local cd = start+duration-GetTime()
 	if cd < 0 then return 0 end
 	return cd
@@ -53,10 +55,10 @@ function jps.useBagItem(itemName)
 			local item = GetContainerItemLink(bag,slot)
 			if item and item:find(itemName) then -- item place found
 				itemId = GetContainerItemID(bag, slot) -- get itemID for retrieving item Cooldown
-				local start, dur, isNotBlocked = GetItemCooldown(itemId) -- maybe we should use GetContainerItemCooldown() will test it
+				local start, dur, enable = GetItemCooldown(itemId) -- maybe we should use GetContainerItemCooldown() will test it
 				local cdDone = Ternary((start + dur ) > GetTime(), false, true)
 				local hasNoCD = Ternary(dur == 0, true, false)
-				if (cdDone or hasNoCD) and isNotBlocked == true then -- cd is done and item is not blocked (like potions infight even if CD is finished)
+				if (cdDone or hasNoCD) and enable == 1 then -- cd is done and item is not blocked (like potions infight even if CD is finished)
 					if not useBagItemMacros[itemName] then useBagItemMacros[itemName] = { "macro", "/use "..itemName } end
 					return useBagItemMacros[itemName]
 				end

@@ -11,11 +11,29 @@ local UnitHealthMax = UnitHealthMax
 local UnitGUID = UnitGUID
 local UnitExists = UnitExists
 
+-- GetNumGroupMembers() -- returns Number of players in the group (either party or raid), 0 if not in a group. remplace GetNumRaidMembers patch 5.0.4
+-- IsInRaid() Boolean - returns true if the player is currently in a raid group, false otherwise
+-- IsInGroup() Boolean - returns true if the player is in a some kind of group, otherwise false
+
 updateTimeToDie = function(elapsed, unit) -- jps.registerOnUpdate(updateTimeToDie) on jpevents.lua
 	if not unit then
 		updateTimeToDie(elapsed, "target")
 		updateTimeToDie(elapsed, "focus")
 		updateTimeToDie(elapsed, "player")
+		if IsInGroup() and not IsInRaid() then
+			for id = 1, 4 do
+				updateTimeToDie(elapsed, "party" .. id)
+			end
+		elseif IsInRaid() then
+			local npe = GetNumGroupMembers()
+			for id = 1, npe do
+				updateTimeToDie(elapsed, "raid" .. id)
+			end
+		end
+		-- Opposing arena member with index n (1,2,3,4 or 5).
+		for id = 1, 5 do
+			updateTimeToDie(elapsed, "arena" .. id)
+		end
 		return
 	end
 	if not UnitExists(unit) then return end
@@ -177,7 +195,7 @@ timeToDieFunctions["WeightedLeastSquares"] = {
 jps.TimeToDie = function(unit, percent)
 	local unitGuid = UnitGUID(unit)
 	local health_unit = UnitHealth(unit)
-	local timetodie = 60 -- e.g. 60 seconds
+	local timetodie = 30 -- e.g. 60 seconds
 	local time = GetTime()
 	local timeToDie = timeToDieFunctions[timeToDieAlgorithm][1](jps.TimeToDieData[unitGuid],health_unit,time)
 	
@@ -189,5 +207,5 @@ jps.TimeToDie = function(unit, percent)
 			timeToDie = 0
 		end
 	end
-	if timeToDie ~= nil then return math.ceil(timeToDie) else return 60 end
+	if timeToDie ~= nil then return math.ceil(timeToDie) else return 30 end
 end

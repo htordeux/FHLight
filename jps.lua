@@ -327,8 +327,7 @@ local function GetSpellInfo(a)
 	return unpack(spellcache[a])
 end
 
--- set's jps.NextSpell if user manually uses a spell/item
--- name, rank, icon, castTime, minRange, maxRange, spellId = GetSpellInfo(spellId or spellName)
+-- jps.NextSpell if user manually uses a spell/item
 hooksecurefunc("UseAction", function(...)
 	if jps.Enabled and (select(3, ...) ~= nil) and InCombatLockdown() == true then
 		local stype,id,_ = GetActionInfo(select(1, ...))
@@ -366,7 +365,9 @@ function jps.Cycle()
 	else jps.Casting = false end
 
 	-- STOP Combat
-	if (IsMounted() == true and jps.getConfigVal("dismount in combat") == false) or UnitIsDeadOrGhost("player") == true or jps.buff(L["Drink"],"player") then return end
+	if (IsMounted() and jps.getConfigVal("dismount in combat") == false) then return end
+	if jps.buff(L["Drink"],"player") then return end
+	if UnitIsDeadOrGhost("player") then return end
 	
 	-- GCD -- if too small value we can't get spellstopcasting
 	local cdStart,duration,_ = GetSpellCooldown(61304)
@@ -399,6 +400,23 @@ function jps.Cycle()
 
 	-- Return spellcast.
 	return jps.ThisCast,jps.Target
+end
+
+----------------------------
+-- FUNCTION TO SPELLNAME
+----------------------------
+
+--Pre-6.0:
+-- name, rank, icon, cost, isFunnel, powerType, castTime, minRange, maxRange = GetSpellInfo(spellId or spellName)
+--6.0:
+-- name, rank, icon, castTime, minRange, maxRange, spellId = GetSpellInfo(spellId or spellName)
+-- Using spellName or spellLink will only return the info if the spell is in your spellbook. Otherwise it will return nil.
+
+jps.toSpellName = function(spell)
+	local spellname = nil
+	if type(spell) == "string" then spellname = spell
+	elseif type(spell) == "number" then spellname = GetSpellInfo(spell) end
+	return spellname
 end
 
 -----------------------

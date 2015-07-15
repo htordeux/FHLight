@@ -32,15 +32,7 @@ local canDPS = jps.canDPS
 local canHeal = jps.canHeal
 local UnitIsUnit = UnitIsUnit
 local GetTime = GetTime
-
--- local function
-local GetSpellInfo = GetSpellInfo
-local function toSpellName(spell)
-	local spellname = GetSpellInfo(spell)
---	if type(spell) == "string" then spellname = spell end
---	if type(spell) == "number" then spellname = GetSpellInfo(spell) end
-	return spellname
-end
+local toSpellName = jps.toSpellName
 
 --------------------------------------
 -- LOSS OF CONTROL CHECK

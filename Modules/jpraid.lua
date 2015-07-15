@@ -29,13 +29,13 @@ end
 
 function jps.hp(unit)
 	if unit == nil then unit = "player" end
-	if UnitHealthMax(unit) == 0 then return 0 end
+	if not jps.UnitExists(unit) then return 999 end
 	return UnitHealth(unit) / UnitHealthMax(unit)
 end
 
 function jps.hpInc(unit)
 	if unit == nil then unit = "player" end
-	if UnitHealthMax(unit) == 0 then return 0 end
+	if not jps.UnitExists(unit) then return 999 end
 	local hpInc = UnitGetIncomingHeals(unit)
 	if not hpInc then hpInc = 0 end
 	return (UnitHealth(unit) + hpInc)/UnitHealthMax(unit)
@@ -43,7 +43,7 @@ end
 
 function jps.hpAbs(unit)
 	if unit == nil then unit = "player" end
-	if UnitHealthMax(unit) == 0 then return 0 end
+	if not jps.UnitExists(unit) then return 999 end
 	local hpInc = UnitGetIncomingHeals(unit)
 	if not hpInc then hpInc = 0 end
 	local hpAbs = UnitGetTotalAbsorbs(unit)
@@ -100,13 +100,10 @@ function jps.demonicFury()
 end
 
 -- Mana = UnitPower("player",0)
-function jps.mana(unit,message)
+function jps.mana(unit)
 	if unit == nil then unit = "player" end
-	if message == "abs" or message == "absolute" then
-		return UnitMana(unit)
-	else
-		return UnitMana(unit)/UnitManaMax(unit)
-	end
+	if not jps.UnitExists(unit) then return 999 end
+	return UnitMana(unit)/UnitManaMax(unit)
 end
 
 function jps.fallingFor()

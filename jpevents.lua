@@ -36,6 +36,7 @@ setmetatable(EnemyCooldowns, { __mode = 'k' }) -- creation of a weak table
 -- HEALTABLE
 local Healtable = {}
 setmetatable(Healtable, { __mode = 'k' }) -- creation of a weak table
+
 -- RaidStatus
 local GetTime = GetTime
 local canHeal = jps.canHeal
@@ -44,17 +45,10 @@ local GetUnitName = GetUnitName
 local pairs = pairs
 local tinsert = table.insert
 local tremove = table.remove
+local toSpellName = jps.toSpellName
+
 -- Table for failed spells
 local SpellFailedTable = {}
-
--- local function
-local GetSpellInfo = GetSpellInfo
-local function toSpellName(spell)
-	local spellname = GetSpellInfo(spell)
---	if type(spell) == "string" then spellname = spell end
---	if type(spell) == "number" then spellname = GetSpellInfo(spell) end
-	return spellname
-end
 
 -- global
 jps.PhysicalDamage = false
@@ -687,7 +681,6 @@ end)
 -- "UNIT_HEALTH_FREQUENT" Same event as UNIT_HEALTH, but not throttled as aggressively by the client
 -- "UNIT_HEALTH_PREDICTION" arg1 unitId receiving the incoming heal
 
--- In Arena ??? Opposing arena member with index N (1,2,3,4 or 5).
 jps.listener.registerEvent("UNIT_HEALTH_FREQUENT", function(unitID)
 	if jps.PvP and not jps.Combat and jps.RaidEnemyCount() > 0 then jps.Cycle() end
 	if jps.isHealer then jps.UpdateRaidUnit(unitID) end
@@ -1027,7 +1020,7 @@ end
 ------------------------------
 
 -- Resets the count of each healing spell to 1 makes sure that the average takes continuously into account changes in stats due to buffs etc
-reset_healtable = function(self)
+jps.ResetHealtable = function(self)
 	for k,v in pairs(Healtable) do
 		Healtable[k]["healtotal"] = Healtable[k]["averageheal"]
 		Healtable[k]["healcount"] = 1
@@ -1035,14 +1028,14 @@ reset_healtable = function(self)
 end
 
 -- Displays the different health values - mainly for tweaking/debugging
-print_healtable = function(self)
+jps.PrintHealtable = function(self)
 	for k,v in pairs(Healtable) do
 		print(k,"|cffff8000", Healtable[k]["healtotal"]," ", Healtable[k]["healcount"]," ", Healtable[k]["averageheal"])
 	end
 end
 
 -- Returns the average heal value of given spell.
-getaverage_heal = function(spell)
+jps.AverageHeal = function(spell)
 	local spellname = toSpellName(spell)
 	if spellname == nil then return 0 end
  	if Healtable[spellname] == nil then

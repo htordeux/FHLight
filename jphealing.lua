@@ -1,4 +1,3 @@
-
 local UnitGetIncomingHeals = UnitGetIncomingHeals
 local UnitGetTotalAbsorbs = UnitGetTotalAbsorbs
 local UnitHealth = UnitHealth
@@ -28,18 +27,10 @@ local twipe = table.wipe
 local tsort = table.sort
 local tinsert = table.insert
 local pairs = pairs
-
--- local function
-local GetSpellInfo = GetSpellInfo
-local function toSpellName(spell)
-	local spellname = GetSpellInfo(spell)
---	if type(spell) == "string" then spellname = spell end
---	if type(spell) == "number" then spellname = GetSpellInfo(spell) end
-	return spellname
-end
+local toSpellName = jps.toSpellName
 
 local function HealthPct(unit)
-	if UnitHealthMax(unit) == 0 then return 0 end
+	if not jps.UnitExists(unit) then return 999 end
 	return UnitHealth(unit) / UnitHealthMax(unit)
 end
 
@@ -497,7 +488,7 @@ end
 local DebuffNotDispel = {
 	toSpellName(31117), 	-- "Unstable Affliction"
 	toSpellName(34914), 	-- "Vampiric Touch"
-	}
+}
 -- Don't dispel if friend is affected by "Unstable Affliction" or "Vampiric Touch" or "Lifebloom"
 local UnstableAffliction = function(unit)
 	for i=1,#DebuffNotDispel do -- for _,debuff in ipairs(DebuffNotDispel) do

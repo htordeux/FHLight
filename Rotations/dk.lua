@@ -1,10 +1,7 @@
 
 -- local function
 local GetSpellInfo = GetSpellInfo
-local function toSpellName(spell)
-	local spellname = GetSpellInfo(spell)
-	return spellname
-end
+local toSpellName = jps.toSpellName
 
 if not dk then dk = {} end
 dk.spells = {}

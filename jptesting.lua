@@ -20,15 +20,6 @@ CtrlKeyIsDown = IsControlKeyDown();
 -- FUNCTION TEST 
 -----------------------
 
--- local function
-local GetSpellInfo = GetSpellInfo
-local function toSpellName(spell)
-	local spellname = GetSpellInfo(spell)
---	if type(spell) == "string" then spellname = spell end
---	if type(spell) == "number" then spellname = GetSpellInfo(spell) end
-	return spellname
-end
-
 local function Test()
 
 	write("***************************")

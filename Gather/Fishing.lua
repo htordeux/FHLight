@@ -71,9 +71,10 @@ local function HatLure ()
 	return nil
 end
 
-function fh.itemCooldown(item) -- start, duration, enable = GetItemCooldown(itemID) or GetItemCooldown("itemName")
+-- start, duration, enable = GetItemCooldown(itemID) or GetItemCooldown("itemName")
+function fh.itemCooldown(item)
 	if item == nil then return 999 end
-	local start,duration,_ = GetItemCooldown(item) -- GetItemCooldown(ItemID)
+	local start,duration,_ = GetItemCooldown(item)
 	local cd = start+duration-GetTime()
 	if cd < 0 then return 0 end
 	return cd

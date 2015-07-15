@@ -208,7 +208,7 @@ end
 function jps.activeRotation(rotationTable)
     if rotationTable == nil then
 	    local oocCount = tableCount(oocRotations, getCurrentKey())
-	    if not jps.Combat and oocCount > 0 then return jps.activeRotation(oocRotations) end
+	    if not jps.Combat and oocCount > 0 and jps.RaidEnemyCount() == 0 then return jps.activeRotation(oocRotations) end
         if jps.PvP then return jps.activeRotation(pvpRotations) else return jps.activeRotation(pveRotations) end
     end
 

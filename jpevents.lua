@@ -339,7 +339,7 @@ a function which generates the value which will be called every [code]updateInte
 ]]--
 
 jps.cachedValue = function(fn,updateInterval)
-    if not updateInterval then updateInterval = jps.UpdateInterval end
+    if not updateInterval then updateInterval = 1 end
     local maxAge = GetTime() + updateInterval
     local value = fn()
     return function()
@@ -366,7 +366,7 @@ end
 local collectGarbage = function()
 	UpdateAddOnMemoryUsage()
 	local Memory = GetAddOnMemoryUsage("JPS")
-	if Memory > 5120 then
+	if Memory > 6144 then
 		write("Memory: ", Memory)
 		collectgarbage("collect")
 	end

@@ -258,9 +258,14 @@ jps.registerRotation("WARRIOR","PROTECTION",function()
 	if not canHeal("target") and canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
 
 	local spellTableOOC = {
-
+	
+	-- "Victory Rush" 34428 "Ivresse de la victoire" -- "Victorious" 32216 "Victorieux" -- Ivresse de la victoire activée.
+	{ warrior.spells["ImpendingVictory"] , jps.buffDuration(32216) < 4 , rangedTarget , "|cff1eff00ImpendingVictory_Duration" },
+	{ warrior.spells["VictoryRush"] , jps.buffDuration(32216) < 4 , rangedTarget , "|cff1eff00VictoryRush_Duration" },
 	-- "Oralius' Whispering Crystal" 118922 "Cristal murmurant d’Oralius"
 	{ {"macro","/use item:118922"}, not jps.buff(105691) and not jps.buff(156070) and not jps.buff(156079) and jps.itemCooldown(118922) == 0 and not jps.buff(176151) , "player" , "Item_Oralius"},
+	-- "Heroic Leap" 6544 "Bond héroïque"
+	{ warrior.spells["HeroicLeap"] , IsControlKeyDown() , "player" },
 
 }
 

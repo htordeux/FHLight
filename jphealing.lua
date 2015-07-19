@@ -573,7 +573,7 @@ end
 
 function jps.FindMeBossDebuff()
 	for unit,_ in pairs(RaidStatus) do
-		if jps.BossDebuff(unit) then return unit end
+		if canHeal(unit) and jps.BossDebuff(unit) then return unit end
 	end
 	return nil
 end

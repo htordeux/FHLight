@@ -144,7 +144,11 @@ local spellTable = {
 	-- "Victory Rush" 34428 "Ivresse de la victoire" -- "Victorious" 32216 "Victorieux" -- Ivresse de la victoire activée.
 	{ warrior.spells["ImpendingVictory"] , jps.buffDuration(32216) < 4 , rangedTarget , "|cff1eff00ImpendingVictory_Duration" },
 	{ warrior.spells["VictoryRush"] , jps.buffDuration(32216) < 4 , rangedTarget , "|cff1eff00VictoryRush_Duration" },
-	
+
+	-- "Shield Charge" 156321 "Charge de bouclier" -- Buff "Shield Charge" 169667 -- "Bloodbath" 12292 "Bain de sang"
+	-- Increasing the damage of Shield Slam, Revenge, and Heroic Strike by 25% for 7 sec.
+	{ 156321, inMelee and jps.buffStacks(169686) == 6 , rangedTarget , "|cffa335eeShieldCharge_6_Strikes" },
+	{ 156321, inMelee and jps.buff(12292) , rangedTarget , "|cffa335eeShieldCharge_Bloodbath" },
 	-- "Revenge" 6572 "Revanche"
 	{ warrior.spells["Revenge"] , inMelee , rangedTarget , "Revenge" },
 	-- "Shield Slam" 23922 "Heurt de bouclier" -- Buff "Sword and Board" 50227 "Epée et bouclier"
@@ -199,7 +203,7 @@ local spellTable = {
 	-- "Bloodbath" 12292 "Bain de sang" -- Buff 12292
 	{ warrior.spells["Bloodbath"], inMelee and jps.MultiTarget , rangedTarget , "|cFFFF0000Bloodbath" },
 	{ warrior.spells["Bloodbath"], inMelee and jps.rage() > 89 , rangedTarget , "|cFFFF0000Bloodbath_DumpRage" },
-	{ warrior.spells["Bloodbath"], inMelee and jps.rage() > 59 and jps.buffStacks(169686) > 3 , rangedTarget , "|cFFFF0000Bloodbath_BuffStrikes" },
+	{ warrior.spells["Bloodbath"], inMelee and jps.rage() > 59 and jps.buffStacks(169686) > 3 , rangedTarget , "|cFFFF0000Bloodbath_4_Strikes" },
 	-- "Storm Bolt" 107570 "Eclair de tempete" -- 30 yd range
 	{ warrior.spells["StormBolt"] , jps.IsSpellKnown(107570) , rangedTarget ,"StormBolt" },
 	-- "Dragon Roar " 118000 -- 8 yards
@@ -208,7 +212,7 @@ local spellTable = {
 	{ warrior.spells["Bladestorm"] , jps.IsSpellKnown(46924) and inMelee , rangedTarget , "Bladestorm" },
 	-- "Ravager" 152277 -- 40 yd range
 	{ warrior.spells["Ravager"] , jps.IsSpellKnown(152277) , rangedTarget , "Ravager" },
-
+	
 	-- MULTITARGET --
 	{"nested", jps.MultiTarget and inMelee ,{
 		-- "Bladestorm" 46924 "Tempête de lames"
@@ -223,19 +227,17 @@ local spellTable = {
 	-- Increasing the damage of Shield Slam, Revenge, and Heroic Strike by 25% for 7 sec.
 	{"nested", jps.buff(156291) and jps.buffDuration(169667) < 2 and inMelee ,{
 		{ 156321, inMelee and ShieldCharge == 2 , rangedTarget , "|cffa335eeShieldCharge" },
-		{ 156321, inMelee and jps.rage() > 59 and jps.buffStacks(169686) > 3 , rangedTarget , "|cffa335eeShieldCharge_Strikes" },
+		{ 156321, inMelee and jps.rage() > 59 and jps.buffStacks(169686) > 3 , rangedTarget , "|cffa335eeShieldCharge_4_Strikes" },
 		{ 156321, inMelee and jps.rage() > 89 , rangedTarget , "|cffa335eeShieldCharge_Rage" },
-		{ 156321, inMelee and jps.buff(12292) , rangedTarget , "|cffa335eeShieldCharge_Bloodbath" },
 	}},
-
-	-- SINGLETARGET -- "Gladiator Stance" 156291
+	
 	-- "Dévaster" 20243 "Devastate" -- Buff "Unyielding Strikes" 169686 "Frappes inflexibles" 169686 -- Cumulable jusqu’à 6 fois
 	{ warrior.spells["Devastate"] , jps.buffDuration(169686) < 2 , rangedTarget , "Devastate_BuffDuration" },
 	-- "Execute" 5308 "Exécution" -- Buff "Shield Charge" 169667
 	{ 5308, not jps.buff(169667) and jps.hp(rangedTarget) < 0.20 , rangedTarget , "Execute_UnBuff" },
 	-- "Heroic Strike" 78 "Frappe héroïque" -- Buff "Shield Charge" 169667
 	{ warrior.spells["HeroicStrike"] , jps.buff(169667) , rangedTarget , "HeroicStrike_ShieldCharge" },
-	{ warrior.spells["HeroicStrike"] , jps.buffStacks(169686) > 3 , rangedTarget , "HeroicStrike_4_BuffStrikes" },
+	{ warrior.spells["HeroicStrike"] , jps.buffStacks(169686) > 3 , rangedTarget , "HeroicStrike_4_Strikes" },
 	-- "Dévaster" 20243 "Devastate" -- Dévaster réduit le coût en rage de Frappe héroïque de 5 pendant 5 s.
 	{ warrior.spells["Devastate"] , true , rangedTarget , "Devastate" },
 

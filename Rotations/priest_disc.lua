@@ -82,6 +82,7 @@ local priestDisc = function()
 	if canHeal(myTank) then TankTarget = myTank.."target" end
 	local TankThreat = jps.findThreatInRaid()
 
+	local hasControl = HasFullControl() -- returns true /false if the player character can be controlled (i.e. isn't feared, charmed...)
 	local playerAggro = jps.FriendAggro("player")
 	local playerIsStun = jps.StunEvents(2) -- return true/false ONLY FOR PLAYER -- "ROOT" was removed of Stuntype
 	-- {"STUN_MECHANIC","STUN","FEAR","CHARM","CONFUSE","PACIFY","SILENCE","PACIFYSILENCE"}
@@ -335,6 +336,7 @@ spellTable = {
 	-- TRINKETS -- jps.useTrinket(0) est "Trinket0Slot" est slotId  13 -- "jps.useTrinket(1) est "Trinket1Slot" est slotId  14
 	{ jps.useTrinket(0), jps.useTrinketBool(0) and not playerWasControl and jps.combatStart > 0 , "player" , "useTrinket0" },
 	{ jps.useTrinket(1), not jps.PvP and jps.useTrinketBool(1) and not playerWasControl and jps.combatStart > 0 , "player" , "useTrinket1" },
+	{ jps.useTrinket(1), jps.PvP and jps.useTrinketBool(1) and not hasControl and jps.combatStart > 0 and LowestImportantUnitHpct < 0.75 , "player" , "useTrinket1_hasControl" },
 	{ jps.useTrinket(1), jps.PvP and jps.useTrinketBool(1) and playerIsStun and jps.combatStart > 0 and LowestImportantUnitHpct < 0.75 , "player" , "useTrinket1" },
 
 	-- "Suppression de la douleur" 33206 "Pain Suppression" -- Buff "Pain Suppression" 33206
@@ -354,6 +356,11 @@ spellTable = {
 	{ "nested", jps.Interrupts , parseDispel },
 	-- OFFENSIVE Dispel -- "Dissipation de la magie" 528
 	{ 528, jps.castEverySeconds(528,10) and jps.DispelOffensive(rangedTarget) , rangedTarget , "|cff1eff00DispelOffensive" },
+	-- BOSS DEBUFF
+--	{ "nested", type(BossDebuffFriend) == "string" ,{
+--		{ 17, not jps.buff(17,BossDebuffFriend) and not jps.debuff(6788,BossDebuffFriend) , BossDebuffFriend , "Shield_BossDebuff" },
+--		{ 152118, jps.debuff(6788,BossDebuffFriend) and not jps.buff(152118,BossDebuffFriend) and not jps.isRecast(152118,BossDebuffFriend) , BossDebuffFriend , "Clarity_BossDebuff" },
+--	}},
 
 	-- FAKE CAST -- 6948 -- "Hearthstone"
 	{ {"macro","/use item:6948"}, jps.PvP and LowestImportantUnitHpct > 0.80 and not jps.Moving and playerAggro and jps.itemCooldown(6948) == 0 , "player" , "Aggro_FAKECAST" },
@@ -417,11 +424,6 @@ spellTable = {
 		{ 17, not jps.buff(17,TankThreat) and not jps.debuff(6788,TankThreat) , TankThreat , "Shield_TankThreat" },
 		{ 152118, jps.debuff(6788,TankThreat) and not jps.buff(152118,TankThreat) and not jps.isRecast(152118,TankThreat) , TankThreat , "Clarity_TankThreat" },
 	}},
-	-- BOSS DEBUFF
---	{ "nested", type(BossDebuffFriend) == "string" ,{
---		{ 17, not jps.buff(17,BossDebuffFriend) and not jps.debuff(6788,BossDebuffFriend) , BossDebuffFriend , "Shield_BossDebuff" },
---		{ 152118, jps.debuff(6788,BossDebuffFriend) and not jps.buff(152118,BossDebuffFriend) and not jps.isRecast(152118,BossDebuffFriend) , BossDebuffFriend , "Clarity_BossDebuff" },
---	}},
 
 	-- "Pénitence" 47540
 	{ 47540, canHeal(myTank) and jps.hp(myTank) < 0.80 , myTank , "Penance_myTank" },
@@ -573,14 +575,12 @@ jps.registerRotation("PRIEST","DISCIPLINE", priestDisc , "Disc Priest")
 
 jps.registerRotation("PRIEST","DISCIPLINE",function()
 
-	local playerIsSwimming = IsSwimming()
 	local LowestImportantUnit = jps.LowestImportantUnit()
 	local LowestImportantUnitHpct = jps.hp(LowestImportantUnit) -- UnitHealth(unit) / UnitHealthMax(unit)
 	local POHTarget, _, _ = jps.FindSubGroupHeal(0.50)
 	local myTank,TankUnit = jps.findTankInRaid() -- default "focus"
 	local rangedTarget, _, _ = jps.LowestTarget() -- default "target"
-	-- "Body and Soul" 64129
-	local BodyAndSoul = jps.IsSpellKnown(64129)
+
 
 	if canDPS("target") then rangedTarget =  "target"
 	elseif canDPS("targettarget") then rangedTarget = "targettarget"
@@ -596,7 +596,7 @@ jps.registerRotation("PRIEST","DISCIPLINE",function()
 
 	-- SNM "Levitate" 1706
 	{ 1706, jps.fallingFor() > 1.5 and not jps.buff(111759) , "player" },
-	{ 1706, playerIsSwimming and not jps.buff(111759) , "player" },
+	{ 1706, IsSwimming() and not jps.buff(111759) , "player" },
 
 	-- "Fortitude" 21562 -- "Commanding Shout" 469 -- "Blood Pact" 166928
 	{ 21562, jps.buffMissing(21562) , "player" },
@@ -611,7 +611,7 @@ jps.registerRotation("PRIEST","DISCIPLINE",function()
 	}},
 
 	-- "Shield" 17 "Body and Soul" 64129 -- figure out how to speed buff everyone as they move
-	{ 17, jps.Moving and BodyAndSoul and not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Shield_BodySoul" },
+	{ 17, jps.Moving and jps.IsSpellKnown(64129) and not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Shield_BodySoul" },
 	-- "Pénitence" 47540
 	{ 47540, LowestImportantUnitHpct < 0.25  , LowestImportantUnit , "Penance" },
 	-- "Prière de soins" 596 "Prayer of Healing"

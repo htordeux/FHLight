@@ -1,6 +1,6 @@
--- jps.UseCds for "Cascade" or "Divine Star" or "Psychic Horror"
+-- jps.Interrupts for "Cascade" or "Divine Star" or "Psychic Horror"
 -- jps.MultiTarget for "MindSear" 48045
--- jps.Interrupts for "Semblance spectrale" 112833 -- PvP it loses the orb in Kotmogu Temple
+-- jps.UseCDs for "Semblance spectrale" 112833 -- PvP it loses the orb in Kotmogu Temple
 -- jps.Defensive to keep Shield up
 -- jps.FaceTarget to DPSing
 
@@ -279,7 +279,7 @@ if jps.ChannelTimeLeft() > 0 then return nil end
 -- "Psychic Horror" 64044 Consumes up to 3 Shadow Orbs to terrify the target
 -- incapacitating the target for 1 sec plus 1 sec per Shadow Orb consumed.
 local fnOrbs = function(unit)
-	if not jps.PvP and not jps.UseCDs then return false end
+	if not jps.PvP and not jps.Interrupts then return false end
 	if Orbs == 0 then return false end
 	if jps.LoseControl(unit) then return false end
 	if DebuffUnitCyclone(unit) then return false end
@@ -326,7 +326,7 @@ local parseAggro = {
 	-- "Power Word: Shield" 17	
 	{ 17, not jps.debuff(6788,"player") and not jps.buff(17,"player") , "player" },
 	-- "Semblance spectrale" 112833
-	{ 112833, jps.Interrupts and jps.IsSpellKnown(112833) , "player" , "Aggro_Spectral" },
+	{ 112833, jps.UseCDs and jps.IsSpellKnown(112833) , "player" , "Aggro_Spectral" },
 	-- "Oubli" 586 -- Fantasme 108942 -- vous dissipez tous les effets affectant le déplacement sur vous-même et votre vitesse de déplacement ne peut être réduite pendant 5 s
 	{ 586, jps.IsSpellKnown(108942) and jps.hp("player") < 0.70 , "player" , "Aggro_Oubli" },
 	-- "Oubli" 586 -- Glyphe d'oubli 55684 -- Votre technique Oubli réduit à présent tous les dégâts subis de 10%.
@@ -384,7 +384,9 @@ local spellTable = {
 
 	-- MULTITARGET
 	-- "Cascade" Holy 121135 Shadow 127632
-	{ 127632, jps.MultiTarget and jps.UseCDs , rangedTarget , "Cascade"  },
+	{ 127632, jps.Interrupts , rangedTarget , "Cascade"  },
+	-- "Divine Star" Holy 110744 Shadow 122121
+	{ 122121, jps.Interrupts , rangedTarget , "DivineStar"  },
 	-- "MindSear" 48045 -- "Insanité incendiaire" 179338 "Searing Insanity"
 	{ 48045, not jps.Moving and jps.MultiTarget and jps.buff(132573) , rangedTarget , "MINDSEARORBS_Target" },
 	{ 48045, not jps.Moving and jps.MultiTarget and jps.buff(132573) , myTank , "MINDSEARORBS_Tank" },
@@ -407,10 +409,6 @@ local spellTable = {
 	{ 32379, jps.hp("mouseover") < 0.20 and Orbs < 5 , "mouseover", "Death_Mouseover" },
 	
 	-- MULTITARGET
-	-- "Cascade" Holy 121135 Shadow 127632
-	{ 127632, jps.UseCDs , rangedTarget , "Cascade"  },
-	-- "Divine Star" Holy 110744 Shadow 122121
-	{ 122121, jps.UseCDs , rangedTarget , "DivineStar"  },
 	{ "nested", jps.MultiTarget , {
 		-- "Shadow Word: Pain" 589 -- "Shadow Word: Insanity" buff 132573	
 		{ 589, not jps.buff(132573) and fnPainEnemyTarget("mouseover") and not jps.UnitIsUnit("target","mouseover") , "mouseover" , "Pain_Mouseover_Orbs" },

@@ -147,8 +147,8 @@ local spellTable = {
 
 	-- "Shield Charge" 156321 "Charge de bouclier" -- Buff "Shield Charge" 169667 -- "Bloodbath" 12292 "Bain de sang"
 	-- Increasing the damage of Shield Slam, Revenge, and Heroic Strike by 25% for 7 sec.
-	{ 156321, inMelee and jps.buffStacks(169686) == 6 , rangedTarget , "|cffa335eeShieldCharge_6_Strikes" },
-	{ 156321, inMelee and jps.buff(12292) , rangedTarget , "|cffa335eeShieldCharge_Bloodbath" },
+	{ 156321, jps.buff(156291) and inMelee and jps.buffStacks(169686) == 6 , rangedTarget , "|cffa335eeShieldCharge_6_Strikes" },
+	{ 156321, jps.buff(156291) and inMelee and jps.buff(12292) , rangedTarget , "|cffa335eeShieldCharge_Bloodbath" },
 	-- "Revenge" 6572 "Revanche"
 	{ warrior.spells["Revenge"] , inMelee , rangedTarget , "Revenge" },
 	-- "Shield Slam" 23922 "Heurt de bouclier" -- Buff "Sword and Board" 50227 "Epée et bouclier"
@@ -225,7 +225,7 @@ local spellTable = {
 
 	-- "Shield Charge" 156321 "Charge de bouclier" -- Buff "Shield Charge" 169667 -- "Bloodbath" 12292 "Bain de sang"
 	-- Increasing the damage of Shield Slam, Revenge, and Heroic Strike by 25% for 7 sec.
-	{"nested", jps.buff(156291) and jps.buffDuration(169667) < 2 and inMelee ,{
+	{"nested", jps.buff(156291) and inMelee ,{
 		{ 156321, inMelee and ShieldCharge == 2 , rangedTarget , "|cffa335eeShieldCharge" },
 		{ 156321, inMelee and jps.rage() > 59 and jps.buffStacks(169686) > 3 , rangedTarget , "|cffa335eeShieldCharge_4_Strikes" },
 		{ 156321, inMelee and jps.rage() > 89 , rangedTarget , "|cffa335eeShieldCharge_Rage" },
@@ -260,15 +260,10 @@ jps.registerRotation("WARRIOR","PROTECTION",function()
 	if not canHeal("target") and canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
 
 	local spellTableOOC = {
-	
-	-- "Victory Rush" 34428 "Ivresse de la victoire" -- "Victorious" 32216 "Victorieux" -- Ivresse de la victoire activée.
-	{ warrior.spells["ImpendingVictory"] , jps.buffDuration(32216) < 4 , rangedTarget , "|cff1eff00ImpendingVictory_Duration" },
-	{ warrior.spells["VictoryRush"] , jps.buff(32216) and jps.buffDuration(32216) < 4 , rangedTarget , "|cff1eff00VictoryRush_Duration" },
 	-- "Oralius' Whispering Crystal" 118922 "Cristal murmurant d’Oralius"
 	{ {"macro","/use item:118922"}, not jps.buff(105691) and not jps.buff(156070) and not jps.buff(156079) and jps.itemCooldown(118922) == 0 and not jps.buff(176151) , "player" , "Item_Oralius"},
 	-- "Heroic Leap" 6544 "Bond héroïque"
 	{ warrior.spells["HeroicLeap"] , IsControlKeyDown() , "player" },
-
 }
 
 	local spell,target = parseSpellTable(spellTableOOC)

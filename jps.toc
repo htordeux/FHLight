@@ -51,6 +51,7 @@ Rotations\priest_disc.lua
 Rotations\priest_holy.lua
 Rotations\priest_shadow.lua
 
+Rotations\warrior_arms_pvp.lua
 Rotations\warrior_arms.lua
 Rotations\warrior_fury.lua
 Rotations\warrior_prot.lua

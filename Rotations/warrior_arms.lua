@@ -38,7 +38,7 @@ local EnemyCaster = function(unit)
 	return ClassEnemy[classTarget]
 end
 
--- Debuff EnemyTarget NOT DPS
+-- Debuff EnemyTarget DO NOT DPS
 local DebuffUnitCyclone = function (unit)
 	if not UnitAffectingCombat(unit) then return false end
 	local Cyclone = false
@@ -51,12 +51,70 @@ local DebuffUnitCyclone = function (unit)
 			Cyclone = true
 		elseif strfind(auraName,L["Hex"]) then
 			Cyclone = true
+		elseif strfind(auraName,L["Deterrence"]) then
+		 Cyclone = true
+		elseif strfind(auraName,L["Ice Block"]) then
+		 Cyclone = true
 		end
 		if Cyclone then break end
 		i = i + 1
 		auraName = select(1,UnitDebuff(unit, i))
 	end
 	return Cyclone
+end
+
+-- Buff EnemyTarget DO NOT BURST
+local BuffEnemyDefense = function (unit)
+	if not UnitAffectingCombat(unit) then return false end
+	local Defense = false
+	local i = 1
+	local auraName = select(1,UnitBuff(unit, i))
+		while auraName do
+		if strfind(auraName,L["Die by the Sword"]) then
+			Defense = true
+		elseif strfind(auraName,L["Evasion"]) then
+			Defense = true
+		elseif strfind(auraName,L["Icebound Fortitude"]) then
+			Defense = true
+		elseif strfind(auraName,L["Ironbark"]) then
+			Defense = true
+		elseif strfind(auraName,L["Last Stand"]) then
+			Defense = true
+		end
+		if Defense then break end
+		i = i + 1
+		auraName = select(1,UnitBuff(unit, i))
+	end
+	return Defense
+end
+
+-- Buff EnemyTarget POP DEFENSE
+local BuffEnemyBurst = function (unit)
+	if not UnitAffectingCombat(unit) then return false end
+	local Burst = false
+	local i = 1
+	local auraName = select(1,UnitBuff(unit, i))
+		while auraName do
+		if strfind(auraName,L["Avatar"]) then
+			Burst = true
+		elseif strfind(auraName,L["Avenging Wrath"]) then
+			Burst = true
+		elseif strfind(auraName,L["Icy Veins"]) then
+			Burst = true
+		elseif strfind(auraName,L["Pillar of Frost"]) then
+			Burst = true
+		elseif strfind(auraName,L["Tiger's Fury"]) then
+			Burst = true
+		elseif strfind(auraName,L["Rapid Fire"]) then
+			Burst = true
+		elseif strfind(auraName,L["Bladestorm"]) then
+			Burst = true         
+		end
+	if Burst then break end
+	i = i + 1
+	auraName = select(1,UnitBuff(unit, i))
+	end
+	return Burst
 end
 
 ----------------------------------------------------------------------------------------------------------------

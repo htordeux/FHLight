@@ -82,7 +82,7 @@ end
 
 local function tableCount(rotationTable, key)
     if not rotationTable[key] then return 0 end
-    return table.getn(rotationTable[key])
+    return #(rotationTable[key])
 end
 
 --[[[ Internal function: Allows the DropDown to change the active rotation ]]--

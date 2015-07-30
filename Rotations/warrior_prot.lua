@@ -137,6 +137,11 @@ local spellTable = {
 	{ jps.useTrinket(0), jps.useTrinketBool(0) and not playerWasControl and jps.combatStart > 0 },
 	{ jps.useTrinket(1), jps.PvP and jps.useTrinketBool(1) and playerIsStun },
 	{ jps.useTrinket(1), not jps.PvP and jps.useTrinketBool(1) and not playerWasControl and jps.combatStart > 0 },
+
+	-- "Shield Wall" 871 "Mur protecteur" -- cd 2 min
+	{ warrior.spells["ShieldWall"] , jps.hp("player") < 0.50 , rangedTarget , "|cff1eff00ShieldWall" },
+	-- "Last Stand" 12975 "Dernier rempart" -- 3 min
+	{ warrior.spells["LastStand"] , jps.hp("player") < 0.30 , rangedTarget , "|cff1eff00LastStand" },
 	
 	-- "Impending Victory" 103840 "Victoire imminente" -- Talent Replaces Victory Rush.
 	{ warrior.spells["ImpendingVictory"] , jps.buff(32216) and jps.hp("player") < 0.80 , rangedTarget , "|cff1eff00ImpendingVictory_Health" },
@@ -161,6 +166,16 @@ local spellTable = {
 	-- "Execute" 5308 "Exécution" -- Buff "Mort soudaine" 29725
 	{ 5308, jps.buff(29725) , rangedTarget , "Execute_SuddenDeath" },
 	{ 5308, jps.rage() > 89 and jps.hp(rangedTarget) < 0.20 , rangedTarget , "Execute_DumpRage" },
+	
+	-- MULTITARGET --
+	{"nested", jps.MultiTarget and inMelee ,{
+		-- "Bladestorm" 46924 "Tempête de lames"
+		{ warrior.spells["Bladestorm"] , jps.IsSpellKnown(46924) , rangedTarget , "Bladestorm" },
+		-- "Shockwave" 46968 "Onde de choc"
+		{ warrior.spells["Shockwave"] , jps.IsSpellKnown(46968) , rangedTarget , "Shockwave" },
+		-- "Thunder Clap" 6343 "Coup de tonnerre"
+		{ warrior.spells["ThunderClap"] , true , rangedTarget , "ThunderClap" },
+	}},
 
 	-- DEFENSIVE
 	-- "Stoneform" 20594 "Forme de pierre"
@@ -178,15 +193,11 @@ local spellTable = {
 	-- "Demoralizing Shout" 1160 "Cri démoralisant"
 	{ 1160, playerAggro and not jps.debuff(1160,rangedTarget) , rangedTarget , "Demoralizing" },
 
-	-- "Last Stand" 12975 "Dernier rempart" -- 3 min
-	{ warrior.spells["LastStand"] , jps.hp("player") < 0.30 , rangedTarget , "|cff1eff00LastStand" },	
 	-- "Shield Block" 2565 "Maîtrise du blocage" -- works against physical attacks, it does nothing against magic -- Buff "Shield Block" 132404 -- 60 rage
 	{ warrior.spells["ShieldBlock"] , jps.buff(71) and jps.PhysicalDamage and not jps.buff(132404) and jps.hp("player") < 0.80 , rangedTarget , "|cff1eff00ShieldBlock_PhysicalDmg" },
 	-- "Shield Barrier" 112048 "Barrière protectrice" -- Shield Barrier works against all types of damage (excluding fall damage) -- 20 + 40 rage
-	{ warrior.spells["ShieldBarrier"] , jps.buff(71) and jps.MagicDamage and not jps.buff(112048) and jps.hp("player") < 0.80 , rangedTarget , "|cff1eff00ShieldBarrier_MagicDmg" },
+	{ warrior.spells["ShieldBarrier"] , jps.buff(71) and not jps.buff(112048) and jps.MagicDamage and jps.hp("player") < 0.80 , rangedTarget , "|cff1eff00ShieldBarrier_MagicDmg" },
 	{ warrior.spells["ShieldBarrier"] , not jps.buff(112048) and playerAggro and jps.hp("player") < 0.50 , rangedTarget , "|cff1eff00ShieldBarrier" },
-	-- "Shield Wall" 871 "Mur protecteur" -- cd 2 min
-	{ warrior.spells["ShieldWall"] , jps.hp("player") < 0.50 , rangedTarget , "|cff1eff00ShieldWall" },
 	-- "Enraged Regeneration" 55694 "Régénération enragée"
 	{ warrior.spells["EnragedRegeneration"] , playerAggro and jps.hp() < 0.80 , rangedTarget , "|cff1eff00EnragedRegeneration" },
 
@@ -212,16 +223,6 @@ local spellTable = {
 	{ warrior.spells["Bladestorm"] , jps.IsSpellKnown(46924) and inMelee , rangedTarget , "Bladestorm" },
 	-- "Ravager" 152277 -- 40 yd range
 	{ warrior.spells["Ravager"] , jps.IsSpellKnown(152277) , rangedTarget , "Ravager" },
-	
-	-- MULTITARGET --
-	{"nested", jps.MultiTarget and inMelee ,{
-		-- "Bladestorm" 46924 "Tempête de lames"
-		{ warrior.spells["Bladestorm"] , jps.IsSpellKnown(46924) , rangedTarget , "Bladestorm" },
-		-- "Shockwave" 46968 "Onde de choc"
-		{ warrior.spells["Shockwave"] , jps.IsSpellKnown(46968) , rangedTarget , "Shockwave" },
-		-- "Thunder Clap" 6343 "Coup de tonnerre"
-		{ warrior.spells["ThunderClap"] , true , rangedTarget , "ThunderClap" },
-	}},
 
 	-- "Shield Charge" 156321 "Charge de bouclier" -- Buff "Shield Charge" 169667 -- "Bloodbath" 12292 "Bain de sang"
 	-- Increasing the damage of Shield Slam, Revenge, and Heroic Strike by 25% for 7 sec.
@@ -252,6 +253,7 @@ end, "Default")
 ----------------------------------------------------------------------------------------------------------------
 jps.registerRotation("WARRIOR","PROTECTION",function()
 
+	local rangedTarget, _, _ = jps.LowestTarget() -- default "target"
 	if canDPS("target") then rangedTarget =  "target"
 	elseif canDPS("targettarget") then rangedTarget = "targettarget"
 	elseif canDPS("focustarget") then rangedTarget = "focustarget"
@@ -264,6 +266,8 @@ jps.registerRotation("WARRIOR","PROTECTION",function()
 	{ {"macro","/use item:118922"}, not jps.buff(105691) and not jps.buff(156070) and not jps.buff(156079) and jps.itemCooldown(118922) == 0 and not jps.buff(176151) , "player" , "Item_Oralius"},
 	-- "Heroic Leap" 6544 "Bond héroïque"
 	{ warrior.spells["HeroicLeap"] , IsControlKeyDown() , "player" },
+	-- "Battle Shout" 6673 "Cri de guerre"
+	{ warrior.spells["BattleShout"] , not jps.hasAttackPowerBuff("player") , "player" },
 }
 
 	local spell,target = parseSpellTable(spellTableOOC)

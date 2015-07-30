@@ -199,6 +199,17 @@ function jps.findThreatInRaid()
 	return TankUnit
 end
 
+function jps.findHealerInRaid()
+	local HealerUnit = {}
+	for unit,_ in pairs(RaidStatus) do
+		if jps.RoleInRaid(unit) == "HEALER" and canHeal(unit) then
+			HealerUnit[#HealerUnit+1] = unit
+		end
+	end
+	tsort(HealerUnit, function(a,b) return HealthPct(a) < HealthPct(b) end)
+	return HealerUnit[1] or "focus" , HealerUnit
+end
+
 ---------------------------
 -- HEALTH UNIT RAID
 ---------------------------

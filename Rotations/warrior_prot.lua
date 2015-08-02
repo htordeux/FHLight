@@ -152,8 +152,8 @@ local spellTable = {
 
 	-- "Shield Charge" 156321 "Charge de bouclier" -- Buff "Shield Charge" 169667 -- "Bloodbath" 12292 "Bain de sang"
 	-- Increasing the damage of Shield Slam, Revenge, and Heroic Strike by 25% for 7 sec.
-	{ 156321, jps.buff(156291) and inMelee and jps.buffStacks(169686) == 6 , rangedTarget , "|cffa335eeShieldCharge_6_Strikes" },
-	{ 156321, jps.buff(156291) and inMelee and jps.buff(12292) , rangedTarget , "|cffa335eeShieldCharge_Bloodbath" },
+	{ 156321, not jps.buff(169667) and jps.buff(156291) and inMelee and jps.buffStacks(169686) == 6 , rangedTarget , "|cffa335eeShieldCharge_6_Strikes" },
+	{ 156321, not jps.buff(169667) and jps.buff(156291) and inMelee and jps.buff(12292) , rangedTarget , "|cffa335eeShieldCharge_Bloodbath" },
 	-- "Revenge" 6572 "Revanche"
 	{ warrior.spells["Revenge"] , inMelee , rangedTarget , "Revenge" },
 	-- "Shield Slam" 23922 "Heurt de bouclier" -- Buff "Sword and Board" 50227 "Epée et bouclier"
@@ -208,7 +208,8 @@ local spellTable = {
 	-- "Intimidating Shout" 5246
 	{ warrior.spells["IntimidatingShout"] , playerAggro and not jps.debuff(5246,rangedTarget) , rangedTarget , "IntimidatingShout"},
 	-- "Berserker Rage" 18499 "Rage de berserker" -- "Enrage" 12880 "Enrager"
-	{ warrior.spells["BerserkerRage"] , not jps.buff(12880) , rangedTarget , "|cFFFF0000BerserkerRage" },
+	{ warrior.spells["BerserkerRage"] , not jps.buff(12880) and jps.buff(169667) , rangedTarget , "|cFFFF0000BerserkerRage" },
+	{ warrior.spells["BerserkerRage"] , not jps.buff(12880) and jps.buff(12292) , rangedTarget , "|cFFFF0000BerserkerRage" },
 
 	-- TALENTS --
 	-- "Bloodbath" 12292 "Bain de sang" -- Buff 12292
@@ -226,10 +227,11 @@ local spellTable = {
 
 	-- "Shield Charge" 156321 "Charge de bouclier" -- Buff "Shield Charge" 169667 -- "Bloodbath" 12292 "Bain de sang"
 	-- Increasing the damage of Shield Slam, Revenge, and Heroic Strike by 25% for 7 sec.
-	{"nested", jps.buff(156291) and inMelee ,{
+	{"nested", jps.buff(156291) and inMelee and not jps.buff(169667) ,{
 		{ 156321, inMelee and ShieldCharge == 2 , rangedTarget , "|cffa335eeShieldCharge" },
+		{ 156321, inMelee and jps.rage() > 29 and jps.cooldown(23922) < 1 , rangedTarget , "|cffa335eeShieldCharge_ShieldSlam" },
 		{ 156321, inMelee and jps.rage() > 59 and jps.buffStacks(169686) > 3 , rangedTarget , "|cffa335eeShieldCharge_4_Strikes" },
-		{ 156321, inMelee and jps.rage() > 89 , rangedTarget , "|cffa335eeShieldCharge_Rage" },
+
 	}},
 	
 	-- "Dévaster" 20243 "Devastate" -- Buff "Unyielding Strikes" 169686 "Frappes inflexibles" 169686 -- Cumulable jusqu’à 6 fois
@@ -262,12 +264,15 @@ jps.registerRotation("WARRIOR","PROTECTION",function()
 	if not canHeal("target") and canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
 
 	local spellTableOOC = {
-	-- "Oralius' Whispering Crystal" 118922 "Cristal murmurant d’Oralius"
-	{ {"macro","/use item:118922"}, not jps.buff(105691) and not jps.buff(156070) and not jps.buff(156079) and jps.itemCooldown(118922) == 0 and not jps.buff(176151) , "player" , "Item_Oralius"},
 	-- "Heroic Leap" 6544 "Bond héroïque"
 	{ warrior.spells["HeroicLeap"] , IsControlKeyDown() , "player" },
 	-- "Battle Shout" 6673 "Cri de guerre"
 	{ warrior.spells["BattleShout"] , not jps.hasAttackPowerBuff("player") , "player" },
+	-- "Commanding Shout" 469 "Cri de commandement"
+	{ 469 , jps.hasAttackPowerBuff("player") and jps.myBuffDuration(6673,"player") == 0 and not jps.buff(469) , "player" },
+	-- "Oralius' Whispering Crystal" 118922 "Cristal murmurant d’Oralius"
+	{ {"macro","/use item:118922"}, not jps.buff(176151) and not jps.buff(156080) and not jps.buff(105691) and not jps.buff(156070) and not jps.buff(156079) and jps.itemCooldown(118922) == 0  , "player" , "Item_Oralius"},
+	
 }
 
 	local spell,target = parseSpellTable(spellTableOOC)

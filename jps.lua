@@ -54,7 +54,6 @@ jps.HarmSpell = ""
 jps.HelpSpell = ""
 jps.CurrentCast = nil
 jps.CurrentCastInterrupt = nil
-jps.CurrentCastInterruptID = nil
 jps.SentCast = nil
 jps.LastCast = nil
 jps.LastTarget = nil

@@ -84,7 +84,6 @@ local priestHoly = function()
 	local playerIsInterrupt = jps.InterruptEvents() -- return true/false ONLY FOR PLAYER
 	local playerWasControl = jps.ControlEvents() -- return true/false Player was interrupt or stun 2 sec ago ONLY FOR PLAYER
 	local playerTTD = jps.TimeToDie("player")
-	local buffTrackerMending = jps.buffTracker(41635)
 	local PlayerIsFacingLowest = jps.PlayerIsFacing(LowestImportantUnit,30)	-- angle value between 10-180
 
 ---------------------
@@ -338,10 +337,10 @@ local spellTable = {
 	{ {"macro",macroSerenity}, jps.cooldown(88684) == 0 and jps.buffId(81208) and jps.hp(myTank) < 0.80 , myTank , "Health_Serenity_Tank" },
 	
 	-- TIMER POM -- "Prière de guérison" 33076 -- Buff POM 41635
-	{ "nested", not jps.Moving and not buffTrackerMending ,{
+	{ "nested", not jps.Moving and not jps.buffTracker(41635) ,{
 		{ 33076, canHeal(myTank) , myTank , "Tracker_Mending_Tank" },
 		{ 33076, type(MendingFriend) == "string" , MendingFriend , "Tracker_Mending_Friend" },
-		{ 33076, not jps.buff(41635,LowestImportantUnit) , LowestImportantUnit , "Tracker_Mending_" },
+		{ 33076, true , LowestImportantUnit , "Tracker_Mending_" },
 	}},
 
 	-- CHAKRA

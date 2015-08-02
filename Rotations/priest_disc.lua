@@ -1,4 +1,5 @@
--- jps.UseCDs for RACIAL COUNTERS & "Spectral Guise"
+-- jps.UseCDs for RACIAL COUNTERS
+-- jps.UseCDs for "Spectral Guise"
 -- jps.UseCDs for WoM when OOC
 -- jps.MultiTarget not in use
 -- jps.Interrupts for Dispel
@@ -89,7 +90,6 @@ local priestDisc = function()
 	local playerIsInterrupt = jps.InterruptEvents() -- return true/false ONLY FOR PLAYER
 	local playerWasControl = jps.ControlEvents() -- return true/false Player was interrupt or stun 2 sec ago ONLY FOR PLAYER
 	local playerTTD = jps.TimeToDie("player")
-	local buffTrackerMending = jps.buffTracker(41635)
 	local ShellTarget = jps.FindSubGroupAura(114908) -- buff target Spirit Shell 114908 need SPELLID
 	-- "Body and Soul" 64129
 	local BodyAndSoul = jps.IsSpellKnown(64129)
@@ -357,10 +357,10 @@ spellTable = {
 	-- OFFENSIVE Dispel -- "Dissipation de la magie" 528
 	{ 528, jps.castEverySeconds(528,10) and jps.DispelOffensive(rangedTarget) , rangedTarget , "|cff1eff00DispelOffensive" },
 	-- BOSS DEBUFF
---	{ "nested", type(BossDebuffFriend) == "string" ,{
---		{ 17, not jps.buff(17,BossDebuffFriend) and not jps.debuff(6788,BossDebuffFriend) , BossDebuffFriend , "Shield_BossDebuff" },
---		{ 152118, jps.debuff(6788,BossDebuffFriend) and not jps.buff(152118,BossDebuffFriend) and not jps.isRecast(152118,BossDebuffFriend) , BossDebuffFriend , "Clarity_BossDebuff" },
---	}},
+	{ "nested", type(BossDebuffFriend) == "string" and LowestImportantUnitHpct > 0.80 ,{
+		{ 17, not jps.buff(17,BossDebuffFriend) and not jps.debuff(6788,BossDebuffFriend) , BossDebuffFriend , "Shield_BossDebuff" },
+		{ 152118, jps.debuff(6788,BossDebuffFriend) and not jps.buff(152118,BossDebuffFriend) and not jps.isRecast(152118,BossDebuffFriend) , BossDebuffFriend , "Clarity_BossDebuff" },
+	}},
 
 	-- FAKE CAST -- 6948 -- "Hearthstone"
 	{ {"macro","/use item:6948"}, jps.PvP and LowestImportantUnitHpct > 0.80 and not jps.Moving and playerAggro and jps.itemCooldown(6948) == 0 , "player" , "Aggro_FAKECAST" },
@@ -430,10 +430,11 @@ spellTable = {
 	-- SHIELD TANK
 	{ 17, canHeal(myTank) and not jps.buff(17,myTank) and not jps.debuff(6788,myTank) , myTank , "Timer_Shield_Tank" },
 	-- TIMER POM -- "Prière de guérison" 33076 -- Buff POM 41635
-	{ 33076, not jps.Moving and canHeal(myTank) and not jps.buff(41635,myTank) , myTank , "Timer_Mending_Tank" },
-	{ "nested", not jps.Moving and not buffTrackerMending ,{
+	{ 33076, jps.Defensive and not jps.Moving and canHeal(myTank) and not jps.buff(41635,myTank) , myTank , "Timer_Mending_Tank" },
+	{ "nested", not jps.Moving and not jps.buffTracker(41635) ,{
+		{ 33076, canHeal(myTank) , myTank , "Timer_Mending_Tank" },
 		{ 33076, type(MendingFriend) == "string" , MendingFriend , "Tracker_Mending_Friend" },
-		{ 33076, not jps.buff(41635,LowestImportantUnit) , LowestImportantUnit , "Tracker_Mending" },
+		{ 33076, true , LowestImportantUnit , "Tracker_Mending" },
 	}},
 	-- ClarityTank -- "Clarity of Will" 152118 shields with protective ward for 20 sec
 	{ 152118, not jps.Moving and canHeal(myTank) and priest.unitForClarity(myTank) and LowestImportantUnitHpct > 0.50 and jps.hp(myTank) > 0.80  , myTank , "Timer_ClarityTank" },

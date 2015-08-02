@@ -22,9 +22,11 @@ local combatLogEventTable = {}
 -- JPS Frame
 local jpsFrame = CreateFrame("Frame", "JPSFrame")
 
-jps.listener = {}
-local listener = jps.listener
-local UnitGUID = UnitGUID
+--jps.listener = {}
+--local listener = jps.listener
+
+local listener = {}
+jps.listener = listener
 
 -- TABLE ENEMIES IN COMBAT
 local EnemyDamager = {}
@@ -38,6 +40,7 @@ local Healtable = {}
 setmetatable(Healtable, { __mode = 'k' }) -- creation of a weak table
 
 -- RaidStatus
+local UnitGUID = UnitGUID
 local GetTime = GetTime
 local canHeal = jps.canHeal
 local canDPS = jps.canDPS
@@ -310,7 +313,7 @@ jpsFrame:SetScript("OnEvent", function(self, event, ...)
 end)
 
 --- COMBAT_LOG_EVENT_UNFILTERED Handler
-jps.listener.registerEvent("COMBAT_LOG_EVENT_UNFILTERED", function(timeStamp, event, ...)
+listener.registerEvent("COMBAT_LOG_EVENT_UNFILTERED", function(timeStamp, event, ...)
 	if jps.Enabled and UnitAffectingCombat("player") and combatLogEventTable[event] then
 		--LOG.debug("CombatLogEventUntfiltered: %s", event)
 		if enableUnfilteredProfiling and enableProfiling then startProfileMemory("COMBAT_LOG_EVENT_UNFILTERED::"..event) end
@@ -338,21 +341,8 @@ a function which generates the value which will be called every [code]updateInte
 @returns A function which will return the cached value
 ]]--
 
-jps.cachedValue = function(fn,updateInterval)
-    if not updateInterval then updateInterval = 1 end
-    local maxAge = GetTime() + updateInterval
-    local value = fn()
-    return function()
-        if maxAge < GetTime() then
-            value = fn()
-            maxAge = GetTime() + updateInterval
-        end
-        return value
-    end
-end
-
 local LastUpdateFrequency = GetTime()
-jps.cachedValueUpdate = function(fn,updateInterval)
+jps.cachedValue = function(fn,updateInterval)
 	if not updateInterval then updateInterval = 1 end
 	local curTime = GetTime()
 	local diff = curTime - LastUpdateFrequency
@@ -385,8 +375,7 @@ jps.registerOnUpdate(function()
 end)
 
 jps.registerOnUpdate(function()
-	jps.cachedValueUpdate(collectGarbage,30)
-	--jps.cachedValue(collectGarbage,30)
+	jps.cachedValue(collectGarbage,30)
 end)
 
 --------------------------
@@ -598,7 +587,6 @@ end)
 jps.listener.registerEvent("UNIT_SPELLCAST_INTERRUPTED", function(unitID,spellname,_,_,spellID)
 	if unitID == "player" and type(spellname) == "string" then
 		jps.CurrentCastInterrupt = spellname
-		jps.CurrentCastInterruptID = spellID
 		--print("INTERRUPTED: ",unitID,"spellname:",spellname,": ",spellID)
 	end
 end)

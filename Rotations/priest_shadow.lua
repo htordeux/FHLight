@@ -12,6 +12,7 @@ local strfind = string.find
 local UnitClass = UnitClass
 local UnitChannelInfo = UnitChannelInfo
 local GetSpellInfo = GetSpellInfo
+local UnitIsUnit = UnitIsUnit
 
 -- Channeling
 local MindFlay = GetSpellInfo(15407)
@@ -101,7 +102,7 @@ local isBoss = (UnitLevel("target") == -1) or (UnitClassification("target") == "
 local name = GetUnitName("focus") or ""
 if not jps.UnitExists("focus") and canDPS("mouseover") and UnitAffectingCombat("mouseover") then
 	-- set focus an enemy targeting you
-	if jps.UnitIsUnit("mouseovertarget","player") and not jps.UnitIsUnit("target","mouseover") then
+	if UnitIsUnit("mouseovertarget","player") and not UnitIsUnit("target","mouseover") then
 		jps.Macro("/focus mouseover")
 		--print("Enemy DAMAGER|cff1eff00 "..name.." |cffffffffset as FOCUS")
 	-- set focus an enemy healer
@@ -109,17 +110,17 @@ if not jps.UnitExists("focus") and canDPS("mouseover") and UnitAffectingCombat("
 		jps.Macro("/focus mouseover")
 		--print("Enemy HEALER|cff1eff00 "..name.." |cffffffffset as FOCUS")
 	-- set focus an enemy in combat
-	elseif canDPS("mouseover") and not jps.UnitIsUnit("target","mouseover") and not jps.myDebuff(589,"mouseover") then
+	elseif canDPS("mouseover") and not UnitIsUnit("target","mouseover") and not jps.myDebuff(589,"mouseover") then
 		jps.Macro("/focus mouseover")
 		--print("Enemy COMBAT|cff1eff00 "..name.." |cffffffffset as FOCUS not DEBUFF")
-	elseif canDPS("mouseover") and not jps.UnitIsUnit("target","mouseover") then
+	elseif canDPS("mouseover") and not UnitIsUnit("target","mouseover") then
 		jps.Macro("/focus mouseover")
 		--print("Enemy COMBAT|cff1eff00 "..name.." |cffffffffset as FOCUS")
 	end
 end
 
 -- CONFIG jps.getConfigVal("keep focus") if you want to keep focus
-if jps.UnitExists("focus") and jps.UnitIsUnit("target","focus") then
+if jps.UnitExists("focus") and UnitIsUnit("target","focus") then
 	jps.Macro("/clearfocus")
 elseif jps.UnitExists("focus") and not canDPS("focus") then
 	if jps.getConfigVal("keep focus") == false then jps.Macro("/clearfocus") end
@@ -285,7 +286,7 @@ local fnOrbs = function(unit)
 	if DebuffUnitCyclone(unit) then return false end
 	if jps.ShouldKick(unit) then return true end
 	if jps.EnemyHealer(unit) then return true end
-	if jps.UnitIsUnit(unit.."target","player") then return true end
+	if UnitIsUnit(unit.."target","player") then return true end
 	return false
 end
 
@@ -409,15 +410,16 @@ local spellTable = {
 	{ 32379, jps.hp("mouseover") < 0.20 and Orbs < 5 , "mouseover", "Death_Mouseover" },
 	
 	-- MULTITARGET
+	{ 589, not jps.buff(132573) and fnPainEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "Pain_Mouseover_Orbs" },
 	{ "nested", jps.MultiTarget , {
 		-- "Shadow Word: Pain" 589 -- "Shadow Word: Insanity" buff 132573	
-		{ 589, not jps.buff(132573) and fnPainEnemyTarget("mouseover") and not jps.UnitIsUnit("target","mouseover") , "mouseover" , "Pain_Mouseover_Orbs" },
+		{ 589, not jps.buff(132573) and fnPainEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "Pain_Mouseover_Orbs" },
 		{ 589, not jps.buff(132573) and fnPainEnemyTarget("focus") , "focus" , "Pain_Focus_Orbs" },
-		{ 589, type(PainEnemyTarget) == "string" and not jps.UnitIsUnit(PainEnemyTarget,"target") , PainEnemyTarget , "Pain_MultiUnit" },
+		{ 589, type(PainEnemyTarget) == "string" and not UnitIsUnit(PainEnemyTarget,"target") , PainEnemyTarget , "Pain_MultiUnit" },
 		-- "Vampiric Touch" 34914 -- "Shadow Word: Insanity" buff 132573
-		{ 34914, not jps.buff(132573) and fnVampEnemyTarget("mouseover") and not jps.UnitIsUnit("target","mouseover") , "mouseover" , "VT_Mouseover_Orbs" },
+		{ 34914, not jps.buff(132573) and fnVampEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "VT_Mouseover_Orbs" },
 		{ 34914, not jps.buff(132573) and fnVampEnemyTarget("focus") , "focus" , "VT_Focus_Orbs" },
-		{ 34914, type(VampEnemyTarget) == "string" and not jps.UnitIsUnit(VampEnemyTarget,"target") , VampEnemyTarget , "VT_MultiUnit" },
+		{ 34914, type(VampEnemyTarget) == "string" and not UnitIsUnit(VampEnemyTarget,"target") , VampEnemyTarget , "VT_MultiUnit" },
 	}},
 	-- "MindSear" 48045 -- "Insanité incendiaire" 179338 "Searing Insanity"
 	{ 48045, not jps.Moving and jps.MultiTarget and EnemyCount > 3, rangedTarget , "MINDSEAR_Target" },
@@ -434,13 +436,13 @@ local spellTable = {
 	{ 2944, Orbs > 2 and jps.myDebuffDuration(34914,rangedTarget) > 3 and jps.myDebuffDuration(589,rangedTarget) > 3 , rangedTarget , "PLAGUE_Debuff" },
 
 	-- "Shadow Word: Pain" 589 -- "Shadow Word: Insanity" buff 132573	
-	{ 589, not jps.buff(132573) and fnPainEnemyTarget("mouseover") and not jps.UnitIsUnit("target","mouseover") , "mouseover" , "Pain_Mouseover_Orbs" },
+	{ 589, not jps.buff(132573) and fnPainEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "Pain_Mouseover_Orbs" },
 	{ 589, not jps.buff(132573) and fnPainEnemyTarget("focus") , "focus" , "Pain_Focus_Orbs" },
-	{ 589, type(PainEnemyTarget) == "string" and not jps.UnitIsUnit(PainEnemyTarget,"target") , PainEnemyTarget , "Pain_MultiUnit" },
+	{ 589, type(PainEnemyTarget) == "string" and not UnitIsUnit(PainEnemyTarget,"target") , PainEnemyTarget , "Pain_MultiUnit" },
 	-- "Vampiric Touch" 34914 -- "Shadow Word: Insanity" buff 132573
-	{ 34914, not jps.buff(132573) and fnVampEnemyTarget("mouseover") and not jps.UnitIsUnit("target","mouseover") , "mouseover" , "VT_Mouseover_Orbs" },
+	{ 34914, not jps.buff(132573) and fnVampEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "VT_Mouseover_Orbs" },
 	{ 34914, not jps.buff(132573) and fnVampEnemyTarget("focus") , "focus" , "VT_Focus_Orbs" },
-	{ 34914, type(VampEnemyTarget) == "string" and not jps.UnitIsUnit(VampEnemyTarget,"target") , VampEnemyTarget , "VT_MultiUnit" },
+	{ 34914, type(VampEnemyTarget) == "string" and not UnitIsUnit(VampEnemyTarget,"target") , VampEnemyTarget , "VT_MultiUnit" },
 
 	-- "Mind Spike" 73510 -- "Surge of Darkness" gives buff -- "Surge of Darkness" 87160
 	{ 73510, jps.buffStacks(87160,"player") > 1 , rangedTarget , "Spike_SurgeofDarkness_Stacks" },
@@ -526,8 +528,10 @@ jps.registerRotation("PRIEST","SHADOW",function()
 	-- "Shadowform" 15473
 	{ 15473, not jps.buff(15473) , "player" },
 
-	-- "Oralius' Whispering Crystal" 118922 "Cristal murmurant d’Oralius"
-	{ {"macro","/use item:118922"}, not jps.buff(105691) and not jps.buff(156070) and not jps.buff(156079) and jps.itemCooldown(118922) == 0 and not jps.buff(176151) , "player" , "Item_Oralius"},
+	-- "Oralius' Whispering Crystal" 118922 "Cristal murmurant d’Oralius" -- buff 176151
+	{ {"macro","/use item:118922"},  not jps.buff(176151) and jps.itemCooldown(118922) == 0 and not jps.buff(156070) and not jps.buff(156079) , "player" , "Item_Oralius"},
+	-- "Flacon d’Intelligence draenique" jps.buff(156070)
+	-- "Flacon d’Intelligence supérieure draenique" jps.buff(156079)
 
 }
 

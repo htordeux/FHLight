@@ -8,6 +8,8 @@ local canHeal = jps.canHeal
 local strfind = string.find
 local UnitClass = UnitClass
 local UnitAffectingCombat = UnitAffectingCombat
+local GetSpellInfo = GetSpellInfo
+local UnitIsUnit = UnitIsUnit
 
 local ClassEnemy = {
 	["WARRIOR"] = "cac",
@@ -84,7 +86,7 @@ local isBoss = (UnitLevel("target") == -1) or (UnitClassification("target") == "
 local name = GetUnitName("focus") or ""
 if not jps.UnitExists("focus") and canDPS("mouseover") and UnitAffectingCombat("mouseover") then
 	-- set focus an enemy targeting you
-	if jps.UnitIsUnit("mouseovertarget","player") and not jps.UnitIsUnit("target","mouseover") then
+	if UnitIsUnit("mouseovertarget","player") and not UnitIsUnit("target","mouseover") then
 		jps.Macro("/focus mouseover")
 		--print("Enemy DAMAGER|cff1eff00 "..name.." |cffffffffset as FOCUS")
 	-- set focus an enemy healer
@@ -92,14 +94,14 @@ if not jps.UnitExists("focus") and canDPS("mouseover") and UnitAffectingCombat("
 		jps.Macro("/focus mouseover")
 		--print("Enemy HEALER|cff1eff00 "..name.." |cffffffffset as FOCUS")
 	-- set focus an enemy in combat
-	elseif canDPS("mouseover") and not jps.UnitIsUnit("target","mouseover") then
+	elseif canDPS("mouseover") and not UnitIsUnit("target","mouseover") then
 		jps.Macro("/focus mouseover")
 		--print("Enemy COMBAT|cff1eff00 "..name.." |cffffffffset as FOCUS")
 	end
 end
 
 -- CONFIG jps.getConfigVal("keep focus") if you want to keep focus
-if jps.UnitExists("focus") and jps.UnitIsUnit("target","focus") then
+if jps.UnitExists("focus") and UnitIsUnit("target","focus") then
 	jps.Macro("/clearfocus")
 elseif jps.UnitExists("focus") and not canDPS("focus") then
 	if jps.getConfigVal("keep focus") == false then jps.Macro("/clearfocus") end
@@ -136,7 +138,7 @@ local spellTable = {
 		{ warrior.spells["Pummel"] , jps.ShouldKick(rangedTarget) , rangedTarget , "_Pummel" },
 		{ warrior.spells["Pummel"] , jps.ShouldKick("focus") , "focus" , "_Pummel" },
 		-- "Mass Spell Reflection" 114028 "Renvoi de sort de masse"
-		{ warrior.spells["MassSpellReflection"] , jps.UnitIsUnit("targettarget","player") and jps.IsCasting(rangedTarget) , rangedTarget , "_MassSpell" },
+		{ warrior.spells["MassSpellReflection"] , UnitIsUnit("targettarget","player") and jps.IsCasting(rangedTarget) , rangedTarget , "_MassSpell" },
 	}},
 
 	-- "Stoneform" 20594 "Forme de pierre"
@@ -172,6 +174,7 @@ local spellTable = {
 	-- "Bloodbath" 12292 "Bain de sang"  -- jps.buff(12292)
 	{ warrior.spells["Bloodbath"], inMelee and jps.MultiTarget , rangedTarget , "|cFFFF0000Bloodbath" },
 	{ warrior.spells["Bloodbath"], inMelee and jps.rage() > 89 , rangedTarget , "|cFFFF0000Bloodbath_DumpRage" },
+	{ warrior.spells["Bloodbath"], inMelee and jps.rage() > 59 and jps.buff(12880) , rangedTarget , "|cFFFF0000Bloodbath_Berserker" },
 	-- "Storm Bolt" 107570 "Eclair de tempete" -- 30 yd range
 	{ warrior.spells["StormBolt"] , jps.IsSpellKnown(107570) , rangedTarget ,"_StormBolt" },
 	-- "Dragon Roar " 118000 -- 8 yards
@@ -185,7 +188,7 @@ local spellTable = {
 	{ warrior.spells["Bloodthirst"], not jps.buff(12880) , rangedTarget , "_Bloodthirst_NotEnrage" },
 	{ warrior.spells["Bloodthirst"], jps.rage() < 59 , rangedTarget , "_Bloodthirst_LowRage" },
 	-- "Berserker Rage" 18499 "Rage de berserker" -- "Enrage" 12880 "Enrager"
-	{ warrior.spells["BerserkerRage"] , not jps.buff(12880) and jps.cooldown(23881) > 0 , rangedTarget , "|cFFFF0000BerserkerRage" },
+	{ warrior.spells["BerserkerRage"] , not jps.buff(12880) and jps.cooldown(23881) > 0 , rangedTarget , "|cFFFF0000Berserker" },
 
 	-- "Recklessness" 1719 "Témérité" -- buff Raging Blow! 131116 -- "Bloodsurge" 46916 "Afflux sanguin" -- "Enrage" 12880 "Enrager"
 	{ warrior.spells["Recklessness"], inMelee and jps.rage() > 89 , rangedTarget , "_Recklessness" },

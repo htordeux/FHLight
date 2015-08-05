@@ -9,6 +9,8 @@ local strfind = string.find
 local UnitClass = UnitClass
 local UnitAffectingCombat = UnitAffectingCombat
 local canAttack = jps.CanAttack
+local GetSpellInfo = GetSpellInfo
+local UnitIsUnit = UnitIsUnit
 
 local ClassEnemy = {
 	["WARRIOR"] = "cac",
@@ -67,7 +69,7 @@ local isBoss = (UnitLevel("target") == -1) or (UnitClassification("target") == "
 local name = GetUnitName("focus") or ""
 if not jps.UnitExists("focus") and canDPS("mouseover") and UnitAffectingCombat("mouseover") then
 	-- set focus an enemy targeting you
-	if jps.UnitIsUnit("mouseovertarget","player") and not jps.UnitIsUnit("target","mouseover") then
+	if UnitIsUnit("mouseovertarget","player") and not UnitIsUnit("target","mouseover") then
 		jps.Macro("/focus mouseover")
 		--print("Enemy DAMAGER|cff1eff00 "..name.." |cffffffffset as FOCUS")
 	-- set focus an enemy healer
@@ -75,14 +77,14 @@ if not jps.UnitExists("focus") and canDPS("mouseover") and UnitAffectingCombat("
 		jps.Macro("/focus mouseover")
 		--print("Enemy HEALER|cff1eff00 "..name.." |cffffffffset as FOCUS")
 	-- set focus an enemy in combat
-	elseif canDPS("mouseover") and not jps.UnitIsUnit("target","mouseover") then
+	elseif canDPS("mouseover") and not UnitIsUnit("target","mouseover") then
 		jps.Macro("/focus mouseover")
 		--print("Enemy COMBAT|cff1eff00 "..name.." |cffffffffset as FOCUS")
 	end
 end
 
 -- CONFIG jps.getConfigVal("keep focus") if you want to keep focus
-if jps.UnitExists("focus") and jps.UnitIsUnit("target","focus") then
+if jps.UnitExists("focus") and UnitIsUnit("target","focus") then
 	jps.Macro("/clearfocus")
 elseif jps.UnitExists("focus") and not canDPS("focus") then
 	if jps.getConfigVal("keep focus") == false then jps.Macro("/clearfocus") end
@@ -96,7 +98,7 @@ end
 if canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
 local TargetMoving = select(1,GetUnitSpeed(rangedTarget)) > 0
 
---if jps.buff(156291) and jps.UnitIsUnit("targettarget","player") then
+--if jps.buff(156291) and UnitIsUnit("targettarget","player") then
 --	SpellStopCasting()
 --	spell = 20243;
 --	target = "target";
@@ -124,11 +126,11 @@ local spellTable = {
 
 	-- INTERRUPTS --
 	-- "Spell Reflection" 23920 "Renvoi de sort" --renvoyez le prochain sort lancé sur vous. Dure 5 s. Buff same spellId
-	{ warrior.spells["SpellReflection"] , jps.ShouldKick(rangedTarget) and jps.UnitIsUnit("targettarget","player") , rangedTarget , "SpellReflection" },
-	{ warrior.spells["SpellReflection"] , jps.ShouldKick("focus") and jps.UnitIsUnit("focustarget","player") , "focus" , "SpellReflection" },
+	{ warrior.spells["SpellReflection"] , jps.ShouldKick(rangedTarget) and UnitIsUnit("targettarget","player") , rangedTarget , "SpellReflection" },
+	{ warrior.spells["SpellReflection"] , jps.ShouldKick("focus") and UnitIsUnit("focustarget","player") , "focus" , "SpellReflection" },
 	-- "Mass Spell Reflection" 114028 "Renvoi de sort de masse"
-	{ warrior.spells["MassSpellReflection"] , jps.UnitIsUnit("targettarget","player") and jps.IsCasting(rangedTarget) , rangedTarget , "MassSpell" },
-	{ warrior.spells["MassSpellReflection"] , jps.UnitIsUnit("focustarget","player") and jps.IsCasting("focus") , "focus" , "MassSpell" },
+	{ warrior.spells["MassSpellReflection"] , UnitIsUnit("targettarget","player") and jps.IsCasting(rangedTarget) , rangedTarget , "MassSpell" },
+	{ warrior.spells["MassSpellReflection"] , UnitIsUnit("focustarget","player") and jps.IsCasting("focus") , "focus" , "MassSpell" },
 	-- "Pummel" 6552 "Volée de coups"
 	{ warrior.spells["Pummel"] , jps.Interrupts and jps.ShouldKick(rangedTarget) , rangedTarget , "Pummel" },
 	{ warrior.spells["Pummel"] , jps.Interrupts and jps.ShouldKick("focus") , "focus" , "Pummel" },
@@ -149,6 +151,22 @@ local spellTable = {
 	-- "Victory Rush" 34428 "Ivresse de la victoire" -- "Victorious" 32216 "Victorieux" -- Ivresse de la victoire activée.
 	{ warrior.spells["ImpendingVictory"] , jps.buff(32216) and jps.buffDuration(32216) < 4 , rangedTarget , "|cff1eff00ImpendingVictory_Duration" },
 	{ warrior.spells["VictoryRush"] , jps.buff(32216) and jps.buffDuration(32216) < 4 , rangedTarget , "|cff1eff00VictoryRush_Duration" },
+	
+	-- DEFENSIVE
+	-- "Pierre de soins" 5512
+	{ {"macro","/use item:5512"}, jps.hp("player") < 0.80 and jps.itemCooldown(5512) == 0 , "player" , "Item5512" },
+	-- "Stoneform" 20594 "Forme de pierre"
+	{ warrior.spells["Stoneform"] , playerAggro and jps.hp() < 0.80 , rangedTarget , "|cff1eff00Stoneform_Health" },
+	{ warrior.spells["Stoneform"] , jps.canDispel("player",{"Magic","Poison","Disease","Curse"}) , rangedTarget , "|cff1eff00Stoneform_Dispel" },
+	-- "Proteger" 114029 -- "Intervention" 3411
+	{ 3411, not UnitIsUnit(myTank,"player") and jps.hp(myTank) < 0.30 and jps.hp("player") > 0.85 and UnitCanAssist("player",myTank) , myTank , "Intervention_myTank" },
+	{ 114029, not UnitIsUnit(myTank,"player") and jps.hp(myTank) < 0.30 and jps.hp("player") > 0.85 and UnitCanAssist("player",myTank) , myTank , "Proteger_myTank" },
+	{ 3411, not UnitIsUnit("targettarget","player") and jps.hp("targettarget") < 0.30 and jps.hp("player") > 0.85 , "targettarget" , "Intervention_Aggro" },
+	{ 114029, not UnitIsUnit("targettarget","player") and jps.hp("targettarget") < 0.30 and jps.hp("player") > 0.85 , "targettarget" , "Proteger_Aggro" },
+	-- "Provocation" 355
+	{ 355, jps.Defensive and jps.buff(71) and not UnitIsUnit("targettarget","player") , "target" , "Provocation" },
+	-- "Demoralizing Shout" 1160 "Cri démoralisant"
+	{ 1160, playerAggro and not jps.debuff(1160,rangedTarget) , rangedTarget , "Demoralizing" },
 
 	-- "Shield Charge" 156321 "Charge de bouclier" -- Buff "Shield Charge" 169667 -- "Bloodbath" 12292 "Bain de sang"
 	-- Increasing the damage of Shield Slam, Revenge, and Heroic Strike by 25% for 7 sec.
@@ -176,22 +194,6 @@ local spellTable = {
 		-- "Thunder Clap" 6343 "Coup de tonnerre"
 		{ warrior.spells["ThunderClap"] , true , rangedTarget , "ThunderClap" },
 	}},
-
-	-- DEFENSIVE
-	-- "Stoneform" 20594 "Forme de pierre"
-	{ warrior.spells["Stoneform"] , playerAggro and jps.hp() < 0.80 , rangedTarget , "|cff1eff00Stoneform_Health" },
-	{ warrior.spells["Stoneform"] , jps.canDispel("player",{"Magic","Poison","Disease","Curse"}) , rangedTarget , "|cff1eff00Stoneform_Dispel" },
-	-- "Pierre de soins" 5512
-	{ {"macro","/use item:5512"}, jps.hp("player") < 0.80 and jps.itemCooldown(5512) == 0 , "player" , "Item5512" },
-	-- "Proteger" 114029 -- "Intervention" 3411
-	{ 3411, not jps.UnitIsUnit(myTank,"player") and jps.hp(myTank) < 0.30 and jps.hp("player") > 0.85 and UnitCanAssist("player",myTank) , myTank , "Intervention_myTank" },
-	{ 114029, not jps.UnitIsUnit(myTank,"player") and jps.hp(myTank) < 0.30 and jps.hp("player") > 0.85 and UnitCanAssist("player",myTank) , myTank , "Proteger_myTank" },
-	{ 3411, not jps.UnitIsUnit("targettarget","player") and jps.hp("targettarget") < 0.30 and jps.hp("player") > 0.85 , "targettarget" , "Intervention_Aggro" },
-	{ 114029, not jps.UnitIsUnit("targettarget","player") and jps.hp("targettarget") < 0.30 and jps.hp("player") > 0.85 , "targettarget" , "Proteger_Aggro" },
-	-- "Provocation" 355
-	{ 355, jps.Defensive and jps.buff(71) and not jps.UnitIsUnit("targettarget","player") , "target" , "Provocation" },
-	-- "Demoralizing Shout" 1160 "Cri démoralisant"
-	{ 1160, playerAggro and not jps.debuff(1160,rangedTarget) , rangedTarget , "Demoralizing" },
 
 	-- "Shield Block" 2565 "Maîtrise du blocage" -- works against physical attacks, it does nothing against magic -- Buff "Shield Block" 132404 -- 60 rage
 	{ warrior.spells["ShieldBlock"] , jps.buff(71) and jps.PhysicalDamage and not jps.buff(132404) and jps.hp("player") < 0.80 , rangedTarget , "|cff1eff00ShieldBlock_PhysicalDmg" },
@@ -270,9 +272,12 @@ jps.registerRotation("WARRIOR","PROTECTION",function()
 	{ warrior.spells["BattleShout"] , not jps.hasAttackPowerBuff("player") , "player" },
 	-- "Commanding Shout" 469 "Cri de commandement"
 	{ 469 , jps.hasAttackPowerBuff("player") and jps.myBuffDuration(6673,"player") == 0 and not jps.buff(469) , "player" },
-	-- "Oralius' Whispering Crystal" 118922 "Cristal murmurant d’Oralius"
-	{ {"macro","/use item:118922"}, not jps.buff(176151) and not jps.buff(156080) and not jps.buff(105691) and not jps.buff(156070) and not jps.buff(156079) and jps.itemCooldown(118922) == 0  , "player" , "Item_Oralius"},
-	
+	-- "Oralius' Whispering Crystal" 118922 "Cristal murmurant d’Oralius" -- buff 176151
+	{ {"macro","/use item:118922"}, not jps.buff(176151) and jps.itemCooldown(118922) == 0 and not jps.buff(156080) and not jps.buff(156071) , "player" , "Item_Oralius"},
+	-- "Flacon d’Intelligence draenique" jps.buff(156070)
+	-- "Flacon d’Intelligence supérieure draenique" jps.buff(156079)
+	-- "Flacon de Force supérieure draenique" jps.buff(156080)
+	-- "Flacon de Force draenique" jps.buff(156071)
 }
 
 	local spell,target = parseSpellTable(spellTableOOC)

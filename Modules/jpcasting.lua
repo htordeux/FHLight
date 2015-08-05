@@ -14,6 +14,7 @@ local UnitChannelInfo = UnitChannelInfo
 local GetSpellCooldown = GetSpellCooldown
 local GetSpellInfo = GetSpellInfo
 local toSpellName = jps.toSpellName
+local UnitIsUnit = UnitIsUnit
 
 --------------------------
 -- CASTING SPELL
@@ -98,7 +99,7 @@ function jps.PlayerIsFacing(unit,alpha) -- alpha is angle value between 10-180
 	local tx,ty = GetPlayerMapPosition(unit)
 
 	if tx == 0 and ty == 0 then return false end
-	if jps.UnitIsUnit(unit,"player") then return false end
+	if UnitIsUnit(unit,"player") then return false end
 
 	if alpha == nil then alpha = 30 end
 	local math_360 = math.pi * 2

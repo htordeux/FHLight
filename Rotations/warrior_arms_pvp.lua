@@ -16,6 +16,8 @@ local canDPS = jps.canDPS
 local strfind = string.find
 local UnitClass = UnitClass
 local UnitAffectingCombat = UnitAffectingCombat
+local GetSpellInfo = GetSpellInfo
+local UnitIsUnit = UnitIsUnit
 
 local ClassEnemy = {
 	["WARRIOR"] = "cac",
@@ -156,7 +158,7 @@ local isBoss = (UnitLevel("target") == -1) or (UnitClassification("target") == "
 local name = GetUnitName("focus") or ""
 if not jps.UnitExists("focus") and canDPS("mouseover") and UnitAffectingCombat("mouseover") then
 	-- set focus an enemy targeting you
-	if jps.UnitIsUnit("mouseovertarget","player") and not jps.UnitIsUnit("target","mouseover") then
+	if UnitIsUnit("mouseovertarget","player") and not UnitIsUnit("target","mouseover") then
 		jps.Macro("/focus mouseover")
 		print("Enemy DAMAGER|cff1eff00 "..name.." |cffffffffset as FOCUS")
 	-- set focus an enemy healer
@@ -164,14 +166,14 @@ if not jps.UnitExists("focus") and canDPS("mouseover") and UnitAffectingCombat("
 		jps.Macro("/focus mouseover")
 		print("Enemy HEALER|cff1eff00 "..name.." |cffffffffset as FOCUS")
 	-- set focus an enemy in combat
-	elseif canDPS("mouseover") and not jps.UnitIsUnit("target","mouseover") then
+	elseif canDPS("mouseover") and not UnitIsUnit("target","mouseover") then
 		jps.Macro("/focus mouseover")
 		print("Enemy COMBAT|cff1eff00 "..name.." |cffffffffset as FOCUS")
 	end
 end
 
 -- CONFIG jps.getConfigVal("keep focus") if you want to keep focus
-if jps.UnitExists("focus") and jps.UnitIsUnit("target","focus") then
+if jps.UnitExists("focus") and UnitIsUnit("target","focus") then
 	jps.Macro("/clearfocus")
 elseif jps.UnitExists("focus") and not canDPS("focus") then
 	if jps.getConfigVal("keep focus") == false then jps.Macro("/clearfocus") end
@@ -213,7 +215,7 @@ local spellTable = {
       -- "Intimidating Shout" 5246
       { 5246, jps.ShouldKick(rangedTarget) and inMelee , rangedTarget , "_KickShout"},
       -- "Mass Spell Reflection" 114028 "Renvoi de sort de masse"
-      { 114028 , ClassEnemy = "caster" and jps.UnitIsUnit("targettarget","player") and jps.IsCasting(rangedTarget) , rangedTarget , "_MassSpell" },
+      { 114028 , ClassEnemy = "caster" and UnitIsUnit("targettarget","player") and jps.IsCasting(rangedTarget) , rangedTarget , "_MassSpell" },
       -- "Mass Spell Reflection" 114028 "Renvoi de sort de masse"
       { 114028 , jps.debuff("Frost Nova") , rangedTarget , "_MassSpell" },
       -- "Mass Spell Reflection" 114028 "Renvoi de sort de masse"
@@ -226,9 +228,9 @@ local spellTable = {
    -- "Intervene" 3411
    { 3411, jps.hp(myHealer) < 0.30 and jps.FriendAggro(myHealer) , myHealer , "_InterveneHealer" },
    -- "Taunt" 355 -- Taunt enemy pet off friend -- Will force into defensive stance
-   { 355, UnitIsPlayer("target") == false and not jps.UnitIsUnit("targettarget","player") and jps.UnitIsUnit("targettarget",myHealer) , rangedTarget , "_Taunt" },
+   { 355, UnitIsPlayer("target") == false and not UnitIsUnit("targettarget","player") and UnitIsUnit("targettarget",myHealer) , rangedTarget , "_Taunt" },
    -- "Intimidating Shout" 5246 -- To peel off healer
-   { 5246, inAoE and jps.UnitIsUnit("targettarget",myHealer) , rangedTarget , "_IntShoutPeel"},
+   { 5246, inAoE and UnitIsUnit("targettarget",myHealer) , rangedTarget , "_IntShoutPeel"},
    
    { "nested", jps.Defensive and playerAggro,{
       -- "Stoneform" 20594 "Forme de pierre"

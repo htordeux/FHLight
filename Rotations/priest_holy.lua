@@ -15,6 +15,7 @@ local strfind = string.find
 local UnitClass = UnitClass
 local UnitChannelInfo = UnitChannelInfo
 local GetSpellInfo = GetSpellInfo
+local UnitIsUnit = UnitIsUnit
 
 local POH = tostring(select(1,GetSpellInfo(596)))
 local Hymn = tostring(select(1,GetSpellInfo(64843))) -- "Divine Hymn" 64843
@@ -107,7 +108,7 @@ local priestHoly = function()
 	for i=1,#EnemyUnit do -- for _,unit in ipairs(EnemyUnit) do
 		local unit = EnemyUnit[i]
 		if TargetCount > 0 then
-			if jps.UnitIsUnit(unit.."target","player") then
+			if UnitIsUnit(unit.."target","player") then
 				playerIsTargeted = true
 			break end
 		end

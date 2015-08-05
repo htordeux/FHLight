@@ -21,12 +21,6 @@ local UnitIsUnit = UnitIsUnit
 -- HEALTH Functions
 ------------------------------
 
-function jps.UnitIsUnit(unit1,unit2)
-	if unit2 == nil then return false
-	elseif unit1 == nil then return false
-	else return UnitIsUnit(unit1,unit2) end
-end
-
 function jps.hp(unit)
 	if unit == nil then unit = "player" end
 	if not jps.UnitExists(unit) then return 999 end

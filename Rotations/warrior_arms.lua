@@ -17,6 +17,8 @@ local canDPS = jps.canDPS
 local strfind = string.find
 local UnitClass = UnitClass
 local UnitAffectingCombat = UnitAffectingCombat
+local GetSpellInfo = GetSpellInfo
+local UnitIsUnit = UnitIsUnit
 
 local ClassEnemy = {
 	["WARRIOR"] = "cac",
@@ -148,7 +150,7 @@ local isBoss = (UnitLevel("target") == -1) or (UnitClassification("target") == "
 local name = GetUnitName("focus") or ""
 if not jps.UnitExists("focus") and canDPS("mouseover") and UnitAffectingCombat("mouseover") then
 	-- set focus an enemy targeting you
-	if jps.UnitIsUnit("mouseovertarget","player") and not jps.UnitIsUnit("target","mouseover") then
+	if UnitIsUnit("mouseovertarget","player") and not UnitIsUnit("target","mouseover") then
 		jps.Macro("/focus mouseover")
 		print("Enemy DAMAGER|cff1eff00 "..name.." |cffffffffset as FOCUS")
 	-- set focus an enemy healer
@@ -156,14 +158,14 @@ if not jps.UnitExists("focus") and canDPS("mouseover") and UnitAffectingCombat("
 		jps.Macro("/focus mouseover")
 		print("Enemy HEALER|cff1eff00 "..name.." |cffffffffset as FOCUS")
 	-- set focus an enemy in combat
-	elseif canDPS("mouseover") and not jps.UnitIsUnit("target","mouseover") then
+	elseif canDPS("mouseover") and not UnitIsUnit("target","mouseover") then
 		jps.Macro("/focus mouseover")
 		print("Enemy COMBAT|cff1eff00 "..name.." |cffffffffset as FOCUS")
 	end
 end
 
 -- CONFIG jps.getConfigVal("keep focus") if you want to keep focus
-if jps.UnitExists("focus") and jps.UnitIsUnit("target","focus") then
+if jps.UnitExists("focus") and UnitIsUnit("target","focus") then
 	jps.Macro("/clearfocus")
 elseif jps.UnitExists("focus") and not canDPS("focus") then
 	if jps.getConfigVal("keep focus") == false then jps.Macro("/clearfocus") end
@@ -200,7 +202,7 @@ local spellTable = {
 		{ 6552 , jps.ShouldKick(rangedTarget) , rangedTarget , "_Pummel" },
 		{ 6552 , jps.ShouldKick("focus") , "focus" , "_Pummel" },
 		-- "Mass Spell Reflection" 114028 "Renvoi de sort de masse"
-		{ 114028 , jps.UnitIsUnit("targettarget","player") and jps.IsCasting(rangedTarget) , rangedTarget , "_MassSpell" },
+		{ 114028 , UnitIsUnit("targettarget","player") and jps.IsCasting(rangedTarget) , rangedTarget , "_MassSpell" },
 	}},
 	
 	-- DAMAGE MITIGATION --

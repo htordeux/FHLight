@@ -4,6 +4,7 @@ local canHeal = jps.canHeal
 local strfind = string.find
 local UnitClass = UnitClass
 local UnitAffectingCombat = UnitAffectingCombat
+local UnitIsUnit = UnitIsUnit
 
 local ClassEnemy = {
 	["WARRIOR"] = "cac",
@@ -78,7 +79,7 @@ local EnemyCount = jps.RaidEnemyCount()
 -- Config FOCUS
 if not jps.UnitExists("focus") and canDPS("mouseover") then
 	-- set focus an enemy targeting you
-	if jps.UnitIsUnit("mouseovertarget","player") and not jps.UnitIsUnit("target","mouseover") then
+	if UnitIsUnit("mouseovertarget","player") and not UnitIsUnit("target","mouseover") then
 		jps.Macro("/focus mouseover")
 		local name = GetUnitName("focus")
 		print("Enemy DAMAGER|cff1eff00 "..name.." |cffffffffset as FOCUS")
@@ -91,7 +92,7 @@ if not jps.UnitExists("focus") and canDPS("mouseover") then
 end
 
 -- CONFIG jps.getConfigVal("keep focus") if you want to keep focus
-if jps.UnitExists("focus") and jps.UnitIsUnit("target","focus") then
+if jps.UnitExists("focus") and UnitIsUnit("target","focus") then
 	jps.Macro("/clearfocus")
 elseif jps.UnitExists("focus") and not canDPS("focus") then
 	if jps.getConfigVal("keep focus") == false then jps.Macro("/clearfocus") end
@@ -154,8 +155,8 @@ local spellTable = {
 	-- "Remorseless Winter" 108200 "Hiver impitoyable"
 	{ dk.spells["RemorselessWinter"] , playerAggro , "player" , "_Remorseless" },
 	-- "Anti-Magic Shell" 48707 "Carapace anti-magie"
-	{ dk.spells["AntiMagicShell"] , jps.IsCasting("target") and jps.UnitIsUnit("targettarget","player") },
-	{ dk.spells["AntiMagicShell"] , jps.IsCasting("focus") and jps.UnitIsUnit("focustarget","player") },	-- "Stoneform" 20594 "Forme de pierre"
+	{ dk.spells["AntiMagicShell"] , jps.IsCasting("target") and UnitIsUnit("targettarget","player") },
+	{ dk.spells["AntiMagicShell"] , jps.IsCasting("focus") and UnitIsUnit("focustarget","player") },	-- "Stoneform" 20594 "Forme de pierre"
 	{ warrior.spells["Stoneform"] , playerAggro and jps.hp() < 0.85 , rangedTarget , "_Stoneform" },
 	{ warrior.spells["Stoneform"] , jps.canDispel("player",{"Magic","Poison","Disease","Curse"}) , rangedTarget , "_Stoneform" },
 
@@ -345,7 +346,7 @@ local EnemyCount = jps.RaidEnemyCount()
 -- Config FOCUS
 if not jps.UnitExists("focus") and canDPS("mouseover") then
 	-- set focus an enemy targeting you
-	if jps.UnitIsUnit("mouseovertarget","player") and not jps.UnitIsUnit("target","mouseover") then
+	if UnitIsUnit("mouseovertarget","player") and not UnitIsUnit("target","mouseover") then
 		jps.Macro("/focus mouseover")
 		local name = GetUnitName("focus")
 		print("Enemy DAMAGER|cff1eff00 "..name.." |cffffffffset as FOCUS")
@@ -358,7 +359,7 @@ if not jps.UnitExists("focus") and canDPS("mouseover") then
 end
 
 -- CONFIG jps.getConfigVal("keep focus") if you want to keep focus
-if jps.UnitExists("focus") and jps.UnitIsUnit("target","focus") then
+if jps.UnitExists("focus") and UnitIsUnit("target","focus") then
 	jps.Macro("/clearfocus")
 elseif jps.UnitExists("focus") and not canDPS("focus") then
 	if jps.getConfigVal("keep focus") == false then jps.Macro("/clearfocus") end
@@ -421,8 +422,8 @@ local spellTable = {
 	-- "Remorseless Winter" 108200 "Hiver impitoyable"
 	{ dk.spells["RemorselessWinter"] , playerAggro , "player" , "_Remorseless" },
 	-- "Anti-Magic Shell" 48707 "Carapace anti-magie"
-	{ dk.spells["AntiMagicShell"] , jps.IsCasting("target") and jps.UnitIsUnit("targettarget","player") },
-	{ dk.spells["AntiMagicShell"] , jps.IsCasting("focus") and jps.UnitIsUnit("focustarget","player") },	-- "Stoneform" 20594 "Forme de pierre"
+	{ dk.spells["AntiMagicShell"] , jps.IsCasting("target") and UnitIsUnit("targettarget","player") },
+	{ dk.spells["AntiMagicShell"] , jps.IsCasting("focus") and UnitIsUnit("focustarget","player") },	-- "Stoneform" 20594 "Forme de pierre"
 	{ warrior.spells["Stoneform"] , playerAggro and jps.hp() < 0.85 , rangedTarget , "_Stoneform" },
 	{ warrior.spells["Stoneform"] , jps.canDispel("player",{"Magic","Poison","Disease","Curse"}) , rangedTarget , "_Stoneform" },
 

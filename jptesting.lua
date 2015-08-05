@@ -88,7 +88,6 @@ function jps_Test()
 
 	Test()
 	--DkTest()
-	print("buffTrackerMending",jps.buffTracker(41635))
 
 end
 

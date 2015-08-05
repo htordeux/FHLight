@@ -15,6 +15,7 @@ local UnitClass = UnitClass
 local UnitChannelInfo = UnitChannelInfo
 local GetSpellInfo = GetSpellInfo
 local UnitAffectingCombat = UnitAffectingCombat
+local UnitIsUnit = UnitIsUnit
 
 local ClassEnemy = {
 	["WARRIOR"] = "cac",
@@ -115,7 +116,7 @@ local priestDisc = function()
 	for i=1,#EnemyUnit do -- for _,unit in ipairs(EnemyUnit) do
 		local unit = EnemyUnit[i]
 		if TargetCount > 0 then
-			if jps.UnitIsUnit(unit.."target","player") then
+			if UnitIsUnit(unit.."target","player") then
 				playerIsTargeted = true
 			break end
 		end
@@ -362,9 +363,6 @@ spellTable = {
 		{ 152118, jps.debuff(6788,BossDebuffFriend) and not jps.buff(152118,BossDebuffFriend) and not jps.isRecast(152118,BossDebuffFriend) , BossDebuffFriend , "Clarity_BossDebuff" },
 	}},
 
-	-- FAKE CAST -- 6948 -- "Hearthstone"
-	{ {"macro","/use item:6948"}, jps.PvP and LowestImportantUnitHpct > 0.80 and not jps.Moving and playerAggro and jps.itemCooldown(6948) == 0 , "player" , "Aggro_FAKECAST" },
-
 	-- "Power Word: Shield" 17
 	{ 17, jps.Defensive and jps.Moving and BodyAndSoul and not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Shield_Moving" },
 	-- PLAYER AGGRO
@@ -386,10 +384,10 @@ spellTable = {
 	{ 586, jps.glyphInfo(159628) and jps.PvP and playerWasControl and type(LowestFriendTTD) == "string" , "player" , "Control_Oubli" },
 	
 	{ "nested", playerAggro or playerWasControl or playerIsTargeted ,{
-		-- "Power Word: Shield" 17
-		{ 17, not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Aggro_Shield" },
 		-- "Spectral Guise" 112833 "Semblance spectrale"
 		{ 112833, jps.UseCDs and jps.IsSpellKnown(112833) , "player" , "Aggro_Spectral" },
+		-- "Power Word: Shield" 17
+		{ 17, not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Aggro_Shield" },
 		-- "Oubli" 586 -- Fantasme 108942 -- vous dissipez tous les effets affectant le déplacement sur vous-même
 		{ 586, jps.IsSpellKnown(108942) , "player" , "Aggro_Oubli" },
 		-- "Oubli" 586 -- Glyphe d'oubli 55684 -- Votre technique Oubli réduit à présent tous les dégâts subis de 10%.
@@ -399,7 +397,7 @@ spellTable = {
 		-- "Glyph of Purify" 55677 Your Purify spell also heals your target for 5% of maximum health
 		{ 527, jps.canDispel("player",{"Magic"}) , "player" , "Aggro_Dispel" },
 		-- "Pénitence" 47540
-		{ 47540, jps.hp() < 0.75 , "player" , "Aggro_Penance" },
+		{ 47540, jps.hp() < 0.80 , "player" , "Aggro_Penance" },
 		-- "Soins rapides" 2061 -- Buff "Borrowed" 59889 -- "Archange surpuissant" 172359  100 % critique POH or FH
 		{ 2061, not jps.Moving and jps.hp() < 0.40 , "player" , "Aggro_FlashHeal" },
 		-- "Prière de guérison" 33076 -- Buff POM 41635
@@ -409,6 +407,24 @@ spellTable = {
 		-- "Nova" 132157 -- "Words of Mending" 155362 "Mot de guérison"
 		{ 132157, jps.hp() < 0.40 , "player" , "Aggro_Nova" },
 	}},
+	
+	-- DAMAGE --
+	{ "nested", jps.FaceTarget and canDPS(rangedTarget) and LowestImportantUnitHpct > 0.80 ,{
+		-- "Mot de l'ombre: Douleur" 589
+		{ 589, jps.myDebuffDuration(589,rangedTarget) == 0 and not IsInGroup() , rangedTarget , "|cFFFF0000Douleur" },
+		-- "Châtiment" 585
+		{ 585, jps.castEverySeconds(585,2) and jps.PvP , rangedTarget , "|cFFFF0000Chatiment" },
+		{ 585, jps.castEverySeconds(585,2) and not IsInGroup() , rangedTarget , "|cFFFF0000Chatiment" },
+		{ 585, jps.castEverySeconds(585,2) and jps.buffStacks(81661) < 5 , rangedTarget , "|cFFFF0000Chatiment_Stacks" },
+		{ 585, jps.castEverySeconds(585,2) and jps.hp(myTank) < 1 , rangedTarget , "|cFFFF0000Chatiment_Tank" },
+		{ 585, jps.castEverySeconds(585,2) and LowestImportantUnitHpct < 1 and jps.mana("player") > 0.50 , rangedTarget , "|cFFFF0000Chatiment_Mana" },
+		-- "Pénitence" 47540 -- jps.glyphInfo(119866) -- allows Penance to be cast while moving.
+		{ 47540, jps.PvP , rangedTarget ,"|cFFFF0000Penance" },
+		{ 47540, not IsInGroup() , rangedTarget ,"|cFFFF0000Penance" },
+	}},
+	
+	-- FAKE CAST -- 6948 -- "Hearthstone"
+	{ {"macro","/use item:6948"}, jps.PvP and LowestImportantUnitHpct > 0.80 and not jps.Moving and playerAggro and jps.itemCooldown(6948) == 0 , "player" , "Aggro_FAKECAST" },
 
 	-- "Soins rapides" 2061 -- "Vague de Lumière" 114255 "Surge of Light"
 	{ 2061, jps.buff(114255) and LowestImportantUnitHpct < 0.75 , LowestImportantUnit , "FlashHeal_Light" },
@@ -453,6 +469,8 @@ spellTable = {
 	-- "Cascade" Holy 121135 Shadow 127632
 	{ 121135, not jps.Moving and CountFriendLowest > 3 , LowestImportantUnit ,  "Cascade" },
 	{ 121135, not jps.Moving and type(POHTarget) == "string" and canHeal(POHTarget) , POHTarget ,  "Cascade_POH" },
+	-- "Pénitence" 47540
+	{ 47540, type(POHTarget) == "string" and canHeal(POHTarget) , POHTarget , "Penance_POH" },
 
 	{ "nested", not jps.Moving and type(POHTarget) == "string" and canHeal(POHTarget) ,{
 		-- "POH" 596 -- "Archange surpuissant" 172359  100 % critique POH or FH
@@ -470,6 +488,8 @@ spellTable = {
 	-- LOWEST TTD -- LowestFriendTTD friend unit in raid with TTD < 6 sec 
 	-- SNM "Power Word: Shield"
 	{ 17, type(LowestFriendTTD) == "string" and not jps.buff(17,LowestFriendTTD) and not jps.debuff(6788,LowestFriendTTD) , LowestFriendTTD , "Bubble_Lowest_TTD" },
+	-- "Pénitence" 47540
+	{ 47540, type(LowestFriendTTD) == "string" , LowestFriendTTD , "Penance_Lowest_TTD" },
 
 	-- EMERGENCY HEAL --
 	{ "nested", LowestImportantUnitHpct < 0.50 ,{
@@ -543,22 +563,6 @@ spellTable = {
 	-- "Torve-esprit" 123040 -- "Ombrefiel" 34433 "Shadowfiend"
 	{ 34433, priest.canShadowfiend("target") , "target" },
 	{ 123040, priest.canShadowfiend("target") , "target" },
-
-	-- DAMAGE --
-	{ "nested", jps.FaceTarget and canDPS(rangedTarget) and LowestImportantUnitHpct > 0.80 ,{
-		-- "Mot de l'ombre: Douleur" 589
-		{ 589, jps.myDebuffDuration(589,rangedTarget) == 0 and not IsInGroup() , rangedTarget , "|cFFFF0000Douleur" },
-		-- "Châtiment" 585
-		{ 585, jps.castEverySeconds(585,2) and jps.PvP , rangedTarget , "|cFFFF0000Chatiment" },
-		{ 585, jps.castEverySeconds(585,2) and not IsInGroup() , rangedTarget , "|cFFFF0000Chatiment" },
-		{ 585, jps.castEverySeconds(585,2) and jps.buffStacks(81661) < 5 , rangedTarget , "|cFFFF0000Chatiment_Stacks" },
-		{ 585, jps.castEverySeconds(585,2) and jps.hp(myTank) < 1 , rangedTarget , "|cFFFF0000Chatiment_Tank" },
-		{ 585, jps.castEverySeconds(585,2) and LowestImportantUnitHpct < 1 and jps.mana("player") > 0.50 , rangedTarget , "|cFFFF0000Chatiment_Mana" },
-		-- "Pénitence" 47540 -- jps.glyphInfo(119866) -- allows Penance to be cast while moving.
-		{ 47540, jps.PvP , rangedTarget ,"|cFFFF0000Penance" },
-		{ 47540, not IsInGroup() , rangedTarget ,"|cFFFF0000Penance" },
-	}},
-
 	-- "Soins" 2060
 	{ 2060, not jps.Moving and LowestImportantUnitHealth > priest.AvgAmountGreatHeal , LowestImportantUnit },
 

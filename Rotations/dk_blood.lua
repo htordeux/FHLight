@@ -4,6 +4,7 @@ local canHeal = jps.canHeal
 local strfind = string.find
 local UnitClass = UnitClass
 local UnitAffectingCombat = UnitAffectingCombat
+local UnitIsUnit = UnitIsUnit
 
 local ClassEnemy = {
 	["WARRIOR"] = "cac",
@@ -82,7 +83,7 @@ local EnemyCount = jps.RaidEnemyCount()
 -- Config FOCUS
 if not jps.UnitExists("focus") and canDPS("mouseover") then
 	-- set focus an enemy targeting you
-	if jps.UnitIsUnit("mouseovertarget","player") and not jps.UnitIsUnit("target","mouseover") then
+	if UnitIsUnit("mouseovertarget","player") and not UnitIsUnit("target","mouseover") then
 		jps.Macro("/focus mouseover")
 		local name = GetUnitName("focus")
 		print("Enemy DAMAGER|cff1eff00 "..name.." |cffffffffset as FOCUS")
@@ -95,7 +96,7 @@ if not jps.UnitExists("focus") and canDPS("mouseover") then
 end
 
 -- CONFIG jps.getConfigVal("keep focus") if you want to keep focus
-if jps.UnitExists("focus") and jps.UnitIsUnit("target","focus") then
+if jps.UnitExists("focus") and UnitIsUnit("target","focus") then
 	jps.Macro("/clearfocus")
 elseif jps.UnitExists("focus") and not canDPS("focus") then
 	if jps.getConfigVal("keep focus") == false then jps.Macro("/clearfocus") end
@@ -146,8 +147,8 @@ local parseControl = {
 	-- "Remorseless Winter" 108200 "Hiver impitoyable"
 	{ dk.spells["RemorselessWinter"] , jps.combatStart > 0 and jps.IsSpellInRange(49998) , "target" , "Remorseless" },
 	-- "Anti-Magic Shell" 48707 "Carapace anti-magie"
-	{ dk.spells["AntiMagicShell"] , jps.IsCasting("target") and jps.UnitIsUnit("targettarget","player") , "target" , "AntiMagic" },
-	{ dk.spells["AntiMagicShell"] , jps.IsCasting("focus") and jps.UnitIsUnit("focustarget","player") , "focus" , "AntiMagic" },
+	{ dk.spells["AntiMagicShell"] , jps.IsCasting("target") and UnitIsUnit("targettarget","player") , "target" , "AntiMagic" },
+	{ dk.spells["AntiMagicShell"] , jps.IsCasting("focus") and UnitIsUnit("focustarget","player") , "focus" , "AntiMagic" },
 }
 
 local spellTable = {
@@ -161,11 +162,11 @@ local spellTable = {
 	-- "Army of the Dead" 42650 "Armée des morts"
 	{ dk.spells["ArmyoftheDead"] , IsLeftControlKeyDown() },
 	-- "Death Grip" 49576 "Poigne de la mort" -- "Death Strike" 49998 "Frappe de Mort"
-	{ dk.spells["DeathGrip"] , jps.PvP and not jps.UnitIsUnit("targettarget","player") and not jps.IsSpellInRange(49998,"target") },
+	{ dk.spells["DeathGrip"] , jps.PvP and not UnitIsUnit("targettarget","player") and not jps.IsSpellInRange(49998,"target") },
 	-- "Chains of Ice" 45524 "Chaînes de glace"
 	{ dk.spells["ChainsofIce"] , jps.PvP and TargetMoving and not jps.IsSpellInRange(49998,"target") },
 	-- "Dark Command" 56222
-	{ 56222 , IsInGroup() and not jps.UnitIsUnit("targettarget","player") , "target", "DarkCommand" },
+	{ 56222 , IsInGroup() and not UnitIsUnit("targettarget","player") , "target", "DarkCommand" },
 
 	-- DISEASES -- debuff Frost Fever 55095 -- debuff Blood Plague 55078
 	-- "Outbreak" 77575 "Poussée de fièvre" -- 30 yd range 

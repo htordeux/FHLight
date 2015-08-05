@@ -1,5 +1,3 @@
-local L = MyLocalizationTable
-local GetSpellInfo = GetSpellInfo
 
 if not priest then priest = {} end
 
@@ -14,7 +12,10 @@ if not priest then priest = {} end
 
 -- GetMastery() the value returns by GetMastery is not your final Mastery value
 -- To find your true Mastery, and the multiplier factor used to calculate it, see GetMasteryEffect.
-	
+
+local L = MyLocalizationTable
+local GetSpellInfo = GetSpellInfo
+local UnitIsUnit = UnitIsUnit
 local mastery = GetMasteryEffect()
 local masteryValue = math.ceil(GetMastery())/100
 local bonusHealing = math.ceil(GetSpellBonusHealing())
@@ -157,7 +158,7 @@ end
 
 priest.unitForBinding = function(unit)
 	if not jps.UnitExists(unit) then return false end
-	if jps.UnitIsUnit(unit,"player") then return false end
+	if UnitIsUnit(unit,"player") then return false end
 	if jps.hp("player") > 0.75 then return false end
 	if jps.hp(unit) > 0.75  then return false end
 	return true
@@ -165,7 +166,7 @@ end
 
 priest.unitForLeap = function(unit)
 	if not jps.UnitExists(unit) then return false end
-	if jps.UnitIsUnit(unit,"player") then return false end
+	if UnitIsUnit(unit,"player") then return false end
 	if not jps.FriendAggro(unit) then return false end
 	if not jps.LoseControl(unit) then return false end
 	return true

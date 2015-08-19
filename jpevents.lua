@@ -356,7 +356,7 @@ end
 local collectGarbage = function()
 	UpdateAddOnMemoryUsage()
 	local Memory = GetAddOnMemoryUsage("JPS")
-	if Memory > 6144 then
+	if Memory > 8192 then
 		write("Memory: ", Memory)
 		collectgarbage("collect")
 	end

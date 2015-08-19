@@ -1,10 +1,11 @@
 -- jps.UseCDs for RACIAL COUNTERS
 -- jps.UseCDs for "Spectral Guise"
 -- jps.UseCDs for WoM when OOC
--- jps.MultiTarget not in use
 -- jps.Interrupts for Dispel
 -- jps.Defensive changes the LowestImportantUnit to table = { "player","focus","target","mouseover" } with table.insert TankUnit  = jps.findTankInRaid()
--- jps.FaceTarget to DPSing
+-- jps.MultiTarget to DPSing
+-- IsShiftKeyDown() "Dispel" 527 "Purifier" on "mouseover"
+
 
 local L = MyLocalizationTable
 local canDPS = jps.canDPS
@@ -355,6 +356,8 @@ spellTable = {
 	
 	-- DISPEL -- "Glyph of Purify" 55677 Your Purify spell also heals your target for 5% of maximum health
 	{ "nested", jps.Interrupts , parseDispel },
+	-- "Dispel" 527 "Purifier"
+	{ 527, IsShiftKeyDown() and jps.canDispel("mouseover") , "mouseover" , "Dispel_Mouseover"},
 	-- OFFENSIVE Dispel -- "Dissipation de la magie" 528
 	{ 528, jps.castEverySeconds(528,10) and jps.DispelOffensive(rangedTarget) , rangedTarget , "|cff1eff00DispelOffensive" },
 	-- BOSS DEBUFF
@@ -409,7 +412,7 @@ spellTable = {
 	}},
 	
 	-- DAMAGE --
-	{ "nested", jps.FaceTarget and canDPS(rangedTarget) and LowestImportantUnitHpct > 0.80 ,{
+	{ "nested", jps.MultiTarget and canDPS(rangedTarget) and LowestImportantUnitHpct > 0.80 ,{
 		-- "Mot de l'ombre: Douleur" 589
 		{ 589, jps.myDebuffDuration(589,rangedTarget) == 0 and not IsInGroup() , rangedTarget , "|cFFFF0000Douleur" },
 		-- "Châtiment" 585
@@ -439,6 +442,11 @@ spellTable = {
 	{ "nested", canDPS("target") and canHeal(TankThreat) ,{
 		{ 17, not jps.buff(17,TankThreat) and not jps.debuff(6788,TankThreat) , TankThreat , "Shield_TankThreat" },
 		{ 152118, jps.debuff(6788,TankThreat) and not jps.buff(152118,TankThreat) and not jps.isRecast(152118,TankThreat) , TankThreat , "Clarity_TankThreat" },
+	}},
+	-- SHIELD BOSS DEBUFF
+	{ "nested", canHeal("mouseover") and jps.BossDebuff("mouseover") ,{
+		{ 17, not jps.buff(17,"mouseover") and not jps.debuff(6788,"mouseover") , "mouseover" , "Shield_BossDebuff" },
+		{ 152118, jps.debuff(6788,"mouseover") and not jps.buff(152118,"mouseover") and not jps.isRecast(152118,"mouseover") , "mouseover" , "Clarity_BossDebuff" },
 	}},
 
 	-- "Pénitence" 47540
@@ -544,8 +552,6 @@ spellTable = {
 		{ 59544, true , LowestImportantUnit , "Naaru" },
 		-- SNM Flash Heal top off -- Less important to be conservative with mana in PvP
 		{ 2061, not jps.Moving and isArena and LowestImportantUnitHpct < 0.75 and jps.mana() > 0.50 , LowestImportantUnit , "Flash_Heal_Topoff" },
-		-- "Châtiment" 585
-		{ 585, jps.castEverySeconds(585,2) and jps.buffStacks(81661) < 5 , rangedTarget , "|cFFFF0000Chatiment_Stacks" },
 		-- "Soins" 2060 -- Buff "Borrowed" 59889 -- Buff "Clarity of Will" 152118
 		{ 2060, not jps.Moving and jps.buff(152118,LowestImportantUnit) , LowestImportantUnit , "Soins_Clarity"  },
 		{ 2060, not jps.Moving and jps.buff(17,LowestImportantUnit) , LowestImportantUnit , "Soins_Shield"  },
@@ -559,7 +565,9 @@ spellTable = {
 	
 	-- "Nova" 132157 -- "Words of Mending" 155362 "Mot de guérison"
 	{ 132157, jps.Moving and countFriendNearby > 3 , "player" , "Nova" },
-
+	-- "Châtiment" 585
+	{ 585, jps.castEverySeconds(585,2) and jps.buffStacks(81661) < 5 , rangedTarget , "|cFFFF0000Chatiment_Stacks" },
+	{ 585, jps.castEverySeconds(585,2) and jps.buffDuration(81661) < 9 , rangedTarget , "|cFFFF0000Chatiment_Stacks" },
 	-- "Torve-esprit" 123040 -- "Ombrefiel" 34433 "Shadowfiend"
 	{ 34433, priest.canShadowfiend("target") , "target" },
 	{ 123040, priest.canShadowfiend("target") , "target" },
@@ -607,6 +615,7 @@ jps.registerRotation("PRIEST","DISCIPLINE",function()
 	{ 21562, jps.buffMissing(21562) , "player" },
 	-- SNM "Nova" 132157 -- keep buff "Words of Mending" 155362 "Mot de guérison"
 	{ 132157, jps.UseCDs and jps.buffStacks(155362) < 5 , "player" , "Nova_WoM" },
+	{ 132157, jps.UseCDs and jps.buffDuration(155362) < 9 , "player" , "Nova_WoM" },
 
 	{"nested", jps.PvP , {
 		-- "Gardien de peur" 6346
@@ -637,7 +646,7 @@ jps.registerRotation("PRIEST","DISCIPLINE",function()
 	local spell,target = parseSpellTable(spellTableOOC)
 	return spell,target
 
-end,"OOC Disc Priest",nil,nil,nil,true)
+end,"OOC Disc Priest",false,false,true)
 
 -- REMOVED -- http://fr.wowhead.com/guide=2298/warlords-of-draenor-priest-changes#specializations-removed
 -- Borrowed Time has been redesigned. It now increases the Priest's stat gains to Haste from all sources by 40% for 6 seconds.

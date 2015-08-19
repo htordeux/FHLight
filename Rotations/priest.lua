@@ -109,7 +109,7 @@ priest.canFear = function(rangedTarget)
 		if FireHack and rangedTargetGuid ~= nil then
 			local rangedTargetObject = GetObjectFromGUID(rangedTargetGuid)
 			if (rangedTargetObject:GetDistance() > 8) then canFear = false end
-			if jps.FaceTarget then rangedTargetObject:Target() end
+			rangedTargetObject:Target()
 		end
 	end
 	return canFear

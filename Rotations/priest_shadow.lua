@@ -2,7 +2,6 @@
 -- jps.MultiTarget for "MindSear" 48045
 -- jps.Interrupts for "Cascade" or "Divine Star" or "Psychic Horror"
 -- jps.Defensive to keep Shield up
--- jps.FaceTarget to DPSing
 
 local L = MyLocalizationTable
 local canDPS = jps.canDPS
@@ -538,7 +537,7 @@ jps.registerRotation("PRIEST","SHADOW",function()
 	local spell,target = parseSpellTable(spellTableOOC)
 	return spell,target
 
-end,"OOC Shadow Priest",nil,nil,nil,true)
+end,"OOC Shadow Priest",false,false,true)
 
 -- Surge of Darkness
 -- Your Vampiric Touch and Devouring Plague damage has a 10% chance to cause your next Mind Spike not to consume your damage over time effects

@@ -112,16 +112,15 @@ choose your Rotation.
 @param ooc [i]Optional:[/i] [code]True[/code] if this should be registered as a out of combat rotation else [code]False[/code] - defaults to  [code]false[/code]
 ]]--
 
-function jps.registerRotation(class,spec,fn,tooltip,pve,pvp,config,ooc)
+function jps.registerRotation(class,spec,fn,tooltip,pve,pvp,ooc)
     local key = toKey(class, spec)
     if pve==nil then pve = true end
     if pvp==nil then pvp = true end
     if ooc==nil then ooc = false end
-    if config== nil then config = {} end
     if pvp and not pvpRotations[key] then pvpRotations[key] = {} end
     if pve and not pveRotations[key] then pveRotations[key] = {} end
     if ooc and not oocRotations[key] then oocRotations[key] = {} end
-    local rotation = {tooltip = tooltip, getSpell = fn, config = config}
+    local rotation = {tooltip = tooltip, getSpell = fn}
     if pvp then addRotationToTable(pvpRotations[key], rotation) end
     if pve then addRotationToTable(pveRotations[key], rotation) end
     if ooc then addRotationToTable(oocRotations[key], rotation) end
@@ -196,8 +195,8 @@ For mor info look at #see:jps.registerRotation.
 @param ooc [i]Optional:[/i] [code]True[/code] if this should be registered as a out of combat rotation else [code]False[/code] - defaults to  [code]false[/code]
 ]]--
 
-function jps.registerStaticTable(class,spec,spellTable,tooltip,pve,pvp,config,ooc)
-    jps.registerRotation(class,spec,function() return parseStaticSpellTable(spellTable) end,tooltip,pve,pvp,config,ooc)
+function jps.registerStaticTable(class,spec,spellTable,tooltip,pve,pvp,ooc)
+    jps.registerRotation(class,spec,function() return parseStaticSpellTable(spellTable) end,tooltip,pve,pvp,ooc)
 end
 
 function jps.hasOOCRotation()

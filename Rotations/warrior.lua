@@ -5,16 +5,10 @@ warrior.spells = {}
 
 -- Enemy Tracking
 function warrior.rangedTarget()
-	local rangedTarget = "target"
-	local myTarget = jps.LowestTarget()
-	if jps.canDPS("target") then
-		rangedTarget =  "target"
-	elseif jps.canDPS("focustarget") then
-		rangedTarget = "focustarget"
-	elseif jps.canDPS("targettarget") then
-		rangedTarget = "targettarget"
-	elseif jps.canDPS(myTarget) then
-		rangedTarget = myTarget
+	local rangedTarget, _, _ = jps.LowestTarget() -- default "target"
+	if jps.canDPS("target") then rangedTarget =  "target"
+	elseif jps.canDPS("targettarget") then rangedTarget = "targettarget"
+	elseif jps.canDPS("focustarget") then rangedTarget = "focustarget"
 	end
 	return rangedTarget
 end

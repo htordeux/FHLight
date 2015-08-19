@@ -1,6 +1,6 @@
 -- jps.Interrupts for Dispel
 -- jps.Defensive changes the LowestImportantUnit to table = { "player","focus","target","mouseover" } with table.insert TankUnit  = jps.findTankInRaid()
--- jps.FaceTarget to DPSing
+-- jps.MultiTarget to DPSing
 
 local L = MyLocalizationTable
 local spellTable = {}
@@ -348,7 +348,7 @@ local spellTable = {
 	-- Chakra: Serenity 81208 -- "Holy Word: Serenity" 88684
 	{ 81208, not jps.buffId(81208) , "player" , "|cffa335eeChakra_Serenity" },
 	{ 81208, not jps.buffId(81208) and LowestImportantUnitHpct < 0.85 and jps.FinderLastMessage("Cancelaura") == false , "player" , "|cffa335eeChakra_Serenity" },
-	{ 81208, not jps.buffId(81208) and not jps.FaceTarget and jps.FinderLastMessage("Cancelaura") == false , "player" , "|cffa335eeChakra_Serenity" },
+	{ 81208, not jps.buffId(81208) and jps.FinderLastMessage("Cancelaura") == false , "player" , "|cffa335eeChakra_Serenity" },
 
 	-- "Infusion de puissance" 10060
 	{ 10060, jps.combatStart > 0 and LowestImportantUnitHpct < 0.50 , "player" , "Emergency_POWERINFUSION" },
@@ -410,7 +410,7 @@ local spellTable = {
 	{ 34433, priest.canShadowfiend(rangedTarget) , rangedTarget },
 	{ 123040, priest.canShadowfiend(rangedTarget) , rangedTarget },
 	-- DAMAGE -- Chakra: Chastise 81209
-	{ "nested", jps.FaceTarget and canDPS(rangedTarget) and LowestImportantUnitHpct > 0.85 , parseDamage },
+	{ "nested", jps.MultiTarget and canDPS(rangedTarget) and LowestImportantUnitHpct > 0.85 , parseDamage },
 
 	-- "Renew" 139 -- Haste breakpoints are 12.5 and 16.7%(Holy)
 	{ 139, type(RenewFriend) == "string" , RenewFriend , "Tracker_Renew_Friend" },

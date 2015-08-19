@@ -374,14 +374,6 @@ function jps.groundClick(spellname)
 	SetCVar("deselectOnClick", "1") --	jps.Macro("/console deselectOnClick 1")
 end
 
-function jps.faceTarget()
-	InteractUnit("target")
-end
-
-function jps.moveToTarget()
-	InteractUnit("target")
-end
-
 function jps.Macro(text)
 	RunMacroText(text)
 end

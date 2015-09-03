@@ -472,7 +472,7 @@ end
 -- CHECKS THE WHOLE RAID FOR A BUFF (E.G. PRAYER OF MENDING)
 jps.buffTracker = function(buff)
 	for unit,_ in pairs(RaidStatus) do
-		if canHeal(unit) and jps.myBuffDuration(buff,unit) > 0 then
+		if canHeal(unit) and jps.myBuffDuration(buff,unit) > 20 then
 		return true end
 	end
 	return false

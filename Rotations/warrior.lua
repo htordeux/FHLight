@@ -25,6 +25,8 @@ local toSpellName = jps.toSpellName
 
 -- BUFFS
 
+-- "Gladiator Stance" 156291 "Posture du gladiateur"
+warrior.spells["GladiatorStance"] = toSpellName(156291)
 -- "Defensive Stance" 71
 warrior.spells["DefensiveStance"] = toSpellName(71)
 -- "Battle Stance" 2457
@@ -139,3 +141,20 @@ warrior.spells["ThunderClap"] = toSpellName(6343)
 warrior.spells["Revenge"] = toSpellName(6572)
 -- "Shield Slam" 23922 "Heurt de bouclier"
 warrior.spells["ShieldSlam"] = toSpellName(23922)
+
+
+----------------------------------------------------------------------------------------------------------------
+-------------------------------------------------- ANTI AFK ----------------------------------------------------
+----------------------------------------------------------------------------------------------------------------
+
+local function antiAFK()
+	local buffname = jps.toSpellName(6673)
+	if not jps.Combat then
+		CancelUnitBuff("player", buffname)
+	end
+end
+
+jps.registerOnUpdate(function()
+	local value = math.random(600,900)
+	jps.cachedValue(antiAFK,value)
+end)

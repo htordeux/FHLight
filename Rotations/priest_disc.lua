@@ -440,7 +440,7 @@ spellTable = {
 	{ 14914, canDPS(rangedTarget) , rangedTarget , "|cFFFF0000Flammes" },
 	
 	-- SHIELD BOSS TARGET
-	{ "nested", canDPS("target") and canHeal(TankThreat) ,{
+	{ "nested", canHeal(TankThreat) ,{
 		{ 17, not jps.buff(17,TankThreat) and not jps.debuff(6788,TankThreat) , TankThreat , "Shield_TankThreat" },
 		{ 152118, jps.debuff(6788,TankThreat) and not jps.buff(152118,TankThreat) and not jps.isRecast(152118,TankThreat) , TankThreat , "Clarity_TankThreat" },
 	}},

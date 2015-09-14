@@ -53,8 +53,13 @@ local playerWasControl = jps.ControlEvents() -- return true/false Player was int
 
 local inMelee = jps.IsSpellInRange(20243,"target") -- "Dévaster" 20243 "Devastate"
 local inRanged = jps.IsSpellInRange(57755,"target") -- "Heroic Throw" 57755 "Lancer héroïque"
+
 -- currentCharges, maxCharges, cooldownStart, cooldownDuration = GetSpellCharges(spellId or "spellName")
 local ShieldCharge  = GetSpellCharges(156321)
+local ShieldChargeReady = false
+if ShieldCharge > 0 then ShieldChargeReady = true
+elseif ShieldCharge == 0 and jps.cooldown(156321) > jps.cooldown(12292) and jps.cooldown(12292) > 0 then ShieldChargeReady = true
+end
 
 local myTank,TankUnit = jps.findTankInRaid() -- default "focus"
 local TankTarget = "target"
@@ -98,19 +103,12 @@ elseif jps.UnitExists("focus") and not canDPS("focus") then
 end
 
 if canAttack("target") then rangedTarget =  "target"
-elseif jps.buff(156291) and canAttack(TankTarget) then rangedTarget = TankTarget -- "Gladiator Stance" 156291
+elseif canAttack(TankTarget) then rangedTarget = TankTarget
 elseif canAttack("targettarget") then rangedTarget = "targettarget"
 elseif canAttack("mouseover") then rangedTarget = "mouseover"
 end
 if canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
 local TargetMoving = select(1,GetUnitSpeed(rangedTarget)) > 0
-
---if jps.buff(156291) and UnitIsUnit("targettarget","player") then
---	SpellStopCasting()
---	spell = 20243;
---	target = "target";
---	if jps.combatStart > 0 then write("AGGRO_STOPCASTING") end
---return spell,target end
 
 ------------------------
 -- SPELL TABLE ---------
@@ -123,7 +121,7 @@ local spellTable = {
 	
 	-- BUFFS
 	-- "Gladiator Stance" 156291 -- Talent "Gladiator's Resolve" 152276
-	{ 156291, jps.IsSpellKnown(152276) and not jps.buff(156291) and not jps.buff(71) , "player" },
+	{ warrior.spells["GladiatorStance"], jps.IsSpellKnown(152276) and not jps.buff(156291) and not jps.buff(71) , "player" },
 	-- "Defensive Stance" 71
 	{ warrior.spells["DefensiveStance"] , not jps.buff(71) and not jps.buff(156291), "player" },
 	-- "Battle Shout" 6673 "Cri de guerre"
@@ -147,7 +145,10 @@ local spellTable = {
 	{ warrior.spells["ShieldWall"] , jps.hp("player") < 0.50 , rangedTarget , "|cff1eff00ShieldWall" },
 	-- "Last Stand" 12975 "Dernier rempart" -- 3 min
 	{ warrior.spells["LastStand"] , jps.hp("player") < 0.30 , rangedTarget , "|cff1eff00LastStand" },
-	
+	-- "Enraged Regeneration" 55694 "Régénération enragée"
+	{ warrior.spells["EnragedRegeneration"] , playerIsTanking and jps.hp("player") < 0.60 , rangedTarget , "|cff1eff00EnragedRegeneration_Threat" },
+	{ warrior.spells["EnragedRegeneration"] , playerAggro and jps.hp("player") < 0.60 , rangedTarget , "|cff1eff00EnragedRegeneration_Aggro" },
+
 	-- "Impending Victory" 103840 "Victoire imminente" -- Talent Replaces Victory Rush.
 	{ warrior.spells["ImpendingVictory"] , jps.buff(32216) and jps.hp("player") < 0.80 , rangedTarget , "|cff1eff00ImpendingVictory_Health" },
 	{ warrior.spells["VictoryRush"] , jps.buff(32216) and jps.hp("player") <  0.80 , rangedTarget , "|cff1eff00VictoryRush_Health" },
@@ -160,12 +161,6 @@ local spellTable = {
 	-- "Stoneform" 20594 "Forme de pierre"
 	{ warrior.spells["Stoneform"] , playerAggro and jps.hp("player") < 0.80 , rangedTarget , "|cff1eff00Stoneform_Health" },
 	{ warrior.spells["Stoneform"] , jps.canDispel("player",{"Magic","Poison","Disease","Curse"}) , rangedTarget , "|cff1eff00Stoneform_Dispel" },
-
-	-- PLAYER IS TANKING
-	-- "Shield Barrier" 112048 "Barrière protectrice" -- Shield Barrier works against all types of damage (excluding fall damage) -- 20 + 40 rage
-	{ warrior.spells["ShieldBarrier"] , playerIsTanking and not jps.buff(112048) and jps.hp("player") < 0.60 , rangedTarget , "|cff1eff00ShieldBarrier_Aggro" },
-	-- "Enraged Regeneration" 55694 "Régénération enragée"
-	{ warrior.spells["EnragedRegeneration"] , playerIsTanking and jps.hp("player") < 0.60 , rangedTarget , "|cff1eff00EnragedRegeneration_Aggro" },
 
 	-- "Proteger" 114029 -- "Intervention" 3411
 	{ 3411, not UnitIsUnit(myTank,"player") and jps.hp(myTank) < 0.30 and jps.hp("player") > 0.85 and UnitCanAssist("player",myTank) , myTank , "Intervention_myTank" },
@@ -187,23 +182,7 @@ local spellTable = {
 	{ warrior.spells["BerserkerRage"] , not jps.buff(12880) and jps.buff(169667) , rangedTarget , "|cFFFF0000BerserkerRage" },
 	{ warrior.spells["BerserkerRage"] , not jps.buff(12880) and jps.buff(12292) , rangedTarget , "|cFFFF0000BerserkerRage" },
 
-	-- "Shield Charge" 156321 "Charge de bouclier" -- Buff "Shield Charge" 169667 -- "Bloodbath" 12292 "Bain de sang"
-	-- Increasing the damage of "Shield Slam" 23922 "Heurt de bouclier" , "Revenge" 6572 "Revanche" and "Heroic Strike" 78 "Frappe héroïque" by 25% for 7 sec
-	{"nested", jps.buff(156291) and inMelee and not jps.buff(169667) ,{
-		-- Buff "Unyielding Strikes" 169686 "Frappes inflexibles" 169686 -- Cumulable jusqu’à 6 fois
-		{ warrior.spells["ShieldCharge"], jps.buffStacks(169686) == 6 , rangedTarget , "|cffa335eeShieldCharge_6_Strikes" },
-		-- "Shield Slam" 23922 "Heurt de bouclier"
-		{ warrior.spells["ShieldCharge"], jps.rage() > 29 and jps.cooldown(23922) < 2 and jps.buffStacks(169686) > 3 , rangedTarget , "|cffa335eeShieldCharge_ShieldSlam" },
-		{ warrior.spells["ShieldCharge"], jps.rage() > 29 and jps.buff(50227) and jps.buffStacks(169686) > 3 , rangedTarget , "|cffa335eeShieldCharge_ShieldSlam_SwordBoard" },
-		-- "Enrage" 12880 "Enrager"
-		{ warrior.spells["ShieldCharge"], jps.rage() > 29 and jps.buffDuration(12880) > 4 and jps.buffStacks(169686) > 3 , rangedTarget , "|cffa335eeShieldCharge_Enrage" },
-		-- "Bloodbath" 12292 "Bain de sang" -- Buff 12292
-		{ warrior.spells["ShieldCharge"], jps.buff(12292) , rangedTarget , "|cffa335eeShieldCharge_Bloodbath" },
-		-- Dump Rage
-		{ warrior.spells["ShieldCharge"], jps.rage() > 89 , rangedTarget , "|cFFFF0000ShieldCharge_DumpRage" },
-	}},
-
-	-- "Bloodbath" 12292 "Bain de sang" -- Buff 12292 -- "Shield Slam" 23922 "Heurt de bouclier" -- "Revenge" 6572 "Revanche"
+	-- "Bloodbath" 12292 "Bain de sang" -- "Shield Slam" 23922 "Heurt de bouclier" -- "Revenge" 6572 "Revanche"
 	{"nested", inMelee and jps.rage() > 29 ,{
 		-- Buff "Unyielding Strikes" 169686 "Frappes inflexibles" 169686 -- Cumulable jusqu’à 6 fois
 		{ warrior.spells["Bloodbath"], jps.buffStacks(169686) == 6 , rangedTarget , "|cFFFF0000Bloodbath_6_Strikes" },
@@ -211,14 +190,31 @@ local spellTable = {
 		{ warrior.spells["Bloodbath"], jps.cooldown(23922) < 2 and jps.buffStacks(169686) > 3 , rangedTarget , "|cFFFF0000Bloodbath_ShieldSlam" },
 		{ warrior.spells["Bloodbath"], jps.buff(50227) and jps.buffStacks(169686) > 3 , rangedTarget , "|cFFFF0000Bloodbath_ShieldSlam_SwordBoard" },
 		-- "Enrage" 12880 "Enrager"
-		{ warrior.spells["Bloodbath"], jps.buffDuration(12880) > 4 and jps.buffStacks(169686) > 3 , rangedTarget , "|cFFFF0000Bloodbath_Enrage" },
-		-- "Shield Charge" 156321 "Charge de bouclier"
-		{ warrior.spells["Bloodbath"], jps.buffDuration(169667) > 4 , rangedTarget , "|cffa335eeBloodbath_ShieldCharge" },
+		{ warrior.spells["Bloodbath"], jps.buffDuration(12880) > 5 and jps.buffStacks(169686) > 3 , rangedTarget , "|cFFFF0000Bloodbath_Enrage" },
+		-- "Shield Charge" 156321 "Charge de bouclier" -- Buff "Shield Charge" 169667
+		{ warrior.spells["Bloodbath"], jps.buffDuration(169667) > 5 , rangedTarget , "|cFFFF0000Bloodbath_ShieldCharge" },
 		-- Dump Rage
 		{ warrior.spells["Bloodbath"], jps.rage() > 89 , rangedTarget , "|cFFFF0000Bloodbath_DumpRage" },
 	}},
-	
-	-- MULTITARGET -- "Gladiator Stance" 156291
+
+	-- "Shield Charge" 156321 "Charge de bouclier" -- Buff "Shield Charge" 169667 -- "Bloodbath" 12292 "Bain de sang"
+	-- Increasing the damage of "Shield Slam" 23922 "Heurt de bouclier" , "Revenge" 6572 "Revanche" and "Heroic Strike" 78 "Frappe héroïque" by 25% for 7 sec
+	{"nested", jps.buff(156291) and not jps.buff(169667) and inMelee and ShieldChargeReady ,{
+		{ warrior.spells["ShieldCharge"], ShieldCharge == 2 and jps.cooldown(23922) == 0 and jps.cooldown(6572) == 0 , rangedTarget , "|cffa335eeShieldCharge_2" },
+		-- Buff "Unyielding Strikes" 169686 "Frappes inflexibles" 169686 -- Cumulable jusqu’à 6 fois
+		{ warrior.spells["ShieldCharge"], jps.buffStacks(169686) == 6 , rangedTarget , "|cffa335eeShieldCharge_6_Strikes" },
+		-- "Shield Slam" 23922 "Heurt de bouclier"
+		{ warrior.spells["ShieldCharge"], jps.rage() > 29 and jps.cooldown(23922) < 2 and jps.buffStacks(169686) > 3 , rangedTarget , "|cffa335eeShieldCharge_ShieldSlam" },
+		{ warrior.spells["ShieldCharge"], jps.rage() > 29 and jps.buff(50227) and jps.buffStacks(169686) > 3 , rangedTarget , "|cffa335eeShieldCharge_ShieldSlam_SwordBoard" },
+		-- "Enrage" 12880 "Enrager"
+		{ warrior.spells["ShieldCharge"], jps.rage() > 29 and jps.buffDuration(12880) > 5 and jps.buffStacks(169686) > 3 , rangedTarget , "|cffa335eeShieldCharge_Enrage" },
+		-- "Bloodbath" 12292 "Bain de sang" -- Buff 12292
+		{ warrior.spells["ShieldCharge"], jps.buffDuration(12292) > 5 , rangedTarget , "|cffa335eeShieldCharge_Bloodbath" },
+		-- Dump Rage
+		{ warrior.spells["ShieldCharge"], jps.rage() > 89 , rangedTarget , "|cffa335eeShieldCharge_DumpRage" },
+	}},
+
+	-- MULTITARGET
 	{"nested", jps.MultiTarget and inMelee ,{
 		-- "Bladestorm" 46924 "Tempête de lames"
 		{ warrior.spells["Bladestorm"] , jps.IsSpellKnown(46924) , rangedTarget , "Bladestorm" },
@@ -229,6 +225,7 @@ local spellTable = {
 	}},
 
 	-- DAMAGE
+	{ warrior.spells["Devastate"] , inMelee and jps.buffDuration(169686) < 1 , rangedTarget , "Devastate_UnBuff" },
 	{ warrior.spells["HeroicStrike"] , jps.rage() > 105 and jps.buff(50227) , rangedTarget , "HeroicStrike_DumpRage_SwordBoard" },
 	-- "Revenge" 6572 "Revanche"
 	{ warrior.spells["Revenge"] , inMelee , rangedTarget , "Revenge" },
@@ -238,29 +235,31 @@ local spellTable = {
 	-- "Heroic Strike" 78 "Frappe héroïque" -- Buff "Ultimatum" 122509 -- HS cost no rage & crtique
 	{ warrior.spells["HeroicStrike"] , jps.buff(122509) , rangedTarget , "HeroicStrike_Ultimatum" },
 	-- "Heroic Strike" 78 "Frappe héroïque" -- Buff "Unyielding Strikes" 169686 "Frappes inflexibles" 169686 -- Cumulable jusqu’à 6 fois
-	{ warrior.spells["HeroicStrike"] , jps.buff(71) and jps.hp("player") > 0.50 and jps.rage() > 89 and jps.hp(rangedTarget) > 0.20 , rangedTarget , "HeroicStrike_DumpRage" },
-	{ warrior.spells["HeroicStrike"] , jps.buff(71) and jps.hp("player") > 0.50 and jps.buffStacks(169686) == 6 , rangedTarget , "HeroicStrike_6_Strikes" },
 	{ warrior.spells["HeroicStrike"] , jps.buff(156291) and jps.rage() > 89 and jps.hp(rangedTarget) > 0.20 , rangedTarget , "HeroicStrike_DumpRage" },
 	{ warrior.spells["HeroicStrike"] , jps.buff(156291) and jps.buffStacks(169686) == 6 , rangedTarget , "HeroicStrike_6_Strikes" },
+	{ warrior.spells["HeroicStrike"] , jps.buff(71) and jps.hp("player") > 0.50 and jps.rage() > 89 and jps.hp(rangedTarget) > 0.20 , rangedTarget , "HeroicStrike_DumpRage" },
+	{ warrior.spells["HeroicStrike"] , jps.buff(71) and jps.hp("player") > 0.50 and jps.buffStacks(169686) == 6 , rangedTarget , "HeroicStrike_6_Strikes" },
 	-- "Execute" 5308 "Exécution" -- Buff "Mort soudaine" 29725
 	{ warrior.spells["Execute"], jps.buff(29725) , rangedTarget , "Execute_SuddenDeath" },
 
 	-- DEFENSIVE
 	-- "Enraged Regeneration" 55694 "Régénération enragée"
-	{ warrior.spells["EnragedRegeneration"] , jps.MagicDamage and jps.hp("player") < 0.80 , rangedTarget , "|cff1eff00EnragedRegeneration_Magic" },
-	{ warrior.spells["EnragedRegeneration"] , jps.PhysicalDamage and jps.hp("player") < 0.80 , rangedTarget , "|cff1eff00EnragedRegeneration_Physiq" },
+	{ warrior.spells["EnragedRegeneration"] , jps.MagicDamage and jps.hpInc("player") < 0.80 , rangedTarget , "|cff1eff00EnragedRegeneration_Magic" },
+	{ warrior.spells["EnragedRegeneration"] , jps.PhysicalDamage and jps.hpInc("player") < 0.80 , rangedTarget , "|cff1eff00EnragedRegeneration_Physiq" },
 	-- "Shield Block" 2565 "Maîtrise du blocage" -- works against physical attacks, it does nothing against magic -- Buff "Shield Block" 132404 -- 60 rage
 	{ warrior.spells["ShieldBlock"] , jps.buff(71) and jps.PhysicalDamage and not jps.buff(132404) and jps.hp("player") < 0.80 , rangedTarget , "|cff1eff00ShieldBlock_PhysicalDmg" },
 	-- "Shield Barrier" 112048 "Barrière protectrice" -- Shield Barrier works against all types of damage (excluding fall damage) -- 20 + 40 rage
 	{ warrior.spells["ShieldBarrier"] , jps.buff(71) and jps.MagicDamage and not jps.buff(112048) and jps.hp("player") < 0.80 , rangedTarget , "|cff1eff00ShieldBarrier_MagicDmg" },
-	{ warrior.spells["ShieldBarrier"] , playerAggro and jps.hp("player") < 0.60 , rangedTarget , "|cff1eff00ShieldBarrier" },
+	{ warrior.spells["ShieldBarrier"] , playerAggro and jps.hp("player") < 0.60 and UnitGetIncomingHeals("player") == 0 , rangedTarget , "|cff1eff00ShieldBarrier_Aggro" },
+	{ warrior.spells["ShieldBarrier"] , playerIsTanking and jps.hp("player") < 0.60 and UnitGetIncomingHeals("player") == 0 , rangedTarget , "|cff1eff00ShieldBarrier_Threat" },
+	{ warrior.spells["ShieldBarrier"] , playerIsTanking and jps.hp("player") < 0.40 , rangedTarget , "|cff1eff00ShieldBarrier_Threat_40" },
 
 	-- DAMAGE
 	-- "Dévaster" 20243 "Devastate" -- Buff "Unyielding Strikes" 169686 "Frappes inflexibles" 169686 -- Cumulable jusqu’à 6 fois
 	{ warrior.spells["Devastate"] , inMelee and jps.buffDuration(169686) < 2 , rangedTarget , "Devastate_BuffDuration" },
 	-- "Execute" 5308 "Exécution" -- Buff "Shield Charge" 169667
 	{ warrior.spells["Execute"], jps.hp(rangedTarget) < 0.20 and jps.rage() > 89 , rangedTarget , "Execute_DumpRage" },
-	{ warrior.spells["Execute"] , not jps.buff(169667) and jps.hp(rangedTarget) < 0.20 and jps.rage() > 59 , rangedTarget , "Execute_UnBuff" },
+	{ warrior.spells["Execute"] , jps.buff(152276) and not jps.buff(169667) and jps.hp(rangedTarget) < 0.20 and jps.rage() > 59 , rangedTarget , "Execute_UnBuff" },
 	-- "Heroic Throw" 57755 "Lancer héroïque"
 	{ warrior.spells["HeroicThrow"] , inRanged and not inMelee , rangedTarget , "Heroic Throw" },
 	-- "Charge" 100
@@ -270,15 +269,15 @@ local spellTable = {
 	-- "Storm Bolt" 107570 "Eclair de tempete" -- 30 yd range
 	{ warrior.spells["StormBolt"] , jps.IsSpellKnown(107570) , rangedTarget ,"StormBolt" },
 	-- "Dragon Roar " 118000 -- 8 yards
-	{ warrior.spells["DragonRoar"] , jps.IsSpellKnown(118000) and inMelee , rangedTarget , "DragonRoar" },
+	{ warrior.spells["DragonRoar"] , jps.IsSpellKnown(118000) and inMelee and jps.buff(12880) , rangedTarget , "DragonRoar" },
 	-- "Bladestorm" 46924 "Tempête de lames"
-	{ warrior.spells["Bladestorm"] , jps.IsSpellKnown(46924) and inMelee , rangedTarget , "Bladestorm" },
+	{ warrior.spells["Bladestorm"] , jps.IsSpellKnown(46924) and inMelee and jps.buff(12880) , rangedTarget , "Bladestorm" },
 	-- "Ravager" 152277 -- 40 yd range
-	{ warrior.spells["Ravager"] , jps.IsSpellKnown(152277) , rangedTarget , "Ravager" },
+	{ warrior.spells["Ravager"] , jps.IsSpellKnown(152277) and jps.buff(12880) , rangedTarget , "Ravager" },
 
 	-- "Execute" 5308 "Exécution" -- Buff "Shield Charge" 169667
-	{ warrior.spells["Execute"] , not jps.buff(169667) and jps.hp(rangedTarget) < 0.20 , rangedTarget , "Execute_UnBuff" },
-	-- "Heroic Strike" 78 "Frappe héroïque" -- Buff "Shield Charge" 169667
+	{ warrior.spells["Execute"] , jps.buff(152276) and not jps.buff(169667) and jps.hp(rangedTarget) < 0.20 , rangedTarget , "Execute_UnBuff" },
+	-- "Heroic Strike" 78 "Frappe héroïque" -- "Bloodbath" 12292 "Bain de sang"
 	{ warrior.spells["HeroicStrike"] , jps.buff(169667) , rangedTarget , "HeroicStrike_ShieldCharge" },
 	{ warrior.spells["HeroicStrike"] , jps.buff(12292) and jps.buffStacks(169686) > 3 , rangedTarget , "HeroicStrike_Bloodbath" },
 	-- "Dévaster" 20243 "Devastate" -- Dévaster réduit le coût en rage de Frappe héroïque de 5 pendant 5 s.
@@ -288,12 +287,11 @@ local spellTable = {
 
 	local spell,target = parseSpellTable(spellTable)
 	return spell,target
-end, "Default")
+end, "Protection")
 
 ----------------------------------------------------------------------------------------------------------------
 -------------------------------------------------- ROTATION OOC ------------------------------------------------
 ----------------------------------------------------------------------------------------------------------------
-
 
 jps.registerStaticTable("WARRIOR","PROTECTION",{
 

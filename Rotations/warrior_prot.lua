@@ -148,6 +148,9 @@ local spellTable = {
 	-- "Enraged Regeneration" 55694 "Régénération enragée"
 	{ warrior.spells["EnragedRegeneration"] , playerIsTanking and jps.hp("player") < 0.60 , rangedTarget , "|cff1eff00EnragedRegeneration_Threat" },
 	{ warrior.spells["EnragedRegeneration"] , playerAggro and jps.hp("player") < 0.60 , rangedTarget , "|cff1eff00EnragedRegeneration_Aggro" },
+	
+	-- "Revenge" 6572 "Revanche" -- Buff "Shield Charge" 169667
+	{ warrior.spells["Revenge"] , inMelee and not jps.buff(169667) , rangedTarget , "Revenge_Buff" },
 
 	-- "Impending Victory" 103840 "Victoire imminente" -- Talent Replaces Victory Rush.
 	{ warrior.spells["ImpendingVictory"] , jps.buff(32216) and jps.hp("player") < 0.80 , rangedTarget , "|cff1eff00ImpendingVictory_Health" },
@@ -182,6 +185,23 @@ local spellTable = {
 	{ warrior.spells["BerserkerRage"] , not jps.buff(12880) and jps.buff(169667) , rangedTarget , "|cFFFF0000BerserkerRage" },
 	{ warrior.spells["BerserkerRage"] , not jps.buff(12880) and jps.buff(12292) , rangedTarget , "|cFFFF0000BerserkerRage" },
 
+	-- "Shield Charge" 156321 "Charge de bouclier" -- Buff "Shield Charge" 169667 -- "Bloodbath" 12292 "Bain de sang"
+	-- Increasing the damage of "Shield Slam" 23922 "Heurt de bouclier" , "Revenge" 6572 "Revanche" and "Heroic Strike" 78 "Frappe héroïque" by 25% for 7 sec
+	{"nested", jps.buff(156291) and not jps.buff(169667) and inMelee and ShieldChargeReady ,{
+		{ warrior.spells["ShieldCharge"], ShieldCharge == 2 and jps.cooldown(23922) < 1 and jps.cooldown(6572) < 1 , rangedTarget , "|cffa335eeShieldCharge_2" },
+		-- Buff "Unyielding Strikes" 169686 "Frappes inflexibles" 169686 -- Cumulable jusqu’à 6 fois
+		{ warrior.spells["ShieldCharge"], jps.buffStacks(169686) == 6 , rangedTarget , "|cffa335eeShieldCharge_6_Strikes" },
+		-- "Shield Slam" 23922 "Heurt de bouclier" -- Buff "Sword and Board" 50227 "Epée et bouclier"
+		{ warrior.spells["ShieldCharge"], jps.rage() > 29 and jps.cooldown(23922) < 2 and jps.buffStacks(169686) > 3 , rangedTarget , "|cffa335eeShieldCharge_ShieldSlam" },
+		{ warrior.spells["ShieldCharge"], jps.rage() > 29 and jps.buff(50227) and jps.buffStacks(169686) > 3 , rangedTarget , "|cffa335eeShieldCharge_ShieldSlam_SwordBoard" },
+		-- "Enrage" 12880 "Enrager"
+		{ warrior.spells["ShieldCharge"], jps.rage() > 29 and jps.buffDuration(12880) > 5 and jps.buffStacks(169686) > 3 , rangedTarget , "|cffa335eeShieldCharge_Enrage" },
+		-- "Bloodbath" 12292 "Bain de sang" -- Buff 12292
+		{ warrior.spells["ShieldCharge"], jps.buffDuration(12292) > 5 , rangedTarget , "|cffa335eeShieldCharge_Bloodbath" },
+		-- Dump Rage
+		{ warrior.spells["ShieldCharge"], jps.rage() > 89 and jps.buff(50227) and not jps.buff(122509) , rangedTarget , "|cffa335eeShieldCharge_DumpRage" },
+	}},
+	
 	-- "Bloodbath" 12292 "Bain de sang" -- "Shield Slam" 23922 "Heurt de bouclier" -- "Revenge" 6572 "Revanche"
 	{"nested", inMelee and jps.rage() > 29 ,{
 		-- Buff "Unyielding Strikes" 169686 "Frappes inflexibles" 169686 -- Cumulable jusqu’à 6 fois
@@ -194,24 +214,7 @@ local spellTable = {
 		-- "Shield Charge" 156321 "Charge de bouclier" -- Buff "Shield Charge" 169667
 		{ warrior.spells["Bloodbath"], jps.buffDuration(169667) > 5 , rangedTarget , "|cFFFF0000Bloodbath_ShieldCharge" },
 		-- Dump Rage
-		{ warrior.spells["Bloodbath"], jps.rage() > 89 , rangedTarget , "|cFFFF0000Bloodbath_DumpRage" },
-	}},
-
-	-- "Shield Charge" 156321 "Charge de bouclier" -- Buff "Shield Charge" 169667 -- "Bloodbath" 12292 "Bain de sang"
-	-- Increasing the damage of "Shield Slam" 23922 "Heurt de bouclier" , "Revenge" 6572 "Revanche" and "Heroic Strike" 78 "Frappe héroïque" by 25% for 7 sec
-	{"nested", jps.buff(156291) and not jps.buff(169667) and inMelee and ShieldChargeReady ,{
-		{ warrior.spells["ShieldCharge"], ShieldCharge == 2 and jps.cooldown(23922) == 0 and jps.cooldown(6572) == 0 , rangedTarget , "|cffa335eeShieldCharge_2" },
-		-- Buff "Unyielding Strikes" 169686 "Frappes inflexibles" 169686 -- Cumulable jusqu’à 6 fois
-		{ warrior.spells["ShieldCharge"], jps.buffStacks(169686) == 6 , rangedTarget , "|cffa335eeShieldCharge_6_Strikes" },
-		-- "Shield Slam" 23922 "Heurt de bouclier"
-		{ warrior.spells["ShieldCharge"], jps.rage() > 29 and jps.cooldown(23922) < 2 and jps.buffStacks(169686) > 3 , rangedTarget , "|cffa335eeShieldCharge_ShieldSlam" },
-		{ warrior.spells["ShieldCharge"], jps.rage() > 29 and jps.buff(50227) and jps.buffStacks(169686) > 3 , rangedTarget , "|cffa335eeShieldCharge_ShieldSlam_SwordBoard" },
-		-- "Enrage" 12880 "Enrager"
-		{ warrior.spells["ShieldCharge"], jps.rage() > 29 and jps.buffDuration(12880) > 5 and jps.buffStacks(169686) > 3 , rangedTarget , "|cffa335eeShieldCharge_Enrage" },
-		-- "Bloodbath" 12292 "Bain de sang" -- Buff 12292
-		{ warrior.spells["ShieldCharge"], jps.buffDuration(12292) > 5 , rangedTarget , "|cffa335eeShieldCharge_Bloodbath" },
-		-- Dump Rage
-		{ warrior.spells["ShieldCharge"], jps.rage() > 89 , rangedTarget , "|cffa335eeShieldCharge_DumpRage" },
+		{ warrior.spells["Bloodbath"], jps.rage() > 89 and jps.buff(50227) and not jps.buff(122509) , rangedTarget , "|cFFFF0000Bloodbath_DumpRage" },
 	}},
 
 	-- MULTITARGET
@@ -225,14 +228,15 @@ local spellTable = {
 	}},
 
 	-- DAMAGE
-	{ warrior.spells["Devastate"] , inMelee and jps.buffDuration(169686) < 1 , rangedTarget , "Devastate_UnBuff" },
-	{ warrior.spells["HeroicStrike"] , jps.rage() > 105 and jps.buff(50227) , rangedTarget , "HeroicStrike_DumpRage_SwordBoard" },
+	-- "Dévaster" 20243 "Devastate" -- Buff "Unyielding Strikes" 169686 "Frappes inflexibles" 169686 -- Cumulable jusqu’à 6 fois
+	{ warrior.spells["Devastate"] , jps.buff(156291) and inMelee and jps.buffDuration(169686) < 1 and jps.buffStacks(169686) < 6, rangedTarget , "Devastate_BuffDuration" },
 	-- "Revenge" 6572 "Revanche"
 	{ warrior.spells["Revenge"] , inMelee , rangedTarget , "Revenge" },
 	-- "Shield Slam" 23922 "Heurt de bouclier" -- Buff "Sword and Board" 50227 "Epée et bouclier"
 	{ warrior.spells["ShieldSlam"] , jps.buff(50227) , rangedTarget , "ShieldSlam_SwordBoard" },
-	{ warrior.spells["ShieldSlam"] , true , rangedTarget , "ShieldSlam" },
+	{ warrior.spells["ShieldSlam"] , inMelee , rangedTarget , "ShieldSlam" },
 	-- "Heroic Strike" 78 "Frappe héroïque" -- Buff "Ultimatum" 122509 -- HS cost no rage & crtique
+	{ warrior.spells["HeroicStrike"] , jps.rage() > 105 and jps.buff(50227) , rangedTarget , "HeroicStrike_DumpRage_SwordBoard" },
 	{ warrior.spells["HeroicStrike"] , jps.buff(122509) , rangedTarget , "HeroicStrike_Ultimatum" },
 	-- "Heroic Strike" 78 "Frappe héroïque" -- Buff "Unyielding Strikes" 169686 "Frappes inflexibles" 169686 -- Cumulable jusqu’à 6 fois
 	{ warrior.spells["HeroicStrike"] , jps.buff(156291) and jps.rage() > 89 and jps.hp(rangedTarget) > 0.20 , rangedTarget , "HeroicStrike_DumpRage" },
@@ -255,8 +259,6 @@ local spellTable = {
 	{ warrior.spells["ShieldBarrier"] , playerIsTanking and jps.hp("player") < 0.40 , rangedTarget , "|cff1eff00ShieldBarrier_Threat_40" },
 
 	-- DAMAGE
-	-- "Dévaster" 20243 "Devastate" -- Buff "Unyielding Strikes" 169686 "Frappes inflexibles" 169686 -- Cumulable jusqu’à 6 fois
-	{ warrior.spells["Devastate"] , inMelee and jps.buffDuration(169686) < 2 , rangedTarget , "Devastate_BuffDuration" },
 	-- "Execute" 5308 "Exécution" -- Buff "Shield Charge" 169667
 	{ warrior.spells["Execute"], jps.hp(rangedTarget) < 0.20 and jps.rage() > 89 , rangedTarget , "Execute_DumpRage" },
 	{ warrior.spells["Execute"] , jps.buff(152276) and not jps.buff(169667) and jps.hp(rangedTarget) < 0.20 and jps.rage() > 59 , rangedTarget , "Execute_UnBuff" },

@@ -1,4 +1,4 @@
--- jps.UseCDs for "Semblance spectrale" 112833 -- PvP it loses the orb in Kotmogu Temple
+-- jps.UseCDs for "Semblance spectrale" 112833 "Spectral Guise" -- PvP it loses the orb in Kotmogu Temple
 -- jps.MultiTarget for "MindSear" 48045
 -- jps.Interrupts for "Cascade" or "Divine Star" or "Psychic Horror"
 -- jps.Defensive to keep Shield up

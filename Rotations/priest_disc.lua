@@ -1,10 +1,10 @@
 -- jps.UseCDs for RACIAL COUNTERS
--- jps.UseCDs for "Spectral Guise"
+-- jps.UseCDs for "Semblance spectrale" 112833 "Spectral Guise"
 -- jps.UseCDs for WoM when OOC
 -- jps.Interrupts for Dispel
 -- jps.Defensive changes the LowestImportantUnit to table = { "player","focus","target","mouseover" } with table.insert TankUnit  = jps.findTankInRaid()
 -- jps.MultiTarget to DPSing
--- IsShiftKeyDown() "Dispel" 527 "Purifier" on "mouseover"
+-- IsControlKeyDown() "Dispel" 527 "Purifier" on "mouseover"
 
 
 local L = MyLocalizationTable
@@ -357,7 +357,7 @@ spellTable = {
 	-- DISPEL -- "Glyph of Purify" 55677 Your Purify spell also heals your target for 5% of maximum health
 	{ "nested", jps.Interrupts , parseDispel },
 	-- "Dispel" 527 "Purifier"
-	{ 527, IsShiftKeyDown() and jps.canDispel("mouseover") , "mouseover" , "Dispel_Mouseover"},
+	{ 527, IsControlKeyDown() and jps.canDispel("mouseover") , "mouseover" , "Dispel_Mouseover"},
 	-- OFFENSIVE Dispel -- "Dissipation de la magie" 528
 	{ 528, jps.castEverySeconds(528,10) and jps.DispelOffensive(rangedTarget) , rangedTarget , "|cff1eff00DispelOffensive" },
 	-- BOSS DEBUFF

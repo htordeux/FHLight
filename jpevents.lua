@@ -1033,6 +1033,28 @@ jps.AverageHeal = function(spell)
  	end
 end
 
+----------------------------------------------------------------------------------------------------------------
+-------------------------------------------------- ANTI AFK ----------------------------------------------------
+----------------------------------------------------------------------------------------------------------------
+
+local buffclassNames = {
+	["WARRIOR"] = jps.toSpellName(6673), -- "Battle Shout" 6673 "Cri de guerre"
+	["PRIEST"] = jps.toSpellName(21562), -- "Fortitude" 21562
+}
+
+local function antiAFK()
+	local _,class,_ = UnitClass("player")
+	local buffname = buffclassNames[class]
+	if not jps.Combat then
+		CancelUnitBuff("player", buffname)
+	end
+end
+
+jps.registerOnUpdate(function()
+	local value = math.random(600,900)
+	jps.cachedValue(antiAFK,value)
+end)
+
 
 ------------------------------
 -- TIMETODIE Based on incoming DMG

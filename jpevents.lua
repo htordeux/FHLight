@@ -292,8 +292,8 @@ end)
 local debugFaceTarget = function ()
 	if jps.checkTimer("FacingBug") > 0 and jps.checkTimer("Facing") == 0 then
 		TurnLeftStop()
-	elseif jps.checkTimer("FarAwayBug") > 0 and jps.checkTimer("FarAway") == 0 then
-		MoveForwardStop()
+--	elseif jps.checkTimer("FarAwayBug") > 0 and jps.checkTimer("FarAway") == 0 then
+--		MoveForwardStop()
 	end
 end
 
@@ -452,7 +452,7 @@ end)
 -- Leave Combat
 local leaveCombat = function()
 	if jps.checkTimer("FacingBug") > 0 then TurnLeftStop() end
-	if jps.checkTimer("FarAwayBug") > 0 and jps.Moving then MoveForwardStop() end
+	--if jps.checkTimer("FarAwayBug") > 0 and jps.Moving then MoveForwardStop() end
 	jps.Opening = true
 	jps.Combat = false
 	jps.gui_toggleCombat(false)
@@ -538,12 +538,10 @@ jps.listener.registerEvent("UI_ERROR_MESSAGE", function(event_error)
 			-- print("ERR_ABILITY_COOLDOWN - %s", event_error)
 			-- La technique n'est pas encore disponible
 		elseif jps.FaceTarget and not jps.Moving and event_error == ERR_BADATTACKPOS then
-			--print("ERR_BADATTACKPOS - %s", event_error)
-			jps.createTimer("FarAway",1)
-			jps.createTimer("FarAwayBug",2)
-			MoveForwardStart()
-			-- Vous êtes trop loin !
-			-- Hors de portée
+			--print("ERR_BADATTACKPOS - %s", event_error) -- Vous êtes trop loin ! -- Hors de portée
+			--jps.createTimer("FarAway",1)
+			--jps.createTimer("FarAwayBug",2)
+			--MoveForwardStart()
 		end
 end)
 
@@ -611,7 +609,7 @@ jps.listener.registerEvent("UNIT_SPELLCAST_SUCCEEDED", function(unitID,spellname
 		jps.CurrentCastInterrupt = nil
 		if jps.FaceTarget then
 			if jps.checkTimer("FacingBug") > 0 then TurnLeftStop() end
-			if jps.checkTimer("FarAwayBug") > 0 then MoveForwardStop() end
+			--if jps.checkTimer("FarAwayBug") > 0 then MoveForwardStop() end
 		end
 		if ((jps.Class == "Druid" and jps.Spec == "Feral") or jps.Class == "Rogue") then
 			-- "Druid" -- 5221 -- "Shred" -- "Ambush" 8676

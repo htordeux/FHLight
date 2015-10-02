@@ -148,9 +148,6 @@ local spellTable = {
 	-- "Enraged Regeneration" 55694 "Régénération enragée"
 	{ warrior.spells["EnragedRegeneration"] , playerIsTanking and jps.hp("player") < 0.60 , rangedTarget , "|cff1eff00EnragedRegeneration_Threat" },
 	{ warrior.spells["EnragedRegeneration"] , playerAggro and jps.hp("player") < 0.60 , rangedTarget , "|cff1eff00EnragedRegeneration_Aggro" },
-	
-	-- "Revenge" 6572 "Revanche" -- Buff "Shield Charge" 169667
-	{ warrior.spells["Revenge"] , inMelee and not jps.buff(169667) , rangedTarget , "Revenge_Buff" },
 
 	-- "Impending Victory" 103840 "Victoire imminente" -- Talent Replaces Victory Rush.
 	{ warrior.spells["ImpendingVictory"] , jps.buff(32216) and jps.hp("player") < 0.80 , rangedTarget , "|cff1eff00ImpendingVictory_Health" },
@@ -184,6 +181,21 @@ local spellTable = {
 	-- "Berserker Rage" 18499 "Rage de berserker" -- "Enrage" 12880 "Enrager" -- Buff "Shield Charge" 169667 -- "Bloodbath" 12292 "Bain de sang"
 	{ warrior.spells["BerserkerRage"] , not jps.buff(12880) and jps.buff(169667) , rangedTarget , "|cFFFF0000BerserkerRage" },
 	{ warrior.spells["BerserkerRage"] , not jps.buff(12880) and jps.buff(12292) , rangedTarget , "|cFFFF0000BerserkerRage" },
+	
+	-- "Revenge" 6572 "Revanche" -- Buff "Shield Charge" 169667
+	{ warrior.spells["Revenge"] , inMelee , rangedTarget , "Revenge" },
+	
+	-- DEFENSIVE
+	-- "Enraged Regeneration" 55694 "Régénération enragée"
+	{ warrior.spells["EnragedRegeneration"] , jps.MagicDamage and jps.hpInc("player") < 0.80 , rangedTarget , "|cff1eff00EnragedRegeneration_Magic" },
+	{ warrior.spells["EnragedRegeneration"] , jps.PhysicalDamage and jps.hpInc("player") < 0.80 , rangedTarget , "|cff1eff00EnragedRegeneration_Physiq" },
+	-- "Shield Block" 2565 "Maîtrise du blocage" -- works against physical attacks, it does nothing against magic -- Buff "Shield Block" 132404 -- 60 rage
+	{ warrior.spells["ShieldBlock"] , jps.buff(71) and jps.PhysicalDamage and not jps.buff(132404) and jps.hp("player") < 0.80 , rangedTarget , "|cff1eff00ShieldBlock_PhysicalDmg" },
+	-- "Shield Barrier" 112048 "Barrière protectrice" -- Shield Barrier works against all types of damage (excluding fall damage) -- 20 + 40 rage
+	{ warrior.spells["ShieldBarrier"] , jps.buff(71) and jps.MagicDamage and not jps.buff(112048) and jps.hp("player") < 0.80 , rangedTarget , "|cff1eff00ShieldBarrier_MagicDmg" },
+	{ warrior.spells["ShieldBarrier"] , playerAggro and jps.hp("player") < 0.60 and UnitGetIncomingHeals("player") == 0 , rangedTarget , "|cff1eff00ShieldBarrier_Aggro" },
+	{ warrior.spells["ShieldBarrier"] , playerIsTanking and jps.hp("player") < 0.60 and UnitGetIncomingHeals("player") == 0 , rangedTarget , "|cff1eff00ShieldBarrier_Threat" },
+	{ warrior.spells["ShieldBarrier"] , playerIsTanking and jps.hp("player") < 0.40 , rangedTarget , "|cff1eff00ShieldBarrier_Threat_40" },
 
 	-- "Shield Charge" 156321 "Charge de bouclier" -- Buff "Shield Charge" 169667 -- "Bloodbath" 12292 "Bain de sang"
 	-- Increasing the damage of "Shield Slam" 23922 "Heurt de bouclier" , "Revenge" 6572 "Revanche" and "Heroic Strike" 78 "Frappe héroïque" by 25% for 7 sec
@@ -224,14 +236,12 @@ local spellTable = {
 		-- "Shockwave" 46968 "Onde de choc"
 		{ warrior.spells["Shockwave"] , jps.IsSpellKnown(46968) , rangedTarget , "Shockwave" },
 		-- "Thunder Clap" 6343 "Coup de tonnerre"
-		{ warrior.spells["ThunderClap"] , true , rangedTarget , "ThunderClap" },
+		{ warrior.spells["ThunderClap"] , inMelee , rangedTarget , "ThunderClap" },
 	}},
 
 	-- DAMAGE
 	-- "Dévaster" 20243 "Devastate" -- Buff "Unyielding Strikes" 169686 "Frappes inflexibles" 169686 -- Cumulable jusqu’à 6 fois
-	{ warrior.spells["Devastate"] , jps.buff(156291) and inMelee and jps.buffDuration(169686) < 1 and jps.buffStacks(169686) < 6, rangedTarget , "Devastate_BuffDuration" },
-	-- "Revenge" 6572 "Revanche"
-	{ warrior.spells["Revenge"] , inMelee , rangedTarget , "Revenge" },
+	{ warrior.spells["Devastate"] , inMelee and jps.buffDuration(169686) < 1 and jps.buffStacks(169686) < 6, rangedTarget , "Devastate_BuffDuration" },
 	-- "Shield Slam" 23922 "Heurt de bouclier" -- Buff "Sword and Board" 50227 "Epée et bouclier"
 	{ warrior.spells["ShieldSlam"] , jps.buff(50227) , rangedTarget , "ShieldSlam_SwordBoard" },
 	{ warrior.spells["ShieldSlam"] , inMelee , rangedTarget , "ShieldSlam" },
@@ -243,23 +253,8 @@ local spellTable = {
 	{ warrior.spells["HeroicStrike"] , jps.buff(156291) and jps.buffStacks(169686) == 6 , rangedTarget , "HeroicStrike_6_Strikes" },
 	{ warrior.spells["HeroicStrike"] , jps.buff(71) and jps.hp("player") > 0.50 and jps.rage() > 89 and jps.hp(rangedTarget) > 0.20 , rangedTarget , "HeroicStrike_DumpRage" },
 	{ warrior.spells["HeroicStrike"] , jps.buff(71) and jps.hp("player") > 0.50 and jps.buffStacks(169686) == 6 , rangedTarget , "HeroicStrike_6_Strikes" },
-	-- "Execute" 5308 "Exécution" -- Buff "Mort soudaine" 29725
+	-- "Execute" 5308 "Exécution" -- Buff "Mort soudaine" 29725 -- Buff "Shield Charge" 169667
 	{ warrior.spells["Execute"], jps.buff(29725) , rangedTarget , "Execute_SuddenDeath" },
-
-	-- DEFENSIVE
-	-- "Enraged Regeneration" 55694 "Régénération enragée"
-	{ warrior.spells["EnragedRegeneration"] , jps.MagicDamage and jps.hpInc("player") < 0.80 , rangedTarget , "|cff1eff00EnragedRegeneration_Magic" },
-	{ warrior.spells["EnragedRegeneration"] , jps.PhysicalDamage and jps.hpInc("player") < 0.80 , rangedTarget , "|cff1eff00EnragedRegeneration_Physiq" },
-	-- "Shield Block" 2565 "Maîtrise du blocage" -- works against physical attacks, it does nothing against magic -- Buff "Shield Block" 132404 -- 60 rage
-	{ warrior.spells["ShieldBlock"] , jps.buff(71) and jps.PhysicalDamage and not jps.buff(132404) and jps.hp("player") < 0.80 , rangedTarget , "|cff1eff00ShieldBlock_PhysicalDmg" },
-	-- "Shield Barrier" 112048 "Barrière protectrice" -- Shield Barrier works against all types of damage (excluding fall damage) -- 20 + 40 rage
-	{ warrior.spells["ShieldBarrier"] , jps.buff(71) and jps.MagicDamage and not jps.buff(112048) and jps.hp("player") < 0.80 , rangedTarget , "|cff1eff00ShieldBarrier_MagicDmg" },
-	{ warrior.spells["ShieldBarrier"] , playerAggro and jps.hp("player") < 0.60 and UnitGetIncomingHeals("player") == 0 , rangedTarget , "|cff1eff00ShieldBarrier_Aggro" },
-	{ warrior.spells["ShieldBarrier"] , playerIsTanking and jps.hp("player") < 0.60 and UnitGetIncomingHeals("player") == 0 , rangedTarget , "|cff1eff00ShieldBarrier_Threat" },
-	{ warrior.spells["ShieldBarrier"] , playerIsTanking and jps.hp("player") < 0.40 , rangedTarget , "|cff1eff00ShieldBarrier_Threat_40" },
-
-	-- DAMAGE
-	-- "Execute" 5308 "Exécution" -- Buff "Shield Charge" 169667
 	{ warrior.spells["Execute"], jps.hp(rangedTarget) < 0.20 and jps.rage() > 89 , rangedTarget , "Execute_DumpRage" },
 	{ warrior.spells["Execute"] , jps.buff(152276) and not jps.buff(169667) and jps.hp(rangedTarget) < 0.20 and jps.rage() > 59 , rangedTarget , "Execute_UnBuff" },
 	-- "Heroic Throw" 57755 "Lancer héroïque"
@@ -274,6 +269,8 @@ local spellTable = {
 	{ warrior.spells["DragonRoar"] , jps.IsSpellKnown(118000) and inMelee and jps.buff(12880) , rangedTarget , "DragonRoar" },
 	-- "Bladestorm" 46924 "Tempête de lames"
 	{ warrior.spells["Bladestorm"] , jps.IsSpellKnown(46924) and inMelee and jps.buff(12880) , rangedTarget , "Bladestorm" },
+	-- "Shockwave" 46968 "Onde de choc"
+	{ warrior.spells["Shockwave"] , jps.IsSpellKnown(46968) and inMelee and jps.buff(12880) , rangedTarget , "Shockwave" },
 	-- "Ravager" 152277 -- 40 yd range
 	{ warrior.spells["Ravager"] , jps.IsSpellKnown(152277) and jps.buff(12880) , rangedTarget , "Ravager" },
 

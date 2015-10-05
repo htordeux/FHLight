@@ -137,12 +137,14 @@ local playerIsInterrupt = jps.InterruptEvents() -- return true/false ONLY FOR PL
 local playerWasControl = jps.ControlEvents() -- return true/false Player was interrupt or stun 2 sec ago ONLY FOR PLAYER
 local hasControl = HasFullControl() -- returns true /false if the player character can be controlled (i.e. isn't feared, charmed...)
 local Enrage = jps.buff(12880) -- "Enrage" 12880 "Enrager"
-local inMelee = IsItemInRange("Heavy Silk Bandage","target") -- FAIL!
---FAIL! local inMelee = jps.IsSpellInRange(163201,"target") -- "Execute" 163201
+--local inMelee = IsItemInRange("Heavy Silk Bandage","target") -- FAIL!
+local inMelee = jps.IsSpellInRange(163201,"target") -- "Execute" 163201
 --FAIL! local inMeleeRange = select(6, GetSpellInfo(163201)) -- "Execute" 163201
      --if inMeleeRange <= 6 then inMelee = true end
 local inRanged = jps.IsSpellInRange(57755,"target") -- "Heroic Throw" 57755 "Lancer héroïque"
 local inAoE = CheckInteractDistance("target", 3)
+local inCombat = UnitAffectingCombat("player") -- not necessarily inMelee, inRanged, inAoE
+local mounted = IsMounted()
 local creatureType = UnitCreatureType("target")
 
 ----------------------
@@ -185,6 +187,16 @@ end
 if canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
 local TargetMoving = select(1,GetUnitSpeed(rangedTarget)) > 0
 
+local ClassCounters = {
+   { 1499, jps.debuff("psychic scream","player") }, -- Fear
+   { 1499, jps.debuff("fear","player") }, -- Fear
+   { 1499, jps.debuff("intimidating shout","player") }, -- Fear
+   { 1499, jps.debuff("howl of terror","player") }, -- Fear
+   { 1499, jps.debuff("mind control","player") }, -- Charm
+   { 1499, jps.debuff("seduction","player") }, -- Charm
+   { 1499, jps.debuff("wyvern sting","player") }, -- Sleep
+}
+
 ------------------------
 -- SPELL TABLE ---------
 ------------------------
@@ -197,13 +209,20 @@ local spellTable = {
    -- "Bladestorm" 46924 "Tempête de lames" -- Storm Bolt debuff is 132169
    { 46924, jps.combatStart > 0 and jps.debuff(132169) and inAoE , rangedTarget , "_BoltBladestorm" },
    
+   -- CLASS COUNTERS -- share 30s cd with trinket
+   --{ "nested", jps.UseCDs , ClassCounters },
+   { 1499, not hasControl and jps.combatStart > 0 , "player" , "enrage_hasControl" },
+   { 1499, playerIsStun and jps.combatStart > 0 , "player" , "enrage_stun" },
+   
    -- BUFFS --
-   -- "Battle Stance"" 2457 -- "Defensive Stance" 71
-   { 2457, playerVirtualHP > 0.30 and not jps.buff(2457) and not jps.buff(46924) , "player" },
+   -- "Battle Stance" 2457
+   { 2457, playerVirtualHP > 0.30 and not jps.buff(2457) and not jps.buff(46924) and not mounted and inCombat , "player" },
+   -- "Defensive Stance" 71 -- stay in def stance when not in combat for stealthies
+   { 71 , not inCombat , "player" },
    -- "Battle Shout" 6673 "Cri de guerre"
    { 6673, not jps.hasAttackPowerBuff("player") and not jps.buff(469) , "player" },
    -- "Commanding Shout" 469 "Cri de commandement"
-   { 469, not jps.buff(469) and jps.hasAttackPowerBuff("player") and not jps.buff(6673) , rangedTarget , "_CommandingShout" },
+   { 469, not jps.hasStaminaBuff("player") and jps.hasAttackPowerBuff("player") , rangedTarget , "_CommandingShout" },
 
    -- INTERRUPTS --
    { "nested", jps.Interrupts,{
@@ -223,7 +242,7 @@ local spellTable = {
    }},
    
    -- DAMAGE MITIGATION --
-   -- "Charge" 100
+   -- "Charge" 100 -- charge to pushback
    { 100, jps.fallingFor() > 0.2 and jps.IsSpellInRange(100,rangedTarget) , rangedTarget , "_ChargeFalling"},
    -- "Intervene" 3411
    { 3411, jps.hp(myHealer) < 0.30 and jps.FriendAggro(myHealer) , myHealer , "_InterveneHealer" },
@@ -238,19 +257,19 @@ local spellTable = {
       { 20594 , jps.canDispel("player",{"Magic","Poison","Disease","Curse"}) , rangedTarget , "_Stoneform" },
       -- "Defensive Stance" -- While bladestorm to minimize damage to player
       { 71 , jps.buff(46924) },
-      
+     
       -- LOW HEALTH CASCADE -- Commanding Shout > Rallying Cry > Enraged Regeneration
       -- "Defensive Stance"
-      { 71 , not jps.buff(71) and playerhealth_pct < 0.30 },            
+      { 71 , not jps.buff(71) and playerhealth_pct < 0.30 },           
       -- "Commanding Shout" 469
-      { 469, not jps.hasStaminaBuff and playerhealth_pct < 0.30 , "player" , "_ComShoutLowHP" },
+      { 469, not jps.hasStaminaBuff("player") and playerhealth_pct < 0.30 , "player" , "_ComShoutLowHP" },
       -- "Rallying Cry" 97462 -- 15% increase to maximum health for 10 sec.
       { 97462, playerVirtualHP < 0.30 , "player" , "_RallyCry" },
       -- "Enraged Regeneration" 55694 "Régénération enragée"
       { 55694, jps.buff(97463) , "player" , "_EnragedRegen_RallyCry" },
-      { 55694, playerhealth_pct < 0.30 and playerIsStun , "player" , "_EnragedRegen_Stun" },
+      { 55694, playerhealth_pct < 0.30 and playerIsStun and playerAggro , "player" , "_EnragedRegen_Stun" },
       { 55694, playerVirtualHP < 0.30 , "player" , "_EnragedRegen" },
-      
+     
       -- "Victory Rush" 34428 "Ivresse de la victoire" -- "Victorious" 32216 "Victorieux" -- Ivresse de la victoire activée.
       { 34428, playerhealth_pct < 0.85 , rangedTarget , "_VictoryRush" },
       { 34428, jps.buffDuration(32216) < 4 , rangedTarget , "_VictoryRush" },
@@ -258,14 +277,14 @@ local spellTable = {
       { {"macro","/use item:5512"} , jps.combatStart > 0 and jps.itemCooldown(5512)==0 and playerhealth_pct < 0.50 , rangedTarget , "_UseItem"},
       -- "Die by the Sword" 118038
       { 118038 , ClassEnemy == "cac" and playerVirtualHP < 0.30 , rangedTarget , "_DieSword" },
-      -- "Shield Barrier" 112048 "Barrière protectrice" -- "Defensive Stance" 71
-      { 112048, ClassEnemy == "cac" and jps.buff(71) and not jps.buff(118038) and playerVirtualHP < 0.30 },
+      -- "Shield Barrier" 174926 "Barrière protectrice" -- "Defensive Stance" 71
+      { 174926, ClassEnemy == "cac" and jps.buff(71) and not jps.buff(174926) and playerVirtualHP < 0.30 },
    }},
 
    -- "Heroic Throw" 57755 "Lancer héroïque"
    { 57755, inRanged and not inMelee , rangedTarget , "_HeroicThrow" },
    -- "Charge" 100
-   { 100, jps.UseCDs and jps.IsSpellInRange(100,rangedTarget) , rangedTarget , "_Charge"},
+   { 100, UnitIsPlayer("target") and jps.UseCDs and jps.IsSpellInRange(100,rangedTarget) , rangedTarget , "_Charge"},
    { 100, jps.UseCDs and TargetMoving , rangedTarget , "_MoveCharge"},   
    -- "Hamstring" 1715
    { 1715, not jps.debuff(1715) and not UnitClass("druid") and not isBoss , rangedTarget , "_Hamstring"},
@@ -351,12 +370,10 @@ end, "Warrior Arms PvP")
 
 -- TO DO FOR PVP --
 -- C=conceptual, T=to do, W=working, U=unsure if working, N=not working
---W Commanding Shout if low hp and aggro.
+--T Dont blow major burst when target is above 50% virtual health.
+   -- Healer above 30% or defensives on cd
 --U Dont cast ccs when target is already ccd.
---W Add myHealer to jphealing.
---W Intervene to healer if needs help. myHealer
 --T Create peel rotation for healer.
---W Charge to target if falling.
 --N Fix blowing rage on whirlwind when not in range of target. inAoE
 --T Smart trinket use. Conditional for DPS, defensive, etc.
 --T Auto-choose enemy healer as target.
@@ -364,25 +381,13 @@ end, "Warrior Arms PvP")
 --U No Storm Bolt or Int Shout if target is stunned.
 --T On mouseover of target, Heroic Leap if Charge is out of range or on cd.
 --T Pop burst damage when opponent has low defense. BuffEnemyDefense
---N Pop defensives to counter opponent burst damage. BuffEnemyBurst
-   -- Die by the Sword, Defensive Stance, Shield Barrier.
-      -- FAIL! error :(
-         --jpevents.lua:280 - Error Interface\AddOns\JPS\Rotations\
-         --warrior_arms.lua:325: Usage: UnitAffectingCombat("unit")
-         --on OnUpdate function function: 0x1cc93c6f0
---W Bladestorm when target is Storm Bolt stunned.
---W Add Divine Shield, Ice Block, Deterrence to cyclone function.
 --T Use playerTTD to fine tune defensives.
---W Fix blowing Int Shout or Storm Bolt if either was just cast.
---W Add Int Shout to interrupts.
 --C PoachKill: Auto-target lowest health enemy in range if efc or enemy healer is not current target.
 --C TargetPetOwner: Target the owner of a pet attacking player.
    -- Read tooltip text?
 --U Taunt pet off healer.
---W Switch to Defensive Stance when Bladestorm is active.
 --T Totem stomp.
---W Account for incoming heals for effective health. playerVirtualHP
---N Ensure character is in Defensive Stance if OOC. :( Not working.
+--W Ensure character is in Defensive Stance if OOC.
 --T Switch target to unit targeting healer if Intervene.
 --T Reacquire target if target blinks or feign death.
 --U Berserk rage out of sap. Other stuns to be included later.

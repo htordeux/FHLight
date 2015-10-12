@@ -139,5 +139,3 @@ warrior.spells["HeroicStrike"] = toSpellName(78)
 warrior.spells["ThunderClap"] = toSpellName(6343)
 -- "Revenge" 6572 "Revanche"
 warrior.spells["Revenge"] = toSpellName(6572)
--- "Shield Slam" 23922 "Heurt de bouclier"
-warrior.spells["ShieldSlam"] = toSpellName(23922)

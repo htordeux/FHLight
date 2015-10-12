@@ -292,8 +292,8 @@ end)
 local debugFaceTarget = function ()
 	if jps.checkTimer("FacingBug") > 0 and jps.checkTimer("Facing") == 0 then
 		TurnLeftStop()
---	elseif jps.checkTimer("FarAwayBug") > 0 and jps.checkTimer("FarAway") == 0 then
---		MoveForwardStop()
+	elseif jps.checkTimer("FarAwayBug") > 0 and jps.checkTimer("FarAway") == 0 then
+		MoveForwardStop()
 	end
 end
 
@@ -452,7 +452,7 @@ end)
 -- Leave Combat
 local leaveCombat = function()
 	if jps.checkTimer("FacingBug") > 0 then TurnLeftStop() end
-	--if jps.checkTimer("FarAwayBug") > 0 and jps.Moving then MoveForwardStop() end
+	if jps.checkTimer("FarAwayBug") > 0 and jps.Moving then MoveForwardStop() end
 	jps.Opening = true
 	jps.Combat = false
 	jps.gui_toggleCombat(false)
@@ -512,6 +512,9 @@ end
 -- EVENT FUNCTIONS SPELL
 --------------------------
 
+local classNames = { "WARRIOR", "PALADIN", "HUNTER", "ROGUE", "PRIEST", "DEATHKNIGHT", "SHAMAN", "MAGE", "WARLOCK", "MONK", "DRUID" }
+local _,classPlayer,_ = UnitClass("player")
+
 -- UI_ERROR_MESSAGE
 jps.listener.registerEvent("UI_ERROR_MESSAGE", function(event_error)
 	-- "UI_ERROR_MESSAGE" returns ONLY one arg1
@@ -539,9 +542,11 @@ jps.listener.registerEvent("UI_ERROR_MESSAGE", function(event_error)
 			-- La technique n'est pas encore disponible
 		elseif jps.FaceTarget and not jps.Moving and event_error == ERR_BADATTACKPOS then
 			--print("ERR_BADATTACKPOS - %s", event_error) -- Vous êtes trop loin ! -- Hors de portée
-			--jps.createTimer("FarAway",1)
-			--jps.createTimer("FarAwayBug",2)
-			--MoveForwardStart()
+			if classPlayer == "WARRIOR" then
+				jps.createTimer("FarAway",1)
+				jps.createTimer("FarAwayBug",2)
+				MoveForwardStart()
+			end
 		end
 end)
 
@@ -609,7 +614,9 @@ jps.listener.registerEvent("UNIT_SPELLCAST_SUCCEEDED", function(unitID,spellname
 		jps.CurrentCastInterrupt = nil
 		if jps.FaceTarget then
 			if jps.checkTimer("FacingBug") > 0 then TurnLeftStop() end
-			--if jps.checkTimer("FarAwayBug") > 0 then MoveForwardStop() end
+			if classPlayer == "WARRIOR" then
+				if jps.checkTimer("FarAwayBug") > 0 then MoveForwardStop() end
+			end
 		end
 		if ((jps.Class == "Druid" and jps.Spec == "Feral") or jps.Class == "Rogue") then
 			-- "Druid" -- 5221 -- "Shred" -- "Ambush" 8676
@@ -1034,6 +1041,12 @@ end
 ----------------------------------------------------------------------------------------------------------------
 -------------------------------------------------- ANTI AFK ----------------------------------------------------
 ----------------------------------------------------------------------------------------------------------------
+
+
+-- classDisplayName, class, classID = UnitClass("unit")
+-- classDisplayName: String - Localized class name, suitable for use in user interfaces; e.g. "Mage", "Warrior", "Guerrier".
+-- class: String - Localization-independent class name, used as some table keys; e.g. "MAGE", "WARRIOR", "DEATHKNIGHT".
+-- classID: Number (classId)
 
 local buffclassNames = {
 	["WARRIOR"] = jps.toSpellName(6673), -- "Battle Shout" 6673 "Cri de guerre"

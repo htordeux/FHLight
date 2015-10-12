@@ -115,9 +115,6 @@ local TargetMoving = select(1,GetUnitSpeed(rangedTarget)) > 0
 ------------------------
 
 local spellTable = {
-
-	-- "Heroic Leap" 6544 "Bond héroïque"
-	{ warrior.spells["HeroicLeap"] , IsControlKeyDown() , "player" },
 	
 	-- BUFFS
 	-- "Gladiator Stance" 156291 -- Talent "Gladiator's Resolve" 152276
@@ -128,6 +125,13 @@ local spellTable = {
 	{ warrior.spells["BattleShout"] , not jps.hasAttackPowerBuff("player") , "player" },
 	-- "Commanding Shout" 469 "Cri de commandement"
 	{ warrior.spells["CommandingShout"] , jps.hasAttackPowerBuff("player") and jps.myBuffDuration(6673,"player") == 0 and not jps.buff(469) , "player" },
+	
+	-- "Heroic Leap" 6544 "Bond héroïque"
+	{ warrior.spells["HeroicLeap"] , IsControlKeyDown() , "player" },
+	-- "Heroic Throw" 57755 "Lancer héroïque"
+	{ warrior.spells["HeroicThrow"] , inRanged and not inMelee , rangedTarget , "Heroic Throw" },
+	-- "Charge" 100
+	{ warrior.spells["Charge"], jps.UseCDs and jps.IsSpellInRange(100,rangedTarget) , rangedTarget , "Charge"},
 
 	-- INTERRUPTS --
 	-- "Spell Reflection" 23920 "Renvoi de sort" --renvoyez le prochain sort lancé sur vous. Dure 5 s. Buff same spellId
@@ -165,8 +169,8 @@ local spellTable = {
 	-- "Proteger" 114029 -- "Intervention" 3411
 	{ 3411, not UnitIsUnit(myTank,"player") and jps.hp(myTank) < 0.30 and jps.hp("player") > 0.85 and UnitCanAssist("player",myTank) , myTank , "Intervention_myTank" },
 	{ 114029, not UnitIsUnit(myTank,"player") and jps.hp(myTank) < 0.30 and jps.hp("player") > 0.85 and UnitCanAssist("player",myTank) , myTank , "Proteger_myTank" },
-	{ 3411, not UnitIsUnit("targettarget","player") and jps.hp("targettarget") < 0.30 and jps.hp("player") > 0.85 , "targettarget" , "Intervention_Aggro" },
-	{ 114029, not UnitIsUnit("targettarget","player") and jps.hp("targettarget") < 0.30 and jps.hp("player") > 0.85 , "targettarget" , "Proteger_Aggro" },
+	{ 3411, not UnitIsUnit("targettarget","player") and jps.hp("targettarget") < 0.30 and jps.hp("player") > 0.85 and UnitCanAssist("player","targettarget") , "targettarget" , "Intervention_Aggro" },
+	{ 114029, not UnitIsUnit("targettarget","player") and jps.hp("targettarget") < 0.30 and jps.hp("player") > 0.85 and UnitCanAssist("player","targettarget") , "targettarget" , "Proteger_Aggro" },
 	-- "Provocation" 355
 	{ 355, jps.Defensive and jps.buff(71) and not UnitIsUnit("targettarget","player") , "target" , "Provocation" },
 	-- "Demoralizing Shout" 1160 "Cri démoralisant"
@@ -184,6 +188,8 @@ local spellTable = {
 	
 	-- "Revenge" 6572 "Revanche" -- Buff "Shield Charge" 169667
 	{ warrior.spells["Revenge"] , inMelee , rangedTarget , "Revenge" },
+	-- "Shield Slam" 23922 "Heurt de bouclier" -- Buff "Sword and Board" 50227 "Epée et bouclier"
+	{ warrior.spells["ShieldSlam"] , inMelee and jps.buff(50227) and jps.buff(169667) , rangedTarget , "ShieldSlam_SwordBoard_Buff" },
 
 	-- "Shield Charge" 156321 "Charge de bouclier" -- Buff "Shield Charge" 169667 -- "Bloodbath" 12292 "Bain de sang"
 	-- Increasing the damage of "Shield Slam" 23922 "Heurt de bouclier" , "Revenge" 6572 "Revanche" and "Heroic Strike" 78 "Frappe héroïque" by 25% for 7 sec
@@ -216,6 +222,18 @@ local spellTable = {
 		-- Dump Rage
 		{ warrior.spells["Bloodbath"], jps.rage() > 89 and jps.buff(50227) , rangedTarget , "|cFFFF0000Bloodbath_DumpRage" },
 	}},
+	
+	-- DAMAGE
+	-- "Dévaster" 20243 "Devastate" -- Buff "Unyielding Strikes" 169686 "Frappes inflexibles" 169686 -- Cumulable jusqu’à 6 fois
+	{ warrior.spells["Devastate"] , inMelee and jps.buffDuration(169686) < 1 and jps.buffStacks(169686) < 6, rangedTarget , "Devastate_BuffDuration" },
+	-- "Shield Slam" 23922 "Heurt de bouclier" -- Buff "Sword and Board" 50227 "Epée et bouclier"
+	{ warrior.spells["ShieldSlam"] , jps.buff(50227) , rangedTarget , "ShieldSlam_SwordBoard" },
+	{ warrior.spells["ShieldSlam"] , inMelee , rangedTarget , "ShieldSlam" },
+	
+	-- DEFENSIVE
+	-- "Enraged Regeneration" 55694 "Régénération enragée"
+	{ warrior.spells["EnragedRegeneration"] , jps.MagicDamage and jps.hpInc("player") < 0.80 , rangedTarget , "|cff1eff00EnragedRegeneration_Magic" },
+	{ warrior.spells["EnragedRegeneration"] , jps.PhysicalDamage and jps.hpInc("player") < 0.80 , rangedTarget , "|cff1eff00EnragedRegeneration_Physiq" },
 
 	-- MULTITARGET
 	{"nested", jps.MultiTarget and inMelee ,{
@@ -227,26 +245,19 @@ local spellTable = {
 		{ warrior.spells["ThunderClap"] , inMelee , rangedTarget , "ThunderClap" },
 	}},
 
-	-- DAMAGE
-	-- "Dévaster" 20243 "Devastate" -- Buff "Unyielding Strikes" 169686 "Frappes inflexibles" 169686 -- Cumulable jusqu’à 6 fois
-	{ warrior.spells["Devastate"] , inMelee and jps.buffDuration(169686) < 1 and jps.buffStacks(169686) < 6, rangedTarget , "Devastate_BuffDuration" },
-	{ warrior.spells["Devastate"] , inMelee and jps.rage() < 20 and not jps.buff(122509) and not jps.buff(50227) , rangedTarget , "Devastate_LowRage" },
-
-	-- "Shield Slam" 23922 "Heurt de bouclier" -- Buff "Sword and Board" 50227 "Epée et bouclier"
-	{ warrior.spells["ShieldSlam"] , jps.buff(50227) , rangedTarget , "ShieldSlam_SwordBoard" },
-	{ warrior.spells["ShieldSlam"] , inMelee , rangedTarget , "ShieldSlam" },
-	-- "Heroic Strike" 78 "Frappe héroïque" -- Buff "Ultimatum" 122509 -- HS cost no rage & crtique
-	{ warrior.spells["HeroicStrike"] , jps.buff(122509) , rangedTarget , "HeroicStrike_Ultimatum" },
-	{ warrior.spells["HeroicStrike"] , jps.rage() > 105 and jps.buff(50227) , rangedTarget , "HeroicStrike_DumpRage_SwordBoard" },
+	-- "Execute" 5308 "Exécution" -- Buff "Mort soudaine" 29725
+	{ warrior.spells["Execute"], jps.buff(29725) , rangedTarget , "Execute_SuddenDeath" },
 	-- "Heroic Strike" 78 "Frappe héroïque" -- Buff "Unyielding Strikes" 169686 "Frappes inflexibles" 169686 -- Cumulable jusqu’à 6 fois
 	{ warrior.spells["HeroicStrike"] , jps.buffStacks(169686) == 6 , rangedTarget , "HeroicStrike_6_Strikes" },
+	-- "Heroic Strike" 78 "Frappe héroïque" -- Buff "Ultimatum" 122509 -- HS cost no rage & crtique
+	{ warrior.spells["HeroicStrike"] , jps.buff(122509) , rangedTarget , "HeroicStrike_Ultimatum" },
+	-- "Dévaster" 20243 "Devastate"
+	{ warrior.spells["Devastate"] , inMelee and jps.rage() < 20 , rangedTarget , "Devastate_LowRage" },
+	-- "Heroic Strike" 78 "Frappe héroïque"
 	{ warrior.spells["HeroicStrike"] , jps.buff(156291) and jps.rage() > 89 and jps.hp(rangedTarget) > 0.20 , rangedTarget , "HeroicStrike_DumpRage" },
 	{ warrior.spells["HeroicStrike"] , jps.buff(71) and jps.rage() > 89 and jps.hp(rangedTarget) > 0.20 and jps.hp("player") > 0.60 , rangedTarget , "HeroicStrike_DumpRage" },
 
 	-- DEFENSIVE
-	-- "Enraged Regeneration" 55694 "Régénération enragée"
-	{ warrior.spells["EnragedRegeneration"] , jps.MagicDamage and jps.hpInc("player") < 0.80 , rangedTarget , "|cff1eff00EnragedRegeneration_Magic" },
-	{ warrior.spells["EnragedRegeneration"] , jps.PhysicalDamage and jps.hpInc("player") < 0.80 , rangedTarget , "|cff1eff00EnragedRegeneration_Physiq" },
 	-- "Shield Block" 2565 "Maîtrise du blocage" -- works against physical attacks, it does nothing against magic -- Buff "Shield Block" 132404 -- 60 rage
 	{ warrior.spells["ShieldBlock"] , jps.buff(71) and jps.PhysicalDamage and not jps.buff(132404) and jps.hp("player") < 0.80 , rangedTarget , "|cff1eff00ShieldBlock_PhysicalDmg" },
 	-- "Shield Barrier" 112048 "Barrière protectrice" -- Shield Barrier works against all types of damage (excluding fall damage) -- 20 + 40 rage
@@ -255,14 +266,9 @@ local spellTable = {
 	{ warrior.spells["ShieldBarrier"] , playerAggro and jps.hp("player") < 0.60 and UnitGetIncomingHeals("player") == 0 , rangedTarget , "|cff1eff00ShieldBarrier_Aggro" },
 
 	-- DAMAGE
-	-- "Execute" 5308 "Exécution" -- Buff "Mort soudaine" 29725 -- Buff "Shield Charge" 169667
-	{ warrior.spells["Execute"], jps.buff(29725) , rangedTarget , "Execute_SuddenDeath" },
+	-- "Execute" 5308 "Exécution" -- Buff "Shield Charge" 169667
 	{ warrior.spells["Execute"], jps.hp(rangedTarget) < 0.20 and jps.rage() > 89 , rangedTarget , "Execute_DumpRage" },
-	{ warrior.spells["Execute"] , jps.buff(152276) and not jps.buff(169667) and jps.hp(rangedTarget) < 0.20 and jps.rage() > 59 , rangedTarget , "Execute_UnBuff" },
-	-- "Heroic Throw" 57755 "Lancer héroïque"
-	{ warrior.spells["HeroicThrow"] , inRanged and not inMelee , rangedTarget , "Heroic Throw" },
-	-- "Charge" 100
-	{ warrior.spells["Charge"], jps.UseCDs and jps.IsSpellInRange(100,rangedTarget) , rangedTarget , "Charge"},
+	{ warrior.spells["Execute"] , jps.buff(152276) and not jps.buff(169667) and jps.hp(rangedTarget) < 0.20 and jps.rage() > 59 , rangedTarget , "Execute_UnBuff_Rage" },
 
 	-- TALENTS
 	-- "Storm Bolt" 107570 "Eclair de tempete" -- 30 yd range
@@ -279,10 +285,12 @@ local spellTable = {
 	-- "Execute" 5308 "Exécution" -- Buff "Shield Charge" 169667
 	{ warrior.spells["Execute"] , jps.buff(152276) and not jps.buff(169667) and jps.hp(rangedTarget) < 0.20 , rangedTarget , "Execute_UnBuff" },
 	-- "Heroic Strike" 78 "Frappe héroïque" -- "Bloodbath" 12292 "Bain de sang"
-	{ warrior.spells["HeroicStrike"] , jps.buff(169667) , rangedTarget , "HeroicStrike_ShieldCharge" },
-	{ warrior.spells["HeroicStrike"] , jps.buff(12292) and jps.buffStacks(169686) > 3 , rangedTarget , "HeroicStrike_Bloodbath" },
+	{ warrior.spells["HeroicStrike"] , jps.buff(169667) and jps.buffStacks(169686) > 3 , rangedTarget , "HeroicStrike_ShieldCharge_Strikes" },
+	{ warrior.spells["HeroicStrike"] , jps.buff(12292) and jps.buffStacks(169686) > 3 , rangedTarget , "HeroicStrike_Bloodbath_Strikes" },
+	{ warrior.spells["HeroicStrike"] , jps.buff(169667) and jps.rage() > 59 , rangedTarget , "HeroicStrike_ShieldCharge_Rage" },
+	{ warrior.spells["HeroicStrike"] , jps.buff(12292) and jps.rage() > 59 , rangedTarget , "HeroicStrike_Bloodbath_Rage" },
 	-- "Dévaster" 20243 "Devastate" -- Dévaster réduit le coût en rage de Frappe héroïque de 5 pendant 5 s.
-	{ warrior.spells["Devastate"] , true , rangedTarget , "Devastate" },
+	{ warrior.spells["Devastate"] , inMelee , rangedTarget , "Devastate" },
 
 }
 
@@ -311,3 +319,11 @@ jps.registerStaticTable("WARRIOR","PROTECTION",{
 
 }
 , "OOC Warrior Protection",false,false,true)
+
+
+--Rage Generation
+--Shield Slam: 20 Rage (+5 Rage if used during Sword and Board proc, and 30 if a Critical Strike), 6 second CD
+--Revenge: 20 Rage, 9 second CD
+--Charge: 20 Rage, 20 Second CD (Shares diminishing returns on the same target, only first Charge grants Rage)
+--Critical Blocks (Cause Enrage): 10 Rage, 3 second ICD
+--Berserker Rage (Cause Enrage): 10 Rage, 30 second CD

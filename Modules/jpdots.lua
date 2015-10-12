@@ -169,7 +169,7 @@ function dotTracker.shouldSpellBeCast(spellId, unit)
 	if not jps.canDPS(unit) then 
 		return false
 	end
-	if jps.Class == L["Warlock"] then
+	if jps.Class == "Warlock" then
 		if jps.Spec == "Destruction" then
 			if UnitName("target") == "Spore Shooter" then return false end -- we need a better logic for small adds... like on brackenspore, Mar'gok.. we never ever need to put immolate on them 
 		end

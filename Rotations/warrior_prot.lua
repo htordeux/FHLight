@@ -230,11 +230,6 @@ local spellTable = {
 	-- "Shield Slam" 23922 "Heurt de bouclier" -- Buff "Sword and Board" 50227 "Epée et bouclier"
 	{ warrior.spells["ShieldSlam"] , jps.buff(50227) , rangedTarget , "ShieldSlam_SwordBoard" },
 	{ warrior.spells["ShieldSlam"] , inMelee , rangedTarget , "ShieldSlam" },
-	
-	-- DEFENSIVE
-	-- "Enraged Regeneration" 55694 "Régénération enragée"
-	{ warrior.spells["EnragedRegeneration"] , jps.MagicDamage and jps.hpInc("player") < 0.80 , rangedTarget , "|cff1eff00EnragedRegeneration_Magic" },
-	{ warrior.spells["EnragedRegeneration"] , jps.PhysicalDamage and jps.hpInc("player") < 0.80 , rangedTarget , "|cff1eff00EnragedRegeneration_Physiq" },
 
 	-- MULTITARGET
 	{"nested", jps.MultiTarget and inMelee ,{
@@ -253,19 +248,18 @@ local spellTable = {
 	-- "Heroic Strike" 78 "Frappe héroïque" -- Buff "Ultimatum" 122509 -- HS cost no rage & crtique
 	{ warrior.spells["HeroicStrike"] , jps.buff(122509) , rangedTarget , "HeroicStrike_Ultimatum" },
 	-- "Dévaster" 20243 "Devastate"
-	{ warrior.spells["Devastate"] , inMelee and jps.rage() < 20 , rangedTarget , "Devastate_LowRage" },
+	{ warrior.spells["Devastate"] , jps.buff(71) and inMelee and jps.rage() < 20 , rangedTarget , "Devastate_LowRage" },
 	-- "Heroic Strike" 78 "Frappe héroïque"
 	{ warrior.spells["HeroicStrike"] , jps.buff(156291) and jps.rage() > 89 and jps.hp(rangedTarget) > 0.20 , rangedTarget , "HeroicStrike_DumpRage" },
-	{ warrior.spells["HeroicStrike"] , jps.buff(71) and jps.rage() > 89 and jps.hp(rangedTarget) > 0.20 and jps.hp("player") > 0.60 , rangedTarget , "HeroicStrike_DumpRage" },
+	{ warrior.spells["HeroicStrike"] , jps.buff(71) and jps.rage() > 89 and jps.hp(rangedTarget) > 0.20 and jps.hp("player") > 0.80 , rangedTarget , "HeroicStrike_DumpRage" },
 
 	-- DEFENSIVE
 	-- "Shield Block" 2565 "Maîtrise du blocage" -- works against physical attacks, it does nothing against magic -- Buff "Shield Block" 132404 -- 60 rage
 	{ warrior.spells["ShieldBlock"] , jps.buff(71) and jps.PhysicalDamage and not jps.buff(132404) and jps.hp("player") < 0.80 , rangedTarget , "|cff1eff00ShieldBlock_PhysicalDmg" },
-	{ warrior.spells["ShieldBlock"] , jps.buff(71) and jps.PhysicalDamage and jps.hp("player") < 0.50 , rangedTarget , "|cff1eff00ShieldBlock_PhysicalDmg" },
 	-- "Shield Barrier" 112048 "Barrière protectrice" -- Shield Barrier works against all types of damage (excluding fall damage) -- 20 + 40 rage
 	{ warrior.spells["ShieldBarrier"] , jps.buff(71) and jps.MagicDamage and not jps.buff(112048) and jps.hp("player") < 0.80 , rangedTarget , "|cff1eff00ShieldBarrier_MagicDmg" },
-	{ warrior.spells["ShieldBarrier"] , playerIsTanking and jps.hp("player") < 0.50 and UnitGetIncomingHeals("player") == 0 , rangedTarget , "|cff1eff00ShieldBarrier_Threat" },
-	{ warrior.spells["ShieldBarrier"] , playerAggro and jps.hp("player") < 0.50 and UnitGetIncomingHeals("player") == 0 , rangedTarget , "|cff1eff00ShieldBarrier_Aggro" },
+	{ warrior.spells["ShieldBarrier"] , playerIsTanking and jps.hp("player") < 0.50 and not jps.buff(112048) and UnitGetIncomingHeals("player") == 0 , rangedTarget , "|cff1eff00ShieldBarrier_Threat" },
+	{ warrior.spells["ShieldBarrier"] , playerAggro and jps.hp("player") < 0.50 and not jps.buff(112048) and UnitGetIncomingHeals("player") == 0 , rangedTarget , "|cff1eff00ShieldBarrier_Aggro" },
 
 	-- DAMAGE
 	-- "Execute" 5308 "Exécution" -- Buff "Shield Charge" 169667
@@ -324,8 +318,12 @@ jps.registerStaticTable("WARRIOR","PROTECTION",{
 
 
 --Rage Generation
---Shield Slam: 20 Rage (+5 Rage if used during Sword and Board proc, and 30 if a Critical Strike), 6 second CD
---Revenge: 20 Rage, 9 second CD
---Charge: 20 Rage, 20 Second CD (Shares diminishing returns on the same target, only first Charge grants Rage)
---Critical Blocks (Cause Enrage): 10 Rage, 3 second ICD
---Berserker Rage (Cause Enrage): 10 Rage, 30 second CD
+
+-- Critical strike with Devastate and Shield Slam
+-- Getting a critical block (thanks to your Mastery), due to your Enrage ability;
+-- Defensive Stance Icon Defensive Stance (1 Rage every 3 seconds, while in combat).
+-- Shield Slam: 20 Rage (+5 Rage if used during Sword and Board proc, and 30 if a Critical Strike), 6 second CD
+-- Revenge: 20 Rage, 9 second CD
+-- Charge: 20 Rage, 20 Second CD (Shares diminishing returns on the same target, only first Charge grants Rage)
+-- Critical Blocks (Cause Enrage): 10 Rage, 3 second CD
+-- Berserker Rage (Cause Enrage): 10 Rage, 30 second CD

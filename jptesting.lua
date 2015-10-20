@@ -88,7 +88,10 @@ function jps_Test()
 
 	Test()
 	--DkTest()
-
+--	TurnLeftStart()
+--	C_Timer.After(1,function() print("test") TurnLeftStop() end)
+--	MoveForwardStart()
+--	C_Timer.After(0.25,function() MoveForwardStop() end)
 end
 
 function jps_RaidTest()

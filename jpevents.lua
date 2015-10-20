@@ -289,14 +289,6 @@ jpsFrame:SetScript("OnUpdate", function(self, elapsed)
 end)
 
 --- EVENT HANDLER
-local debugFaceTarget = function ()
-	if jps.checkTimer("FacingBug") > 0 and jps.checkTimer("Facing") == 0 then
-		TurnLeftStop()
-	elseif jps.checkTimer("FarAwayBug") > 0 and jps.checkTimer("FarAway") == 0 then
-		MoveForwardStop()
-	end
-end
-
 jpsFrame:SetScript("OnEvent", function(self, event, ...)
 	if eventTable[event] then
 		if enableProfiling then startProfileMemory(event) end
@@ -308,8 +300,6 @@ jpsFrame:SetScript("OnEvent", function(self, event, ...)
 		end
 		if enableProfiling then endProfileMemory(event) end
 	end
-	-- Execute this code everytime
-	debugFaceTarget()
 end)
 
 --- COMBAT_LOG_EVENT_UNFILTERED Handler
@@ -451,8 +441,6 @@ end)
 
 -- Leave Combat
 local leaveCombat = function()
-	if jps.checkTimer("FacingBug") > 0 then TurnLeftStop() end
-	if jps.checkTimer("FarAwayBug") > 0 and jps.Moving then MoveForwardStop() end
 	jps.Opening = true
 	jps.Combat = false
 	jps.gui_toggleCombat(false)
@@ -531,9 +519,8 @@ jps.listener.registerEvent("UI_ERROR_MESSAGE", function(event_error)
 				local TargetObject = GetObjectFromGUID(TargetGuid)
 				TargetObject:Face ()
 			else
-				jps.createTimer("Facing",1)
-				jps.createTimer("FacingBug",2)
 				TurnLeftStart()
+				C_Timer.After(1,function() TurnLeftStop() end)
 			end
 		elseif (event_error == SPELL_FAILED_LINE_OF_SIGHT) or (event_error == SPELL_FAILED_VISION_OBSCURED) then
 			jps.BlacklistPlayer(jps.LastTarget)
@@ -541,11 +528,10 @@ jps.listener.registerEvent("UI_ERROR_MESSAGE", function(event_error)
 			-- print("ERR_ABILITY_COOLDOWN - %s", event_error)
 			-- La technique n'est pas encore disponible
 		elseif jps.FaceTarget and not jps.Moving and event_error == ERR_BADATTACKPOS then
-			--print("ERR_BADATTACKPOS - %s", event_error) -- Vous êtes trop loin ! -- Hors de portée
 			if classPlayer == "WARRIOR" then
-				jps.createTimer("FarAway",1)
-				jps.createTimer("FarAwayBug",2)
+				--print("ERR_BADATTACKPOS - %s", event_error) -- Vous êtes trop loin ! -- Hors de portée
 				MoveForwardStart()
+				C_Timer.After(0.25,function() MoveForwardStop() end)
 			end
 		end
 end)
@@ -612,12 +598,6 @@ end)
 jps.listener.registerEvent("UNIT_SPELLCAST_SUCCEEDED", function(unitID,spellname,_,_,spellID)
 	if (unitID == "player") and spellID then
 		jps.CurrentCastInterrupt = nil
-		if jps.FaceTarget then
-			if jps.checkTimer("FacingBug") > 0 then TurnLeftStop() end
-			if classPlayer == "WARRIOR" then
-				if jps.checkTimer("FarAwayBug") > 0 then MoveForwardStop() end
-			end
-		end
 		if ((jps.Class == "Druid" and jps.Spec == "Feral") or jps.Class == "Rogue") then
 			-- "Druid" -- 5221 -- "Shred" -- "Ambush" 8676
 			if (unitID == "player") and spellID == 5221 then 

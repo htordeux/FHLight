@@ -434,6 +434,11 @@ local spellTable = {
 	{ 2944, Orbs > 2 and jps.hp(rangedTarget) < 0.20 , rangedTarget , "PLAGUE_LowHealth" },
 	{ 2944, Orbs > 2 and jps.myDebuffDuration(34914,rangedTarget) > 3 and jps.myDebuffDuration(589,rangedTarget) > 3 , rangedTarget , "PLAGUE_Debuff" },
 
+	-- "Shadow Word: Pain" 589 -- "Shadow Word: Insanity" buff 132573	
+	{ 589, not jps.buff(132573) and fnPainEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "Pain_Mouseover_Orbs" },
+	{ 589, not jps.buff(132573) and fnPainEnemyTarget("focus") , "focus" , "Pain_Focus_Orbs" },
+	{ 589, type(PainEnemyTarget) == "string" and not UnitIsUnit(PainEnemyTarget,"target") , PainEnemyTarget , "Pain_MultiUnit" },
+	
 	-- "Mind Spike" 73510 -- "Surge of Darkness" gives buff -- "Surge of Darkness" 87160
 	{ 73510, jps.buffStacks(87160,"player") > 1 , rangedTarget , "Spike_SurgeofDarkness_Stacks" },
 	{ 73510, jps.buff(87160) and jps.hp(rangedTarget) < 0.20 , rangedTarget , "Spike_SurgeofDarkness_LowHealth" },
@@ -443,10 +448,6 @@ local spellTable = {
 	{ 73510, not jps.Moving and COP and not jps.myDebuff(158831,"mouseover") and jps.myDebuffDuration(34914,"mouseover") < 3 and jps.myDebuffDuration(589,"mouseover") < 3 , "mouseover" , "Spike_CoP_mouseover" },
 	{ 73510, not jps.Moving and COP and not jps.myDebuff(158831,"focus") and jps.myDebuffDuration(34914,"focus") < 3 and jps.myDebuffDuration(589,"focus") < 3 , "focus" , "Spike_CoP_focus" },
 
-	-- "Shadow Word: Pain" 589 -- "Shadow Word: Insanity" buff 132573	
-	{ 589, not jps.buff(132573) and fnPainEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "Pain_Mouseover_Orbs" },
-	{ 589, not jps.buff(132573) and fnPainEnemyTarget("focus") , "focus" , "Pain_Focus_Orbs" },
-	{ 589, type(PainEnemyTarget) == "string" and not UnitIsUnit(PainEnemyTarget,"target") , PainEnemyTarget , "Pain_MultiUnit" },
 	-- "Vampiric Touch" 34914 -- "Shadow Word: Insanity" buff 132573
 	{ 34914, not jps.buff(132573) and fnVampEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "VT_Mouseover_Orbs" },
 	{ 34914, not jps.buff(132573) and fnVampEnemyTarget("focus") , "focus" , "VT_Focus_Orbs" },

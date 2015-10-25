@@ -186,9 +186,26 @@ local spellTable = {
 	{ warrior.spells["BerserkerRage"] , not jps.buff(12880) and jps.buff(169667) , rangedTarget , "|cFFFF0000BerserkerRage" },
 	{ warrior.spells["BerserkerRage"] , not jps.buff(12880) and jps.buff(12292) , rangedTarget , "|cFFFF0000BerserkerRage" },
 	
-	-- "Revenge" 6572 "Revanche" -- Buff "Shield Charge" 169667
+	-- TALENTS
+	{"nested", jps.buff(12880) ,{
+		-- "Ravager" 152277 -- 40 yd range
+		{ warrior.spells["Ravager"] , jps.IsSpellKnown(152277) , rangedTarget , "Ravager_Enrage" },
+		-- "Storm Bolt" 107570 "Eclair de tempete" -- 30 yd range
+		{ warrior.spells["StormBolt"] , jps.IsSpellKnown(107570) , rangedTarget ,"StormBolt_Enrage" },
+		-- "Dragon Roar " 118000 -- 8 yards
+		{ warrior.spells["DragonRoar"] , jps.IsSpellKnown(118000) and inMelee , rangedTarget , "DragonRoar_Enrage" },
+		-- "Bladestorm" 46924 "Tempête de lames"
+		{ warrior.spells["Bladestorm"] , jps.IsSpellKnown(46924) and inMelee , rangedTarget , "Bladestorm_Enrage" },
+		-- "Shockwave" 46968 "Onde de choc"
+		{ warrior.spells["Shockwave"] , jps.IsSpellKnown(46968) and inMelee , rangedTarget , "Shockwave_Enrage" },
+	}},
+
+	-- "Heroic Strike" 78 "Frappe héroïque" -- "Execute" 5308 "Exécution"
+	{ warrior.spells["HeroicStrike"] , jps.cooldown(23922) < 1 and jps.rage() == 120 and jps.hp(rangedTarget) > 0.20 , rangedTarget , "HeroicStrike_120Rage" },
+	{ warrior.spells["Execute"], jps.cooldown(6572) < 1 and jps.rage() == 120 and jps.hp(rangedTarget) < 0.20, rangedTarget , "Execute_120Rage" },
+	-- "Revenge" 6572 "Revanche"
 	{ warrior.spells["Revenge"] , inMelee , rangedTarget , "Revenge" },
-	-- "Shield Slam" 23922 "Heurt de bouclier" -- Buff "Sword and Board" 50227 "Epée et bouclier"
+	-- "Shield Slam" 23922 "Heurt de bouclier" -- Buff "Sword and Board" 50227 "Epée et bouclier" -- Buff "Shield Charge" 169667
 	{ warrior.spells["ShieldSlam"] , inMelee and jps.buff(50227) and jps.buff(169667) , rangedTarget , "ShieldSlam_SwordBoard_Buff" },
 	{ warrior.spells["ShieldSlam"] , inMelee and jps.buff(71) , rangedTarget , "ShieldSlam_SwordBoard_Buff" },
 
@@ -247,11 +264,10 @@ local spellTable = {
 	{ warrior.spells["HeroicStrike"] , jps.buffStacks(169686) == 6 , rangedTarget , "HeroicStrike_6_Strikes" },
 	-- "Heroic Strike" 78 "Frappe héroïque" -- Buff "Ultimatum" 122509 -- HS cost no rage & crtique
 	{ warrior.spells["HeroicStrike"] , jps.buff(122509) , rangedTarget , "HeroicStrike_Ultimatum" },
-	-- "Dévaster" 20243 "Devastate"
-	{ warrior.spells["Devastate"] , jps.buff(71) and inMelee and jps.rage() < 20 , rangedTarget , "Devastate_LowRage" },
-	-- "Heroic Strike" 78 "Frappe héroïque"
 	{ warrior.spells["HeroicStrike"] , jps.buff(156291) and jps.rage() > 89 and jps.hp(rangedTarget) > 0.20 , rangedTarget , "HeroicStrike_DumpRage" },
 	{ warrior.spells["HeroicStrike"] , jps.buff(71) and jps.rage() > 89 and jps.hp(rangedTarget) > 0.20 and jps.hp("player") > 0.80 , rangedTarget , "HeroicStrike_DumpRage" },
+	-- "Dévaster" 20243 "Devastate"
+	{ warrior.spells["Devastate"] , jps.buff(71) and inMelee and jps.rage() < 20 , rangedTarget , "Devastate_LowRage" },
 
 	-- DEFENSIVE
 	-- "Shield Block" 2565 "Maîtrise du blocage" -- works against physical attacks, it does nothing against magic -- Buff "Shield Block" 132404 -- 60 rage
@@ -265,20 +281,6 @@ local spellTable = {
 	-- "Execute" 5308 "Exécution" -- Buff "Shield Charge" 169667
 	{ warrior.spells["Execute"], jps.hp(rangedTarget) < 0.20 and jps.rage() > 89 , rangedTarget , "Execute_DumpRage" },
 	{ warrior.spells["Execute"] , jps.buff(152276) and not jps.buff(169667) and jps.hp(rangedTarget) < 0.20 and jps.rage() > 59 , rangedTarget , "Execute_UnBuff_Rage" },
-
-	-- TALENTS
-	-- "Storm Bolt" 107570 "Eclair de tempete" -- 30 yd range
-	{ warrior.spells["StormBolt"] , jps.IsSpellKnown(107570) , rangedTarget ,"StormBolt" },
-	-- "Dragon Roar " 118000 -- 8 yards
-	{ warrior.spells["DragonRoar"] , jps.IsSpellKnown(118000) and inMelee and jps.buff(12880) , rangedTarget , "DragonRoar" },
-	-- "Bladestorm" 46924 "Tempête de lames"
-	{ warrior.spells["Bladestorm"] , jps.IsSpellKnown(46924) and inMelee and jps.buff(12880) , rangedTarget , "Bladestorm" },
-	-- "Shockwave" 46968 "Onde de choc"
-	{ warrior.spells["Shockwave"] , jps.IsSpellKnown(46968) and inMelee and jps.buff(12880) , rangedTarget , "Shockwave" },
-	-- "Ravager" 152277 -- 40 yd range
-	{ warrior.spells["Ravager"] , jps.IsSpellKnown(152277) and jps.buff(12880) , rangedTarget , "Ravager" },
-
-	-- "Execute" 5308 "Exécution" -- Buff "Shield Charge" 169667
 	{ warrior.spells["Execute"] , jps.buff(152276) and not jps.buff(169667) and jps.hp(rangedTarget) < 0.20 , rangedTarget , "Execute_UnBuff" },
 	-- "Heroic Strike" 78 "Frappe héroïque" -- "Bloodbath" 12292 "Bain de sang"
 	{ warrior.spells["HeroicStrike"] , jps.buff(169667) and jps.buffStacks(169686) > 3 , rangedTarget , "HeroicStrike_ShieldCharge_Strikes" },

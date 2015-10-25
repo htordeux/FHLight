@@ -483,7 +483,7 @@ spellTable = {
 	{ 2060, groupHealth > 0.80 and not jps.Moving and canHeal(myTank) and jps.debuff(6788,myTank) and LowestImportantUnitHpct > 0.50 and jps.hpAbs(myTank) < 0.90 , myTank , "Soins_Tank"  },
 
 	-- DAMAGE
-	{ "nested", LowestImportantUnitHpct > 0.80 and jps.MultiTarget and canDPS(rangedTarget) and type(LowestFriendTTD) == nil ,{
+	{ "nested", LowestImportantUnitHpct > 0.80 and jps.MultiTarget and canDPS(rangedTarget) ,{
 		-- "Mot de l'ombre: Douleur" 589
 		{ 589, jps.myDebuffDuration(589,rangedTarget) == 0 and jps.PvP , rangedTarget , "|cFFFF0000Douleur" },
 		{ 589, jps.myDebuffDuration(589,rangedTarget) == 0 and not IsInGroup() , rangedTarget , "|cFFFF0000Douleur" },
@@ -504,9 +504,9 @@ spellTable = {
 	{ 81700, LowestImportantUnitHpct < 0.50 and jps.buffStacks(81661) == 5 , "player", "ARCHANGE_Lowest" },
 	-- "Power Infusion" 10060 "Infusion de puissance"
 	{ 10060, jps.hp(myTank) < 0.50 , "player" , "POWERINFUSION_Tank" },
-	{ 10060, type(POHTarget) == "string" and LowestImportantUnitHpct < 0.50 , "player" , "POWERINFUSION_POH" },
-	{ 10060, type(LowestFriendTTD) == "string" and LowestImportantUnitHpct < 0.50 , "player" , "POWERINFUSION_TTD" },
-	{ 10060, CountFriendLowest > 3 and LowestImportantUnitHpct < 0.50 , "player" , "POWERINFUSION_Count" },
+	{ 10060, type(POHTarget) == "string" , "player" , "POWERINFUSION_POH" },
+	{ 10060, type(LowestFriendTTD) == "string" , "player" , "POWERINFUSION_TTD" },
+	{ 10060, LowestImportantUnitHpct < 0.50 , "player" , "POWERINFUSION_Count" },
 	-- SNM Troll "Berserker" 26297 -- haste buff
 	{ 26297, type(POHTarget) == "string" , "player" },
 	{ 26297, type(LowestFriendTTD) == "string" , "player" },

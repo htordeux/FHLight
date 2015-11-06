@@ -154,7 +154,6 @@ local priestHoly = function()
 	end
 
 	-- DISPEL --
-	local BossDebuffFriend = jps.FindMeBossDebuff()
 	local DispelFriend = jps.FindMeDispelTarget( {"Magic"} ) -- {"Magic", "Poison", "Disease", "Curse"}
 
 	local DispelFriendRole = nil

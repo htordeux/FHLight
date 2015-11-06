@@ -269,12 +269,47 @@ function jps.hasSimilarBuff(buffName, unit)
 	return false
 end
 
--- checks if our whole(valid) raid is buffed with a specific buff
---function jps.raidIsBuffed(buff) 
---	for unit, _ in pairs(jps.RaidStatus) do
---		if jps.UnitExists(unit) then
---			if not jps.hasSimilarBuff(buff, unit) then return false end
---		end
---	end
---	return true
---end
+---------------------------------------------
+-- BOSS DEBUFF
+---------------------------------------------
+
+function CreateFlasher()
+
+    local frameImage = "Interface\\FullScreenTextures\\LowHealth" -- "Interface\\FullScreenTextures\\OutofControl"
+    local frameName = "WarningFrame";
+	local flasher = CreateFrame("Frame", frameName)
+	flasher:SetToplevel(true)
+	flasher:SetFrameStrata("FULLSCREEN_DIALOG")
+	flasher:SetAllPoints(UIParent)
+	flasher.texture = flasher:CreateTexture(nil, "BACKGROUND")
+	flasher.texture:SetTexture(frameImage)
+	flasher.texture:SetAllPoints(UIParent)
+	flasher.texture:SetBlendMode("ADD")
+	flasher:Show()
+
+ 	flasher:SetScript("OnUpdate", function(self, elapsed)
+		if self.TimeSinceLastUpdate == nil then self.TimeSinceLastUpdate = 0 end
+		self.TimeSinceLastUpdate = self.TimeSinceLastUpdate + elapsed
+		if self.TimeSinceLastUpdate > 2 then
+			flasher:Hide()
+			self.TimeSinceLastUpdate = 0
+		end
+	end)
+	
+ end
+ 
+function CreateMessage(message)
+
+	local msg = CreateFrame("MessageFrame", nil, UIParent)
+	msg:SetPoint("LEFT", UIParent)
+	msg:SetPoint("RIGHT", UIParent)
+	msg:SetPoint("TOP", 0, -500) -- set vertical position here
+	msg:SetHeight(25)
+	msg:SetInsertMode("TOP")
+	msg:SetFrameStrata("HIGH")
+	msg:SetTimeVisible(1)
+	msg:SetFadeDuration(2)
+	msg:SetFont(STANDARD_TEXT_FONT, 25, "OUTLINE")
+	msg:AddMessage(message,1,0,0,1)
+
+end

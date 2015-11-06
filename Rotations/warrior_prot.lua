@@ -110,6 +110,10 @@ end
 if canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
 local TargetMoving = select(1,GetUnitSpeed(rangedTarget)) > 0
 
+local BossDebuff = jps.BossDebuff("player")
+if jps.hp("player") < 0.25 then CreateFlasher() end
+if BossDebuff then CreateMessage("BOSS DEBUFF") end
+
 ------------------------
 -- SPELL TABLE ---------
 ------------------------

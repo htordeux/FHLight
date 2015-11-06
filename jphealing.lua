@@ -47,7 +47,6 @@ local RaidStatus = {}
 local RaidRoster = {}
 
 jps.UpdateRaidStatus = function ()
-
 	local unit = nil
 	local grouptype = nil
 	local nps = 0
@@ -152,7 +151,7 @@ function jps.findTankInRaid()
 		end
 	end
 	tsort(TankUnit, function(a,b) return HealthPct(a) < HealthPct(b) end)
-	return TankUnit[1] or "focus" , TankUnit
+	return TankUnit[1] or "focus", TankUnit
 end
 
 --status = UnitThreatSituation("unit"[, "otherunit"])
@@ -519,7 +518,7 @@ jps.canDispel = function(unit,dispelTable) -- {"Magic", "Poison", "Disease", "Cu
 	while auraName do
 		for i=1,#dispelTable do -- for _,dispeltype in ipairs(dispelTable) do
 			local dispeltype = dispelTable[i]
-			if debuffType == dispeltype and expirationTime-GetTime() > 1 then
+			if debuffType == dispeltype and expirationTime - GetTime() > 1 then
 			return true end
 		end
 		i = i + 1
@@ -567,17 +566,65 @@ function jps.DispelCurseTarget()
 	end
 end
 
+---------------------------------------
+-- BOSS DEBUFF
+---------------------------------------
+
+local RaidBossDebuff = {
+	-- 188104, 1, 6, 6, true) -- Explosive Burst (tank root, explosion)
+	jps.toSpellName(188104),
+	-- 188476, 1, 4, 4, true, true) -- Bad Breath (tank swap debuff, stacks)
+	jps.toSpellName(188476),
+	-- 189556, 1, 4, 4, true, true) -- Sunder Armor (tank debuff stack)
+	jps.toSpellName(189556),
+	-- 189533, 1, 4, 4, true) -- Sever Soul (tank swap debuff)
+	jps.toSpellName(189533),
+	-- 184243, 12, 4, 4, true, true) -- Slam (stackable tank debuff, nondispellable)
+	jps.toSpellName(184243),
+	-- 181306, 31, 6, 6, true) -- Explosive Burst (tank stun, explosion)
+	jps.toSpellName(181306),
+	-- 181345, 34, 5, 5) -- Foul Crush (tank dot)
+	jps.toSpellName(181345),
+	-- 184847, 53, 4, 4, true, true) -- Acidic Wound (tank dot, stacks)
+	jps.toSpellName(184847),
+	-- 180200, 64, 4, 4, true, true) -- Shredded Armor (tank debuff, stacks)
+	jps.toSpellName(180200),
+	-- 182601, 86, 5, 5, true, true) -- Fel Fury (standing in puddle, stacks)
+	jps.toSpellName(182601),
+	-- 185189, 87, 5, 5, true, true) -- Fel Flames (tank dot, stacks)
+	jps.toSpellName(185189),
+	-- 189260, 144, 3, 3, true) -- Cloven Soul (tank debuff)
+	jps.toSpellName(189260),
+	-- 186448, 157, 4, 4, true, true) -- Felblaze Flurry (tank debuff stack)
+	jps.toSpellName(186448),
+	-- 186785, 160, 4, 4, true, true) -- Withering Gaze (tank debuff stack)
+	jps.toSpellName(186785),
+	-- 180000, 174, 4, 4, true, true) -- Seal of Decay (tank debuff stack, healing reduction)
+	jps.toSpellName(180000),
+	-- 181119, 183, 4, 4, true, true) -- Doom Spike (tank debuff stack)
+	jps.toSpellName(181119),
+	-- 181359, 185, 5, 5) -- Massive Blast (tank debuff)
+	jps.toSpellName(181359),
+	-- 184252, 186, 3, 3), -- Puncture Wound (tank debuff if no active mitigation)
+	jps.toSpellName(184252),
+	-- 183828, 202, 4, 4) -- Death Brand (tank dot) -- Archimonde
+	jps.toSpellName(183828),
+	-- 186961, 210, 6, 6, true) -- Nether Banish (tank banish)
+	jps.toSpellName(186961),
+}
+
 function jps.BossDebuff(unit)
 	if UnstableAffliction(unit) then return false end
-	local auraName, debuffType, expirationTime, castBy, spellId, isBossDebuff
 	local i = 1
-	auraName, _, _, _, debuffType, _, expirationTime, castBy, _, _, spellId, _, isBossDebuff = UnitDebuff(unit, i) 
+	local auraName,debuffType,expirationTime,unitCaster,spellId,isBossDebuff
+	auraName, _, _, _, debuffType, _, expirationTime, unitCaster, _, _, spellId, _, isBossDebuff = UnitDebuff(unit, i)
 	while auraName do
-		if isBossDebuff and expirationTime-GetTime() > 1 then
-			return true
+		if UnitClassification(unitCaster) == "elite" then return true end
+		for j=1,#RaidBossDebuff do
+			if auraName == RaidBossDebuff[j] then return true end
 		end
 		i = i + 1
-		auraName, _, _, _, debuffType, _, expirationTime, castBy, _, _, spellId, _, isBossDebuff = UnitDebuff(unit, i) 
+		auraName, _, _, _, debuffType, _, expirationTime, unitCaster, _, _, spellId, _, isBossDebuff = UnitDebuff(unit, i)
 	end
 	return false
 end

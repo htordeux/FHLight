@@ -520,7 +520,7 @@ jps.listener.registerEvent("UI_ERROR_MESSAGE", function(event_error)
 				TargetObject:Face ()
 			else
 				TurnLeftStart()
-				C_Timer.After(1,function() TurnLeftStop() end)
+				C_Timer.After(0.5,function() TurnLeftStop() end)
 			end
 		elseif (event_error == SPELL_FAILED_LINE_OF_SIGHT) or (event_error == SPELL_FAILED_VISION_OBSCURED) then
 			jps.BlacklistPlayer(jps.LastTarget)

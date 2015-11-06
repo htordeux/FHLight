@@ -84,16 +84,6 @@ local function DkTest()
 
 end
 
-function jps_Test()
-
-	Test()
-	--DkTest()
---	TurnLeftStart()
---	C_Timer.After(1,function() print("test") TurnLeftStop() end)
---	MoveForwardStart()
---	C_Timer.After(0.25,function() MoveForwardStop() end)
-end
-
 function jps_RaidTest()
 
 	jps.LookupRaid ()
@@ -101,6 +91,17 @@ function jps_RaidTest()
 	local rangedTarget, EnemyUnit, TargetCount = jps.LowestTarget()
 	print("rangedTarget: ",rangedTarget,"TargetCount: ",TargetCount)
 	print("EnemyUnit: ",unpack(EnemyUnit))
+
+end
+ 
+ function jps_Test()
+
+	Test()
+	--DkTest()
+	--	TurnLeftStart()
+	--	C_Timer.After(1,function() print("test") TurnLeftStop() end)
+	--	MoveForwardStart()
+	--	C_Timer.After(0.25,function() MoveForwardStop() end)
 
 end
 

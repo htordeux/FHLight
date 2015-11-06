@@ -387,7 +387,7 @@ local spellTable = {
 	-- "Cascade" Holy 121135 Shadow 127632
 	{ 127632, jps.Interrupts , rangedTarget , "Cascade"  },
 	-- "Divine Star" Holy 110744 Shadow 122121
-	{ 122121, jps.Interrupts , rangedTarget , "DivineStar"  },
+	{ 122121, jps.Interrupts and jps.myLastCast(15407) , rangedTarget , "DivineStar"  },
 	-- "MindSear" 48045 -- "Insanité incendiaire" 179338 "Searing Insanity"
 	{ 48045, not jps.Moving and jps.MultiTarget and jps.buff(132573) , rangedTarget , "MINDSEARORBS_Target" },
 	{ 48045, not jps.Moving and jps.MultiTarget and jps.buff(132573) , myTank , "MINDSEARORBS_Tank" },

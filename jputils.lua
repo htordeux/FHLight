@@ -968,23 +968,3 @@ jps.EnemyCds = {
 	-- specialization
 	[12975] = 180,				-- Last Stand
 }
-
---------------------------------------------------------------------------------------
--------------------------- BOSS DEBUFF NON DISPELLABLE -------------------------------
---------------------------------------------------------------------------------------
-
-jps.RaidBossDebuff = {
-	["The Iron Maidens"] = {
-	164271, --PENETRATINGSHOT
-	158315, --DARKHUNT
-	156601, --SANGUINESTRIKES
-	170395, --SORKASPREY
-	170405, --MARAKSBLOODCALLING
-	158692, --DEADLYTHROW
-	158702, --FIXATE
-	158686, --EXPOSEARMOR
-	158683, --CORRUPTEDBLOOD
-	159585, --DEPLOYTURRET
-	156112, --CONVULSIVESHADOWS
-	},
-}

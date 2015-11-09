@@ -212,6 +212,10 @@ local spellTable = {
 	-- "Shield Slam" 23922 "Heurt de bouclier" -- Buff "Sword and Board" 50227 "Epée et bouclier" -- Buff "Shield Charge" 169667
 	{ warrior.spells["ShieldSlam"] , inMelee and jps.buff(50227) and jps.buff(169667) , rangedTarget , "ShieldSlam_SwordBoard_Buff" },
 	{ warrior.spells["ShieldSlam"] , inMelee and jps.buff(71) , rangedTarget , "ShieldSlam_SwordBoard_Buff" },
+	
+	-- DEFENSIVE BOSS DEBUFF
+	{ warrior.spells["ShieldBlock"] , jps.buff(71) and jps.PhysicalDamage and not jps.buff(132404) and BossDebuff , rangedTarget , "|cff1eff00ShieldBlock_PhysicalDmg_BossDebuff" },
+	{ warrior.spells["ShieldBarrier"] , jps.buff(71) and jps.MagicDamage and not jps.buff(112048) and BossDebuff < 0.80 , rangedTarget , "|cff1eff00ShieldBarrier_MagicDmg_and BossDebuff" },
 
 	-- "Shield Charge" 156321 "Charge de bouclier" -- Buff "Shield Charge" 169667 -- "Bloodbath" 12292 "Bain de sang"
 	-- Increasing the damage of "Shield Slam" 23922 "Heurt de bouclier" , "Revenge" 6572 "Revanche" and "Heroic Strike" 78 "Frappe héroïque" by 25% for 7 sec
@@ -270,10 +274,8 @@ local spellTable = {
 	{ warrior.spells["HeroicStrike"] , jps.buff(122509) , rangedTarget , "HeroicStrike_Ultimatum" },
 	{ warrior.spells["HeroicStrike"] , jps.buff(156291) and jps.rage() > 89 and jps.hp(rangedTarget) > 0.20 , rangedTarget , "HeroicStrike_DumpRage" },
 	{ warrior.spells["HeroicStrike"] , jps.buff(71) and jps.rage() > 89 and jps.hp(rangedTarget) > 0.20 and jps.hp("player") > 0.80 , rangedTarget , "HeroicStrike_DumpRage" },
-	-- "Dévaster" 20243 "Devastate"
-	{ warrior.spells["Devastate"] , jps.buff(71) and inMelee and jps.rage() < 20 , rangedTarget , "Devastate_LowRage" },
 
-	-- DEFENSIVE
+	-- DEFENSIVE HEALTH
 	-- "Shield Block" 2565 "Maîtrise du blocage" -- works against physical attacks, it does nothing against magic -- Buff "Shield Block" 132404 -- 60 rage
 	{ warrior.spells["ShieldBlock"] , jps.buff(71) and jps.PhysicalDamage and not jps.buff(132404) and jps.hp("player") < 0.80 , rangedTarget , "|cff1eff00ShieldBlock_PhysicalDmg" },
 	-- "Shield Barrier" 112048 "Barrière protectrice" -- Shield Barrier works against all types of damage (excluding fall damage) -- 20 + 40 rage

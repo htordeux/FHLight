@@ -215,7 +215,7 @@ local spellTable = {
 	
 	-- DEFENSIVE BOSS DEBUFF
 	{ warrior.spells["ShieldBlock"] , jps.buff(71) and jps.PhysicalDamage and not jps.buff(132404) and BossDebuff , rangedTarget , "|cff1eff00ShieldBlock_PhysicalDmg_BossDebuff" },
-	{ warrior.spells["ShieldBarrier"] , jps.buff(71) and jps.MagicDamage and not jps.buff(112048) and BossDebuff < 0.80 , rangedTarget , "|cff1eff00ShieldBarrier_MagicDmg_and BossDebuff" },
+	{ warrior.spells["ShieldBarrier"] , jps.buff(71) and jps.MagicDamage and not jps.buff(112048) and BossDebuff , rangedTarget , "|cff1eff00ShieldBarrier_MagicDmg_and BossDebuff" },
 
 	-- "Shield Charge" 156321 "Charge de bouclier" -- Buff "Shield Charge" 169667 -- "Bloodbath" 12292 "Bain de sang"
 	-- Increasing the damage of "Shield Slam" 23922 "Heurt de bouclier" , "Revenge" 6572 "Revanche" and "Heroic Strike" 78 "Frappe héroïque" by 25% for 7 sec
@@ -292,7 +292,7 @@ local spellTable = {
 	{ warrior.spells["HeroicStrike"] , jps.buff(169667) and jps.buffStacks(169686) > 3 , rangedTarget , "HeroicStrike_ShieldCharge_Strikes" },
 	{ warrior.spells["HeroicStrike"] , jps.buff(12292) and jps.buffStacks(169686) > 3 , rangedTarget , "HeroicStrike_Bloodbath_Strikes" },
 	{ warrior.spells["HeroicStrike"] , jps.buff(169667) and jps.rage() > 59 , rangedTarget , "HeroicStrike_ShieldCharge_Rage" },
-	{ warrior.spells["HeroicStrike"] , jps.buff(12292) and jps.rage() > 59 , rangedTarget , "HeroicStrike_Bloodbath_Rage" },
+	{ warrior.spells["HeroicStrike"] , jps.buff(12292) and jps.rage() > 59 and jps.buff(156291) , rangedTarget , "HeroicStrike_Bloodbath_Rage" },
 	-- "Dévaster" 20243 "Devastate" -- Dévaster réduit le coût en rage de Frappe héroïque de 5 pendant 5 s.
 	{ warrior.spells["Devastate"] , inMelee , rangedTarget , "Devastate" },
 

@@ -31,7 +31,6 @@ local function Test()
 	print("Playerttd: ",jps.TimeToDie("target"))
 	print("GCD: ",jps.GCD)
 	print("Distance12: ",jps.FriendNearby(12))
-	print("hasControl: ",HasFullControl())
 	write("***************************")
 
 --	local CDtarget = jps.enemyCooldownWatch("target")

@@ -154,8 +154,8 @@ local spellTable = {
 	-- "Last Stand" 12975 "Dernier rempart" -- 3 min
 	{ warrior.spells["LastStand"] , jps.hp("player") < 0.30 , rangedTarget , "|cff1eff00LastStand" },
 	-- "Enraged Regeneration" 55694 "Régénération enragée"
-	{ warrior.spells["EnragedRegeneration"] , playerIsTanking and jps.hp("player") < 0.60 , rangedTarget , "|cff1eff00EnragedRegeneration_Threat" },
-	{ warrior.spells["EnragedRegeneration"] , playerAggro and jps.hp("player") < 0.60 , rangedTarget , "|cff1eff00EnragedRegeneration_Aggro" },
+	{ warrior.spells["EnragedRegeneration"] , playerIsTanking and jps.hp("player") < 0.60 and UnitGetIncomingHeals("player") == 0 , rangedTarget , "|cff1eff00EnragedRegeneration_Threat" },
+	{ warrior.spells["EnragedRegeneration"] , playerAggro and jps.hp("player") < 0.60 and UnitGetIncomingHeals("player") == 0 , rangedTarget , "|cff1eff00EnragedRegeneration_Aggro" },
 
 	-- "Impending Victory" 103840 "Victoire imminente" -- Talent Replaces Victory Rush.
 	{ warrior.spells["ImpendingVictory"] , jps.buff(32216) and jps.hp("player") < 0.80 , rangedTarget , "|cff1eff00ImpendingVictory_Health" },
@@ -266,6 +266,11 @@ local spellTable = {
 		{ warrior.spells["ThunderClap"] , inMelee , rangedTarget , "ThunderClap" },
 	}},
 
+	-- DEFENSIVE HEALTH
+	-- "Shield Barrier" 112048 "Barrière protectrice" -- Shield Barrier works against all types of damage (excluding fall damage) -- 20 + 40 rage
+	{ warrior.spells["ShieldBarrier"] , playerIsTanking and jps.hp("player") < 0.50 and not jps.buff(112048) and UnitGetIncomingHeals("player") == 0 , rangedTarget , "|cff1eff00ShieldBarrier_Threat" },
+	{ warrior.spells["ShieldBarrier"] , playerAggro and jps.hp("player") < 0.50 and not jps.buff(112048) and UnitGetIncomingHeals("player") == 0 , rangedTarget , "|cff1eff00ShieldBarrier_Aggro" },
+
 	-- "Execute" 5308 "Exécution" -- Buff "Mort soudaine" 29725
 	{ warrior.spells["Execute"], jps.buff(29725) , rangedTarget , "Execute_SuddenDeath" },
 	-- "Heroic Strike" 78 "Frappe héroïque" -- Buff "Unyielding Strikes" 169686 "Frappes inflexibles" 169686 -- Cumulable jusqu’à 6 fois
@@ -280,8 +285,6 @@ local spellTable = {
 	{ warrior.spells["ShieldBlock"] , jps.buff(71) and jps.PhysicalDamage and not jps.buff(132404) and jps.hp("player") < 0.80 , rangedTarget , "|cff1eff00ShieldBlock_PhysicalDmg" },
 	-- "Shield Barrier" 112048 "Barrière protectrice" -- Shield Barrier works against all types of damage (excluding fall damage) -- 20 + 40 rage
 	{ warrior.spells["ShieldBarrier"] , jps.buff(71) and jps.MagicDamage and not jps.buff(112048) and jps.hp("player") < 0.80 , rangedTarget , "|cff1eff00ShieldBarrier_MagicDmg" },
-	{ warrior.spells["ShieldBarrier"] , playerIsTanking and jps.hp("player") < 0.50 and not jps.buff(112048) and UnitGetIncomingHeals("player") == 0 , rangedTarget , "|cff1eff00ShieldBarrier_Threat" },
-	{ warrior.spells["ShieldBarrier"] , playerAggro and jps.hp("player") < 0.50 and not jps.buff(112048) and UnitGetIncomingHeals("player") == 0 , rangedTarget , "|cff1eff00ShieldBarrier_Aggro" },
 
 	-- DAMAGE
 	-- "Execute" 5308 "Exécution" -- Buff "Shield Charge" 169667

@@ -27,7 +27,7 @@ jps = {}
 
 jps.Version = "1.5"
 jps.Rotation = nil
-jps.UpdateInterval = 0.075
+jps.UpdateInterval = 0.1
 jps.Enabled = false
 jps.Combat = false
 jps.Debug = false

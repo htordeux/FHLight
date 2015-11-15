@@ -151,7 +151,9 @@ function jps.findTankInRaid()
 		end
 	end
 	tsort(TankUnit, function(a,b) return HealthPct(a) < HealthPct(b) end)
-	return TankUnit[1] or "focus", TankUnit
+	local defaultTank = "focus"
+	if canHeal("focus") then defaultTank = "focus" else defaultTank = "player" end
+	return TankUnit[1] or defaultTank, TankUnit
 end
 
 --status = UnitThreatSituation("unit"[, "otherunit"])
@@ -178,7 +180,9 @@ function jps.findAggroInRaid()
 		end
 	end
 	tsort(AggroUnit, function(a,b) return HealthPct(a) < HealthPct(b) end)
-	return AggroUnit[1] or "focus", AggroUnit
+	local defaultTank = "focus"
+	if canHeal("focus") then defaultTank = "focus" else defaultTank = "player" end
+	return AggroUnit[1] or defaultTank, AggroUnit
 end
 
 function jps.findThreatInRaid()

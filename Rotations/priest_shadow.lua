@@ -1,7 +1,9 @@
--- jps.UseCDs for "Semblance spectrale" 112833 "Spectral Guise" -- PvP it loses the orb in Kotmogu Temple
--- jps.MultiTarget for "MindSear" 48045
--- jps.Interrupts for "Cascade" or "Divine Star" or "Psychic Horror"
+-- jps.UseCDs for RACIAL COUNTERS
+-- jps.UseCDs for "Cascade" 127632
+-- jps.Interrupts for "Semblance spectrale" 112833 "Spectral Guise" -- PvP it loses the orb in Kotmogu Temple
 -- jps.Defensive to keep Shield up
+-- jps.MultiTarget for "MindSear" 48045
+-- IsControlKeyDown() for "Angelic Feather" 121536 "Plume angélique"
 
 local L = MyLocalizationTable
 local canDPS = jps.canDPS
@@ -85,8 +87,10 @@ if canHeal(myTank) then TankTarget = myTank.."target" end
 ---------------------
 
 local playerAggro = jps.FriendAggro("player")
-local playerIsStun = jps.StunEvents(2) --- return true/false ONLY FOR PLAYER > 2 sec
+local playerIsStun = jps.StunEvents(2) -- return true/false ONLY FOR PLAYER -- "ROOT" was removed of Stuntype
+-- {"STUN_MECHANIC","STUN","FEAR","CHARM","CONFUSE","PACIFY","SILENCE","PACIFYSILENCE"}
 local playerIsInterrupt = jps.InterruptEvents() -- return true/false ONLY FOR PLAYER
+local playerWasControl = jps.ControlEvents() -- return true/false Player was interrupt or stun 2 sec ago ONLY FOR PLAYER
 
 ----------------------
 -- TARGET ENEMY
@@ -131,6 +135,16 @@ elseif canDPS("targettarget") and not DebuffUnitCyclone("targettarget") then ran
 elseif canDPS("mouseover") and not DebuffUnitCyclone("mouseover") then rangedTarget = "mouseover"
 end
 if canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
+
+local playerIsTargeted = false
+for i=1,#EnemyUnit do -- for _,unit in ipairs(EnemyUnit) do
+	local unit = EnemyUnit[i]
+	if TargetCount > 0 then
+		if UnitIsUnit(unit.."target","player") then
+			playerIsTargeted = true
+		break end
+	end
+end
 
 ------------------------
 -- LOCAL FUNCTIONS ENEMY
@@ -279,7 +293,6 @@ if jps.ChannelTimeLeft() > 0 then return nil end
 -- "Psychic Horror" 64044 Consumes up to 3 Shadow Orbs to terrify the target
 -- incapacitating the target for 1 sec plus 1 sec per Shadow Orb consumed.
 local fnOrbs = function(unit)
-	if not jps.PvP and not jps.Interrupts then return false end
 	if Orbs == 0 then return false end
 	if jps.LoseControl(unit) then return false end
 	if DebuffUnitCyclone(unit) then return false end
@@ -295,7 +308,7 @@ local parseControl = {
 	-- "Silence" 15487
 	{ 15487, jps.PvP and jps.IsSpellInRange(15487,rangedTarget) and EnemyCaster(rangedTarget) == "caster" , rangedTarget },
 	-- "Psychic Horror" 64044 "Horreur psychique" -- 30 yd range
-	{ 64044, jps.IsSpellInRange(64044,rangedTarget) and fnOrbs(rangedTarget) , rangedTarget },
+	{ 64044, jps.PvP and jps.IsSpellInRange(64044,rangedTarget) and fnOrbs(rangedTarget) , rangedTarget },
 	-- "Void Tendrils" 108920 -- debuff "Void Tendril's Grasp" 114404
 	{ 108920, playerAggro and priest.canFear(rangedTarget) , rangedTarget },
 }
@@ -306,7 +319,7 @@ local parseControlFocus = {
 	-- "Silence" 15487
 	{ 15487, jps.PvP and jps.IsSpellInRange(15487,"focus") and EnemyCaster("focus") == "caster" , "focus" , "Silence_focus" },
 	-- "Psychic Horror" 64044 "Horreur psychique" -- 30 yd range
-	{ 64044, jps.IsSpellInRange(64044,"focus") and fnOrbs("focus") , "focus" , "Horror_focus" },
+	{ 64044, jps.PvP and jps.IsSpellInRange(64044,"focus") and fnOrbs("focus") , "focus" , "Horror_focus" },
 	-- "Void Tendrils" 108920 -- debuff "Void Tendril's Grasp" 114404
 	{ 108920, playerAggro and priest.canFear("focus") , "focus" },
 }
@@ -320,22 +333,35 @@ local parseHeal = {
 	{ 19236, jps.IsSpellKnown(19236) , "player" },
 	-- "Pierre de soins" 5512
 	{ {"macro","/use item:5512"}, jps.itemCooldown(5512)==0 , "player" },
+	-- "Prière de guérison" 33076 -- Buff POM 41635
+	--{ 33076, not jps.Moving and not jps.buff(41635,"player") , "player" },
+	-- "Soins rapides" 2061
+	--{ 2061, not jps.Moving and jps.hp("player") < 0.50 , "player" , "FlashHeal" },
 }
 
 local parseAggro = {
 	-- "Power Word: Shield" 17	
 	{ 17, not jps.debuff(6788,"player") and not jps.buff(17,"player") , "player" },
 	-- "Semblance spectrale" 112833
-	{ 112833, jps.UseCDs and jps.IsSpellKnown(112833) , "player" , "Aggro_Spectral" },
+	{ 112833, jps.Interrupts and jps.IsSpellKnown(112833) , "player" , "Aggro_Spectral" },
 	-- "Oubli" 586 -- Fantasme 108942 -- vous dissipez tous les effets affectant le déplacement sur vous-même et votre vitesse de déplacement ne peut être réduite pendant 5 s
 	{ 586, jps.IsSpellKnown(108942) and jps.hp("player") < 0.70 , "player" , "Aggro_Oubli" },
 	-- "Oubli" 586 -- Glyphe d'oubli 55684 -- Votre technique Oubli réduit à présent tous les dégâts subis de 10%.
 	{ 586, jps.glyphInfo(55684) and jps.hp("player") < 0.70 , "player" , "Aggro_Oubli" },
-	-- "Oubli" 586
-	{ 586, not jps.PvP , "player" , "Aggro_Oubli" },
 	-- "Dispersion" 47585
 	{ 47585, jps.PvP and jps.hp("player") < 0.40 , "player" , "Aggro_Dispersion" },
 	{ 47585, jps.cooldown(112833) > 0 and jps.cooldown(112833) > 0 and jps.debuff(6788,"player") and jps.hp("player") < 0.40 , "player" , "Aggro_Dispersion" },
+}
+
+local RacialCounters = {
+	-- Undead "Will of the Forsaken" 7744 -- SNM priest is undead ;)
+	{ 7744, jps.debuff("psychic scream","player") }, -- Fear
+	{ 7744, jps.debuff("fear","player") }, -- Fear
+	{ 7744, jps.debuff("intimidating shout","player") }, -- Fear
+	{ 7744, jps.debuff("howl of terror","player") }, -- Fear
+	{ 7744, jps.debuff("mind control","player") }, -- Charm
+	{ 7744, jps.debuff("seduction","player") }, -- Charm
+	{ 7744, jps.debuff("wyvern sting","player") }, -- Sleep
 }
 
 -----------------------------
@@ -353,6 +379,10 @@ local spellTable = {
 	-- "Angelic Feather" 121536 "Plume angélique"
 	{ 121536, IsControlKeyDown() },
 
+	-- SNM RACIAL COUNTERS -- share 30s cd with trinket
+	{"nested", jps.PvP and jps.UseCDs , RacialCounters },
+	-- SNM "Chacun pour soi" 59752 "Every Man for Himself" -- Human
+	{ 59752, playerIsStun , "player" , "Every_Man_for_Himself" },
 	-- TRINKETS -- jps.useTrinket(0) est "Trinket0Slot" est slotId  13 -- "jps.useTrinket(1) est "Trinket1Slot" est slotId  14
 	{ jps.useTrinket(0), jps.useTrinketBool(0) and not playerWasControl and jps.combatStart > 0 , "player" , "useTrinket0" },
 	{ jps.useTrinket(1), jps.useTrinketBool(1) and playerIsStun , "player" , "useTrinket1" },
@@ -362,41 +392,47 @@ local spellTable = {
 	{ 15487, type(SilenceEnemyTarget) == "string" , SilenceEnemyTarget , "Silence_MultiUnit_Target" },
 	{ "nested", canDPS(rangedTarget) and not jps.LoseControl(rangedTarget) , parseControl },
 	{ "nested", canDPS("focus") and not jps.LoseControl("focus") , parseControlFocus },
-	-- OFFENSIVE DISPEL -- "Dissipation de la magie" 528 (includes canDPS)
+	-- OFFENSIVE DISPEL -- "Dissipation de la magie" 528 (jps.DispelOffensive includes canDPS)
 	{ 528, jps.castEverySeconds(528,10) and jps.DispelOffensive(rangedTarget) , rangedTarget , "|cff1eff00Dispel_Offensive" },
 	{ 528, jps.castEverySeconds(528,10) and type(DispelOffensiveTarget) == "string"  , DispelOffensiveTarget , "|cff1eff00Dispel_Offensive_MultiUnit" },
 	
 	-- PLAYER AGGRO
-	{ "nested", playerAggro , parseAggro },
-	
+	{ "nested", playerAggro or playerWasControl or playerIsTargeted , parseAggro },
+	-- "Power Word: Shield" 17 -- Glyph of Reflective Shield 33202
+	{ 17, not jps.buff(132573) and jps.Defensive and not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Defensive_Shield" },
+	{ 17, not jps.buff(132573) and jps.glyphInfo(33202) and not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Defensive_Shield" },
+	-- "Leap of Faith" 73325 -- "Saut de foi"
+	{ 73325 , jps.PvP and type(LeapFriend) == "string" , LeapFriend , "|cff1eff00Leap_MultiUnit" },
+	-- "Gardien de peur" 634
+	{ 6346, jps.PvP and not jps.buff(6346,"player") , "player" },
+
 	-- HEAL --
 	-- "Vampiric Embrace" 15286
 	{ 15286, CountInRange > 5 , rangedTarget , "VampiricEmbrace"  },
 	{ 15286, jps.hp("player") < 0.75 and not IsInGroup() , rangedTarget , "VampiricEmbrace"  },
 	{ "nested", jps.hp("player") < 0.75 , parseHeal },
 
-	-- "Mind Blast" 8092 -- "Shadowy Insight" 162452 gives buff 124430
-	{ 8092, jps.Moving and COP and jps.buff(132573) , rangedTarget , "BLAST_PLAGUE" },
 	-- "Power Infusion" "Infusion de puissance" 10060
 	{ 10060, jps.FinderLastMessage("PLAGUE") and jps.hp("player") > jps.hp(rangedTarget) , rangedTarget , "PowerInfusion" },
-	-- "Devouring Plague" 2944 consumes 3 Shadow Orbs, you don't have the ability to use with less Orbs
-	{ 2944, Orbs == 5 , rangedTarget , "PLAGUE_5Orbs" },
-	{ 2944, Orbs > 2 and jps.MultiTarget , rangedTarget , "PLAGUE_MultiTarget" },
 
-	-- MULTITARGET
-	-- "Cascade" Holy 121135 Shadow 127632
-	{ 127632, jps.Interrupts , rangedTarget , "Cascade"  },
-	-- "Divine Star" Holy 110744 Shadow 122121
-	{ 122121, jps.Interrupts and jps.myLastCast(15407) , rangedTarget , "DivineStar"  },
+	-- "Devouring Plague" 2944 consumes 3 Shadow Orbs, you don't have the ability to use with less Orbs
+	{ 2944, Orbs == 5 , rangedTarget , "PLAGUE_5_Orbs" },
+	{ 2944, Orbs > 2 and jps.MultiTarget , rangedTarget , "PLAGUE_MultiTarget" },
+	-- "Devouring Plague" 2944 consumes 3 Shadow Orbs, you don't have the ability to use with less Orbs
+	{ "nested", not jps.buff(132573) and Orbs > 2 , {
+		{ 2944, jps.hp("player") < 0.75 , rangedTarget , "PLAGUE_LowHealth" },
+		{ 2944, jps.hp(rangedTarget) < 0.20 , rangedTarget , "PLAGUE_LowHealth" },
+		{ 2944, jps.myDebuffDuration(34914,rangedTarget) > 3 and jps.myDebuffDuration(589,rangedTarget) > 3 , rangedTarget , "PLAGUE_Debuff" },
+	}},
+		
 	-- "MindSear" 48045 -- "Insanité incendiaire" 179338 "Searing Insanity"
 	{ 48045, not jps.Moving and jps.MultiTarget and jps.buff(132573) , rangedTarget , "MINDSEARORBS_Target" },
 	{ 48045, not jps.Moving and jps.MultiTarget and jps.buff(132573) , myTank , "MINDSEARORBS_Tank" },
-
 	-- "Mind Flay" 15407 -- "Shadow Word: Insanity" buff 132573 -- "Insanity" 129197
 	{ 15407, not jps.Moving and jps.buff(132573) , rangedTarget , "MINDFLAYORBS" },
 
 	-- "Mind Blast" 8092 -- "Shadowy Insight" 162452 gives buff 124430
-	{ 8092, jps.buff(124430) , rangedTarget , "Blast_Shadowy" },
+	{ 8092, jps.buff(124430) , rangedTarget , "Blast_Insight" },
 	-- "Mind Blast" 8092 -- "Glyph of Mind Spike" 33371 gives buff 81292 
 	{ 8092, jps.buffStacks(81292) == 2 , rangedTarget , "Blast_Stacks" },
 	-- "Mind Blast" 8092 -- Instant with COP 155246
@@ -404,69 +440,50 @@ local spellTable = {
 	{ 8092, not jps.Moving , "Blast_CD" },
 	
 	-- "Shadow Word: Death" 32379 "Mot de l'ombre : Mort"
-	{ 32379, type(DeathEnemyTarget) == "string" and not jps.buff(132573) and Orbs < 5 , DeathEnemyTarget , "Death_MultiUnit_Orbs" },
+	{ 32379, type(DeathEnemyTarget) == "string" and not jps.buff(132573) and Orbs < 5 , DeathEnemyTarget , "Death_MultiUnit" },
 	{ 32379, jps.hp(rangedTarget) < 0.20 and Orbs < 5 , rangedTarget, "Death_Target" },
 	{ 32379, jps.hp("focus") < 0.20 and Orbs < 5 , "focus", "Death_Focus" },
 	{ 32379, jps.hp("mouseover") < 0.20 and Orbs < 5 , "mouseover", "Death_Mouseover" },
-	
-	-- MULTITARGET
-	{ 589, not jps.buff(132573) and fnPainEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "Pain_Mouseover_Orbs" },
-	{ "nested", jps.MultiTarget , {
-		-- "Shadow Word: Pain" 589 -- "Shadow Word: Insanity" buff 132573	
-		{ 589, not jps.buff(132573) and fnPainEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "Pain_Mouseover_Orbs" },
-		{ 589, not jps.buff(132573) and fnPainEnemyTarget("focus") , "focus" , "Pain_Focus_Orbs" },
-		{ 589, type(PainEnemyTarget) == "string" and not UnitIsUnit(PainEnemyTarget,"target") , PainEnemyTarget , "Pain_MultiUnit" },
-		-- "Vampiric Touch" 34914 -- "Shadow Word: Insanity" buff 132573
-		{ 34914, not jps.buff(132573) and fnVampEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "VT_Mouseover_Orbs" },
-		{ 34914, not jps.buff(132573) and fnVampEnemyTarget("focus") , "focus" , "VT_Focus_Orbs" },
-		{ 34914, type(VampEnemyTarget) == "string" and not UnitIsUnit(VampEnemyTarget,"target") , VampEnemyTarget , "VT_MultiUnit" },
-	}},
-	-- "MindSear" 48045 -- "Insanité incendiaire" 179338 "Searing Insanity"
-	{ 48045, not jps.Moving and jps.MultiTarget and EnemyCount > 3, rangedTarget , "MINDSEAR_Target" },
-
-	-- "Shadow Word: Pain" 589 -- "Shadow Word: Insanity" buff 132573
-	{ 589, Orbs > 3 and jps.myDebuffDuration(589,rangedTarget) < 3 and not jps.isRecast(589,rangedTarget) , rangedTarget , "Pain_Orbs" },
-	-- "Vampiric Touch" 34914 -- "Shadow Word: Insanity" buff 132573
-	{ 34914, Orbs > 3 and not jps.Moving and jps.myDebuffDuration(34914,rangedTarget) < 3 and not jps.isRecast(34914,rangedTarget) , rangedTarget , "VT_Orbs" },
-
-	-- "Devouring Plague" 2944 consumes 3 Shadow Orbs, you don't have the ability to use with less Orbs
-	{ 2944, Orbs > 2 and jps.hp("player") < 0.75 , rangedTarget , "PLAGUE_LowHealth" },
-	{ 2944, Orbs > 2 and jps.hp(rangedTarget) < 0.20 , rangedTarget , "PLAGUE_LowHealth" },
-	{ 2944, Orbs > 2 and jps.myDebuffDuration(34914,rangedTarget) > 3 and jps.myDebuffDuration(589,rangedTarget) > 3 , rangedTarget , "PLAGUE_Debuff" },
-
-	-- "Shadow Word: Pain" 589 -- "Shadow Word: Insanity" buff 132573	
-	{ 589, not jps.buff(132573) and fnPainEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "Pain_Mouseover_Orbs" },
-	{ 589, not jps.buff(132573) and fnPainEnemyTarget("focus") , "focus" , "Pain_Focus_Orbs" },
-	{ 589, type(PainEnemyTarget) == "string" and not UnitIsUnit(PainEnemyTarget,"target") , PainEnemyTarget , "Pain_MultiUnit" },
 	
 	-- "Mind Spike" 73510 -- "Surge of Darkness" gives buff -- "Surge of Darkness" 87160
 	{ 73510, jps.buffStacks(87160,"player") > 1 , rangedTarget , "Spike_SurgeofDarkness_Stacks" },
 	{ 73510, jps.buff(87160) and jps.hp(rangedTarget) < 0.20 , rangedTarget , "Spike_SurgeofDarkness_LowHealth" },
 	{ 73510, jps.buff(87160) and jps.buffDuration(87160) < 4 , rangedTarget , "Spike_SurgeofDarkness_CD" },
-	-- "Mind Spike" 73510 -- "Devouring Plague" debuff 158831
-	{ 73510, not jps.Moving and COP and not jps.myDebuff(158831,rangedTarget) and jps.myDebuffDuration(34914,rangedTarget) < 3 and jps.myDebuffDuration(589,rangedTarget) < 3 , rangedTarget , "Spike_CoP_target" },
-	{ 73510, not jps.Moving and COP and not jps.myDebuff(158831,"mouseover") and jps.myDebuffDuration(34914,"mouseover") < 3 and jps.myDebuffDuration(589,"mouseover") < 3 , "mouseover" , "Spike_CoP_mouseover" },
-	{ 73510, not jps.Moving and COP and not jps.myDebuff(158831,"focus") and jps.myDebuffDuration(34914,"focus") < 3 and jps.myDebuffDuration(589,"focus") < 3 , "focus" , "Spike_CoP_focus" },
-
+	
+	-- "Shadow Word: Pain" 589 -- "Shadow Word: Insanity" buff 132573
+	{ 589, Orbs > 3 and jps.myDebuffDuration(589,rangedTarget) < 3 and not jps.isRecast(589,rangedTarget) , rangedTarget , "Pain_Orbs" },
 	-- "Vampiric Touch" 34914 -- "Shadow Word: Insanity" buff 132573
-	{ 34914, not jps.buff(132573) and fnVampEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "VT_Mouseover_Orbs" },
-	{ 34914, not jps.buff(132573) and fnVampEnemyTarget("focus") , "focus" , "VT_Focus_Orbs" },
-	{ 34914, type(VampEnemyTarget) == "string" and not UnitIsUnit(VampEnemyTarget,"target") , VampEnemyTarget , "VT_MultiUnit" },
-
+	{ 34914, Orbs > 3 and not jps.Moving and jps.myDebuffDuration(34914,rangedTarget) < 3 and not jps.isRecast(34914,rangedTarget) , rangedTarget , "VT_Orbs" },
+	
+	-- MULTITARGET
 	-- "Mindbender" "Torve-esprit" 123040 -- "Ombrefiel" 34433 "Shadowfiend"
 	{ 34433, priest.canShadowfiend(rangedTarget) , rangedTarget },
 	{ 123040, priest.canShadowfiend(rangedTarget) , rangedTarget },
+	-- "Cascade" Holy 121135 Shadow 127632
+	{ 127632, jps.UseCDs and not jps.Moving , rangedTarget , "Cascade"  },
+	-- "Divine Star" Holy 110744 Shadow 122121 -- "Dissipation de la magie" 528 to check in range 30 y
+	{ 122121, jps.IsSpellInRange(528,rangedTarget) and jps.myLastCast(15407) , rangedTarget , "DivineStar"  },
 
-	-- "Power Word: Shield" 17
-	{ 17, jps.Defensive and not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Defensive_Shield" },
-	-- "Leap of Faith" 73325 -- "Saut de foi"
-	{ 73325 , type(LeapFriend) == "string" , LeapFriend , "|cff1eff00Leap_MultiUnit" },
-	-- "Gardien de peur" 634
-	{ 6346, jps.PvP and not jps.buff(6346,"player") , "player" },
-	-- "Mind Spike" 73510 -- "Surge of Darkness" gives buff -- "Surge of Darkness" 87160
-	{ 34914, type(MindSpikeTarget) == "string" , MindSpikeTarget , "Spike_MultiUnit" },
+	-- "Shadow Word: Pain" 589 -- "Shadow Word: Insanity" buff 132573	
+	{ 589, not jps.buff(132573) and type(PainEnemyTarget) == "string" and not UnitIsUnit(PainEnemyTarget,"target") , PainEnemyTarget , "Pain_MultiUnit" },
+	{ 589, not jps.buff(132573) and fnPainEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "Pain_Mouseover" },
+
+	{ "nested", not jps.Moving , {
+		-- "Vampiric Touch" 34914 -- "Shadow Word: Insanity" buff 132573
+		{ 34914, not jps.buff(132573) and type(VampEnemyTarget) == "string" and not UnitIsUnit(VampEnemyTarget,"target") , VampEnemyTarget , "VT_MultiUnit" },
+		{ 34914, not jps.buff(132573) and fnVampEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "VT_Mouseover" },
+		
+		-- "MindSear" 48045 -- "Insanité incendiaire" 179338 "Searing Insanity"
+		{ 48045, jps.MultiTarget and EnemyCount > 3 , rangedTarget , "MINDSEAR_Target" },
+		{ 48045, jps.MultiTarget and EnemyCount > 3 , myTank , "MINDSEAR_Tank" },
+
+		-- "Mind Spike" 73510 -- "Devouring Plague" debuff 158831
+		{ 73510, COP and not jps.myDebuff(158831,rangedTarget) and jps.myDebuffDuration(34914,rangedTarget) < 3 and jps.myDebuffDuration(589,rangedTarget) < 3 , rangedTarget , "Spike_CoP_target" },
+		{ 34914, type(MindSpikeTarget) == "string" , MindSpikeTarget , "Spike_MultiUnit" },
+	}},
+
 	-- "Mind Flay" 15407
-	{ 15407, true , rangedTarget , "_FouetMental" },
+	{ 15407, true , rangedTarget , "FouetMental" },
 }
 
 	spell,target = parseSpellTable(spellTable)
@@ -479,7 +496,6 @@ end, "Shadow Priest Default" )
 
 jps.registerRotation("PRIEST","SHADOW",function()
 
-	local playerIsSwimming = IsSwimming()
 	-- rangedTarget returns "target" by default
 	local rangedTarget, _, _ = jps.LowestTarget()
 	local Orbs = UnitPower("player",13) -- SPELL_POWER_SHADOW_ORBS 	13
@@ -501,7 +517,7 @@ jps.registerRotation("PRIEST","SHADOW",function()
 
 	-- SNM "Levitate" 1706	
 	{ 1706, jps.fallingFor() > 1.5 and not jps.buff(111759) , "player" },
-	{ 1706, playerIsSwimming and not jps.buff(111759) , "player" },
+	{ 1706, IsSwimming() and not jps.buff(111759) , "player" },
 
 	-- "Semblance spectrale" 112833 "Spectral Guise" gives buff 119032
 	{"nested", jps.buff(119032) , {
@@ -512,15 +528,9 @@ jps.registerRotation("PRIEST","SHADOW",function()
 	}},
 	
 	-- "Fortitude" 21562 -- "Commanding Shout" 469 -- "Blood Pact" 166928
-	{ 21562, jps.buffMissing(21562) , "player" },
-
-	{"nested", jps.PvP , {
-		-- "Gardien de peur" 6346
-		{ 6346, not jps.buff(6346,"player") , "player" },
-		-- SNM "Fortitude" 21562 -- "Commanding Shout" 469 -- "Blood Pact" 166928
-		{ 21562, jps.buffMissing(21562) and jps.buffMissing(469) and jps.buffMissing(166928) , "player" },
-	}},
-
+	{ 21562, jps.buffMissing(21562) and jps.buffMissing(469) and jps.buffMissing(166928) , "player" },
+	-- "Gardien de peur" 6346
+	{ 6346, not jps.buff(6346,"player") , "player" },
 	-- "Don des naaru" 59544
 	{ 59544, jps.hp("player") < 0.75 , "player" },
 	-- "Shield" 17 "Body and Soul" 64129 -- figure out how to speed buff everyone as they move

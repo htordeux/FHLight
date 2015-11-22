@@ -304,22 +304,22 @@ end
 
 local parseControl = {
 	-- "Psychic Scream" "Cri psychique" 8122 -- FARMING OR PVP -- NOT PVE -- debuff same ID 8122
-	{ 8122, jps.PvP and priest.canFear(rangedTarget) , rangedTarget },
+	{ 8122, priest.canFear(rangedTarget) , rangedTarget },
 	-- "Silence" 15487
-	{ 15487, jps.PvP and jps.IsSpellInRange(15487,rangedTarget) and EnemyCaster(rangedTarget) == "caster" , rangedTarget },
+	{ 15487, jps.IsSpellInRange(15487,rangedTarget) and EnemyCaster(rangedTarget) == "caster" , rangedTarget },
 	-- "Psychic Horror" 64044 "Horreur psychique" -- 30 yd range
-	{ 64044, jps.PvP and jps.IsSpellInRange(64044,rangedTarget) and fnOrbs(rangedTarget) , rangedTarget },
+	{ 64044, jps.IsSpellInRange(64044,rangedTarget) and fnOrbs(rangedTarget) , rangedTarget },
 	-- "Void Tendrils" 108920 -- debuff "Void Tendril's Grasp" 114404
 	{ 108920, playerAggro and priest.canFear(rangedTarget) , rangedTarget },
 }
 
 local parseControlFocus = {
 	-- "Psychic Scream" "Cri psychique" 8122 -- FARMING OR PVP -- NOT PVE -- debuff same ID 8122
-	{ 8122, jps.PvP and priest.canFear("focus") , "focus" , "Fear_focus" },
+	{ 8122, priest.canFear("focus") , "focus" , "Fear_focus" },
 	-- "Silence" 15487
-	{ 15487, jps.PvP and jps.IsSpellInRange(15487,"focus") and EnemyCaster("focus") == "caster" , "focus" , "Silence_focus" },
+	{ 15487, jps.IsSpellInRange(15487,"focus") and EnemyCaster("focus") == "caster" , "focus" , "Silence_focus" },
 	-- "Psychic Horror" 64044 "Horreur psychique" -- 30 yd range
-	{ 64044, jps.PvP and jps.IsSpellInRange(64044,"focus") and fnOrbs("focus") , "focus" , "Horror_focus" },
+	{ 64044, jps.IsSpellInRange(64044,"focus") and fnOrbs("focus") , "focus" , "Horror_focus" },
 	-- "Void Tendrils" 108920 -- debuff "Void Tendril's Grasp" 114404
 	{ 108920, playerAggro and priest.canFear("focus") , "focus" },
 }
@@ -390,8 +390,8 @@ local spellTable = {
 	-- FOCUS CONTROL
 	-- "Silence" 15487
 	{ 15487, type(SilenceEnemyTarget) == "string" , SilenceEnemyTarget , "Silence_MultiUnit_Target" },
-	{ "nested", canDPS(rangedTarget) and not jps.LoseControl(rangedTarget) , parseControl },
-	{ "nested", canDPS("focus") and not jps.LoseControl("focus") , parseControlFocus },
+	{ "nested", jps.PvP and canDPS(rangedTarget) and not jps.LoseControl(rangedTarget) , parseControl },
+	{ "nested", jps.PvP and canDPS("focus") and not jps.LoseControl("focus") , parseControlFocus },
 	-- OFFENSIVE DISPEL -- "Dissipation de la magie" 528 (jps.DispelOffensive includes canDPS)
 	{ 528, jps.castEverySeconds(528,10) and jps.DispelOffensive(rangedTarget) , rangedTarget , "|cff1eff00Dispel_Offensive" },
 	{ 528, jps.castEverySeconds(528,10) and type(DispelOffensiveTarget) == "string"  , DispelOffensiveTarget , "|cff1eff00Dispel_Offensive_MultiUnit" },
@@ -399,8 +399,8 @@ local spellTable = {
 	-- PLAYER AGGRO
 	{ "nested", playerAggro or playerWasControl or playerIsTargeted , parseAggro },
 	-- "Power Word: Shield" 17 -- Glyph of Reflective Shield 33202
-	{ 17, not jps.buff(132573) and jps.Defensive and not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Defensive_Shield" },
-	{ 17, not jps.buff(132573) and jps.glyphInfo(33202) and not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Defensive_Shield" },
+	{ 17, jps.Defensive and not jps.buff(132573) and not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Defensive_Shield" },
+	{ 17, jps.PvP and jps.glyphInfo(33202) and not jps.buff(132573) and not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Defensive_Shield" },
 	-- "Leap of Faith" 73325 -- "Saut de foi"
 	{ 73325 , jps.PvP and type(LeapFriend) == "string" , LeapFriend , "|cff1eff00Leap_MultiUnit" },
 	-- "Gardien de peur" 634
@@ -422,12 +422,12 @@ local spellTable = {
 	{ "nested", not jps.buff(132573) and Orbs > 2 , {
 		{ 2944, jps.hp("player") < 0.75 , rangedTarget , "PLAGUE_LowHealth" },
 		{ 2944, jps.hp(rangedTarget) < 0.20 , rangedTarget , "PLAGUE_LowHealth" },
-		{ 2944, jps.myDebuffDuration(34914,rangedTarget) > 3 and jps.myDebuffDuration(589,rangedTarget) > 3 , rangedTarget , "PLAGUE_Debuff" },
+		{ 2944, jps.myDebuffDuration(34914,rangedTarget) > 5 and jps.myDebuffDuration(589,rangedTarget) > 5 , rangedTarget , "PLAGUE_Debuff" },
 	}},
 		
 	-- "MindSear" 48045 -- "Insanité incendiaire" 179338 "Searing Insanity"
-	{ 48045, not jps.Moving and jps.MultiTarget and jps.buff(132573) , rangedTarget , "MINDSEARORBS_Target" },
 	{ 48045, not jps.Moving and jps.MultiTarget and jps.buff(132573) , myTank , "MINDSEARORBS_Tank" },
+	{ 48045, not jps.Moving and jps.MultiTarget and jps.buff(132573) , rangedTarget , "MINDSEARORBS_Target" },
 	-- "Mind Flay" 15407 -- "Shadow Word: Insanity" buff 132573 -- "Insanity" 129197
 	{ 15407, not jps.Moving and jps.buff(132573) , rangedTarget , "MINDFLAYORBS" },
 
@@ -451,9 +451,14 @@ local spellTable = {
 	{ 73510, jps.buff(87160) and jps.buffDuration(87160) < 4 , rangedTarget , "Spike_SurgeofDarkness_CD" },
 	
 	-- "Shadow Word: Pain" 589 -- "Shadow Word: Insanity" buff 132573
-	{ 589, Orbs > 3 and jps.myDebuffDuration(589,rangedTarget) < 3 and not jps.isRecast(589,rangedTarget) , rangedTarget , "Pain_Orbs" },
+	{ 589, Orbs > 3 and fnPainEnemyTarget(rangedTarget) and not jps.isRecast(589,rangedTarget) , rangedTarget , "Pain_Orbs" },
 	-- "Vampiric Touch" 34914 -- "Shadow Word: Insanity" buff 132573
-	{ 34914, Orbs > 3 and not jps.Moving and jps.myDebuffDuration(34914,rangedTarget) < 3 and not jps.isRecast(34914,rangedTarget) , rangedTarget , "VT_Orbs" },
+	{ 34914, Orbs > 3 and not jps.Moving and fnVampEnemyTarget(rangedTarget) and not jps.isRecast(34914,rangedTarget) , rangedTarget , "VT_Orbs" },
+	
+	-- "Shadow Word: Pain" 589 -- "Shadow Word: Insanity" buff 132573
+	--{ 589, fnPainEnemyTarget(rangedTarget) and not jps.isRecast(589,rangedTarget) , rangedTarget , "Pain_Target" },
+	-- "Vampiric Touch" 34914 -- "Shadow Word: Insanity" buff 132573
+	--{ 34914, not jps.Moving and fnVampEnemyTarget(rangedTarget) and not jps.isRecast(34914,rangedTarget) , rangedTarget , "VT_Target" },
 	
 	-- MULTITARGET
 	-- "Mindbender" "Torve-esprit" 123040 -- "Ombrefiel" 34433 "Shadowfiend"
@@ -466,19 +471,21 @@ local spellTable = {
 
 	-- "Shadow Word: Pain" 589 -- "Shadow Word: Insanity" buff 132573	
 	{ 589, not jps.buff(132573) and type(PainEnemyTarget) == "string" and not UnitIsUnit(PainEnemyTarget,"target") , PainEnemyTarget , "Pain_MultiUnit" },
+	{ 589, not jps.buff(132573) and fnPainEnemyTarget("focus") and not UnitIsUnit("target","focus") , "focus" , "Pain_focus" },
 	{ 589, not jps.buff(132573) and fnPainEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "Pain_Mouseover" },
 
 	{ "nested", not jps.Moving , {
 		-- "Vampiric Touch" 34914 -- "Shadow Word: Insanity" buff 132573
 		{ 34914, not jps.buff(132573) and type(VampEnemyTarget) == "string" and not UnitIsUnit(VampEnemyTarget,"target") , VampEnemyTarget , "VT_MultiUnit" },
+		{ 34914, not jps.buff(132573) and fnVampEnemyTarget("focus") and not UnitIsUnit("target","focus") , "focus" , "VT_focus" },
 		{ 34914, not jps.buff(132573) and fnVampEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "VT_Mouseover" },
 		
 		-- "MindSear" 48045 -- "Insanité incendiaire" 179338 "Searing Insanity"
-		{ 48045, jps.MultiTarget and EnemyCount > 3 , rangedTarget , "MINDSEAR_Target" },
 		{ 48045, jps.MultiTarget and EnemyCount > 3 , myTank , "MINDSEAR_Tank" },
+		{ 48045, jps.MultiTarget and EnemyCount > 3 , rangedTarget , "MINDSEAR_Target" },
 
 		-- "Mind Spike" 73510 -- "Devouring Plague" debuff 158831
-		{ 73510, COP and not jps.myDebuff(158831,rangedTarget) and jps.myDebuffDuration(34914,rangedTarget) < 3 and jps.myDebuffDuration(589,rangedTarget) < 3 , rangedTarget , "Spike_CoP_target" },
+		{ 73510, COP and not jps.myDebuff(158831,rangedTarget) and fnMindSpike(rangedTarget) , rangedTarget , "Spike_CoP_target" },
 		{ 34914, type(MindSpikeTarget) == "string" , MindSpikeTarget , "Spike_MultiUnit" },
 	}},
 

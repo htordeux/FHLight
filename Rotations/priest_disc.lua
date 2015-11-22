@@ -237,8 +237,8 @@ local priestDisc = function()
 	-- BOSS DEBUFF
 	local TankBossDebuff = nil
 	for i=1,#TankUnit do
-		if jps.BossDebuff(TankUnit[i]) then TankBossDebuff = TankUnit[i]
-		else TankBossDebuff = jps.FindMeBossDebuff() end
+		if jps.BossDebuff(TankUnit[i]) and not jps.debuff(6788,TankUnit[i]) then TankBossDebuff = TankUnit[i]
+		break end
 	end
 
 ------------------------
@@ -344,6 +344,8 @@ local priestDisc = function()
 -- False if stunned/incapacitated but lowest friendly unit is good health
 -- False if stunned/incapacitated and playerAggro but player health is good
 
+if jps.hp("player") < 0.25 then CreateMessage("LOW HEALTH!") end -- CreateFlasher()
+
 ------------------------
 -- SPELL TABLE ---------
 ------------------------
@@ -393,6 +395,7 @@ spellTable = {
 	-- "Power Word: Shield" 17
 	{ 17, jps.Defensive and jps.Moving and BodyAndSoul and not jps.debuff(6788,"player") , "player" , "Shield_Moving" },
 	{ 17, LowestImportantUnitHpct < 0.75 and jps.Moving and BodyAndSoul and not jps.debuff(6788,"player") , "player" , "Shield_Moving" },
+	{ 17, jps.PvP and jps.glyphInfo(33202) and not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Defensive_Shield" },
 
 	-- PLAYER AGGRO
 	{ "nested", playerAggro or playerWasControl or playerIsTargeted ,{
@@ -498,7 +501,8 @@ spellTable = {
 	{ 10060, jps.hp(myTank) < 0.50 , "player" , "POWERINFUSION_Tank" },
 	{ 10060, type(POHTarget) == "string" , "player" , "POWERINFUSION_POH" },
 	{ 10060, type(LowestFriendTTD) == "string" , "player" , "POWERINFUSION_TTD" },
-	{ 10060, LowestImportantUnitHpct < 0.50 , "player" , "POWERINFUSION_Count" },
+	{ 10060, LowestImportantUnitHpct < 0.50 , "player" , "POWERINFUSION_Lowest" },
+	{ 10060, CountFriendLowest > 5 , "player" , "POWERINFUSION_Count" },
 	-- SNM Troll "Berserker" 26297 -- haste buff
 	{ 26297, type(POHTarget) == "string" , "player" },
 	{ 26297, type(LowestFriendTTD) == "string" , "player" },

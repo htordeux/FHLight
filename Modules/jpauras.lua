@@ -275,14 +275,13 @@ end
 
 function CreateFlasher()
 
-    local frameImage = "Interface\\FullScreenTextures\\LowHealth" -- "Interface\\FullScreenTextures\\OutofControl"
-    local frameName = "WarningFrame";
-	local flasher = CreateFrame("Frame", frameName)
+	local flasher = CreateFrame("Frame", "WarningFrame", UIParent)
 	flasher:SetToplevel(true)
-	flasher:SetFrameStrata("FULLSCREEN_DIALOG")
+	flasher:SetFrameStrata("BACKGROUND") -- "FULLSCREEN_DIALOG"
 	flasher:SetAllPoints(UIParent)
 	flasher.texture = flasher:CreateTexture(nil, "BACKGROUND")
-	flasher.texture:SetTexture(frameImage)
+	flasher:SetAlpha(0.1)
+	flasher.texture:SetTexture("Interface\\FullScreenTextures\\LowHealth") -- "Interface\\FullScreenTextures\\OutofControl"
 	flasher.texture:SetAllPoints(UIParent)
 	flasher.texture:SetBlendMode("ADD")
 	flasher:Show()
@@ -290,7 +289,7 @@ function CreateFlasher()
  	flasher:SetScript("OnUpdate", function(self, elapsed)
 		if self.TimeSinceLastUpdate == nil then self.TimeSinceLastUpdate = 0 end
 		self.TimeSinceLastUpdate = self.TimeSinceLastUpdate + elapsed
-		if self.TimeSinceLastUpdate > 2 then
+		if self.TimeSinceLastUpdate > 1 then
 			flasher:Hide()
 			self.TimeSinceLastUpdate = 0
 		end
@@ -303,7 +302,7 @@ function CreateMessage(message)
 	local msg = CreateFrame("MessageFrame", nil, UIParent)
 	msg:SetPoint("LEFT", UIParent)
 	msg:SetPoint("RIGHT", UIParent)
-	msg:SetPoint("TOP", 0, -500) -- set vertical position here
+	msg:SetPoint("TOP", 0, -700) -- set vertical position here
 	msg:SetHeight(25)
 	msg:SetInsertMode("TOP")
 	msg:SetFrameStrata("HIGH")

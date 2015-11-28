@@ -79,6 +79,8 @@ local priestDisc = function()
 	local countFriendNearby = jps.FriendNearby(12)
 	local POHTarget, groupToHeal, groupHealth = jps.FindSubGroupHeal(0.75) -- Target to heal with POH in RAID with AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
 	--local POHTarget, groupToHeal = jps.FindSubGroupTarget(0.75) -- Target to heal with POH in RAID with AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
+	local CountFriendLowest = jps.CountInRaidLowest(90)
+	local CountFriendEmergency = jps.CountInRaidLowest(50)
 
 	local myTank,TankUnit = jps.findTankInRaid() -- default "focus"
 	local TankTarget = "target"
@@ -205,15 +207,6 @@ local priestDisc = function()
 		if jps.buff(33206,unit) then
 			PainFriend = unit
 		break end
-	end
-	
-	-- CASCADE
-	local CountFriendLowest = 0
-	for i=1,#FriendUnit do -- for _,unit in ipairs(FriendUnit) do
-		local unit = FriendUnit[i]
-		if jps.hp(unit) < 0.90 and canHeal(unit) then
-			CountFriendLowest = CountFriendLowest + 1
-		end
 	end
 
 	-- FACING ANGLE -- jps.PlayerIsFacing(LowestImportantUnit,45) -- angle value between 10-180
@@ -412,6 +405,8 @@ spellTable = {
 		{ 17, not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Aggro_Shield" },
 		-- "Glyph of Purify" 55677 Your Purify spell also heals your target for 5% of maximum health
 		{ 527, jps.canDispel("player",{"Magic"}) , "player" , "Aggro_Dispel" },
+		-- FAKE CAST -- 6948 -- "Hearthstone"
+		{ {"macro","/use item:6948"}, jps.PvP and LowestImportantUnitHpct > 0.80 and not jps.Moving and jps.itemCooldown(6948) == 0 , "player" , "Aggro_FAKECAST" },
 	}},
 
 	-- PLAYER HEALTH
@@ -421,23 +416,15 @@ spellTable = {
 		-- "Prière du désespoir" 19236
 		{ 19236, jps.IsSpellKnown(19236) , "player" , "Aggro_DESESPERATE" },
 		-- "Pierre de soins" 5512
-		{ {"macro","/use item:5512"}, jps.itemCooldown(5512) == 0 , "player" , "Item5512" },
+		{ {"macro","/use item:5512"}, jps.itemCooldown(5512) == 0 , "player" , "Aggro_Item5512" },
 		-- "Pénitence" 47540
 		{ 47540, true , "player" , "Aggro_Penance" },
 		-- "Don des naaru" 59544
 		{ 59544, true , "player" , "Aggro_Naaru" },
 		-- "Saving Grace" 152116 "Grâce salvatrice"
 		{ 152116, jps.hp() < 0.50 and jps.debuffStacks(155274,"player") < 2 , "player" , "Aggro_SavingGrace" },
-		-- "Soins rapides" 2061 -- Buff "Borrowed" 59889 -- "Archange surpuissant" 172359  100 % critique POH or FH
-		{ 2061, not jps.Moving and jps.hp() < 0.50 , "player" , "Aggro_FlashHeal" },
-		-- "Prière de guérison" 33076 -- Buff POM 41635
-		{ 33076, not jps.Moving and not jps.buff(41635,"player") , "player" , "Aggro_Mending" },
-		-- "Clarity of Will" 152118 shields with protective ward for 20 sec
-		{ 152118, not jps.Moving and priest.unitForClarity("player") and jps.debuff(6788,"player") , "player" , "Aggro_Clarity" },
 		-- "Nova" 132157 -- "Words of Mending" 155362 "Mot de guérison"
 		{ 132157, jps.hp() < 0.50 , "player" , "Aggro_Nova" },
-		-- FAKE CAST -- 6948 -- "Hearthstone"
-		{ {"macro","/use item:6948"}, jps.PvP and LowestImportantUnitHpct > 0.80 and not jps.Moving and jps.itemCooldown(6948) == 0 , "player" , "Aggro_FAKECAST" },
 	}},
 
 	-- "Mot de pouvoir : Réconfort" -- "Power Word: Solace" 129250 -- REGEN MANA
@@ -537,6 +524,8 @@ spellTable = {
 		{ 2061, not jps.Moving and jps.buff(172359) , LowestImportantUnit , "Emergency_FlashHeal_Archange" },
 		{ 2061, not jps.Moving and jps.buff(10060) , LowestImportantUnit , "Emergency_FlashHeal_Infusion" },
 		{ 2061, not jps.Moving and LowestImportantUnitHpct < 0.25 , LowestImportantUnit , "Emergency_FlashHeal_25" },
+		-- "Prière de guérison" 33076 -- Buff POM 41635
+		{ 33076, not jps.Moving and not jps.buff(41635,LowestImportantUnit) , LowestImportantUnit , "Emergency_Mending" },
 		-- "Clarity of Will" 152118 shields with protective ward for 20 sec -- 2.5 sec cast
 		{ 152118, not jps.Moving and priest.unitForClarity(LowestImportantUnit) and jps.debuff(6788,LowestImportantUnit) and jps.buff(59889) , LowestImportantUnit  , "Emergency_Clarity"  },
 		-- "Soins rapides" 2061

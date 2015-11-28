@@ -217,6 +217,18 @@ end
 -- HEALTH UNIT RAID
 ---------------------------
 
+jps.CountInRaidLowest = function (lowHealthDef)
+	if lowHealthDef == nil then lowHealthDef = 1 end
+	local CountFriendLowest = 0
+	for unit,_ in pairs(RaidStatus) do
+		if canHeal(unit) then
+			local unitHP = HealthPct(unit)
+			if unitHP < lowHealthDef then CountFriendLowest = CountFriendLowest + 1 end
+        end
+	end
+	return CountFriendLowest
+end
+
 -- COUNTS THE NUMBER OF PARTY MEMBERS INRANGE HAVING A SIGNIFICANT HEALTH PCT LOSS
 jps.CountInRaidStatus = function (lowHealthDef)
 	if lowHealthDef == nil then lowHealthDef = 1 end
@@ -243,7 +255,7 @@ end
 -- LOWEST PERCENTAGE in RaidStatus
 jps.LowestInRaidStatus = function()
 	local lowestUnit = "player"
-	local lowestHP = 100
+	local lowestHP = 1
 	for unit,_ in pairs(RaidStatus) do
 		if canHeal(unit) then
 			local unitHP = HealthPct(unit)
@@ -282,7 +294,7 @@ jps.LowestImportantUnit = function()
 			local unit = Tanks[i]
 			myTanks[#myTanks+1] = unit
 		end
-		local lowestHP = 100 -- in case with Inc & Abs > 1
+		local lowestHP = 1 -- in case with Inc & Abs > 1
 		for i=1,#myTanks do -- for _,unit in ipairs(myTanks) do
 			local unit = myTanks[i]
 			local unitHP = HealthPct(unit)
@@ -403,7 +415,7 @@ jps.FindSubGroupHeal = function(lowHealthDef)
 	
 	local groupCount = 2
 	local groupToHeal = 0
-	local groupToHealHealthAvg = 100
+	local groupToHealHealthAvg = 1
 	for group,index in pairs(HealthGroup) do
 		local indexAvg = index[1] / index[2]
 		local indexCount = index[3]
@@ -533,7 +545,7 @@ end
 
 jps.FindMeDispelTarget = function(dispelTable) -- {"Magic", "Poison", "Disease", "Curse"}
 	local dispelUnit = nil
-	local dispelUnitHP = 100
+	local dispelUnitHP = 1
 	for unit,_ in pairs(RaidStatus) do
 		if jps.canDispel(unit,dispelTable) then
 			local unitHP = HealthPct(unit)

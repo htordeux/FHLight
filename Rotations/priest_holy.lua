@@ -74,6 +74,8 @@ local priestHoly = function()
 	local countFriendNearby = jps.FriendNearby(12)
 	local POHTarget, groupToHeal, groupHealth = jps.FindSubGroupHeal(0.75) -- Target to heal with POH in RAID with AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
 	--local POHTarget, groupToHeal = jps.FindSubGroupTarget(0.75) -- Target to heal with POH in RAID with AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
+	local CountFriendLowest = jps.CountInRaidLowest(90)
+	local CountFriendEmergency = jps.CountInRaidLowest(50)
 
 	local myTank,TankUnit = jps.findTankInRaid() -- default "focus"
 	local TankTarget = "target"
@@ -174,15 +176,6 @@ local priestHoly = function()
 				RenewFriend = unit
 				RenewFriendHealth = unitHP
 			end
-		end
-	end
-	
-	-- CASCADE
-	local CountFriendLowest = 0
-	for i=1,#FriendUnit do -- for _,unit in ipairs(FriendUnit) do
-		local unit = FriendUnit[i]
-		if jps.hp(unit) < 0.80 and canHeal(unit) then
-			CountFriendLowest = CountFriendLowest + 1
 		end
 	end
 

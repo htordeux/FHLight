@@ -426,7 +426,6 @@ local spellTable = {
 	}},
 		
 	-- "MindSear" 48045 -- "Insanité incendiaire" 179338 "Searing Insanity"
-	{ 48045, not jps.Moving and jps.MultiTarget and jps.buff(132573) , myTank , "MINDSEARORBS_Tank" },
 	{ 48045, not jps.Moving and jps.MultiTarget and jps.buff(132573) , rangedTarget , "MINDSEARORBS_Target" },
 	-- "Mind Flay" 15407 -- "Shadow Word: Insanity" buff 132573 -- "Insanity" 129197
 	{ 15407, not jps.Moving and jps.buff(132573) , rangedTarget , "MINDFLAYORBS" },
@@ -481,7 +480,6 @@ local spellTable = {
 		{ 34914, not jps.buff(132573) and fnVampEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "VT_Mouseover" },
 		
 		-- "MindSear" 48045 -- "Insanité incendiaire" 179338 "Searing Insanity"
-		{ 48045, jps.MultiTarget and EnemyCount > 3 , myTank , "MINDSEAR_Tank" },
 		{ 48045, jps.MultiTarget and EnemyCount > 3 , rangedTarget , "MINDSEAR_Target" },
 
 		-- "Mind Spike" 73510 -- "Devouring Plague" debuff 158831

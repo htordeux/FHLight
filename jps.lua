@@ -64,6 +64,7 @@ jps.Latency = 0
 jps.NextSpell = nil
 jps.GCD = 1
 jps.startedFalling = 0
+jps.SpellSchool = 0
 
 -- Class
 jps.Class = nil
@@ -121,13 +122,12 @@ end
 
 function GetHarmfulSpell()
 	local _, _, offset, numSpells, _ = GetSpellTabInfo(2)
-	local booktype = "spell"
-	local harm = 0
-	local help = 0
+	local harmdist = 0
+	local helpdist = 0
 	for index = offset+1, numSpells+offset do
 		-- Get the Global Spell ID from the Player's spellbook
-		local spell = select(1,GetSpellBookItemName(index, booktype))
-		local spellID = select(2,GetSpellBookItemInfo(index, booktype))
+		local spell = select(1,GetSpellBookItemName(index, "spell"))
+		local spellID = select(2,GetSpellBookItemInfo(index, "spell"))
 		local minRange = select(5,GetSpellInfo(spellID))
 		if minRange == nil then minRange = 8 end
 		local maxRange = select(6,GetSpellInfo(spellID))
@@ -135,13 +135,13 @@ function GetHarmfulSpell()
 		local harmful = IsHarmfulSpell(index, booktype)
 		local helpful = IsHelpfulSpell(index, booktype)
 		if harmful and maxRange > 0 and minRange == 0 and jps.IsSpellKnown(spellID) then
-			if maxRange > harm then
-				harm = maxRange
+			if maxRange > harmdist then
+				harmdist = maxRange
 				jps.HarmSpell = spell
 			end
 		elseif helpful and maxRange > 0 and minRange == 0 and jps.IsSpellKnown(spellID) then
-			if maxRange > help then
-				help = maxRange
+			if maxRange > helpdist then
+				helpdist = maxRange
 				jps.HelpSpell = spell
 			end
 		end

@@ -67,15 +67,15 @@ local priestHoly = function()
 -- LOWESTIMPORTANTUNIT
 ----------------------------
 
-	local CountInRange, AvgHealthLoss, FriendUnit = jps.CountInRaidStatus(1)
+	local CountInRange, AvgHealthLoss, FriendUnit = jps.CountInRaidStatus()
 	local LowestImportantUnit = jps.LowestImportantUnit()
 	local LowestImportantUnitHealth = jps.hp(LowestImportantUnit,"abs") -- UnitHealthMax(unit) - UnitHealth(unit)
 	local LowestImportantUnitHpct = jps.hp(LowestImportantUnit) -- UnitHealth(unit) / UnitHealthMax(unit)
 	local countFriendNearby = jps.FriendNearby(12)
 	local POHTarget, groupToHeal, groupHealth = jps.FindSubGroupHeal(0.75) -- Target to heal with POH in RAID with AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
 	--local POHTarget, groupToHeal = jps.FindSubGroupTarget(0.75) -- Target to heal with POH in RAID with AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
-	local CountFriendLowest = jps.CountInRaidLowest(90)
-	local CountFriendEmergency = jps.CountInRaidLowest(50)
+	local CountFriendLowest = jps.CountInRaidLowest(0.80)
+	local CountFriendEmergency = jps.CountInRaidLowest(0.50)
 
 	local myTank,TankUnit = jps.findTankInRaid() -- default "focus"
 	local TankTarget = "target"

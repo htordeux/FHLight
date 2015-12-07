@@ -104,7 +104,7 @@ local jps_IsSpellInRange = function(spell,unit)
 		end
 		-- If a Pet Spellbook is found, do the same as above and try to get an Index on the Spell
 		local numPetSpells = HasPetSpells()
-		if myIndex == 0 and numPetSpells then
+		if numPetSpells then
 			booktype = "pet"
 			for index = 1, numPetSpells do
 				-- Get the Global Spell ID from the Pet's spellbook
@@ -191,7 +191,6 @@ function jps.canHeal(unit)
 	if not UnitCanAssist("player",unit) then return false end
 	if not UnitIsFriend("player",unit) then return false end
 	if jps.PlayerIsBlacklisted(unit) then return false end
-	--if not jps.IsSpellInRange(jps.HelpSpell,unit) then return false end
 	if unit == "target" and UnitCanAssist("player","target") and UnitIsFriend("player","target") then return true end
 	if unit == "focus" and UnitCanAssist("player","focus") and UnitIsFriend("player","focus") then return true end
 	if not select(1,UnitInRange(unit)) then return false end
@@ -241,9 +240,8 @@ function jps.canCast(spell,unit)
 	local usable, nomana = IsUsableSpell(spell) -- usable, nomana = IsUsableSpell("spellName" or spellID)
 	if not usable then return false end
 	if nomana then return false end
-	if jps.cooldown(spell) > 0 then return false end
+	if jps.cooldown(spell) > 0 then return false end -- unknown spell returns zero
 	if not jps.IsSpellInRange(spell,unit) then return false end
-	if jps[spellname] ~= nil and jps[spellname] == false then return false end -- need spellname
 	return true
 end
 
@@ -371,6 +369,8 @@ end
 function jps.groundClick(spellname)
 	SetCVar("deselectOnClick", "0") --	jps.Macro("/console deselectOnClick 0")
 	CastSpellByName(spellname)
+	CameraOrSelectOrMoveStart(1)
+    CameraOrSelectOrMoveStop(1)
 	SetCVar("deselectOnClick", "1") --	jps.Macro("/console deselectOnClick 1")
 end
 
@@ -433,7 +433,8 @@ end
 
 local proxy = setmetatable(jps.LastMessage, {__index = function(t, index) return index end})
 function jps.FinderLastMessage(message)
-	for i=1,#jps.LastMessage do
+	if #jps.LastMessage < 3 then return false end
+	for i=1,2 do
 		if strfind(jps.LastMessage[i],message) then return true end
 	end
 return false

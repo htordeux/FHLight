@@ -38,6 +38,10 @@ setmetatable(EnemyCooldowns, { __mode = 'k' }) -- creation of a weak table
 -- HEALTABLE
 local Healtable = {}
 setmetatable(Healtable, { __mode = 'k' }) -- creation of a weak table
+-- IncomingDamage
+local IncomingDamage = {}
+-- Incoming Heal
+local IncomingHeal = {}
 
 -- RaidStatus
 local UnitGUID = UnitGUID
@@ -52,10 +56,6 @@ local toSpellName = jps.toSpellName
 
 -- Table for failed spells
 local SpellFailedTable = {}
-
--- global
-jps.PhysicalDamage = false
-jps.MagicDamage = false
 
 --------------------------
 -- (UN)REGISTER FUNCTIONS 
@@ -446,13 +446,13 @@ local leaveCombat = function()
 	jps.gui_toggleCombat(false)
 	jps.combatStart = 0
 	jps.NextSpell = nil
-	jps.PhysicalDamage = false
-	jps.MagicDamage = false
 
 	-- nil all tables
 	SpellFailedTable = {}
 	EnemyCooldowns = {}
 	EnemyDamager = {}
+	IncomingDamage = {}
+	IncomingHeal = {}
 	Healtable = {}
 	jps.LastMessage = {}
 	jps.TimeToDieData = {}
@@ -514,14 +514,9 @@ jps.listener.registerEvent("UI_ERROR_MESSAGE", function(event_error)
 			jps.isBehind = false
 		elseif jps.FaceTarget and not jps.Moving and ((event_error == SPELL_FAILED_UNIT_NOT_INFRONT) or (event_error == ERR_BADATTACKFACING)) then
 			--print("ERR_BADATTACKFACING - %s", event_error)			
-			local TargetGuid = UnitGUID("target")
-			if FireHack and (TargetGuid ~= nil) then
-				local TargetObject = GetObjectFromGUID(TargetGuid)
-				TargetObject:Face ()
-			else
-				TurnLeftStart()
-				C_Timer.After(0.5,function() TurnLeftStop() end)
-			end
+			if jps.checkTimer("Facing") == 0 then jps.createTimer("Facing",1) end
+			TurnLeftStart()
+			C_Timer.After(1,function() TurnLeftStop() end)
 		elseif (event_error == SPELL_FAILED_LINE_OF_SIGHT) or (event_error == SPELL_FAILED_VISION_OBSCURED) then
 			jps.BlacklistPlayer(jps.LastTarget)
 		elseif event_error == ERR_ABILITY_COOLDOWN or event_error == ERR_SPELL_COOLDOWN then
@@ -531,9 +526,27 @@ jps.listener.registerEvent("UI_ERROR_MESSAGE", function(event_error)
 			if classPlayer == "WARRIOR" then
 				--print("ERR_BADATTACKPOS - %s", event_error) -- Vous êtes trop loin ! -- Hors de portée
 				MoveForwardStart()
-				C_Timer.After(0.25,function() MoveForwardStop() end)
+				C_Timer.After(0.6,function() MoveForwardStop() end)
 			end
 		end
+end)
+
+-- UNIT_SPELLCAST_SUCCEEDED
+jps.listener.registerEvent("UNIT_SPELLCAST_SUCCEEDED", function(unitID,spellname,_,_,spellID)
+	if (unitID == "player") and spellID then
+		jps.CurrentCastInterrupt = nil
+		if jps.FaceTarget and jps.checkTimer("Facing") > 0 then TurnLeftStop() end
+		if ((jps.Class == "Druid" and jps.Spec == "Feral") or jps.Class == "Rogue") then
+			-- "Druid" -- 5221 -- "Shred" -- "Ambush" 8676
+			if (unitID == "player") and spellID == 5221 then 
+				jps.isNotBehind = false
+				jps.isBehind = true
+			elseif (unitID == "player") and spellID == 8676 then
+				jps.isNotBehind = false
+				jps.isBehind = true
+			end
+		end
+	end
 end)
 
 --casting failed = FAILED ( bad target, out of range)
@@ -593,23 +606,6 @@ end)
 --		print("SPELLCAST_STOP: ",unitID,"spellname:",spellname,"spellID: ",spellID)
 --	end
 --end)
-
--- UNIT_SPELLCAST_SUCCEEDED
-jps.listener.registerEvent("UNIT_SPELLCAST_SUCCEEDED", function(unitID,spellname,_,_,spellID)
-	if (unitID == "player") and spellID then
-		jps.CurrentCastInterrupt = nil
-		if ((jps.Class == "Druid" and jps.Spec == "Feral") or jps.Class == "Rogue") then
-			-- "Druid" -- 5221 -- "Shred" -- "Ambush" 8676
-			if (unitID == "player") and spellID == 5221 then 
-				jps.isNotBehind = false
-				jps.isBehind = true
-			elseif (unitID == "player") and spellID == 8676 then
-				jps.isNotBehind = false
-				jps.isBehind = true
-			end
-		end
-	end
-end)
 
 ----------------------
 -- LOSS_OF_CONTROL
@@ -671,23 +667,6 @@ jps.listener.registerEvent("PARTY_MEMBER_DISABLE", function()
 	jps.UpdateRaidRole()
 end)
 
------------------------
--- UPDATE ENEMY TABLE
------------------------
--- "UNIT_TARGET" Fired when the target of yourself, raid, and party members change: 'target', 'party1target', 'raid1target', etc.. 
--- Should also work for 'pet' and 'focus'. This event only fires when the triggering unit is within the player's visual range
-jps.listener.registerEvent("UNIT_TARGET", jps.LowestTarget)
-
-local updateEnemyDamager = function()
-	for unit,index in pairs(EnemyDamager) do
-		local dataset = index.friendaggro
-		if dataset then 
-			local timeDelta = GetTime() - dataset[1]
-			if timeDelta > 4 then EnemyDamager[unit] = nil end
-		end
-	end
-end
-
 --------------------------
 -- TRACKING ENEMY COOLDOWNS
 --------------------------
@@ -721,6 +700,40 @@ function jps.enemyCooldownWatch(unit)
 end
 
 -----------------------
+-- UPDATE ENEMY TABLE
+-----------------------
+-- "UNIT_TARGET" Fired when the target of yourself, raid, and party members change: 'target', 'party1target', 'raid1target', etc.. 
+-- Should also work for 'pet' and 'focus'. This event only fires when the triggering unit is within the player's visual range
+jps.listener.registerEvent("UNIT_TARGET", jps.LowestTarget)
+
+local updateEnemyDamager = function()
+	for unit,index in pairs(EnemyDamager) do
+		local dataset = index.friendaggro
+		if dataset then 
+			local timeDelta = GetTime() - dataset
+			if timeDelta > 5 then EnemyDamager[unit] = nil end
+		end
+	end
+end
+
+--IncomingDamage["player"] = { {GetTime(),dmg}, {GetTime(),dmg},{GetTime(),dmg} }
+local updateIncomingDamage = function()
+	for unit,index in pairs(IncomingDamage) do
+		local data = #index
+		local delta = GetTime() - index[1][1]
+		if delta > 5 then IncomingDamage[unit] = nil end
+	end
+end
+
+local updateIncomingHeal = function()
+	for unit,index in pairs(IncomingHeal) do
+		local data = #index
+		local delta = GetTime() - index[1][1]
+		if delta > 5 then IncomingHeal[unit] = nil end
+	end
+end
+
+-----------------------
 -- UPDATE HEALERBLACKLIST
 -----------------------
 
@@ -733,13 +746,13 @@ local UpdateIntervalRaidStatus = function()
 	scoreLastUpdate = curTime
 	jps.UpdateHealerBlacklist()
 	updateEnemyDamager()
-	if #jps.LastMessage > 2 then
-		for i=3,#jps.LastMessage do jps.LastMessage[i] = nil end
-	end
+	updateIncomingDamage()
+	updateIncomingHeal()
 end
 
 -- HealerBlacklist Update
 jps.registerOnUpdate(UpdateIntervalRaidStatus)
+
 
 --------------------------
 -- COMBAT_LOG_EVENT_UNFILTERED FUNCTIONS
@@ -795,17 +808,17 @@ local bitband = bit.band
 jps.listener.registerEvent("COMBAT_LOG_EVENT_UNFILTERED", function(...)
 	local event = select(2,...)
 	local sourceGUID = select(4,...)
-	local sourceName = select(5,...)
 	local sourceFlags = select(6,...)
 	local destGUID = select(8,...)
-	local destName = select(9,...)
 	local destFlags = select(10,...)
 	
 -- The numeric values of the global variables starts with 1 for MINE and increases toward OUTSIDER with 8
+	local isSourceEnemy = bitband(sourceFlags, COMBATLOG_OBJECT_REACTION_HOSTILE) == COMBATLOG_OBJECT_REACTION_HOSTILE
 	local isDestEnemy = bitband(destFlags, COMBATLOG_OBJECT_REACTION_HOSTILE) == COMBATLOG_OBJECT_REACTION_HOSTILE
 	local isDestRaid = bitband(destFlags, RAID_AFFILIATION) > 0
 	local isSourceRaid = bitband(sourceFlags, RAID_AFFILIATION) > 0
-	local isSourceEnemy = bitband(sourceFlags, COMBATLOG_OBJECT_REACTION_HOSTILE) == COMBATLOG_OBJECT_REACTION_HOSTILE
+	local isSourceFriend = bitband(sourceFlags,COMBATLOG_OBJECT_REACTION_FRIENDLY) == COMBATLOG_OBJECT_REACTION_FRIENDLY
+	local isDestFriend = bitband(destFlags,COMBATLOG_OBJECT_REACTION_FRIENDLY) == COMBATLOG_OBJECT_REACTION_FRIENDLY
 	
 --	if jps.Debug then
 --		print("COMBATLOG_OBJECT_TYPE_PLAYER =", COMBATLOG_OBJECT_TYPE_PLAYER,bitband(sourceFlags,COMBATLOG_OBJECT_TYPE_PLAYER),
@@ -818,8 +831,27 @@ jps.listener.registerEvent("COMBAT_LOG_EVENT_UNFILTERED", function(...)
 --		"RAID_AFFILIATION =", RAID_AFFILIATION,bitband(sourceFlags,RAID_AFFILIATION))
 --	end
 
--- HEAL TABLE -- contains the average value of healing spells
-	if sourceGUID and destGUID and healEvents[event] then
+	if sourceGUID and destGUID then
+			local sourceName = select(5,...) 
+			local destName = select(9,...)
+
+-- ENEMYCOOLDOWNS Table -- Track some CD Spells with spellID in table jps.EnemyCds
+		if jps.PvP and isSourceEnemy and spellEvents[event] then
+			local spellId = select(12, ...)
+			local spellname = select(13, ...)
+			local start, _, _ = GetSpellCooldown(spellId)
+			if start > 0 and jps.EnemyCds[spellId] then
+				local duration = jps.EnemyCds[spellId]
+				if not EnemyCooldowns[sourceGUID] then EnemyCooldowns[sourceGUID] = {} end
+				if not EnemyCooldowns[sourceGUID][spellId] then
+					EnemyCooldowns[sourceGUID][spellId] = {start + duration, duration, spellname}
+				elseif EnemyCooldowns[sourceGUID][spellId][2] == 0 then
+					EnemyCooldowns[sourceGUID][spellId] = {start + duration, duration, spellname}
+				end
+			end
+		end
+
+-- HEAL TABLE -- Average value of player healing spells
 --		if sourceGUID == UnitGUID("player") then
 --			local healname = select(13, ...)
 --			local healVal = select(15, ...)
@@ -838,68 +870,61 @@ jps.listener.registerEvent("COMBAT_LOG_EVENT_UNFILTERED", function(...)
 --			end
 --		end
 
--- HEAL ENEMY TABLE -- contains the UnitGUID of Enemy Healers
-		if isSourceEnemy then
-			local healId = select(12, ...)
-			local addEnemyHealer = false
-			if jps.HealerSpellID[healId] then
-				if EnemyHealer[sourceGUID] == nil then
-					addEnemyHealer = true
+-- HEAL TABLE -- Incoming Heal on Enemy UnitGUID of Enemy Healers
+		if healEvents[event] then
+--		print(  "cff1eff00Event: ",event)
+--		print(  "|cff1eff00destName: |cffffffff",destName,"F:",isDestFriend,"E:",isDestEnemy,
+--				"|cff1eff00sourceName: |cffffffff",sourceName,"F:",isSourceFriend,"E:",isSourceEnemy)
+		
+			if jps.PvP and isSourceEnemy then
+				local healId = select(12, ...)
+				local addEnemyHealer = false
+				local classHealer = jps.HealerSpellID[healId]
+				if classHealer then
+					if EnemyHealer[sourceGUID] == nil then addEnemyHealer = true end
+					if addEnemyHealer then EnemyHealer[sourceGUID] = {classHealer,sourceName} end
 				end
-				if addEnemyHealer then EnemyHealer[sourceGUID] = {jps.HealerSpellID[healId],sourceName} end
+			end
+
+-- HEAL TABLE -- Incoming Heal on Friend
+			if isDestFriend and UnitCanAssist("player",destName) then
+				local heal = select(15,...)
+				if IncomingHeal[destGUID] == nil then IncomingHeal[destGUID] = {} end
+				tinsert(IncomingHeal[destGUID],1,{GetTime(),heal,destName})
 			end
 		end
-	end
-
--- Table ENEMYCOOLDOWNS to track some CD Spells depends of spellID in table jps.EnemyCds
-	if sourceGUID and destGUID and spellEvents[event] then
-			local spellId = select(12, ...)
-			local spellname = select(13, ...)
-			local start, _, _ = GetSpellCooldown(spellId)
-			if start > 0 and jps.EnemyCds[spellId] then
-				local duration = jps.EnemyCds[spellId]
-				if not EnemyCooldowns[sourceGUID] then EnemyCooldowns[sourceGUID] = {} end
-				if not EnemyCooldowns[sourceGUID][spellId] then
-					EnemyCooldowns[sourceGUID][spellId] = {start + duration, duration, spellname}
-				elseif EnemyCooldowns[sourceGUID][spellId][2] == 0 then
-					EnemyCooldowns[sourceGUID][spellId] = {start + duration, duration, spellname}
-				end
-			end
-
-	end
 
 -- DAMAGE TABLE Note that for the SWING prefix, _DAMAGE starts at the 12th parameter
-	if sourceGUID and destGUID and damageEvents[event] then
-		-- SPELLSCHOOL -- 1 Physical, 2 Holy, 4 Fire, 8 Nature, 16 Frost, 32 Shadow, 64 Arcane
-		local spellSchool =  select(14,...)
-		if destGUID == UnitGUID("player") and spellSchool then
-			if spellSchool == 1 then
-				jps.PhysicalDamage = true
-				jps.MagicDamage = false
-				
-			else
-				jps.PhysicalDamage = false
-				jps.MagicDamage = true
-			end
-		end
+		if damageEvents[event] then
+--		print("|cFFFF0000Event: ",event)
+--		print("|cFFFF0000destName: |cffffffff",destName,"F:",isDestFriend,"E:",isDestEnemy,
+--				"|cFFFF0000sourceName: |cffffffff",sourceName,"F:",isSourceFriend,"E:",isSourceEnemy)
+		
+			if isDestFriend and UnitCanAssist("player",destName) then
+				-- SPELLSCHOOL -- 1 Physical, 2 Holy, 4 Fire, 8 Nature, 16 Frost, 32 Shadow, 64 Arcane
+				local spellSchool = select(14,...)
+				if destGUID == UnitGUID("player") and spellSchool then
+					jps.SpellSchool = spellSchool
+				end
 
-		if isSourceEnemy and isDestRaid then
-			local dmgTTD = 0
-			if event == "SWING_DAMAGE" then
-				local swing = select(12, ...)
-				if swing == nil then swing = 0 end
-				if swing > 0 then dmgTTD = swing end
-			else
-				local damage = select(15, ...)
-				if damage == nil then damage = 0 end
-				if damage > 0 then dmgTTD = damage end
-			end
-			
-			if UnitCanAssist("player",destName) and UnitIsFriend("player",destName) then
+				local dmg = 0
+				if event == "SWING_DAMAGE" then
+					local damage = select(12, ...)
+					if damage == nil then damage = 0 end
+					if damage > 0 then dmg = damage end
+				else
+					local damage = select(15, ...)
+					if damage == nil then damage = 0 end
+					if damage > 0 then dmg = damage end
+				end
+				
+				-- Table of Incoming Damage on Friend
+				if IncomingDamage[destGUID] == nil then IncomingDamage[destGUID] = {} end
+				tinsert(IncomingDamage[destGUID],1,{GetTime(),dmg,sourceName})
+				-- Table of EnemyGuid doing damage on targeted FriendGuid
 				if EnemyDamager[sourceGUID] == nil then EnemyDamager[sourceGUID] = {} end
-				EnemyDamager[sourceGUID]["friend"] = destGUID -- TABLE OF ENEMY GUID TARGETING FRIEND GUID
-				EnemyDamager[sourceGUID]["friendname"] = destName
-				EnemyDamager[sourceGUID]["friendaggro"] = {GetTime(), dmgTTD}
+				EnemyDamager[sourceGUID]["friendguid"] = destGUID 
+				EnemyDamager[sourceGUID]["friendaggro"] = GetTime()
 			end
 		end
 	end
@@ -912,8 +937,59 @@ end)
 -- table.insert called without a position, it inserts the element in the last position of the array (and, therefore, moves no elements)
 -- table.remove called without a position, it removes the last element of the array.
 
+function jps.SchoolDamage(string) -- "physical" or "magic"
+	if string == nil then return false end
+	if jps.SpellSchool > 0 then
+		if jps.SpellSchool == 1 and string == "physical" then return true end
+		if jps.SpellSchool > 1 and string == "magic" then return true end
+	end
+	return false
+end
+
+function jps.IncomingDamage(unit)
+	if unit == nil then unit = "player" end
+	local time = 3
+	local unitguid = UnitGUID(unit)
+	local totalDmg = 0
+	if IncomingDamage[unitguid] ~= nil then
+		local dataset = IncomingDamage[unitguid]
+		if #dataset > 1 then
+			local timeDelta = dataset[1][1] - dataset[#dataset][1] -- (lasttime - firsttime)
+			local totalTime = math.max(timeDelta, 1)
+			if time > totalTime then time = totalTime end
+			for i=1,#dataset do
+				if dataset[1][1] - dataset[i][1] < time then
+					totalDmg = totalDmg + dataset[i][2]
+				end
+			end
+		end
+	end
+	return totalDmg
+end
+
+function jps.IncomingHeal(unit)
+	if unit == nil then unit = "player" end
+	local time = 3
+	local unitguid = UnitGUID(unit)
+	local totalHeal = 0
+	if IncomingHeal[unitguid] ~= nil then
+		local dataset = IncomingHeal[unitguid]
+		if #dataset > 1 then
+			local timeDelta = dataset[1][1] - dataset[#dataset][1] -- (lasttime - firsttime)
+			local totalTime = math.max(timeDelta, 1)
+			if time > totalTime then time = totalTime end
+				for i=1,#dataset do
+					if dataset[1][1] - dataset[i][1] < time then
+					totalHeal = totalHeal + dataset[i][2]
+				end
+			end
+		end
+	end
+	return totalHeal
+end
+
 -- TABLE OF ENEMY GUID TARGETING FRIEND GUID
--- EnemyDamager[enemyGuid] = { ["friend"] = enemyFriend , [""friendname""] = destName , ["friendaggro"] = {GetTime(), dmgTTD} }
+-- EnemyDamager[enemyGuid] = { ["friendguid"] = friendGuid , ["friendaggro"] = GetTime() }
 function jps.RaidEnemyCount()
 	local enemycount = 0
 	for unit,index in pairs(EnemyDamager) do
@@ -935,48 +1011,21 @@ jps.EnemyDamager = function(unit)
 end
 
 -- TABLE OF ENEMY GUID TARGETING FRIEND GUID
--- EnemyDamager[enemyGuid] = { ["friend"] = enemyFriend , [""friendname""] = destName , ["friendaggro"] = {GetTime(), dmgTTD} }
-jps.FriendAggro = function (friend)
-	local friendGuid = UnitGUID(friend)
+-- EnemyDamager[enemyGuid] = { ["friendguid"] = friendGuid , ["friendaggro"] = GetTime() }
+jps.FriendAggro = function (unit)
+	if unit == nil then unit = "player" end
+	local unitGuid = UnitGUID(unit)
 	for _,index in pairs(EnemyDamager) do
-		if index.friend == friendGuid then return true end
+		if index.friendguid == unitGuid then return true end
 	end
 	return false
 end
 
--- Table of Targeted Friend -- Return SPELLNAME
-local FriendTable = {}
-jps.FriendAggroTable = function()
-	table.wipe(FriendTable)
-	for unit,index in pairs(EnemyDamager) do
-		FriendTable[#FriendTable+1] = index.friendname
-		-- table.insert(FriendTable, index.friendname) -- { "Bob" , "Fred" , "Bob" }
-	end
-
-	-- make unique keys
-	local hash = {}
-	for i=1,#FriendTable do -- for _,v in ipairs(FriendTable) do
-		local v = FriendTable[i]
-		local count = hash[v]
-		if count == nil then count = 1 else count = count + 1 end
-		hash[v] = count --  hash = { ["Bob] = 2 , ["Fred"] = 1}
-	end
-
-	-- transform keys back into values
-	local dupe = {}
-	for k,_ in pairs(hash) do
-		dupe[#dupe+1] = k
-	end
-	table.sort(dupe, function(a,b) return jps.hp(a) < jps.hp(b) end)
-	return dupe[1] or nil, dupe, #dupe
-end
-
--- EnemyDamager[enemyGuid] = { ["friend"] = enemyFriend , [""friendname""] = destName , ["friendaggro"] = {GetTime(), dmgTTD} }
--- className, classId, raceName, raceId, gender, name, realm = GetPlayerInfoByGUID("guid")
+-- EnemyDamager[enemyGuid] = { ["friendguid"] = friendGuid , ["friendaggro"] = GetTime() }
 jps.LookupEnemyDamager = function()
 	if jps.tableLength(EnemyDamager) == 0 then print("EnemyDamager is Empty") end
 	for unit,index in pairs(EnemyDamager) do
-		print("EnemyGuid_|cFFFF0000: ",unit," |cffffffffFriendGuid_|cff1eff00: ",index.friend," |cffffffffName_|cff1eff00: ",index.friendname,"|cffffffffDmg|cFFFF0000: ",index.friendaggro[2])
+		print("EnemyGuid_|cFFFF0000: ",unit," |cffffffffFriendGuid_|cff1eff00: ",index.friendguid,"|cffffffffAggro|cFFFF0000: ",index.friendaggro)
 	end
 end
 
@@ -987,6 +1036,22 @@ jps.LookupEnemyHealer = function()
 		print("Class:|cFFFF0000: ",index[1]," |cffffffffName:|cFFFF0000: ",index[2])
 	end
 end
+
+
+
+jps.Lookup = function()
+	print("|cffff8000------------------------|cffffffff")
+	-- IncomingHeal[destGUID] = {GetTime(),heal,destName}
+	for unit,index in pairs (IncomingHeal) do
+		print(index[1][1],"|cff1eff00unit:",unit,"destname:",index[1][3],"heal:",index[1][2])
+	end
+	
+	-- IncomingDamage[destGUID] = {GetTime(),dmg,sourceName}
+	for unit,index in pairs (IncomingDamage) do
+		print(index[1][1],"|cFFFF0000unit:",unit,"srcname:",index[1][3],"dmg:",index[1][2])
+	end
+end
+
 
 ------------------------------
 -- SPELLTABLE -- contains the average value of healing spells
@@ -1056,7 +1121,7 @@ end)
 --	local dataset = RaidTimeToDie[destGUID]
 --	local data = table.getn(dataset)
 --	if data >= maxTDDLifetime then table.remove(dataset, maxTDDLifetime) end
---	table.insert(dataset, 1, {GetTime(), dmgTTD})
+--	table.insert(dataset, 1, {GetTime(), dmg})
 --	RaidTimeToDie[destGUID] = dataset
 --	[[ RaidTimeToDie[destGuid] = { [1] = {GetTime(), thisEvent[15] },[2] = {GetTime(), thisEvent[15] },[3] = {GetTime(), thisEvent[15] } } ]]
 
@@ -1068,9 +1133,9 @@ end)
 --	if unit == nil then return 60 end
 --	local guid = UnitGUID(unit)
 --	local health_unit = UnitHealth(unit)
---	local timetodie = 60 -- e.g. 60 seconds
---	local totalDmg = 1 -- to avoid 0/0
---	local incomingDps = 1
+--	local timetodie = 60 -- 60 seconds
+--	local totalDmg = 0 -- warning
+--	local incomingDps = 0
 --	if jps.RaidTimeToDie[guid] ~= nil then
 --		local dataset = jps.RaidTimeToDie[guid]
 --		local data = table.getn(dataset)

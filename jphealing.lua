@@ -217,21 +217,20 @@ end
 -- HEALTH UNIT RAID
 ---------------------------
 
-jps.CountInRaidLowest = function (lowHealthDef)
-	if lowHealthDef == nil then lowHealthDef = 1 end
-	local CountFriendLowest = 0
+jps.CountInRaidLowest = function (lowHealth)
+	if lowHealth == nil then lowHealth = 1 end
+	local countInRange = 0
 	for unit,_ in pairs(RaidStatus) do
 		if canHeal(unit) then
 			local unitHP = HealthPct(unit)
-			if unitHP < lowHealthDef then CountFriendLowest = CountFriendLowest + 1 end
+			if unitHP < lowHealth then countInRange = countInRange + 1 end
         end
 	end
-	return CountFriendLowest
+	return countInRange
 end
 
 -- COUNTS THE NUMBER OF PARTY MEMBERS INRANGE HAVING A SIGNIFICANT HEALTH PCT LOSS
-jps.CountInRaidStatus = function (lowHealthDef)
-	if lowHealthDef == nil then lowHealthDef = 1 end
+jps.CountInRaidStatus = function ()
 	local countInRange = 0
 	local myFriends = {}
 	local raidHP = 0
@@ -242,9 +241,7 @@ jps.CountInRaidStatus = function (lowHealthDef)
 			local unitHP = HealthPct(unit)
 			myFriends[#myFriends+1] = unit -- tinsert(myFriends, unit)
 			raidHP = raidHP + unitHP
-			if unitHP < lowHealthDef then
-				countInRange = countInRange + 1
-			end
+			countInRange = countInRange + 1
         end
 	end
 	tsort(myFriends, function(a,b) return HealthPct(a) < HealthPct(b) end)
@@ -269,7 +266,7 @@ jps.LowestInRaidStatus = function()
 end
 
 -- LOWEST HP in RaidStatus
-jps.LowestFriendly = function()
+jps.LowestFriend = function()
 	local lowestUnit = "player"
 	local lowestHP = 0
 	for unit,_ in pairs(RaidStatus) do
@@ -308,6 +305,47 @@ jps.LowestImportantUnit = function()
 	end
 	return LowestImportantUnit
 end
+
+	-- LOWEST TIME TO DIE
+	jps.LowestFriendTimeToDie = function(timetodie)
+		if timetodie == nil then timetodie = 5 end
+		local myFriends = {}
+		local LowestFriendTTD = nil
+		local LowestTTD = 60 -- Second
+		for unit,_ in pairs(RaidStatus) do
+			if canHeal(unit) then
+				local TTD = jps.TimeToDie(unit)
+				if TTD < timetodie then
+					myFriends[#myFriends+1] = unit -- tinsert(myFriends, unit)
+					LowestFriendTTD = unit
+					LowestTTD = TTD
+				end
+			end
+		end
+		tsort(myFriends, function(a,b) return HealthPct(a) < HealthPct(b) end)
+		return myFriends[1] or LowestFriendTTD
+	end
+	
+	-- INCOMING DAMAGE
+	jps.HighestIncomingDamage = function(lowHealth)
+		if lowHealth == nil then lowHealth = 1 end
+		local lowestUnit = nil
+		for unit,_ in pairs(RaidStatus) do
+			if canHeal(unit) and HealthPct(unit) < lowHealth then
+				local hpInc = UnitGetIncomingHeals(unit)
+				if not hpInc then hpInc = 0 end
+				local incomingDamageFriend = jps.IncomingDamage(unit)
+				local incomingHealFriend = jps.IncomingHeal(unit) + hpInc
+				local deltaHP = UnitHealth(unit) + incomingHealFriend - incomingDamageFriend
+				local perHP = deltaHP / UnitHealthMax(unit)
+				if perHP < lowHealth then
+					lowestUnit = unit
+					lowHealth = perHP
+				end
+			end
+		end
+		return lowestUnit
+	end
 
 ------------------------------------
 -- GROUP FUNCTION IN RAID
@@ -349,14 +387,14 @@ end
 -- FIND THE RAID SUBGROUP TO HEAL WITH AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
 -- name, rank, subgroup, level, class, fileName, zone, online, isDead, role, isML, combatRole = GetRaidRosterInfo(raidIndex)
 -- raidIndex of raid member between 1 and MAX_RAID_MEMBERS (40). If you specify an index that is out of bounds, the function returns nil
-jps.FindSubGroupTarget = function(lowHealthDef)
-	if lowHealthDef == nil then lowHealthDef = 1 end
+jps.FindSubGroupTarget = function(lowHealth)
+	if lowHealth == nil then lowHealth = 1 end
 	local groupTable = {}
 	for i=1,MAX_RAID_MEMBERS do
 		if GetRaidRosterInfo(i) == nil then break end
 		local group = select(3,GetRaidRosterInfo(i)) -- if index is out of bounds, the function returns nil
 		local name = select(1,GetRaidRosterInfo(i))
-		if canHeal(name) and HealthPct(name) < lowHealthDef then
+		if canHeal(name) and HealthPct(name) < lowHealth then
 			local groupcount = groupTable[group]
 			if groupcount == nil then groupcount = 1 else groupcount = groupcount + 1 end
 			groupTable[group] = groupcount
@@ -374,7 +412,7 @@ jps.FindSubGroupTarget = function(lowHealthDef)
 	end
 
 	local tt = nil
-	local lowestHP = lowHealthDef
+	local lowestHP = lowHealth
 	if groupToHeal > 0 then
 		for unit,_ in pairs(RaidStatus) do
 			local unitHP = HealthPct(unit)
@@ -388,8 +426,8 @@ jps.FindSubGroupTarget = function(lowHealthDef)
 end
 
 -- FIND THE RAID SUBGROUP TO HEAL WITH AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
-jps.FindSubGroupHeal = function(lowHealthDef)
-	if lowHealthDef == nil then lowHealthDef = 1 end
+jps.FindSubGroupHeal = function(lowHealth)
+	if lowHealth == nil then lowHealth = 1 end
 	local HealthGroup = {}
 	for unit,_ in pairs(RaidStatus) do
 		local group = FindSubGroupUnit(unit)
@@ -408,7 +446,7 @@ jps.FindSubGroupHeal = function(lowHealthDef)
 			countUnitGroup = 0
 			HealthGroup[group][3] = countUnitGroup
 		end
-		if canHeal(unit) and unitHealth < lowHealthDef then
+		if canHeal(unit) and unitHealth < lowHealth then
 			HealthGroup[group][3] = countUnitGroup + 1
 		end
 	end
@@ -419,7 +457,7 @@ jps.FindSubGroupHeal = function(lowHealthDef)
 	for group,index in pairs(HealthGroup) do
 		local indexAvg = index[1] / index[2]
 		local indexCount = index[3]
-		if indexAvg < lowHealthDef and indexCount > groupCount then
+		if indexAvg < lowHealth and indexCount > groupCount then
 			groupCount = indexCount
 			groupToHealHealthAvg = indexAvg
 			groupToHeal = tonumber(group)
@@ -427,8 +465,8 @@ jps.FindSubGroupHeal = function(lowHealthDef)
 	end
 
 	local tt = nil
-	local lowestHP = lowHealthDef
-	if groupToHealHealthAvg > lowHealthDef then return tt, groupToHeal, groupToHealHealthAvg end
+	local lowestHP = lowHealth
+	if groupToHealHealthAvg > lowHealth then return tt, groupToHeal, groupToHealHealthAvg end
 
 	for unit,_ in pairs(RaidStatus) do
 		local unitHealth = HealthPct(unit)
@@ -437,18 +475,18 @@ jps.FindSubGroupHeal = function(lowHealthDef)
 			lowestHP = unitHealth
 		end
 	end
-	return tt, groupToHeal, groupToHealHealthAvg  -- RETURN Group unit with avg health group lower than lowHealthDef
+	return tt, groupToHeal, groupToHealHealthAvg  -- RETURN Group unit with avg health group lower than lowHealth
 end
 
 -- FIND THE RAID SUBGROUP TO HEAL WITH AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
-local FindSubGroup = function(lowHealthDef)
-	if lowHealthDef == nil then lowHealthDef = 1 end
+local FindSubGroup = function(lowHealth)
+	if lowHealth == nil then lowHealth = 1 end
 	local groupTable = {}
 	for i=1,MAX_RAID_MEMBERS do
 		if GetRaidRosterInfo(i) == nil then break end
 		local group = select(3,GetRaidRosterInfo(i)) -- if index is out of bounds, the function returns nil
 		local name = select(1,GetRaidRosterInfo(i))
-		if canHeal(name) and HealthPct(name) < lowHealthDef then
+		if canHeal(name) and HealthPct(name) < lowHealth then
 			local groupcount = groupTable[group]
 			if groupcount == nil then groupcount = 1 else groupcount = groupcount + 1 end
 			groupTable[group] = groupcount

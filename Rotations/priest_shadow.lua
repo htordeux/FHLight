@@ -8,6 +8,7 @@
 local L = MyLocalizationTable
 local canDPS = jps.canDPS
 local canHeal = jps.canHeal
+local canAttack = jps.CanAttack
 local UnitGetTotalAbsorbs = UnitGetTotalAbsorbs
 local strfind = string.find
 local UnitClass = UnitClass
@@ -129,10 +130,10 @@ elseif jps.UnitExists("focus") and not canDPS("focus") then
 	if jps.getConfigVal("keep focus") == false then jps.Macro("/clearfocus") end
 end
 
-if canDPS("target") and not DebuffUnitCyclone("target") then rangedTarget =  "target"
-elseif canDPS(TankTarget) and not DebuffUnitCyclone(TankTarget) then rangedTarget = TankTarget 
-elseif canDPS("targettarget") and not DebuffUnitCyclone("targettarget") then rangedTarget = "targettarget"
-elseif canDPS("mouseover") and not DebuffUnitCyclone("mouseover") then rangedTarget = "mouseover"
+if canAttack("target") then rangedTarget =  "target"
+elseif canAttack(TankTarget) then rangedTarget = TankTarget
+elseif canAttack("targettarget") then rangedTarget = "targettarget"
+elseif canAttack("mouseover") then rangedTarget = "mouseover"
 end
 if canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
 

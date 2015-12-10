@@ -38,11 +38,9 @@ end
 function jps.hpAbs(unit)
 	if unit == nil then unit = "player" end
 	if not jps.UnitExists(unit) then return 999 end
-	local hpInc = UnitGetIncomingHeals(unit)
-	if not hpInc then hpInc = 0 end
 	local hpAbs = UnitGetTotalAbsorbs(unit)
 	if not hpAbs then hpAbs = 0 end
-	return (UnitHealth(unit) + hpInc + hpAbs)/UnitHealthMax(unit)
+	return (UnitHealth(unit) + hpAbs)/UnitHealthMax(unit)
 end
 
 function jps.rage()

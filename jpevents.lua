@@ -523,7 +523,7 @@ jps.listener.registerEvent("UI_ERROR_MESSAGE", function(event_error)
 			-- print("ERR_ABILITY_COOLDOWN - %s", event_error)
 			-- La technique n'est pas encore disponible
 		elseif jps.FaceTarget and not jps.Moving and event_error == ERR_BADATTACKPOS then
-			if classPlayer == "WARRIOR" then
+			if classPlayer == "WARRIOR" and jps.canDPS("target") then
 				--print("ERR_BADATTACKPOS - %s", event_error) -- Vous êtes trop loin ! -- Hors de portée
 				MoveForwardStart()
 				C_Timer.After(0.6,function() MoveForwardStop() end)
@@ -706,6 +706,7 @@ end
 -- Should also work for 'pet' and 'focus'. This event only fires when the triggering unit is within the player's visual range
 jps.listener.registerEvent("UNIT_TARGET", jps.LowestTarget)
 
+-- EnemyDamager[sourceGuid] = { ["friendguid"] = friendGuid , ["friendaggro"] = GetTime() }
 local updateEnemyDamager = function()
 	for unit,index in pairs(EnemyDamager) do
 		local dataset = index.friendaggro
@@ -716,7 +717,7 @@ local updateEnemyDamager = function()
 	end
 end
 
---IncomingDamage["player"] = { {GetTime(),dmg}, {GetTime(),dmg},{GetTime(),dmg} }
+-- IncomingDamage[destGUID] = { {GetTime(),dmg,destName}, ... }
 local updateIncomingDamage = function()
 	for unit,index in pairs(IncomingDamage) do
 		local data = #index
@@ -725,6 +726,7 @@ local updateIncomingDamage = function()
 	end
 end
 
+-- IncomingHeal[destGUID] = ({1,{GetTime(),heal,destName}, ... )
 local updateIncomingHeal = function()
 	for unit,index in pairs(IncomingHeal) do
 		local data = #index
@@ -778,11 +780,14 @@ local healEvents = {
         ["SPELL_PERIODIC_HEAL"] = true,
 }
 
-local spellEvents = {
-		["SPELL_CAST_SUCCESS"]= true,
-		["SPELL_AURA_APPLIED"] = true,
-		["SPELL_MISSED"] = true,
-		["SPELL_SUMMON"] = true,
+local hostile = {
+  ["_DAMAGE"] = true, 
+  ["_LEECH"] = true,
+  ["_DRAIN"] = true,
+  ["_STOLEN"] = true,
+  ["_INSTAKILL"] = true,
+  ["_INTERRUPT"] = true,
+  ["_MISSED"] = true
 }
 
 -- UNIT_DIED destGUID and destName refer to the unit that died.
@@ -812,6 +817,8 @@ jps.listener.registerEvent("COMBAT_LOG_EVENT_UNFILTERED", function(...)
 	local destGUID = select(8,...)
 	local destFlags = select(10,...)
 	
+	local suffix = event:match(".+(_.-)$")
+	
 -- The numeric values of the global variables starts with 1 for MINE and increases toward OUTSIDER with 8
 	local isSourceEnemy = bitband(sourceFlags, COMBATLOG_OBJECT_REACTION_HOSTILE) == COMBATLOG_OBJECT_REACTION_HOSTILE
 	local isDestEnemy = bitband(destFlags, COMBATLOG_OBJECT_REACTION_HOSTILE) == COMBATLOG_OBJECT_REACTION_HOSTILE
@@ -836,7 +843,7 @@ jps.listener.registerEvent("COMBAT_LOG_EVENT_UNFILTERED", function(...)
 			local destName = select(9,...)
 
 -- ENEMYCOOLDOWNS Table -- Track some CD Spells with spellID in table jps.EnemyCds
-		if jps.PvP and isSourceEnemy and spellEvents[event] then
+		if jps.PvP and isSourceEnemy and hostile[suffix] then
 			local spellId = select(12, ...)
 			local spellname = select(13, ...)
 			local start, _, _ = GetSpellCooldown(spellId)
@@ -876,7 +883,7 @@ jps.listener.registerEvent("COMBAT_LOG_EVENT_UNFILTERED", function(...)
 --		print(  "|cff1eff00destName: |cffffffff",destName,"F:",isDestFriend,"E:",isDestEnemy,
 --				"|cff1eff00sourceName: |cffffffff",sourceName,"F:",isSourceFriend,"E:",isSourceEnemy)
 		
-			if jps.PvP and isSourceEnemy then
+			if isDestEnemy and isSourceEnemy then
 				local healId = select(12, ...)
 				local addEnemyHealer = false
 				local classHealer = jps.HealerSpellID[healId]
@@ -920,7 +927,7 @@ jps.listener.registerEvent("COMBAT_LOG_EVENT_UNFILTERED", function(...)
 				
 				-- Table of Incoming Damage on Friend
 				if IncomingDamage[destGUID] == nil then IncomingDamage[destGUID] = {} end
-				tinsert(IncomingDamage[destGUID],1,{GetTime(),dmg,sourceName})
+				tinsert(IncomingDamage[destGUID],1,{GetTime(),dmg,destName})
 				-- Table of EnemyGuid doing damage on targeted FriendGuid
 				if EnemyDamager[sourceGUID] == nil then EnemyDamager[sourceGUID] = {} end
 				EnemyDamager[sourceGUID]["friendguid"] = destGUID 
@@ -958,7 +965,7 @@ function jps.IncomingDamage(unit)
 			local totalTime = math.max(timeDelta, 1)
 			if time > totalTime then time = totalTime end
 			for i=1,#dataset do
-				if dataset[1][1] - dataset[i][1] < time then
+				if dataset[1][1] - dataset[i][1] <= time then
 					totalDmg = totalDmg + dataset[i][2]
 				end
 			end
@@ -979,7 +986,7 @@ function jps.IncomingHeal(unit)
 			local totalTime = math.max(timeDelta, 1)
 			if time > totalTime then time = totalTime end
 				for i=1,#dataset do
-					if dataset[1][1] - dataset[i][1] < time then
+					if dataset[1][1] - dataset[i][1] <= time then
 					totalHeal = totalHeal + dataset[i][2]
 				end
 			end
@@ -1025,7 +1032,7 @@ end
 jps.LookupEnemyDamager = function()
 	if jps.tableLength(EnemyDamager) == 0 then print("EnemyDamager is Empty") end
 	for unit,index in pairs(EnemyDamager) do
-		print("EnemyGuid_|cFFFF0000: ",unit," |cffffffffFriendGuid_|cff1eff00: ",index.friendguid,"|cffffffffAggro|cFFFF0000: ",index.friendaggro)
+		print("EnemyGuid_|cFFFF0000: ",unit," |cffffffffFriendGuid_|cff1eff00: ",index.friendguid)
 	end
 end
 
@@ -1043,12 +1050,12 @@ jps.Lookup = function()
 	print("|cffff8000------------------------|cffffffff")
 	-- IncomingHeal[destGUID] = {GetTime(),heal,destName}
 	for unit,index in pairs (IncomingHeal) do
-		print(index[1][1],"|cff1eff00unit:",unit,"destname:",index[1][3],"heal:",index[1][2])
+		print(#index,"|cff1eff00unit:",unit,"destname:",index[1][3],"heal:",index[1][2])
 	end
 	
-	-- IncomingDamage[destGUID] = {GetTime(),dmg,sourceName}
+	-- IncomingDamage[destGUID] = {GetTime(),dmg,destName}
 	for unit,index in pairs (IncomingDamage) do
-		print(index[1][1],"|cFFFF0000unit:",unit,"srcname:",index[1][3],"dmg:",index[1][2])
+		print(#index,"|cFFFF0000unit:",unit,"destname:",index[1][3],"dmg:",index[1][2])
 	end
 end
 

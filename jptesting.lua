@@ -121,12 +121,37 @@ end
 --		auraName, _, _, _, debuffType, _, expirationTime, unitCaster, _, _, spellId, _, isBossDebuff = UnitDebuff(myTank, i)
 --	end
 
-	print("|cffffffffDamage: |cffff8000",jps.HighestIncomingDamage(0.80),"|cffffffffTTD: |cffff8000",jps.LowestFriendTimeToDie(5))
-	print("|cffffffffHeal: |cffff8000",jps.IncomingHeal(),"|cffffffffDMG: |cffff8000",jps.IncomingDamage())
+	local lowestUnit = jps.HighestIncomingDamage()
+	local lowestTTD = jps.LowestFriendTimeToDie(5)
+	print("|cffffffffDamage: |cffff8000",lowestUnit,"|cffffffffTTD: |cffff8000",lowestTTD)
 
 	--jps.Lookup()
 
 end
+
+--[[
+
+local hostile = {
+  ["_DAMAGE"] = true, 
+  ["_LEECH"] = true,
+  ["_DRAIN"] = true,
+  ["_STOLEN"] = true,
+  ["_INSTAKILL"] = true,
+  ["_INTERRUPT"] = true,
+  ["_MISSED"] = true
+}
+local function GetEnemy(time, event, sguid, sname, sflags, dguid, dname, dflags)
+  local suffix = event:match(".+(_.-)$")
+  if hostile[suffix] then
+    if bit.band(sflags, COMBATLOG_OBJECT_AFFILIATION_MASK) < 8 then
+      return dguid, dname, dflags
+    elseif bit.band(dflags, COMBATLOG_OBJECT_AFFILIATION_MASK) < 8 then
+      return sguid, sname, sflags
+    end
+  end
+end
+
+]]
 
 --[[
 	local tsort = table.sort

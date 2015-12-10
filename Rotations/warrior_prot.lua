@@ -5,10 +5,10 @@
 local L = MyLocalizationTable
 local canDPS = jps.canDPS
 local canHeal = jps.canHeal
+local canAttack = jps.CanAttack
 local strfind = string.find
 local UnitClass = UnitClass
 local UnitAffectingCombat = UnitAffectingCombat
-local canAttack = jps.CanAttack
 local GetSpellInfo = GetSpellInfo
 local UnitIsUnit = UnitIsUnit
 local toSpellName = jps.toSpellName
@@ -56,7 +56,7 @@ local inRanged = jps.IsSpellInRange(57755,"target") -- "Heroic Throw" 57755 "Lan
 
 local currentCharges, _, cooldownStart, cooldownDuration = GetSpellCharges(156321) -- (spellId or "spellName")
 local ShieldChargeReady = true
-if currentCharges == 1 and jps.cooldown(12292) > 0 and jps.cooldown(12292) < 10 then ShieldChargeReady = false end
+if currentCharges == 1 and jps.rage() < 109 and jps.cooldown(12292) > 0 and jps.cooldown(12292) < 10 then ShieldChargeReady = false end
 
 local myTank,TankUnit = jps.findTankInRaid() -- default "focus"
 local TankTarget = "target"
@@ -153,7 +153,7 @@ local spellTable = {
 	-- "Provocation" 355
 	{ 355, jps.Defensive and jps.buff(71) and not UnitIsUnit("targettarget","player") , "target" , "Provocation" },
 	-- "Demoralizing Shout" 1160 "Cri démoralisant"
-	{ 1160, playerAggro and not jps.debuff(1160,rangedTarget) , rangedTarget , "Demoralizing" },
+	{ warrior.spells["DemoralizingShout"], playerIsTanking and not jps.debuff(1160,rangedTarget) , rangedTarget , "Demoralizing" },
 	
 	-- "Revenge" 6572 "Revanche"
 	{ warrior.spells["Revenge"] , inMelee , rangedTarget , "Revenge" },
@@ -312,12 +312,19 @@ jps.registerStaticTable("WARRIOR","PROTECTION",{
 	{ warrior.spells["EnragedRegeneration"] , 'jps.hp("player") < 0.70' , "target" },
 	-- "Pummel" 6552 "Volée de coups"
 	{ warrior.spells["Pummel"] , 'jps.Interrupts and jps.ShouldKick("target")' , "target" },
+	-- "Demoralizing Shout" 1160 "Cri démoralisant"
+	{ warrior.spells["DemoralizingShout"], 'not jps.debuff(1160,"target")' , "target" },
 
 	-- "Shield Block" 2565 "Maîtrise du blocage" -- works against physical attacks, it does nothing against magic -- Buff "Shield Block" 132404 -- 60 rage
 	{ warrior.spells["ShieldBlock"] , 'jps.buff(71) and jps.SchoolDamage("physical") and not jps.buff(132404) and jps.hp("player") < 0.80' , "target" },
 	-- "Shield Barrier" 112048 "Barrière protectrice" -- Shield Barrier works against all types of damage (excluding fall damage) -- 20 + 40 rage
 	{ warrior.spells["ShieldBarrier"] , 'jps.SchoolDamage("magic") and not jps.buff(112048) and jps.hp("player") < 0.80' , "target" },
-	{ warrior.spells["ShieldBarrier"] , 'jps.hp("player") < 0.50 and not jps.buff(112048)' , "target" },
+	{ warrior.spells["ShieldBarrier"] , 'jps.hp("player") < 0.80 and not jps.buff(112048)' , "target" },
+	
+	{ warrior.spells["Bloodbath"], 'jps.rage() > 89' , "target" },
+
+	-- "Thunder Clap" 6343 "Coup de tonnerre"
+	{ warrior.spells["ThunderClap"] , 'jps.MultiTarget' , "target" },
 
 	-- "Revenge" 6572 "Revanche"
 	{ warrior.spells["Revenge"] , 'true' , "target" },

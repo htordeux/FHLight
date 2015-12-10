@@ -310,37 +310,41 @@ end
 	jps.LowestFriendTimeToDie = function(timetodie)
 		if timetodie == nil then timetodie = 5 end
 		local myFriends = {}
-		local LowestFriendTTD = nil
-		local LowestTTD = 60 -- Second
+		local lowestFriendTTD = nil
+		local lowestTTD = 60 -- Second
 		for unit,_ in pairs(RaidStatus) do
 			if canHeal(unit) then
 				local TTD = jps.TimeToDie(unit)
 				if TTD < timetodie then
 					myFriends[#myFriends+1] = unit -- tinsert(myFriends, unit)
-					LowestFriendTTD = unit
-					LowestTTD = TTD
+					lowestFriendTTD = unit
+					lowestTTD = TTD
 				end
 			end
 		end
-		tsort(myFriends, function(a,b) return HealthPct(a) < HealthPct(b) end)
-		return myFriends[1] or LowestFriendTTD
+		tsort(myFriends, function(a,b) return jps.hpInc(a) < jps.hpInc(b) end)
+		return myFriends[1] or lowestFriendTTD
 	end
 	
 	-- INCOMING DAMAGE
-	jps.HighestIncomingDamage = function(lowHealth)
+	jps.HighestIncomingDamage = function()
 		if lowHealth == nil then lowHealth = 1 end
 		local lowestUnit = nil
+		local lowestHealth = 1
 		for unit,_ in pairs(RaidStatus) do
-			if canHeal(unit) and HealthPct(unit) < lowHealth then
-				local hpInc = UnitGetIncomingHeals(unit)
-				if not hpInc then hpInc = 0 end
+			if canHeal(unit) then
 				local incomingDamageFriend = jps.IncomingDamage(unit)
-				local incomingHealFriend = jps.IncomingHeal(unit) + hpInc
-				local deltaHP = UnitHealth(unit) + incomingHealFriend - incomingDamageFriend
-				local perHP = deltaHP / UnitHealthMax(unit)
-				if perHP < lowHealth then
-					lowestUnit = unit
-					lowHealth = perHP
+				local incomingHealFriend = jps.IncomingHeal(unit)
+				local delta = incomingHealFriend - incomingDamageFriend
+				if delta < 0 then -- dmg > heal
+					local dmghealth = (UnitHealth(unit) + delta) / UnitHealthMax(unit)
+					local inchealth = UnitGetIncomingHeals(unit)
+					local abshealth = UnitGetTotalAbsorbs(unit)
+					local health = dmghealth + inchealth + abshealth
+					if health < lowestHealth then
+						lowestUnit = unit
+						lowestHealth = health 
+					end
 				end
 			end
 		end

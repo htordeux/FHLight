@@ -50,6 +50,8 @@ warrior.spells["PiercingHowl"] = toSpellName(12323) -- gives debuff 12323
 warrior.spells["Hamstring"] = toSpellName(1715) -- "Brise-genou" 1715 "Hamstring"
 -- "Victorious" 32216 "Victorieux" -- Ivresse de la victoire activée.
 warrior.spells["Victorious"] = toSpellName(32216)
+-- "Demoralizing Shout" 1160 "Cri démoralisant"
+warrior.spells["DemoralizingShout"] = toSpellName(1160)
 
 -- SPELLS
 

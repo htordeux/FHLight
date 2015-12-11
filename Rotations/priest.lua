@@ -73,7 +73,6 @@ priest.ShouldInterruptCasting = function ( InterruptTable, AvgHealthLoss, CountI
 	local spellCasting, _, _, _, _, endTime, _ = UnitCastingInfo("player")
 	if spellCasting == nil then return false end
 	local timeLeft = endTime/1000 - GetTime()
-	--local TargetHealth = jps.hp(jps.LastTarget,"abs")
 	local TargetHpct = jps.hp(jps.LastTarget)
 	
 	for key, healSpellTable  in pairs(InterruptTable) do

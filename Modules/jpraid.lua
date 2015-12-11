@@ -43,6 +43,13 @@ function jps.hpAbs(unit)
 	return (UnitHealth(unit) + hpAbs)/UnitHealthMax(unit)
 end
 
+function jps.hpSum(unit)
+	local absorbHeal = jps.hpAbs(unit)
+	local incomingHeal = jps.hpInc(unit)
+	return (absorbHeal + incomingHeal) / 2
+end
+
+
 function jps.rage()
 	return UnitPower("player",1)
 end

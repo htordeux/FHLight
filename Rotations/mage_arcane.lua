@@ -132,7 +132,6 @@ jps.registerRotation("MAGE","ARCANE", function()
 ----------------------------
 
 	local playerAggro = jps.FriendAggro("player")
-	local playerhealth = jps.hp("player","abs")
 	local playerhealthpct = jps.hp("player")
 	local playerIsStun = jps.StunEvents(2) -- return true/false ONLY FOR PLAYER -- "ROOT" was removed of Stuntype
 	-- {"STUN_MECHANIC","STUN","FEAR","CHARM","CONFUSE","PACIFY","SILENCE","PACIFYSILENCE"}

@@ -165,12 +165,12 @@ local spellTable = {
 
 	-- DEFENSIVE HEALTH
 	-- "Last Stand" 12975 "Dernier rempart" -- 3 min
-	{ warrior.spells["LastStand"] , jps.hp("player") < 0.30 , rangedTarget , "|cff1eff00LastStand" },
+	{ warrior.spells["LastStand"] , jps.hpInc("player") < 0.40 and jps.IncomingDamage("player") > 0 , rangedTarget , "|cff1eff00LastStand" },
 	-- "Shield Wall" 871 "Mur protecteur" -- cd 2 min
-	{ warrior.spells["ShieldWall"] , jps.hp("player") < 0.50 , rangedTarget , "|cff1eff00ShieldWall" },
+	{ warrior.spells["ShieldWall"] , jps.hpInc("player") < 0.60 and jps.IncomingDamage("player") > 0 , rangedTarget , "|cff1eff00ShieldWall" },
 	-- "Enraged Regeneration" 55694 "Régénération enragée"
-	{ warrior.spells["EnragedRegeneration"] , playerIsTanking and jps.hp("player") < 0.60 and UnitGetIncomingHeals("player") < 0.2*UnitHealthMax("player") , rangedTarget , "|cff1eff00EnragedRegeneration_Threat" },
-	{ warrior.spells["EnragedRegeneration"] , playerAggro and jps.hp("player") < 0.60 and UnitGetIncomingHeals("player") < 0.2*UnitHealthMax("player") , rangedTarget , "|cff1eff00EnragedRegeneration_Aggro" },
+	{ warrior.spells["EnragedRegeneration"] , playerIsTanking and jps.hp("player") < 0.60 and jps.hpInc("player") < 0.80 , rangedTarget , "|cff1eff00EnragedRegeneration_Threat" },
+	{ warrior.spells["EnragedRegeneration"] , playerAggro and jps.hp("player") < 0.60 and jps.hpInc("player") < 0.80 , rangedTarget , "|cff1eff00EnragedRegeneration_Aggro" },
 
 	-- "Impending Victory" 103840 "Victoire imminente" -- Talent Replaces Victory Rush.
 	{ warrior.spells["ImpendingVictory"] , jps.buff(32216) and jps.hp("player") < 0.80 , rangedTarget , "|cff1eff00ImpendingVictory_Health" },
@@ -179,25 +179,28 @@ local spellTable = {
 	{ warrior.spells["ImpendingVictory"] , jps.buff(32216) and jps.buffDuration(32216) < 4 , rangedTarget , "|cff1eff00ImpendingVictory_Duration" },
 	{ warrior.spells["VictoryRush"] , jps.buff(32216) and jps.buffDuration(32216) < 4 , rangedTarget , "|cff1eff00VictoryRush_Duration" },
 
+	-- DEFENSIVE DAMAGE
+	{"nested", jps.buff(71) and TankBossDebuff and jps.hpSum("player") < 0.80 ,{
+		{ warrior.spells["ShieldBlock"] , jps.SchoolDamage("physical") and not jps.buff(132404) , rangedTarget , "|cff1eff00ShieldBlock_PhysicalDmg_TankBossDebuff" },
+		{ warrior.spells["ShieldBarrier"] , jps.SchoolDamage("magic") and not jps.buff(112048) , rangedTarget , "|cff1eff00ShieldBarrier_MagicDmg_TankBossDebuff" },
+	}},
+	
+	-- player.hasBuff(spells.shieldWall) or player.hasBuff(spells.lastStand) or player.hasBuff(spells.enragedRegeneration)
+	{ warrior.spells["ShieldBarrier"] , jps.buff(71) and not jps.buff(112048) and jps.IncomingDamage("player") > UnitHealthMax("player")*0.10 , rangedTarget , "|cff1eff00ShieldBarrier_IncDmg" },
+	
+	{"nested", jps.buff(71) and jps.hp("player") < 0.80 and jps.hpSum("player") < 0.80 ,{
+		-- "Shield Block" 2565 "Maîtrise du blocage" -- works against physical attacks, it does nothing against magic -- Buff "Shield Block" 132404 -- 60 rage
+		{ warrior.spells["ShieldBlock"] , jps.SchoolDamage("physical") and not jps.buff(132404) , rangedTarget , "|cff1eff00ShieldBlock_Physical" },
+		-- "Shield Barrier" 112048 "Barrière protectrice" -- Shield Barrier works against all types of damage (excluding fall damage) -- 20 + 40 rage
+		{ warrior.spells["ShieldBarrier"] , jps.SchoolDamage("magic") and not jps.buff(112048) , rangedTarget , "|cff1eff00ShieldBarrier_Magic" },
+		{ warrior.spells["ShieldBarrier"] , playerIsTanking and not jps.buff(112048) , rangedTarget , "|cff1eff00ShieldBarrier_Threat" },
+	}},
+	
 	-- "Pierre de soins" 5512
 	{ {"macro","/use item:5512"}, playerAggro and jps.hp("player") < 0.80 and jps.itemCooldown(5512) == 0 , "player" , "Item5512" },
 	-- "Stoneform" 20594 "Forme de pierre"
 	{ warrior.spells["Stoneform"] , playerAggro and jps.hp("player") < 0.80 , rangedTarget , "|cff1eff00Stoneform_Health" },
 	{ warrior.spells["Stoneform"] , jps.canDispel("player",{"Magic","Poison","Disease","Curse"}) , rangedTarget , "|cff1eff00Stoneform_Dispel" },
-
-	-- DEFENSIVE BOSS DEBUFF
-	{"nested", jps.buff(71) and TankBossDebuff ,{
-		{ warrior.spells["ShieldBlock"] , jps.SchoolDamage("physical") and not jps.buff(132404) , rangedTarget , "|cff1eff00ShieldBlock_PhysicalDmg_TankBossDebuff" },
-		{ warrior.spells["ShieldBarrier"] , jps.SchoolDamage("magic") and not jps.buff(112048) , rangedTarget , "|cff1eff00ShieldBarrier_MagicDmg_TankBossDebuff" },
-	}},
-	
-	{"nested", jps.buff(71) and jps.hp("player") < 0.80 and UnitGetIncomingHeals("player") < 0.2*UnitHealthMax("player") ,{
-		-- "Shield Block" 2565 "Maîtrise du blocage" -- works against physical attacks, it does nothing against magic -- Buff "Shield Block" 132404 -- 60 rage
-		{ warrior.spells["ShieldBlock"] , jps.SchoolDamage("physical") and not jps.buff(132404) , rangedTarget , "|cff1eff00ShieldBlock_Physical_IncDmg" },
-		-- "Shield Barrier" 112048 "Barrière protectrice" -- Shield Barrier works against all types of damage (excluding fall damage) -- 20 + 40 rage
-		{ warrior.spells["ShieldBarrier"] , jps.SchoolDamage("magic") and not jps.buff(112048) , rangedTarget , "|cff1eff00ShieldBarrier_Magic_IncDmg" },
-		{ warrior.spells["ShieldBarrier"] , playerIsTanking and not jps.buff(112048) and jps.hpInc("player") < 0.80 , rangedTarget , "|cff1eff00ShieldBarrier_Threat" },
-	}},
 
 	-- TRINKETS -- jps.useTrinket(0) est "Trinket0Slot" est slotId  13 -- "jps.useTrinket(1) est "Trinket1Slot" est slotId  14
 	{ jps.useTrinket(0), jps.useTrinketBool(0) and not playerWasControl and jps.combatStart > 0 },
@@ -285,10 +288,8 @@ local spellTable = {
 	{ warrior.spells["Execute"], jps.buff(156291) and jps.rage() > 89 and jps.hp(rangedTarget) > 0.20 , rangedTarget , "Execute_DumpRage" },
 	{ warrior.spells["Execute"], jps.buff(71) and jps.rage() > 89 and jps.hp(rangedTarget) > 0.20 and jps.hp("player") > 0.80 , rangedTarget , "Execute_DumpRage" },
 	
-	{"nested", jps.hp("player") < 0.80 and not jps.buff(112048) ,{
-		{ warrior.spells["ShieldBarrier"] , playerAggro and TankBossDebuff , rangedTarget , "|cff1eff00ShieldBarrier_TankBossDebuff" },
-		{ warrior.spells["ShieldBarrier"] , playerAggro and jps.hp("player") < 0.60 , rangedTarget , "|cff1eff00ShieldBarrier_Aggro" },
-	}},
+	-- "Shield Barrier" 112048 "Barrière protectrice"
+	{ warrior.spells["ShieldBarrier"], playerAggro and jps.hpInc("player") < 0.80 and not jps.buff(112048) , rangedTarget , "|cff1eff00ShieldBarrier_Aggro" },
 
 	-- "Heroic Strike" 78 "Frappe héroïque" -- Buff "Shield Charge" 169667
 	{ warrior.spells["HeroicStrike"] , jps.buff(169667) and jps.buffStacks(169686) > 3 , rangedTarget , "HeroicStrike_ShieldCharge_Strikes" },

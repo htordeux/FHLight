@@ -44,23 +44,20 @@ end
 
 -- Debuff EnemyTarget NOT DPS
 local DebuffUnitCyclone = function (unit)
-	if not UnitAffectingCombat(unit) then return false end
-	local Cyclone = false
 	local i = 1
 	local auraName = select(1,UnitDebuff(unit, i))
 	while auraName do
 		if strfind(auraName,L["Polymorph"]) then
-			Cyclone = true
+			return true
 		elseif strfind(auraName,L["Cyclone"]) then
-			Cyclone = true
+			return true
 		elseif strfind(auraName,L["Hex"]) then
-			Cyclone = true
+			return true
 		end
-		if Cyclone then break end
 		i = i + 1
 		auraName = select(1,UnitDebuff(unit, i))
 	end
-	return Cyclone
+	return false
 end
 
 ----------------------------
@@ -130,9 +127,9 @@ elseif jps.UnitExists("focus") and not canDPS("focus") then
 	if jps.getConfigVal("keep focus") == false then jps.Macro("/clearfocus") end
 end
 
-if canAttack("target") then rangedTarget =  "target"
-elseif canAttack(TankTarget) then rangedTarget = TankTarget
-elseif canAttack("targettarget") then rangedTarget = "targettarget"
+if canDPS("target") and not DebuffUnitCyclone(rangedTarget) then rangedTarget =  "target"
+elseif canDPS(TankTarget) and not DebuffUnitCyclone(rangedTarget) then rangedTarget = TankTarget
+elseif canDPS("targettarget") and not DebuffUnitCyclone(rangedTarget) then rangedTarget = "targettarget"
 elseif canAttack("mouseover") then rangedTarget = "mouseover"
 end
 if canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
@@ -401,7 +398,7 @@ local spellTable = {
 	{ "nested", playerAggro or playerWasControl or playerIsTargeted , parseAggro },
 	-- "Power Word: Shield" 17 -- Glyph of Reflective Shield 33202
 	{ 17, jps.Defensive and not jps.buff(132573) and not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Defensive_Shield" },
-	{ 17, jps.PvP and jps.glyphInfo(33202) and not jps.buff(132573) and not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Defensive_Shield" },
+	{ 17, jps.glyphInfo(33202) and not jps.buff(132573) and not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Defensive_Shield" },
 	-- "Leap of Faith" 73325 -- "Saut de foi"
 	{ 73325 , jps.PvP and LeapFriend ~= nil , LeapFriend , "|cff1eff00Leap_MultiUnit" },
 	-- "Gardien de peur" 634

@@ -183,16 +183,27 @@ function jps.getInstanceInfo()
 end
 
 -- Debuff EnemyTarget NOT DPS
-jps.CanAttack = function(unit)
-	if not canDPS(unit) then return false end
-	if not UnitAffectingCombat(unit) then return false end
+
+local DebuffUnitCyclone = function (unit)
 	local i = 1
 	local auraName = select(1,UnitDebuff(unit, i))
 	while auraName do
-		if strfind(auraName,L["Polymorph"]) or strfind(auraName,L["Cyclone"]) or strfind(auraName,L["Hex"]) then
-		return false end
+		if strfind(auraName,L["Polymorph"]) then
+			return true
+		elseif strfind(auraName,L["Cyclone"]) then
+			return true
+		elseif strfind(auraName,L["Hex"]) then
+			return true
+		end
 		i = i + 1
 		auraName = select(1,UnitDebuff(unit, i))
 	end
+	return false
+end
+
+jps.CanAttack = function(unit)
+	if not canDPS(unit) then return false end
+	if not UnitAffectingCombat(unit) then return false end
+	if DebuffUnitCyclone(unit) then return false end
 	return true
 end

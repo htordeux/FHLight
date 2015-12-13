@@ -33,23 +33,20 @@ end
 
 -- Debuff EnemyTarget NOT DPS
 local DebuffUnitCyclone = function (unit)
-	if not UnitAffectingCombat(unit) then return false end
-	local Cyclone = false
 	local i = 1
 	local auraName = select(1,UnitDebuff(unit, i))
 	while auraName do
 		if strfind(auraName,L["Polymorph"]) then
-			Cyclone = true
+			return true
 		elseif strfind(auraName,L["Cyclone"]) then
-			Cyclone = true
+			return true
 		elseif strfind(auraName,L["Hex"]) then
-			Cyclone = true
+			return true
 		end
-		if Cyclone then break end
 		i = i + 1
 		auraName = select(1,UnitDebuff(unit, i))
 	end
-	return Cyclone
+	return false
 end
 
 ----------------------------------------------------------------------------------------------------------------
@@ -110,7 +107,7 @@ end
 if canDPS("target") and not DebuffUnitCyclone("target") then rangedTarget =  "target"
 elseif canDPS(TankTarget) and not DebuffUnitCyclone(TankTarget) then rangedTarget = TankTarget 
 elseif canDPS("targettarget") and not DebuffUnitCyclone("targettarget") then rangedTarget = "targettarget"
-elseif canDPS("mouseover") and not DebuffUnitCyclone("mouseover") then rangedTarget = "mouseover"
+elseif canDPS("mouseover") and not DebuffUnitCyclone("mouseover") and UnitAffectingCombat("mouseover") then rangedTarget = "mouseover"
 end
 if canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
 local TargetMoving = select(1,GetUnitSpeed(rangedTarget)) > 0

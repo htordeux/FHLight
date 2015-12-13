@@ -41,27 +41,24 @@ end
 
 -- Debuff EnemyTarget DO NOT DPS
 local DebuffUnitCyclone = function (unit)
-	if not UnitAffectingCombat(unit) then return false end
-	local Cyclone = false
 	local i = 1
 	local auraName = select(1,UnitDebuff(unit, i))
 	while auraName do
 		if strfind(auraName,L["Polymorph"]) then
-			Cyclone = true
+			return true
 		elseif strfind(auraName,L["Cyclone"]) then
-			Cyclone = true
+			return true
 		elseif strfind(auraName,L["Hex"]) then
-			Cyclone = true
+			return true
 		elseif strfind(auraName,L["Deterrence"]) then
-		 Cyclone = true
+			return true
 		elseif strfind(auraName,L["Ice Block"]) then
-		 Cyclone = true
+			return true
 		end
-		if Cyclone then break end
 		i = i + 1
 		auraName = select(1,UnitDebuff(unit, i))
 	end
-	return Cyclone
+	return false
 end
 
 -- Buff EnemyTarget DO NOT BURST

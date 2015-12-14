@@ -99,9 +99,9 @@ elseif jps.UnitExists("focus") and not canDPS("focus") then
 	if jps.getConfigVal("keep focus") == false then jps.Macro("/clearfocus") end
 end
 
-if canAttack("target") then rangedTarget =  "target"
-elseif canAttack(TankTarget) then rangedTarget = TankTarget
-elseif canAttack("targettarget") then rangedTarget = "targettarget"
+if canDPS("target") and not DebuffUnitCyclone(rangedTarget) then rangedTarget =  "target"
+elseif canDPS(TankTarget) and not DebuffUnitCyclone(rangedTarget) then rangedTarget = TankTarget
+elseif canDPS("targettarget") and not DebuffUnitCyclone(rangedTarget) then rangedTarget = "targettarget"
 elseif canAttack("mouseover") then rangedTarget = "mouseover"
 end
 if canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end

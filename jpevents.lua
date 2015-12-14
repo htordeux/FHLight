@@ -847,6 +847,7 @@ jps.listener.registerEvent("COMBAT_LOG_EVENT_UNFILTERED", function(...)
 			local spellId = select(12, ...)
 			local spellname = select(13, ...)
 			local start, _, _ = GetSpellCooldown(spellId)
+			if start == nil then start = 0 end
 			if start > 0 and jps.EnemyCds[spellId] then
 				local duration = jps.EnemyCds[spellId]
 				if not EnemyCooldowns[sourceGUID] then EnemyCooldowns[sourceGUID] = {} end

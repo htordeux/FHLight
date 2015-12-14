@@ -444,8 +444,22 @@ spellTable = {
 	-- "Prière de guérison" 33076 -- Buff POM 41635
 	{ 33076, jps.Defensive and not jps.Moving and canHeal(myTank) and not jps.buff(41635,myTank) , myTank , "Mending_Tank" },
 	{ 33076, jps.Defensive and not jps.Moving and canHeal(TankThreat) and not jps.buff(41635,TankThreat) , TankThreat , "Mending_TankThreat" },
-	{ 33076, not jps.Moving and CountFriendLowest > 5 and MendingFriend ~= nil , MendingFriend ,  "Mending_CountFriendLowest" },
-	{ 33076, not jps.Moving and CountFriendLowest > 5 and not jps.buff(41635,LowestImportantUnit) , LowestImportantUnit ,  "Mending_CountFriendLowest" },
+	{ 33076, not jps.Moving and CountFriendLowest > 3 and MendingFriend ~= nil , MendingFriend ,  "Mending_CountFriendLowest" },
+	{ 33076, not jps.Moving and CountFriendLowest > 3 and not jps.buff(41635,LowestImportantUnit) , LowestImportantUnit ,  "Mending_CountFriendLowest" },
+	
+	-- "Archange" 81700 -- Buff 81700 -- "Archange surpuissant" 172359  100 % critique POH or FH
+	{ 81700, jps.buffStacks(81661) == 5 and  jps.hp(myTank) < 0.70 , "player" , "ARCHANGE_Tank" },
+	{ 81700, jps.buffStacks(81661) == 5 and  POHTarget ~= nil , "player", "ARCHANGE_POH" },
+	{ 81700, jps.buffStacks(81661) == 5 and  jps.hp(LowestImportantUnit) < 0.50 , "player", "ARCHANGE_Lowest" },
+
+	{ "nested", not jps.Moving and POHTarget ~= nil and canHeal(POHTarget) ,{
+		-- "POH" 596 -- "Archange surpuissant" 172359  100 % critique POH or FH
+		{ 596, jps.buff(172359) , POHTarget , "Archange_POH" },
+		-- "POH" 596 -- "Power Infusion" 10060 "Infusion de puissance"
+		{ 596, jps.buff(10060) , POHTarget , "PowerInfusion_POH" },
+		-- "POH" 596 -- Buff "Borrowed" 59889
+		{ 596, jps.buff(59889) and jps.hp(myTank) > 0.50 , POHTarget , "Borrowed_POH" },
+	}},
 	
 	-- EMERGENCY HEAL --
 	{ "nested", groupHealth > 0.80 and jps.hp(LowestImportantUnit) < 0.50 ,{
@@ -531,20 +545,6 @@ spellTable = {
 		{ 152118, jps.debuff(6788,TankBossDebuff) and not jps.buff(152118,TankBossDebuff) and not jps.isRecast(152118,TankBossDebuff) , TankBossDebuff , "Clarity_TankBossDebuff" },
 	}},
 
-	-- "Archange" 81700 -- Buff 81700 -- "Archange surpuissant" 172359  100 % critique POH or FH
-	{ 81700, jps.buffStacks(81661) == 5 and  jps.hp(myTank) < 0.70 , "player" , "ARCHANGE_Tank" },
-	{ 81700, jps.buffStacks(81661) == 5 and  POHTarget ~= nil , "player", "ARCHANGE_POH" },
-	{ 81700, jps.buffStacks(81661) == 5 and  jps.hp(LowestImportantUnit) < 0.50 , "player", "ARCHANGE_Lowest" },
-
-	{ "nested", not jps.Moving and POHTarget ~= nil and canHeal(POHTarget) ,{
-		-- "POH" 596 -- "Archange surpuissant" 172359  100 % critique POH or FH
-		{ 596, jps.buff(172359) , POHTarget , "Archange_POH" },
-		-- "POH" 596 -- "Power Infusion" 10060 "Infusion de puissance"
-		{ 596, jps.buff(10060) , POHTarget , "PowerInfusion_POH" },
-		-- "POH" 596 -- Buff "Borrowed" 59889
-		{ 596, jps.buff(59889) and jps.hp(myTank) > 0.50 , POHTarget , "Borrowed_POH" },
-	}},
-
 	-- "Carapace spirituelle" spell & buff "player" 109964 buff target 114908
 	{ "nested", jps.buffId(109964) and not jps.Moving , parseShell },
 
@@ -582,8 +582,8 @@ spellTable = {
 	{ 34433, priest.canShadowfiend("target") , "target" },
 	{ 123040, priest.canShadowfiend("target") , "target" },
 	-- "Châtiment" 585
-	{ 585, not jps.Moving and jps.buffStacks(81661) < 5 , rangedTarget , "|cFFFF0000Chatiment_Stacks" },
-	{ 585, not jps.Moving and jps.buffDuration(81661) < 9 , rangedTarget , "|cFFFF0000Chatiment_Stacks" }
+	{ 585, not jps.Moving and jps.buffStacks(81661) < 5 and canDPS(rangedTarget) , rangedTarget , "|cFFFF0000Chatiment_Stacks" },
+	{ 585, not jps.Moving and jps.buffDuration(81661) < 9 and canDPS(rangedTarget) , rangedTarget , "|cFFFF0000Chatiment_Stacks" }
 
 }
 
@@ -634,7 +634,7 @@ jps.registerRotation("PRIEST","DISCIPLINE",function()
 	-- "Prière de soins" 596 "Prayer of Healing"
 	{ 596, not jps.Moving and canHeal(POHTarget) , POHTarget , "POH" },
 	-- "Soins" 2060
-	{ 2060, not jps.Moving and jps.hp(LowestImportantUnit) < 0.50 , LowestImportantUnit , "Soins"  },
+	{ 2060, not jps.Moving and jps.hp(LowestImportantUnit) < 0.90 , LowestImportantUnit , "Soins"  },
 	
 	-- "Nova" 132157 -- buff "Words of Mending" 155362 "Mot de guérison"
 	{ 132157, jps.PvP and jps.UseCDs and jps.buffStacks(155362) < 5 , "player" , "Nova_WoM" },

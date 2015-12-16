@@ -234,10 +234,11 @@ local priestDisc = function()
 -- LOCAL FUNCTIONS ENEMY
 ------------------------
 
+	local EnemyIsCastingControl = nil
 	for i=1,#EnemyUnit do -- for _,unit in ipairs(EnemyUnit) do
 		local unit = EnemyUnit[i]
-		if jps.IsCastingSpellNameControl(unit) then print(unit.." cast SpellNamecontrol: ",jps.IsCastingSpellNameControl(unit)) end
-		if jps.IsCastingSpellControl(unit) then print(unit.." cast SpellIDcontrol: ",jps.IsCastingSpellControl(unit)) end
+		if jps.IsCastingSpellControl(unit) then EnemyIsCastingControl = unit
+		break end
 	end
 
 	local SilenceEnemyTarget = nil
@@ -350,16 +351,9 @@ spellTable = {
 	{ 1706, jps.PvP and jps.debuff(77606,"player") , "player" , "DarkSim_Levitate" },
 	-- "Angelic Feather" 121536 "Plume angélique"
 	{ 121536, IsControlKeyDown() },
-
-	-- SNM RACIAL COUNTERS -- share 30s cd with trinket
-	{"nested", jps.PvP and jps.UseCDs , RacialCounters },
-	-- SNM "Chacun pour soi" 59752 "Every Man for Himself" -- Human
-	{ 59752, playerIsStun , "player" , "Every_Man_for_Himself" },
-	-- TRINKETS -- jps.useTrinket(0) est "Trinket0Slot" est slotId  13 -- "jps.useTrinket(1) est "Trinket1Slot" est slotId  14
-	{ jps.useTrinket(0), jps.useTrinketBool(0) and not playerWasControl and jps.combatStart > 0 , "player" , "useTrinket0" },
-	{ jps.useTrinket(1), not jps.PvP and jps.useTrinketBool(1) and not playerWasControl and jps.combatStart > 0 , "player" , "useTrinket1" },
-	{ jps.useTrinket(1), jps.PvP and jps.useTrinketBool(1) and playerIsStun and jps.combatStart > 0 and jps.hp(LowestImportantUnit) < 0.50 , "player" , "useTrinket1" },
-
+	-- EnemyIsCastingControl ~= nil
+	{ 586, EnemyIsCastingControl ~= nil and jps.glyphInfo(159628) , "player" , "Control_Oubli" },
+	
 	-- "Suppression de la douleur" 33206 "Pain Suppression" -- Buff "Pain Suppression" 33206
 	{ 33206, jps.hp(myTank) < 0.30 , myTank , "StunPain" },
 	{ 33206, jps.hp("player") < 0.30 , "player" , "StunPain" },
@@ -369,6 +363,49 @@ spellTable = {
 	{ 2061, jps.buff(114255) and jps.buffDuration(114255) < 4 , LowestImportantUnit , "FlashHeal_Light" },	
 	-- "Saving Grace" 152116 "Grâce salvatrice"
 	{ 152116, jps.hp(LowestImportantUnit) < 0.30 and jps.debuffStacks(155274,"player") == 0 , LowestImportantUnit , "Emergency_SavingGrace" },
+
+	-- SNM RACIAL COUNTERS -- share 30s cd with trinket
+	{"nested", jps.PvP and jps.UseCDs , RacialCounters },
+	-- SNM "Chacun pour soi" 59752 "Every Man for Himself" -- Human
+	{ 59752, playerIsStun , "player" , "Every_Man_for_Himself" },
+	
+	-- PLAYER AGGRO PVP
+	{ "nested", playerAggro or playerWasControl or playerIsTargeted ,{
+		-- "Spectral Guise" 112833 "Semblance spectrale"
+		{ 112833, jps.Interrupts and jps.IsSpellKnown(112833) , "player" , "Aggro_Spectral" },
+		-- "Oubli" 586 -- Fantasme 108942 -- vous dissipez tous les effets affectant le déplacement sur vous-même
+		{ 586, jps.IsSpellKnown(108942) , "player" , "Aggro_Oubli" },
+		-- "Oubli" 586 -- Glyphe d'oubli 55684 -- Votre technique Oubli réduit à présent tous les dégâts subis de 10%.
+		{ 586, jps.glyphInfo(55684) , "player" , "Aggro_Oubli" },
+		-- "Fade" 586 "Oubli" -- "Glyph of Shadow Magic" 159628 -- Use if will die soon and have aggro
+		{ 586, jps.glyphInfo(159628) , "player" , "Control_Oubli" },
+		-- "Glyph of Purify" 55677 Your Purify spell also heals your target for 5% of maximum health
+		{ 527, jps.canDispel("player",{"Magic"}) , "player" , "Aggro_Dispel" },
+		-- FAKE CAST -- 6948 -- "Hearthstone"
+		--{ {"macro","/use item:6948"}, jps.PvP and jps.hp(LowestImportantUnit) > 0.80 and not jps.Moving and jps.itemCooldown(6948) == 0 , "player" , "Aggro_FAKECAST" },
+	}},
+	
+	-- PLAYER AGGRO PVP
+	{ "nested", jps.hp() < 0.80 ,{
+		-- "Power Word: Shield" 17
+		{ 17, not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Aggro_Shield" },
+		-- "Prière du désespoir" 19236
+		{ 19236, jps.hp() < 0.60 and jps.IsSpellKnown(19236) , "player" , "Aggro_DESESPERATE" },
+		-- "Pierre de soins" 5512
+		{ {"macro","/use item:5512"}, jps.hp() < 0.60 and jps.itemCooldown(5512) == 0 , "player" , "Aggro_Item5512" },
+		-- "Pénitence" 47540
+		{ 47540, jps.hp() < 0.80 , "player" , "Aggro_Penance" },
+		-- "Don des naaru" 59544
+		{ 59544, jps.hp() < 0.80 , "player" , "Aggro_Naaru" },
+		-- "Saving Grace" 152116 "Grâce salvatrice"
+		{ 152116, jps.hp() < 0.50 and jps.debuffStacks(155274,"player") < 2 , "player" , "Aggro_SavingGrace" },
+	}},
+	
+	-- TRINKETS -- jps.useTrinket(0) est "Trinket0Slot" est slotId  13 -- "jps.useTrinket(1) est "Trinket1Slot" est slotId  14
+	{ jps.useTrinket(0), jps.useTrinketBool(0) and not playerWasControl and jps.combatStart > 0 , "player" , "useTrinket0" },
+	{ jps.useTrinket(1), not jps.PvP and jps.useTrinketBool(1) and not playerWasControl and jps.combatStart > 0 , "player" , "useTrinket1" },
+	{ jps.useTrinket(1), jps.PvP and jps.useTrinketBool(1) and playerIsStun and jps.combatStart > 0 and jps.hp(LowestImportantUnit) < 0.50 , "player" , "useTrinket1" },
+
 	-- PAIN FRIEND
 	{ "nested", PainFriend ~= nil and jps.hpInc(PainFriend) < 0.80 ,{
 		-- "Power Word: Shield"
@@ -408,34 +445,6 @@ spellTable = {
 	{ 17, canHeal(myTank) and not jps.buff(17,myTank) and not jps.debuff(6788,myTank) , myTank , "Shield_Tank" },
 	-- "Pénitence" 47540
 	{ 47540, canHeal(myTank) and jps.hp(myTank) < 0.80 , myTank , "Penance_Tank" },
-
-	-- PLAYER AGGRO
-	{ "nested", playerAggro or playerWasControl or playerIsTargeted ,{
-		-- "Spectral Guise" 112833 "Semblance spectrale"
-		{ 112833, jps.Interrupts and jps.IsSpellKnown(112833) , "player" , "Aggro_Spectral" },
-		-- "Oubli" 586 -- Fantasme 108942 -- vous dissipez tous les effets affectant le déplacement sur vous-même
-		{ 586, jps.IsSpellKnown(108942) , "player" , "Aggro_Oubli" },
-		-- "Oubli" 586 -- Glyphe d'oubli 55684 -- Votre technique Oubli réduit à présent tous les dégâts subis de 10%.
-		{ 586, jps.glyphInfo(55684) , "player" , "Aggro_Oubli" },
-		-- "Fade" 586 "Oubli" -- "Glyph of Shadow Magic" 159628 -- Use if will die soon and have aggro
-		{ 586, jps.glyphInfo(159628) and playerTTD < 5 , "player" , "Aggro_Oubli" },
-		-- "Power Word: Shield" 17
-		{ 17, not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Aggro_Shield" },
-		-- "Glyph of Purify" 55677 Your Purify spell also heals your target for 5% of maximum health
-		{ 527, jps.canDispel("player",{"Magic"}) , "player" , "Aggro_Dispel" },
-		-- FAKE CAST -- 6948 -- "Hearthstone"
-		--{ {"macro","/use item:6948"}, jps.PvP and jps.hp(LowestImportantUnit) > 0.80 and not jps.Moving and jps.itemCooldown(6948) == 0 , "player" , "Aggro_FAKECAST" },
-		-- "Prière du désespoir" 19236
-		{ 19236, jps.hp() < 0.60 and jps.IsSpellKnown(19236) , "player" , "Aggro_DESESPERATE" },
-		-- "Pierre de soins" 5512
-		{ {"macro","/use item:5512"}, jps.hp() < 0.80 and jps.itemCooldown(5512) == 0 , "player" , "Aggro_Item5512" },
-		-- "Pénitence" 47540
-		{ 47540, jps.hp() < 0.80 , "player" , "Aggro_Penance" },
-		-- "Don des naaru" 59544
-		{ 59544, jps.hp() < 0.80 , "player" , "Aggro_Naaru" },
-		-- "Saving Grace" 152116 "Grâce salvatrice"
-		{ 152116, jps.hp() < 0.50 and jps.debuffStacks(155274,"player") < 2 , "player" , "Aggro_SavingGrace" },
-	}},
 	
 	-- "Power Infusion" 10060 "Infusion de puissance"
 	{ 10060, jps.hp(myTank) < 0.50 , "player" , "POWERINFUSION_Tank" },

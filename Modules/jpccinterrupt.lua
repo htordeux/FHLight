@@ -138,20 +138,8 @@ local DebuffToDispel = {
 
 -- Enemy Casting SpellControl according to table jps.SpellControl[spellId]
 local latencyWorld = select(4,GetNetStats())/1000
-function jps.IsCastingSpellControl(unit) -- WORKS FOR CASTING SPELL NOT CHANNELING SPELL
-	if unit == nil then unit = "player" end
-	-- name, nameSubtext, text, texture, startTime, endTime, isTradeSkill, notInterruptible = UnitCastingInfo("unit")
-	local spellName, _, _, _, startTime, endTime, _, _, interrupt = UnitCastingInfo(unit)
-	if not spellName then return false end
-	-- name, rank, icon, castTime, minRange, maxRange, spellId = GetSpellInfo(spellId or spellName)
-	local _, _, _, _, _, _, spellId = GetSpellInfo(spellName)
-	if jps.SpellControl[spellId]== "CC" then return true
-	elseif jps.SpellControl[spellId]== "Silence" then return true
-	end
-	return false
-end
 
-function jps.IsCastingSpellNameControl(unit) -- WORKS FOR CASTING SPELL NOT CHANNELING SPELL
+function jps.IsCastingSpellControl(unit) -- WORKS FOR CASTING SPELL NOT CHANNELING SPELL
 	if unit == nil then unit = "player" end
 	-- name, nameSubtext, text, texture, startTime, endTime, isTradeSkill, notInterruptible = UnitCastingInfo("unit")
 	local spellName, _, _, _, startTime, endTime, _, _, interrupt = UnitCastingInfo(unit)

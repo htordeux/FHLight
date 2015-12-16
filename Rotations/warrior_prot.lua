@@ -184,7 +184,10 @@ local spellTable = {
 	{ warrior.spells["ShieldSlam"] , inMelee and jps.buff(156291) and jps.buff(169667) , rangedTarget , "ShieldSlam_1" },
 	{ warrior.spells["ShieldSlam"] , inMelee and jps.buff(156291) and jps.buff(50227) and jps.buff(169667) , rangedTarget , "ShieldSlam_SwordBoard_1" },
 	-- "Dévaster" 20243 "Devastate" -- Buff "Unyielding Strikes" 169686 "Frappes inflexibles" 169686 -- Cumulable jusqu’à 6 fois
-	{ warrior.spells["Devastate"] , inMelee and jps.buffDuration(169686) < 1 and jps.buffStacks(169686) < 6, rangedTarget , "Devastate_BuffDuration" },
+	{ warrior.spells["Devastate"] , inMelee and jps.buffDuration(169686) < 1 and jps.buffStacks(169686) < 6 , rangedTarget , "Devastate_BuffDuration" },
+	-- "Ravager" 152277 "Ravageur"
+	{ warrior.spells["Ravager"] , jps.buff(71) and jps.IsSpellKnown(152277) , rangedTarget , "Ravager" },
+	
 
 	-- DEFENSIVE HEALTH
 	-- "Last Stand" 12975 "Dernier rempart" -- 3 min

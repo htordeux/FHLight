@@ -221,7 +221,7 @@ jps.DispelLoseControl = function(unit,controlTable)
 	auraName, _, _, _, debuffType, duration, expTime, _, _, _, spellId, _ = UnitDebuff(unit,i)
 	while auraName do
 		local Priority = DebuffControl[auraName]
-		if Priority and debuffType ~= "Magic"then -- {"Magic", "Poison", "Disease", "Curse"}
+		if Priority and debuffType == "Magic" then -- {"Magic", "Poison", "Disease", "Curse"}
 			for i=1,#controlTable do
 				if Priority == controlTable[i] then
 					if expTime ~= nil then timeControlled = expTime - GetTime() end

@@ -236,8 +236,8 @@ local priestDisc = function()
 
 	for i=1,#EnemyUnit do -- for _,unit in ipairs(EnemyUnit) do
 		local unit = EnemyUnit[i]
-		if jps.IsCastingSpellNameControl(unit) then print(unit.." cast control: ",jps.IsCastingSpellNameControl(unit)) end
-		if jps.IsCastingSpellControl(unit) then print(unit.." cast control: ",jps.IsCastingSpellControl(unit)) end
+		if jps.IsCastingSpellNameControl(unit) then print(unit.." cast SpellNamecontrol: ",jps.IsCastingSpellNameControl(unit)) end
+		if jps.IsCastingSpellControl(unit) then print(unit.." cast SpellIDcontrol: ",jps.IsCastingSpellControl(unit)) end
 	end
 
 	local SilenceEnemyTarget = nil
@@ -653,7 +653,7 @@ jps.registerRotation("PRIEST","DISCIPLINE",function()
 	{ 132157, jps.UseCDs and jps.buffDuration(155362) < 9 , "player" , "Nova_WoM" },
 	
 	-- TIMER POM -- "Prière de guérison" 33076 -- Buff POM 41635
-	{ 33076, not jps.Moving and not jps.buff(41635,myTank) and canHeal(myTank) , myTank , "Mending_Tank" },
+	{ 33076, jps.UseCDs and not jps.Moving and not jps.buff(41635,myTank) and canHeal(myTank) , myTank , "Mending_Tank" },
 	-- ClarityTank -- "Clarity of Will" 152118 shields with protective ward for 20 sec
 	{ 152118, not jps.Moving and canHeal(myTank) and not jps.buff(152118,myTank) and not jps.isRecast(152118,myTank) , myTank , "Clarity_Tank" },
 	

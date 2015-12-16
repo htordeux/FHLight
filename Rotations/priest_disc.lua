@@ -141,7 +141,7 @@ local priestDisc = function()
 	local LeapFriend = nil
 	for i=1,#FriendUnit do -- for _,unit in ipairs(FriendUnit) do
 		local unit = FriendUnit[i]
-		if priest.unitForLeap(unit) and jps.hp(unit) < 0.25 then 
+		if priest.unitForLeap(unit) and jps.hpInc(unit) < 0.30 then 
 			LeapFriend = unit -- if jps.RoleInRaid(unit) == "HEALER" then
 		break end
 	end
@@ -161,13 +161,19 @@ local priestDisc = function()
 	end
 
 	-- DISPEL --
+	
 	local DispelFriendPvE = jps.FindMeDispelTarget( {"Magic"} ) -- {"Magic", "Poison", "Disease", "Curse"}
 	local DispelFriendPvP = nil
 	local DispelFriendHealth = 100
 	for i=1,#FriendUnit do -- for _,unit in ipairs(FriendUnit) do
 		local unit = FriendUnit[i]
-		if jps.DispelFriendly(unit,2) then -- jps.DispelFriendly includes UnstableAffliction
-			local unitHP = jps.hp(unit)
+		local unitHP = jps.hp(unit)
+		if jps.DispelFriendly(unit) then -- jps.DispelFriendly includes UnstableAffliction
+			if unitHP < DispelFriendHealth then
+				DispelFriendPvP = unit
+				DispelFriendHealth = unitHP
+			end
+		elseif jps.DispelLoseControl(unit) then
 			if unitHP < DispelFriendHealth then
 				DispelFriendPvP = unit
 				DispelFriendHealth = unitHP
@@ -227,6 +233,12 @@ local priestDisc = function()
 ------------------------
 -- LOCAL FUNCTIONS ENEMY
 ------------------------
+
+	for i=1,#EnemyUnit do -- for _,unit in ipairs(EnemyUnit) do
+		local unit = EnemyUnit[i]
+		if jps.IsCastingSpellNameControl(unit) then print(unit.." cast control: ",jps.IsCastingSpellNameControl(unit)) end
+		if jps.IsCastingSpellControl(unit) then print(unit.." cast control: ",jps.IsCastingSpellControl(unit)) end
+	end
 
 	local SilenceEnemyTarget = nil
 	for i=1,#EnemyUnit do -- for _,unit in ipairs(EnemyUnit) do
@@ -412,7 +424,7 @@ spellTable = {
 		-- "Glyph of Purify" 55677 Your Purify spell also heals your target for 5% of maximum health
 		{ 527, jps.canDispel("player",{"Magic"}) , "player" , "Aggro_Dispel" },
 		-- FAKE CAST -- 6948 -- "Hearthstone"
-		{ {"macro","/use item:6948"}, jps.PvP and jps.hp(LowestImportantUnit) > 0.80 and not jps.Moving and jps.itemCooldown(6948) == 0 , "player" , "Aggro_FAKECAST" },
+		--{ {"macro","/use item:6948"}, jps.PvP and jps.hp(LowestImportantUnit) > 0.80 and not jps.Moving and jps.itemCooldown(6948) == 0 , "player" , "Aggro_FAKECAST" },
 		-- "Prière du désespoir" 19236
 		{ 19236, jps.hp() < 0.60 and jps.IsSpellKnown(19236) , "player" , "Aggro_DESESPERATE" },
 		-- "Pierre de soins" 5512

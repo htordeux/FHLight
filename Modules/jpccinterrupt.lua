@@ -34,13 +34,10 @@ local UnitIsUnit = UnitIsUnit
 local GetTime = GetTime
 local toSpellName = jps.toSpellName
 
---------------------------------------
--- LOSS OF CONTROL CHECK
---------------------------------------
--- name, rank, icon, count, debuffType, duration, expirationTime, unitCaster, isStealable, shouldConsolidate, spellId, canApplyAura, isBossDebuff, value1, value2, value3 = UnitDebuff("unit", index or ["name", "rank"][, "filter"])
--- name, rank, icon, count, debuffType, duration, expirationTime, unitCaster, isStealable, shouldConsolidate, spellId, canApplyAura, isBossDebuff, value1, value2, value3 = UnitBuff("unit", index or "name"[, "rank"[, "filter"]])
--- name, rank, icon, count, debuffType, duration, expirationTime, unitCaster, canStealOrPurge, shouldConsolidate, spellId, canApplyAura, isBossDebuff, isCastByPlayer, ... = UnitAura("unit", index or "name"[, "rank"[, "filter"]])
--- spellId of the spell or effect that applied the aura
+--------------------------
+-- DISPEL TABLE
+--------------------------
+-- Create table with jps.SpellControl[spellID] in a local table DebuffControl[SpellName]
 
 local DebuffControl = {}
 for spellID,control in pairs(jps.SpellControl) do
@@ -52,6 +49,14 @@ printDebuffControl = function()
 		print(i,"/",j)
 	end
 end
+
+--------------------------------------
+-- LOSS OF CONTROL CHECK
+--------------------------------------
+-- name, rank, icon, count, debuffType, duration, expirationTime, unitCaster, isStealable, shouldConsolidate, spellId, canApplyAura, isBossDebuff, value1, value2, value3 = UnitDebuff("unit", index or ["name", "rank"][, "filter"])
+-- name, rank, icon, count, debuffType, duration, expirationTime, unitCaster, isStealable, shouldConsolidate, spellId, canApplyAura, isBossDebuff, value1, value2, value3 = UnitBuff("unit", index or "name"[, "rank"[, "filter"]])
+-- name, rank, icon, count, debuffType, duration, expirationTime, unitCaster, canStealOrPurge, shouldConsolidate, spellId, canApplyAura, isBossDebuff, isCastByPlayer, ... = UnitAura("unit", index or "name"[, "rank"[, "filter"]])
+-- spellId of the spell or effect that applied the aura
 
 function jps.StunEvents(duration) -- ONLY FOR PLAYER
 	if duration == nil then duration = 0 end
@@ -73,8 +78,7 @@ end
 -- Check if unit loosed control
 -- { "CC" , "Snare" , "Root" , "Silence" , "Immune", "ImmuneSpell", "Disarm" }
 -- LoseControl could be FRIEND or ENEMY -- Time controlled set to 1 sec
-function jps.LoseControl(unit, controlTable)
-	local targetControlled = false
+jps.LoseControl = function(unit,controlTable)
 	local timeControlled = 0
 	if controlTable == nil then controlTable = {"CC" , "Snare" , "Root" , "Silence" } end
 	-- Check debuffs
@@ -84,31 +88,27 @@ function jps.LoseControl(unit, controlTable)
 	while auraName do
 		local Priority = jps.SpellControl[spellId]
 		if Priority then
-			for i=1,#controlTable do -- for _,control in ipairs(controlTable) do
-				local control = controlTable[i]
-				if Priority == control then
-					targetControlled = true
+			for i=1,#controlTable do
+				if Priority == controlTable[i] then
 					if expTime ~= nil then timeControlled = expTime - GetTime() end
-				break end
+					if timeControlled > 1 then return true end
+				end
 			end
 		end
-		if targetControlled == true and timeControlled > 1 then return true end
 		i = i + 1
 		auraName, _, _, _, debuffType, duration, expTime, _, _, _, spellId, _ = UnitDebuff(unit,i)
 	end
-	return targetControlled
+	return false
 end
 
 --------------------------
--- DISPEL FUNCTIONS TABLE
+-- DEBUFF RBG
 --------------------------
 
----------------------------
--- DEBUFF RBG
----------------------------
-
 local DebuffToDispel = {
+
 	toSpellName(2944),		-- Devouring Plague			-- Dispel type	Disease
+	toSpellName(118),		-- "Polymorph" , 			-- Dispel type	Magic
 	toSpellName(2944),		-- Polymorph				-- Dispel type	Magic
 	toSpellName(61305),		-- Polymorph: Black Cat
 	toSpellName(28272),		-- Polymorph: Pig
@@ -131,29 +131,34 @@ local DebuffToDispel = {
 	toSpellName(130616),	-- "Fear" (Glyph of Fear)	-- Dispel type	Magic
 	toSpellName(104045),	-- Sleep (Metamorphosis)	-- Dispel type	Magic
 	toSpellName(122),		-- Frost Nova				-- Dispel type	Magic
+	
+	--toSpellName(51514),		-- "Hex"					-- Type de dissipation	Malédiction
+	--toSpellName(33786),		-- "Cyclone"				-- Type de dissipation	n/d
 }
 
-local ControlDebuff = {
-	toSpellName(118),		-- "Polymorph" , -- Dispel type	Magic
-	toSpellName(61305),		-- "Polymorph: Black Cat"
-	toSpellName(28272),		-- "Polymorph: Pig"
-	toSpellName(61721),		-- "Polymorph: Rabbit"
-	toSpellName(61780),		-- "Polymorph: Turkey"
-	toSpellName(28271),		-- "Polymorph: Turtle"
-	toSpellName(51514),		-- "Hex"					-- Type de dissipation	Malédiction
-	toSpellName(33786),		-- "Cyclone"				-- Type de dissipation	n/d
-}
-
--- Enemy Casting Polymorph,Hex,Cyclone
+-- Enemy Casting SpellControl according to table jps.SpellControl[spellId]
 local latencyWorld = select(4,GetNetStats())/1000
-function jps.IsCastingControl(unit)
-	if not canDPS(unit) then return false end
-	for i=1,#ControlDebuff do -- for _,spell in ipairs(ControlDebuff) do
-		local spell = ControlDebuff[i]
-		if jps.IsCastingSpell(spell,unit) then
-			return true
-		end
-	end 
+function jps.IsCastingSpellControl(unit) -- WORKS FOR CASTING SPELL NOT CHANNELING SPELL
+	if unit == nil then unit = "player" end
+	-- name, nameSubtext, text, texture, startTime, endTime, isTradeSkill, notInterruptible = UnitCastingInfo("unit")
+	local spellName, _, _, _, startTime, endTime, _, _, interrupt = UnitCastingInfo(unit)
+	if not spellName then return false end
+	-- name, rank, icon, castTime, minRange, maxRange, spellId = GetSpellInfo(spellId or spellName)
+	local _, _, _, _, _, _, spellId = GetSpellInfo(spellName)
+	if jps.SpellControl[spellId]== "CC" then return true
+	elseif jps.SpellControl[spellId]== "Silence" then return true
+	end
+	return false
+end
+
+function jps.IsCastingSpellNameControl(unit) -- WORKS FOR CASTING SPELL NOT CHANNELING SPELL
+	if unit == nil then unit = "player" end
+	-- name, nameSubtext, text, texture, startTime, endTime, isTradeSkill, notInterruptible = UnitCastingInfo("unit")
+	local spellName, _, _, _, startTime, endTime, _, _, interrupt = UnitCastingInfo(unit)
+	if not spellName then return false end
+	if DebuffControl[spellName] == "CC" then return true
+	elseif DebuffControl[spellName] == "Silence" then return true
+	end
 	return false
 end
 
@@ -172,35 +177,60 @@ local UnstableAffliction = function(unit)
 	return false
 end
 
-local findDebuffToDispel = function(name)
+local findDebuffToDispel = function(auraName)
 	for i=1,#DebuffToDispel do -- for _,debuff in ipairs(DebuffToDispel) do
 		local debuff = DebuffToDispel[i]
-		if name == debuff then
+		if auraName == debuff then
 		return true end
 	end
 	return false
 end
 
 -- Dispel all MAGIC debuff in the debuff TABLE DebuffToDispel EXCEPT if unit is affected by some debuffs
-jps.DispelFriendly = function (unit,timed)
+jps.DispelFriendly = function(unit,time)
 	if not canHeal(unit) then return false end
 	if UnstableAffliction(unit) then return false end
-	if timed == nil then timed = 0 end
+	if time == nil then time = 0 end
 	local timeControlled = 0
+	-- Check debuffs
 	local auraName, debuffType, duration, expTime, spellId
 	local i = 1
 	auraName, _, _, _, debuffType, duration, expTime, _, _, _, spellId = UnitDebuff(unit, i)
 	while auraName do
-		if debuffType == "Magic" then
+		if debuffType == "Magic" then -- {"Magic", "Poison", "Disease", "Curse"}
 			if findDebuffToDispel(auraName) then
 				if expTime ~= nil then timeControlled = expTime - GetTime() end
-				if timeControlled > timed then
-					return true
-				end
+				if timeControlled > time then return true end
 			end
 		end
 		i = i + 1
 		auraName, _, _, _, debuffType, duration, expTime, _, _, _, spellId = UnitDebuff(unit, i)
+	end
+	return false
+end
+
+-- LoseControl could be FRIEND or ENEMY -- Time controlled set to 1 sec
+jps.DispelLoseControl = function(unit,controlTable)
+	if not canHeal(unit) then return false end
+	if UnstableAffliction(unit) then return false end
+	local timeControlled = 0
+	if controlTable == nil then controlTable = {"CC" , "Snare" , "Root" , "Silence" } end
+	-- Check debuffs
+	local auraName, debuffType, duration, expTime, spellId
+	local i = 1
+	auraName, _, _, _, debuffType, duration, expTime, _, _, _, spellId, _ = UnitDebuff(unit,i)
+	while auraName do
+		local Priority = DebuffControl[auraName]
+		if Priority and debuffType ~= "Magic"then -- {"Magic", "Poison", "Disease", "Curse"}
+			for i=1,#controlTable do
+				if Priority == controlTable[i] then
+					if expTime ~= nil then timeControlled = expTime - GetTime() end
+					if timeControlled > 1 then return true end
+				end
+			end
+		end
+		i = i + 1
+		auraName, _, _, _, debuffType, duration, expTime, _, _, _, spellId, _ = UnitDebuff(unit,i)
 	end
 	return false
 end

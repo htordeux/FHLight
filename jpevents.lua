@@ -614,13 +614,25 @@ end)
 -- LossOfControlType, _, LossOfControlText, _, LossOfControlStartTime, LossOfControlTimeRemaining, duration, _, _, _ = C_LossOfControl.GetEventInfo(eventIndex)
 -- eventIndex Number - index of the loss-of-control effect currently affecting your character to return information about, ascending from 1. 
 -- LossOfControlType : --STUN_MECHANIC --STUN --PACIFYSILENCE --SILENCE --FEAR --CHARM --PACIFY --CONFUSE --POSSESS --SCHOOL_INTERRUPT --DISARM --ROOT
+-- name, rank, icon, castTime, minRange, maxRange, spellId = GetSpellInfo(spellId or spellName)
+
+-- start, duration, enabled = GetSpellCooldown("spellName" or spellID or slotID, "bookType")
+-- if spell has no cd then start, duration, enabled = 0,0,1
+-- if spell has cd then duration is the global cooldown
+
+local hostileControlSpell = {}
+local collectControlSpell = function(spellID)
+	if not hostileControlSpell[spellID] then hostileControlSpell[spellID] = {} end
+	hostileControlSpell[spellID] = "CC"
+end
 
 local stunTypeTable = {"STUN_MECHANIC","STUN","FEAR","CHARM","CONFUSE","PACIFY","SILENCE","PACIFYSILENCE"}
 jps.listener.registerEvent("LOSS_OF_CONTROL_ADDED", function ()
 	local i = C_LossOfControl.GetNumEvents()
-    local locType, _, text, _, _, _, duration = C_LossOfControl.GetEventInfo(i)
+    local locType, spellID, text, _, _, _, duration = C_LossOfControl.GetEventInfo(i)
     --print("CONTROL:", locType,"/",text,"/",duration)
     if text and duration then
+		if spellID then collectControlSpell(spellID) end
     	if locType == "SCHOOL_INTERRUPT" then
     		jps.createTimer("PlayerInterrupt",duration)
     		jps.createTimer("PlayerWasControl",duration + 2)
@@ -637,7 +649,7 @@ end)
 
 --jps.listener.registerEvent("LOSS_OF_CONTROL_UPDATE", function()
 --	local i = C_LossOfControl.GetNumEvents()
---	local _, _, text, _, _, _, duration = C_LossOfControl.GetEventInfo(i)
+--	local locType, spellID, text, _, _, _, duration = C_LossOfControl.GetEventInfo(i)
 --	print("CONTROL_UPDATE: ",text, duration)
 --end)
 
@@ -671,33 +683,6 @@ end)
 -- TRACKING ENEMY COOLDOWNS
 --------------------------
 
--- EnemyCooldowns[sourceGUID][spellId]
-local SpellTimer = function(unitGuid)
-	local dataset = EnemyCooldowns[unitGuid]
-	for spell,index in pairs(dataset) do
-		local endSpell = index[1] -- local start, duration, _ = GetSpellCooldown(spell)
-		local timeLeft = math.ceil(endSpell - GetTime()) -- local timeLeft = start + duration - GetTime()
-		EnemyCooldowns[unitGuid][spell][2] = timeLeft
-		if timeLeft < 1 then -- GCD 1 sec
-			EnemyCooldowns[unitGuid][spell][2] = 0
-		end 
-	end
-end
-
-function jps.enemyCooldownWatch(unit)
-	if not jps.UnitExists(unit) then return end
-	local unitGuid = UnitGUID(unit)
-	local dataset = EnemyCooldowns[unitGuid]
-	if not dataset then return 0 end
-	-- Update Table
-	SpellTimer(unitGuid)
-	local cooldown = 999
-	for spell,index in pairs(dataset) do
-		if index[2] < cooldown then cooldown = index[2] end 
-		write(index[3],"-",spell,": ",index[2])
-	end
-	return cooldown
-end
 
 -----------------------
 -- UPDATE ENEMY TABLE
@@ -780,16 +765,6 @@ local healEvents = {
         ["SPELL_PERIODIC_HEAL"] = true,
 }
 
-local hostile = {
-  ["_DAMAGE"] = true, 
-  ["_LEECH"] = true,
-  ["_DRAIN"] = true,
-  ["_STOLEN"] = true,
-  ["_INSTAKILL"] = true,
-  ["_INTERRUPT"] = true,
-  ["_MISSED"] = true
-}
-
 -- UNIT_DIED destGUID and destName refer to the unit that died.
 jps.listener.registerCombatLogEventUnfiltered("UNIT_DIED", function(...)
 	local destGUID = select(8,...)
@@ -841,23 +816,6 @@ jps.listener.registerEvent("COMBAT_LOG_EVENT_UNFILTERED", function(...)
 	if sourceGUID and destGUID then
 			local sourceName = select(5,...) 
 			local destName = select(9,...)
-
--- ENEMYCOOLDOWNS Table -- Track some CD Spells with spellID in table jps.EnemyCds
-		if jps.PvP and isSourceEnemy and hostile[suffix] then
-			local spellId = select(12, ...)
-			local spellname = select(13, ...)
-			local start, _, _ = GetSpellCooldown(spellId)
-			if start == nil then start = 0 end
-			if start > 0 and jps.EnemyCds[spellId] then
-				local duration = jps.EnemyCds[spellId]
-				if not EnemyCooldowns[sourceGUID] then EnemyCooldowns[sourceGUID] = {} end
-				if not EnemyCooldowns[sourceGUID][spellId] then
-					EnemyCooldowns[sourceGUID][spellId] = {start + duration, duration, spellname}
-				elseif EnemyCooldowns[sourceGUID][spellId][2] == 0 then
-					EnemyCooldowns[sourceGUID][spellId] = {start + duration, duration, spellname}
-				end
-			end
-		end
 
 -- HEAL TABLE -- Average value of player healing spells
 --		if sourceGUID == UnitGUID("player") then
@@ -1050,13 +1008,18 @@ end
 jps.Lookup = function()
 	print("|cffff8000------------------------|cffffffff")
 	-- IncomingHeal[destGUID] = {GetTime(),heal,destName}
-	for unit,index in pairs (IncomingHeal) do
-		print(#index,"|cff1eff00unit:",unit,"destname:",index[1][3],"heal:",index[1][2])
-	end
+--	for unit,index in pairs (IncomingHeal) do
+--		print(#index,"|cff1eff00unit:",unit,"destname:",index[1][3],"heal:",index[1][2])
+--	end
 	
 	-- IncomingDamage[destGUID] = {GetTime(),dmg,destName}
-	for unit,index in pairs (IncomingDamage) do
-		print(#index,"|cFFFF0000unit:",unit,"destname:",index[1][3],"dmg:",index[1][2])
+--	for unit,index in pairs (IncomingDamage) do
+--		print(#index,"|cFFFF0000unit:",unit,"destname:",index[1][3],"dmg:",index[1][2])
+--	end
+	
+	-- hostileControlSpell[spellID] = "CC"
+	for spell,index in pairs (hostileControlSpell) do
+		print("|cFFFF0000spell:",spell,"-",index)
 	end
 end
 

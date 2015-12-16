@@ -144,6 +144,7 @@ jps.SpellControl = {
 	[5211]   = "CC",			-- Mighty Bash
 	[114238] = "Silence",		-- Fae Silence (Glyph of Fae Silence)
 	[81261]  = "Silence",		-- Solar Beam
+	[97547]  = "Silence",		-- Solar Beam
 	[339]    = "Root",			-- Entangling Roots
 	[113770] = "Root",			-- Entangling Roots (Force of Nature - Balance Treants)
 	[45334]  = "Root",			-- Immobilized (Wild Charge - Bear)
@@ -517,7 +518,7 @@ end)
 -- All IDs with '--' infront of the spell ID will be commented out.
 -- If you wish to disable an ability tracker, put '--' infront of the ID.
 
-jps.EnemyCds = {
+jps.SpellControlCds = {
 
 	--------------------------------------------------------------------------
 	--Misc

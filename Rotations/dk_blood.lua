@@ -64,9 +64,9 @@ local playerIsInterrupt = jps.InterruptEvents() -- return true/false ONLY FOR PL
 local playerWasControl = jps.ControlEvents() -- return true/false Player was interrupt or stun 2 sec ago ONLY FOR PLAYER
 local inMelee = jps.IsSpellInRange(49998,"target") -- "Death Strike" 49998 "Frappe de Mort"
 
-local myTank,TankUnit = jps.findTankInRaid() -- default "focus"
+local Tank,TankUnit = jps.findTankInRaid() -- default "focus"
 local TankTarget = "target"
-if UnitCanAssist("player",myTank) then TankTarget = myTank.."target" end
+if UnitCanAssist("player",Tank) then TankTarget = Tank.."target" end
 
 ----------------------
 -- TARGET ENEMY

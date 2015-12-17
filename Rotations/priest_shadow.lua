@@ -76,9 +76,9 @@ local BodyAndSoul = jps.IsSpellKnown(64129)
 -- "Clarity of Power" 155246 "Clarté de pouvoir"
 local COP = jps.IsSpellKnown(155246)
 
-local myTank,TankUnit = jps.findTankInRaid() -- default "focus"
+local Tank,TankUnit = jps.findTankInRaid() -- default "focus"
 local TankTarget = "target"
-if canHeal(myTank) then TankTarget = myTank.."target" end
+if canHeal(Tank) then TankTarget = Tank.."target" end
 
 ---------------------
 -- TIMER

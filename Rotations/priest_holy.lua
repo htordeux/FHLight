@@ -76,9 +76,9 @@ local priestHoly = function()
 	local CountFriendLowest = jps.CountInRaidLowest(0.80)
 	local CountFriendEmergency = jps.CountInRaidLowest(0.50)
 
-	local myTank,TankUnit = jps.findTankInRaid() -- default "focus"
+	local Tank,TankUnit = jps.findTankInRaid() -- default "focus"
 	local TankTarget = "target"
-	if canHeal(myTank) then TankTarget = myTank.."target" end
+	if canHeal(Tank) then TankTarget = Tank.."target" end
 
 	local playerAggro = jps.FriendAggro("player")
 	local playerIsStun = jps.StunEvents(2) -- return true/false ONLY FOR PLAYER -- "ROOT" was removed of Stuntype
@@ -323,14 +323,14 @@ local spellTable = {
 	{ 14914, canDPS(rangedTarget) , rangedTarget , "|cFFFF0000Flammes_" },
 
 	-- "Renew" 139 -- Haste breakpoints are 12.5 and 16.7%(Holy)
-	{ 139, not jps.buff(139,myTank) , myTank , "Timer_Renew_Tank" },
+	{ 139, not jps.buff(139,Tank) , Tank , "Timer_Renew_Tank" },
 	-- "Holy Word: Serenity" 88684 -- Chakra: Serenity 81208
-	{ {"macro",macroSerenity}, jps.cooldown(88684) == 0 and jps.buffId(81208) and jps.myBuffDuration(139,myTank) < 2 , myTank , "Renew_Serenity_Tank" },
-	{ {"macro",macroSerenity}, jps.cooldown(88684) == 0 and jps.buffId(81208) and jps.hp(myTank) < 0.80 , myTank , "Health_Serenity_Tank" },
+	{ {"macro",macroSerenity}, jps.cooldown(88684) == 0 and jps.buffId(81208) and jps.myBuffDuration(139,Tank) < 2 , Tank , "Renew_Serenity_Tank" },
+	{ {"macro",macroSerenity}, jps.cooldown(88684) == 0 and jps.buffId(81208) and jps.hp(Tank) < 0.80 , Tank , "Health_Serenity_Tank" },
 	
 	-- TIMER POM -- "Prière de guérison" 33076 -- Buff POM 41635
 	{ "nested", not jps.Moving and not jps.buffTracker(41635) ,{
-		{ 33076, canHeal(myTank) , myTank , "Tracker_Mending_Tank" },
+		{ 33076, canHeal(Tank) , Tank , "Tracker_Mending_Tank" },
 		{ 33076, type(MendingFriend) == "string" , MendingFriend , "Tracker_Mending_Friend" },
 		{ 33076, true , LowestImportantUnit , "Tracker_Mending_" },
 	}},

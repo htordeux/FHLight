@@ -136,9 +136,9 @@ jps.registerRotation("MAGE","ARCANE", function()
 	local playerIsStun = jps.StunEvents(2) -- return true/false ONLY FOR PLAYER -- "ROOT" was removed of Stuntype
 	-- {"STUN_MECHANIC","STUN","FEAR","CHARM","CONFUSE","PACIFY","SILENCE","PACIFYSILENCE"}
 
-	local myTank,TankUnit = jps.findTankInRaid() -- default "focus"
+	local Tank,TankUnit = jps.findTankInRaid() -- default "focus"
 	local TankTarget = "target"
-	if UnitCanAssist("player",myTank) then TankTarget = myTank.."target" end
+	if UnitCanAssist("player",Tank) then TankTarget = Tank.."target" end
 
 ---------------------
 -- ENEMY TARGET
@@ -182,7 +182,7 @@ local spellTable = {
 	{mage.iceblock, jps.Defensive and playerhealthpct < 0.20 and not jps.buff(110909) and playerAggro },
 	{mage.iceblock, jps.Defensive and playerhealthpct < 0.20 and playerAggro },
 	--? frost ward
-	{mage.iceWard, canHeal(myTank) and not jps.buff(mage.iceWard,myTank) , myTank },
+	{mage.iceWard, canHeal(Tank) and not jps.buff(mage.iceWard,Tank) , Tank },
 
 	--interrupts
 	{mage.counterspell, jps.ShouldKick("target") },

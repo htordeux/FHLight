@@ -365,7 +365,7 @@ jps.registerOnUpdate(function()
 end)
 
 jps.registerOnUpdate(function()
-	jps.cachedValue(collectGarbage,60)
+	jps.cachedValue(collectGarbage,30)
 end)
 
 --------------------------

@@ -44,8 +44,8 @@ local function Test()
 	--print("CountInRaid50: ",jps.CountInRaidLowest(0.50))
 	--print("CountInRange80: ",jps.CountInRaidLowest(0.80))
 
-	local myTank,Tanks = jps.findTankInRaid()
-	print("|cff0070ddmyTank: ",GetUnitName(myTank))
+	local Tank,Tanks = jps.findTankInRaid()
+	print("|cff0070ddmyTank: ",GetUnitName(Tank))
 	for i=1,#Tanks do
 		print("|cff0070ddTanks: ",GetUnitName(Tanks[i]))
 	end
@@ -105,20 +105,20 @@ end
 	--	MoveForwardStart()
 	--	C_Timer.After(0.25,function() MoveForwardStop() end)
 	
---	local myTank,TankUnit = jps.findTankInRaid()
---	if myTank == "focus" then myTank = "player" end
+--	local Tank,TankUnit = jps.findTankInRaid()
+--	if Tank == "focus" then Tank = "player" end
 --	local i = 1
 --	local auraName,debuffType,expirationTime,unitCaster,spellId,isBossDebuff
---	auraName, _, _, _, debuffType, _, expirationTime, unitCaster, _, _, spellId, _, isBossDebuff = UnitDebuff(myTank, i)
+--	auraName, _, _, _, debuffType, _, expirationTime, unitCaster, _, _, spellId, _, isBossDebuff = UnitDebuff(Tank, i)
 --	while auraName do
---		print(myTank,
+--		print(Tank,
 --		"|cff1eff00auraName: ","|cffffffff",auraName,
 --		"|cff1eff00unitCaster: ","|cffffffff",unitCaster,"|cff1eff00Classification ","|cffffffff",UnitClassification(unitCaster),
 --		"|cff1eff00spellId: ","|cffffffff",spellId,
 --		"|cff1eff00isBossDebuff: ","|cffffffff",isBossDebuff
 --		)
 --		i = i + 1
---		auraName, _, _, _, debuffType, _, expirationTime, unitCaster, _, _, spellId, _, isBossDebuff = UnitDebuff(myTank, i)
+--		auraName, _, _, _, debuffType, _, expirationTime, unitCaster, _, _, spellId, _, isBossDebuff = UnitDebuff(Tank, i)
 --	end
 
 	local lowestUnit = jps.HighestIncomingDamage()

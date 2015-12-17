@@ -76,9 +76,9 @@ local currentCharges, _, cooldownStart, cooldownDuration = GetSpellCharges(15632
 local ShieldChargeReady = true
 if currentCharges == 1 and jps.rage() < 109 and jps.cooldown(12292) > 0 and jps.cooldown(12292) < 8 then ShieldChargeReady = false end
 
-local myTank,TankUnit = jps.findTankInRaid() -- default "focus"
+local Tank,TankUnit = jps.findTankInRaid() -- default "focus"
 local TankTarget = "target"
-if UnitCanAssist("player",myTank) then TankTarget = myTank.."target" end
+if UnitCanAssist("player",Tank) then TankTarget = Tank.."target" end
 local TankThreat = jps.findThreatInRaid()
 local playerIsTanking = false
 if UnitIsUnit("player",TankThreat) then playerIsTanking = true end
@@ -167,8 +167,8 @@ local spellTable = {
 	{ warrior.spells["Stoneform"] , jps.canDispel("player",{"Magic","Poison","Disease","Curse"}) , rangedTarget , "|cff1eff00Stoneform_Dispel" },
 
 	-- "Proteger" 114029 -- "Intervention" 3411
-	{ 3411, IsInGroup() and not UnitIsUnit(myTank,"player") and jps.hp(myTank) < 0.30 and jps.hp("player") > 0.85 and UnitCanAssist("player",myTank) , myTank , "Intervention_myTank" },
-	{ 114029, IsInGroup() and not UnitIsUnit(myTank,"player") and jps.hp(myTank) < 0.30 and jps.hp("player") > 0.85 and UnitCanAssist("player",myTank) , myTank , "Proteger_myTank" },
+	{ 3411, IsInGroup() and not UnitIsUnit(Tank,"player") and jps.hp(Tank) < 0.30 and jps.hp("player") > 0.85 and UnitCanAssist("player",Tank) , Tank , "Intervention_myTank" },
+	{ 114029, IsInGroup() and not UnitIsUnit(Tank,"player") and jps.hp(Tank) < 0.30 and jps.hp("player") > 0.85 and UnitCanAssist("player",Tank) , Tank , "Proteger_myTank" },
 	{ 3411, IsInGroup() and not UnitIsUnit("targettarget","player") and jps.hp("targettarget") < 0.30 and jps.hp("player") > 0.85 and UnitCanAssist("player","targettarget") , "targettarget" , "Intervention_Aggro" },
 	{ 114029, IsInGroup() and not UnitIsUnit("targettarget","player") and jps.hp("targettarget") < 0.30 and jps.hp("player") > 0.85 and UnitCanAssist("player","targettarget") , "targettarget" , "Proteger_Aggro" },
 	-- "Provocation" 355
@@ -183,11 +183,8 @@ local spellTable = {
 	{ warrior.spells["ShieldSlam"] , inMelee and jps.buff(71) and jps.buff(50227) , rangedTarget , "ShieldSlam_SwordBoard_1" },
 	{ warrior.spells["ShieldSlam"] , inMelee and jps.buff(156291) and jps.buff(169667) , rangedTarget , "ShieldSlam_1" },
 	{ warrior.spells["ShieldSlam"] , inMelee and jps.buff(156291) and jps.buff(50227) and jps.buff(169667) , rangedTarget , "ShieldSlam_SwordBoard_1" },
-	-- "Dévaster" 20243 "Devastate" -- Buff "Unyielding Strikes" 169686 "Frappes inflexibles" 169686 -- Cumulable jusqu’à 6 fois
-	{ warrior.spells["Devastate"] , inMelee and jps.buffDuration(169686) < 1 and jps.buffStacks(169686) < 6 , rangedTarget , "Devastate_BuffDuration" },
 	-- "Ravager" 152277 "Ravageur"
 	{ warrior.spells["Ravager"] , jps.buff(71) and jps.IsSpellKnown(152277) , rangedTarget , "Ravager" },
-	
 
 	-- DEFENSIVE HEALTH
 	-- "Last Stand" 12975 "Dernier rempart" -- 3 min
@@ -292,6 +289,8 @@ local spellTable = {
 	}},
 	
 	-- DAMAGE
+	-- "Dévaster" 20243 "Devastate" -- Buff "Unyielding Strikes" 169686 "Frappes inflexibles" 169686 -- Cumulable jusqu’à 6 fois
+	{ warrior.spells["Devastate"] , inMelee and jps.buffDuration(169686) < 1 and jps.buffStacks(169686) < 6 , rangedTarget , "Devastate_BuffDuration" },
 	-- "Shield Slam" 23922 "Heurt de bouclier" -- Buff "Sword and Board" 50227 "Epée et bouclier"
 	{ warrior.spells["ShieldSlam"] , inMelee and jps.buff(50227) , rangedTarget , "ShieldSlam_SwordBoard_2" },
 	{ warrior.spells["ShieldSlam"] , inMelee , rangedTarget , "ShieldSlam_2" },

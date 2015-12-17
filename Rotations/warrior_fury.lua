@@ -66,9 +66,9 @@ local playerWasControl = jps.ControlEvents() -- return true/false Player was int
 local inMelee = jps.IsSpellInRange(5308,"target") -- "Execute" 5308
 local inRanged = jps.IsSpellInRange(57755,"target") -- "Heroic Throw" 57755 "Lancer héroïque"
 
-local myTank,TankUnit = jps.findTankInRaid() -- default "focus"
+local Tank,TankUnit = jps.findTankInRaid() -- default "focus"
 local TankTarget = "target"
-if UnitCanAssist("player",myTank) then TankTarget = myTank.."target" end
+if UnitCanAssist("player",Tank) then TankTarget = Tank.."target" end
 	
 ----------------------
 -- TARGET ENEMY

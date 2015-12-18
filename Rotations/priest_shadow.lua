@@ -231,7 +231,7 @@ local LeapFriend = nil
 for i=1,#FriendUnit do -- for _,unit in ipairs(FriendUnit) do
 	local unit = FriendUnit[i]
 	if priest.unitForLeap(unit) and jps.hp(unit) < 0.25 then 
-		LeapFriend = unit -- if jps.RoleInRaid(unit) == "HEALER" then
+		LeapFriend = unit
 	break end
 end
 
@@ -308,7 +308,7 @@ local parseControl = {
 	-- "Psychic Horror" 64044 "Horreur psychique" -- 30 yd range
 	{ 64044, jps.IsSpellInRange(64044,rangedTarget) and fnOrbs(rangedTarget) , rangedTarget },
 	-- "Void Tendrils" 108920 -- debuff "Void Tendril's Grasp" 114404
-	{ 108920, playerAggro and priest.canFear(rangedTarget) , rangedTarget },
+	{ 108920, priest.canFear(rangedTarget) , rangedTarget },
 }
 
 local parseControlFocus = {
@@ -319,7 +319,7 @@ local parseControlFocus = {
 	-- "Psychic Horror" 64044 "Horreur psychique" -- 30 yd range
 	{ 64044, jps.IsSpellInRange(64044,"focus") and fnOrbs("focus") , "focus" , "Horror_focus" },
 	-- "Void Tendrils" 108920 -- debuff "Void Tendril's Grasp" 114404
-	{ 108920, playerAggro and priest.canFear("focus") , "focus" },
+	{ 108920, priest.canFear("focus") , "focus" },
 }
 
 local parseHeal = {
@@ -383,7 +383,7 @@ local spellTable = {
 	{ 59752, playerIsStun , "player" , "Every_Man_for_Himself" },
 	-- TRINKETS -- jps.useTrinket(0) est "Trinket0Slot" est slotId  13 -- "jps.useTrinket(1) est "Trinket1Slot" est slotId  14
 	{ jps.useTrinket(0), jps.useTrinketBool(0) and not playerWasControl and jps.combatStart > 0 , "player" , "useTrinket0" },
-	{ jps.useTrinket(1), jps.useTrinketBool(1) and playerIsStun , "player" , "useTrinket1" },
+	{ jps.useTrinket(1), jps.useTrinketBool(1) and playerIsStun and jps.combatStart > 0 , "player" , "useTrinket1" },
 	
 	-- FOCUS CONTROL
 	-- "Silence" 15487
@@ -391,8 +391,8 @@ local spellTable = {
 	{ "nested", jps.PvP and canDPS(rangedTarget) and not jps.LoseControl(rangedTarget) , parseControl },
 	{ "nested", jps.PvP and canDPS("focus") and not jps.LoseControl("focus") , parseControlFocus },
 	-- OFFENSIVE DISPEL -- "Dissipation de la magie" 528 (jps.DispelOffensive includes canDPS)
-	{ 528, jps.castEverySeconds(528,10) and jps.DispelOffensive(rangedTarget) , rangedTarget , "|cff1eff00Dispel_Offensive" },
-	{ 528, jps.castEverySeconds(528,10) and DispelOffensiveTarget ~= nil  , DispelOffensiveTarget , "|cff1eff00Dispel_Offensive_MultiUnit" },
+	{ 528, jps.castEverySeconds(528,8) and jps.DispelOffensive(rangedTarget) , rangedTarget , "|cff1eff00Dispel_Offensive" },
+	{ 528, jps.castEverySeconds(528,8) and DispelOffensiveTarget ~= nil  , DispelOffensiveTarget , "|cff1eff00Dispel_Offensive_MultiUnit" },
 	
 	-- PLAYER AGGRO
 	{ "nested", playerAggro or playerWasControl or playerIsTargeted , parseAggro },

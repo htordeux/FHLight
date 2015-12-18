@@ -142,7 +142,7 @@ local priestDisc = function()
 	for i=1,#FriendUnit do -- for _,unit in ipairs(FriendUnit) do
 		local unit = FriendUnit[i]
 		if priest.unitForLeap(unit) and jps.hpInc(unit) < 0.30 then 
-			LeapFriend = unit -- if jps.RoleInRaid(unit) == "HEALER" then
+			LeapFriend = unit
 		break end
 	end
 	
@@ -185,7 +185,9 @@ local priestDisc = function()
 	for i=1,#TankUnit do -- for _,unit in ipairs(TankUnit) do
 		local unit = TankUnit[i]
 		if jps.canDispel(unit,{"Magic"}) then -- jps.canDispel includes UnstableAffliction
-			DispelFriendRole = unit -- if jps.RoleInRaid(unit) == "HEALER" then
+			DispelFriendRole = unit
+		elseif jps.PvP and jps.RoleInRaid(unit) == "HEALER" then
+			DispelFriendRole = unit
 		break end
 	end
 
@@ -286,7 +288,7 @@ local priestDisc = function()
 		-- "Psychic Scream" "Cri psychique" 8122 -- debuff same ID 8122
 		{ 8122, priest.canFear(rangedTarget) , rangedTarget },
 		-- "Void Tendrils" 108920 -- debuff "Void Tendril's Grasp" 114404
-		{ 108920, playerAggro and priest.canFear(rangedTarget) , rangedTarget },
+		{ 108920, priest.canFear(rangedTarget) , rangedTarget },
 	}
 	
 	local parseDispel = {
@@ -370,6 +372,9 @@ spellTable = {
 	{"nested", jps.PvP and jps.UseCDs , RacialCounters },
 	-- SNM "Chacun pour soi" 59752 "Every Man for Himself" -- Human
 	{ 59752, playerIsStun , "player" , "Every_Man_for_Himself" },
+	-- TRINKETS -- jps.useTrinket(0) est "Trinket0Slot" est slotId  13 -- "jps.useTrinket(1) est "Trinket1Slot" est slotId  14
+	{ jps.useTrinket(0), jps.useTrinketBool(0) and not playerWasControl and jps.combatStart > 0 },
+	{ jps.useTrinket(1), jps.useTrinketBool(1) and playerIsStun and jps.combatStart > 0 },
 	
 	-- PLAYER AGGRO PVP
 	{ "nested", playerAggro or playerWasControl or playerIsTargeted ,{
@@ -383,6 +388,8 @@ spellTable = {
 		{ 586, jps.glyphInfo(159628) , "player" , "Control_Oubli" },
 		-- "Glyph of Purify" 55677 Your Purify spell also heals your target for 5% of maximum health
 		{ 527, jps.canDispel("player",{"Magic"}) , "player" , "Aggro_Dispel" },
+		-- "Power Word: Shield" 17
+		{ 17, not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Aggro_Shield" },
 		-- FAKE CAST -- 6948 -- "Hearthstone"
 		--{ {"macro","/use item:6948"}, jps.PvP and jps.hp(LowestImportantUnit) > 0.80 and not jps.Moving and jps.itemCooldown(6948) == 0 , "player" , "Aggro_FAKECAST" },
 	}},
@@ -402,11 +409,6 @@ spellTable = {
 		-- "Saving Grace" 152116 "Grâce salvatrice"
 		{ 152116, jps.hp() < 0.50 and jps.debuffStacks(155274,"player") < 2 , "player" , "Aggro_SavingGrace" },
 	}},
-	
-	-- TRINKETS -- jps.useTrinket(0) est "Trinket0Slot" est slotId  13 -- "jps.useTrinket(1) est "Trinket1Slot" est slotId  14
-	{ jps.useTrinket(0), jps.useTrinketBool(0) and not playerWasControl and jps.combatStart > 0 , "player" , "useTrinket0" },
-	{ jps.useTrinket(1), not jps.PvP and jps.useTrinketBool(1) and not playerWasControl and jps.combatStart > 0 , "player" , "useTrinket1" },
-	{ jps.useTrinket(1), jps.PvP and jps.useTrinketBool(1) and playerIsStun and jps.combatStart > 0 and jps.hp(LowestImportantUnit) < 0.50 , "player" , "useTrinket1" },
 
 	-- PAIN FRIEND
 	{ "nested", PainFriend ~= nil and jps.hpInc(PainFriend) < 0.80 ,{
@@ -428,17 +430,15 @@ spellTable = {
 	{ 6346, jps.PvP and not jps.buff(6346,"player") , "player" },
 	
 	-- DISPEL -- "Glyph of Purify" 55677 Your Purify spell also heals your target for 5% of maximum health
-	{ "nested", jps.UseCDs , parseDispel },
 	-- "Dispel" 527 "Purifier"
 	{ 527, jps.canDispel("mouseover") , "mouseover" , "Dispel_Mouseover"},
+	{ "nested", jps.UseCDs , parseDispel },
 	-- OFFENSIVE Dispel -- "Dissipation de la magie" 528
-	{ 528, jps.castEverySeconds(528,10) and jps.DispelOffensive(rangedTarget) , rangedTarget , "|cff1eff00DispelOffensive" },
-
-	-- "Power Word: Shield" 17 -- "Body and Soul" 65081 buff -- Glyph of Reflective Shield 33202
-	{ 17, jps.glyphInfo(33202) and not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Defensive_Shield" },
-	{ 17, not jps.buff(65081,"player") and jps.Moving and BodyAndSoul and not jps.debuff(6788,"player") , "player" , "Shield_Moving" },
+	{ 528, jps.castEverySeconds(528,8) and jps.DispelOffensive(rangedTarget) , rangedTarget , "|cff1eff00DispelOffensive" },
 	
 	-- TANK THREAT
+	-- "Power Word: Shield" 17
+	{ 17, canHeal("targettarget") and not jps.buff(17,"targettarget") and not jps.debuff(6788,"targettarget") , "targettarget" , "Shield_targettarget" },
 	-- "Power Word: Shield"
 	{ 17, canHeal(TankThreat) and not jps.buff(17,TankThreat) and not jps.debuff(6788,TankThreat) , TankThreat , "Shield_TankThreat" },
 	-- "Pénitence" 47540
@@ -447,6 +447,10 @@ spellTable = {
 	{ 17, canHeal(Tank) and not jps.buff(17,Tank) and not jps.debuff(6788,Tank) , Tank , "Shield_Tank" },
 	-- "Pénitence" 47540
 	{ 47540, canHeal(Tank) and jps.hp(Tank) < 0.80 , Tank , "Penance_Tank" },
+	
+	-- "Power Word: Shield" 17 -- "Body and Soul" 65081 buff -- Glyph of Reflective Shield 33202
+	{ 17, jps.glyphInfo(33202) and not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Defensive_Shield" },
+	{ 17, not jps.buff(65081,"player") and jps.Moving and BodyAndSoul and not jps.debuff(6788,"player") , "player" , "Shield_Moving" },
 	
 	-- "Power Infusion" 10060 "Infusion de puissance"
 	{ 10060, jps.hp(Tank) < 0.50 , "player" , "POWERINFUSION_Tank" },
@@ -472,7 +476,6 @@ spellTable = {
 		{ 33076, not jps.buff(41635,LowestImportantUnit) , LowestImportantUnit ,  "Mending_CountFriendLowest" },
 	}},
 
-	
 	-- "Archange" 81700 -- Buff 81700 -- "Archange surpuissant" 172359  100 % critique POH or FH
 	{ 81700, jps.buffStacks(81661) == 5 and  jps.hp(TankThreat) < 0.70 , "player" , "ARCHANGE_TankThreat" },
 	{ 81700, jps.buffStacks(81661) == 5 and  jps.hp(Tank) < 0.70 , "player" , "ARCHANGE_Tank" },
@@ -485,7 +488,7 @@ spellTable = {
 		-- "POH" 596 -- "Power Infusion" 10060 "Infusion de puissance"
 		{ 596, jps.buff(10060) , POHTarget , "PowerInfusion_POH" },
 		-- "POH" 596 -- Buff "Borrowed" 59889
-		{ 596, jps.buff(59889) and jps.hp(Tank) > 0.50 , POHTarget , "Borrowed_POH" },
+		{ 596, jps.buff(59889) and jps.hpSum(Tank) > 0.50 and jps.hpSum(TankThreat) > 0.50 , POHTarget , "Borrowed_POH" },
 	}},
 	
 	-- EMERGENCY HEAL --
@@ -527,15 +530,7 @@ spellTable = {
 		-- "Soins rapides" 2061
 		{ 2061, not jps.Moving and groupHealth > 0.80 and jps.hp(IncomingDamageFriend) < 0.60 , IncomingDamageFriend , "FlashHeal_Lowest_DAMAGE" },
 	}},
-
-	-- TIMER POM  -- "Prière de guérison" 33076 -- Buff POM 41635
-	{ "nested", not jps.Moving and not jps.buffTracker(41635) ,{
-		{ 33076, canHeal(TankThreat) , TankThreat , "Tracker_Mending_TankThreat" },
-		{ 33076, canHeal(Tank) , Tank , "Tracker_Mending_Tank" },
-		{ 33076, MendingFriend ~= nil , MendingFriend , "Tracker_Mending_Friend" },
-		{ 33076, true , LowestImportantUnit , "Tracker_Mending_Lowest" },
-	}},	
-
+	
 	-- DAMAGE
 	-- "Mot de pouvoir : Réconfort" -- "Power Word: Solace" 129250 -- REGEN MANA
 	{ 129250, canDPS(rangedTarget) , rangedTarget, "|cFFFF0000Solace" },
@@ -555,6 +550,14 @@ spellTable = {
 		{ 47540, jps.PvP , rangedTarget ,"|cFFFF0000Penance_PvP" },
 		{ 47540, not IsInGroup() , rangedTarget ,"|cFFFF0000Penance_Solo" },
 	}},
+
+	-- TIMER POM  -- "Prière de guérison" 33076 -- Buff POM 41635
+	{ "nested", not jps.Moving and not jps.buffTracker(41635) ,{
+		{ 33076, canHeal(TankThreat) , TankThreat , "Tracker_Mending_TankThreat" },
+		{ 33076, canHeal(Tank) , Tank , "Tracker_Mending_Tank" },
+		{ 33076, MendingFriend ~= nil , MendingFriend , "Tracker_Mending_Friend" },
+		{ 33076, true , LowestImportantUnit , "Tracker_Mending_Lowest" },
+	}},	
 	
 	-- TANK
 	-- ClarityTank -- "Clarity of Will" 152118 shields with protective ward for 20 sec

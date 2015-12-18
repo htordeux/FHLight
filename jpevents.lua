@@ -33,15 +33,15 @@ local EnemyDamager = {}
 setmetatable(EnemyDamager, { __mode = 'k' }) -- creation of a weak table
 local EnemyHealer = {}
 setmetatable(EnemyHealer, { __mode = 'k' }) -- creation of a weak table
-local EnemyCooldowns = {}
-setmetatable(EnemyCooldowns, { __mode = 'k' }) -- creation of a weak table
 -- HEALTABLE
 local Healtable = {}
 setmetatable(Healtable, { __mode = 'k' }) -- creation of a weak table
 -- IncomingDamage
 local IncomingDamage = {}
+setmetatable(IncomingDamage, { __mode = 'k' }) -- creation of a weak table
 -- Incoming Heal
 local IncomingHeal = {}
+setmetatable(IncomingHeal, { __mode = 'k' }) -- creation of a weak table
 
 -- RaidStatus
 local UnitGUID = UnitGUID
@@ -53,9 +53,6 @@ local pairs = pairs
 local tinsert = table.insert
 local tremove = table.remove
 local toSpellName = jps.toSpellName
-
--- Table for failed spells
-local SpellFailedTable = {}
 
 --------------------------
 -- (UN)REGISTER FUNCTIONS 
@@ -432,13 +429,6 @@ jps.listener.registerEvent("PLAYER_REGEN_DISABLED", function()
 	jps.UpdateRaidRole()
 end)
 
--- LOOT_OPENED
-jps.listener.registerEvent("LOOT_OPENED", function()
-	if (IsFishingLoot()) then
-		jps.Fishing = true
-	end
-end)
-
 -- Leave Combat
 local leaveCombat = function()
 	jps.Opening = true
@@ -448,8 +438,6 @@ local leaveCombat = function()
 	jps.NextSpell = nil
 
 	-- nil all tables
-	SpellFailedTable = {}
-	EnemyCooldowns = {}
 	EnemyDamager = {}
 	IncomingDamage = {}
 	IncomingHeal = {}
@@ -1019,7 +1007,7 @@ jps.Lookup = function()
 	
 	-- hostileControlSpell[spellID] = "CC"
 	for spell,index in pairs (hostileControlSpell) do
-		print("|cFFFF0000spell:",spell,"-",index)
+		print("|cFFFF0000ControlSpell:",spell,"-",index)
 	end
 end
 

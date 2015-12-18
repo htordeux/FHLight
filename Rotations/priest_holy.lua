@@ -137,7 +137,7 @@ local priestHoly = function()
 	for i=1,#FriendUnit do -- for _,unit in ipairs(FriendUnit) do
 		local unit = FriendUnit[i]
 		if priest.unitForLeap(unit) and jps.hp(unit) < 0.25 then 
-			LeapFriend = unit -- if jps.RoleInRaid(unit) == "HEALER" then
+			LeapFriend = unit
 		break end
 	end
 	
@@ -160,8 +160,10 @@ local priestHoly = function()
 	local DispelFriendRole = nil
 	for i=1,#TankUnit do -- for _,unit in ipairs(TankUnit) do
 		local unit = TankUnit[i]
-		if jps.canDispel(unit,{"Magic"}) then
-			DispelFriendRole = unit -- if jps.RoleInRaid(unit) == "HEALER" then
+		if jps.canDispel(unit,{"Magic"}) then -- jps.canDispel includes UnstableAffliction
+			DispelFriendRole = unit
+		elseif jps.PvP and jps.RoleInRaid(unit) == "HEALER" then
+			DispelFriendRole = unit
 		break end
 	end
 	
@@ -219,7 +221,7 @@ local priestHoly = function()
 		-- "Psychic Scream" "Cri psychique" 8122 -- FARMING OR PVP -- NOT PVE -- debuff same ID 8122
 		{ 8122, priest.canFear(rangedTarget) , rangedTarget },
 		-- "Void Tendrils" 108920 -- debuff "Void Tendril's Grasp" 114404
-		{ 108920, playerAggro and priest.canFear(rangedTarget) , rangedTarget },
+		{ 108920, priest.canFear(rangedTarget) , rangedTarget },
 	}
 	
 	parseDispel = {
@@ -375,8 +377,8 @@ local spellTable = {
 	-- DISPEL -- "Glyph of Purify" 55677 Your Purify spell also heals your target for 5% of maximum health
 	{ "nested", jps.Interrupts , parseDispel },
 	-- OFFENSIVE Dispel -- "Dissipation de la magie" 528
-	{ 528, jps.castEverySeconds(528,10) and jps.DispelOffensive(rangedTarget) and LowestImportantUnitHpct > 0.85 , rangedTarget , "|cff1eff00DispelOffensive_" },
-	{ 528, jps.castEverySeconds(528,10) and type(DispelOffensiveEnemyTarget) == "string"  , DispelOffensiveEnemyTarget , "|cff1eff00DispelOffensive_MULTITARGET_" },
+	{ 528, jps.castEverySeconds(528,8) and jps.DispelOffensive(rangedTarget) and LowestImportantUnitHpct > 0.85 , rangedTarget , "|cff1eff00DispelOffensive_" },
+	{ 528, jps.castEverySeconds(528,8) and type(DispelOffensiveEnemyTarget) == "string"  , DispelOffensiveEnemyTarget , "|cff1eff00DispelOffensive_MULTITARGET_" },
 
 	-- CONTROL --
 	--{ 15487, type(SilenceEnemyTarget) == "string" , SilenceEnemyTarget , "Silence_MultiUnit" },

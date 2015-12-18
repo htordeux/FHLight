@@ -144,8 +144,7 @@ local spellTable = {
 	
 	-- TRINKETS -- jps.useTrinket(0) est "Trinket0Slot" est slotId  13 -- "jps.useTrinket(1) est "Trinket1Slot" est slotId  14
 	{ jps.useTrinket(0), jps.useTrinketBool(0) and not playerWasControl and jps.combatStart > 0 },
-	{ jps.useTrinket(1), jps.PvP and jps.useTrinketBool(1) and playerIsStun },
-	{ jps.useTrinket(1), not jps.PvP and jps.useTrinketBool(1) and not playerWasControl and jps.combatStart > 0 },
+	{ jps.useTrinket(1), jps.useTrinketBool(1) and playerIsStun and jps.combatStart > 0 },
 
 	-- AGGRO --
 	{ dk.spells["Icebound"] , playerAggro and jps.hp() < 0.75 , "player" , "_Icebound" },
@@ -165,7 +164,7 @@ local spellTable = {
 	-- "Chains of Ice" 45524 "Chaînes de glace"
 	{ dk.spells["ChainsOfIce"] , TargetMoving and not inMelee and jps.cooldown(49576) > 0 , rangedTarget },
 	-- "Icy Touch" 45477 "Toucher de glace" -- for use with Glyph of Icy Touch 43546
-	{ dk.spells["IcyTouch"] , jps.glyphInfo(43546) and jps.castEverySeconds(45477,10) and jps.DispelOffensive(rangedTarget) , rangedTarget , "|cff1eff00DispelOffensive_" },
+	{ dk.spells["IcyTouch"] , jps.glyphInfo(43546) and jps.castEverySeconds(45477,8) and jps.DispelOffensive(rangedTarget) , rangedTarget , "|cff1eff00DispelOffensive_" },
 	-- "Icebound Fortitude" 48792 "Robustesse glaciale" -- The Death Knight freezes his blood to become immune to Stun effects and reduce all damage taken by 20% for 8 sec.
 	{ dk.spells["Icebound"] , playerWasControl , "player" , "Stun_Icebound" },
 
@@ -411,8 +410,7 @@ local spellTable = {
 	
 	-- TRINKETS -- jps.useTrinket(0) est "Trinket0Slot" est slotId  13 -- "jps.useTrinket(1) est "Trinket1Slot" est slotId  14
 	{ jps.useTrinket(0), jps.useTrinketBool(0) and not playerWasControl and jps.combatStart > 0 },
-	{ jps.useTrinket(1), jps.PvP and jps.useTrinketBool(1) and playerIsStun },
-	{ jps.useTrinket(1), not jps.PvP and jps.useTrinketBool(1) and not playerWasControl and jps.combatStart > 0 },
+	{ jps.useTrinket(1), jps.useTrinketBool(1) and playerIsStun and jps.combatStart > 0 },
 
 	-- AGGRO --
 	{ dk.spells["Icebound"] , playerAggro and jps.hp() < 0.75 , "player" , "_Icebound" },
@@ -432,7 +430,7 @@ local spellTable = {
 	-- "Chains of Ice" 45524 "Chaînes de glace"
 	{ dk.spells["ChainsOfIce"] , TargetMoving and not inMelee and jps.cooldown(49576) > 0 , rangedTarget },
 	-- "Icy Touch" 45477 "Toucher de glace" -- for use with Glyph of Icy Touch 43546
-	{ dk.spells["IcyTouch"] , jps.glyphInfo(43546) and jps.castEverySeconds(45477,10) and jps.DispelOffensive(rangedTarget) , rangedTarget , "|cff1eff00DispelOffensive_" },
+	{ dk.spells["IcyTouch"] , jps.glyphInfo(43546) and jps.castEverySeconds(45477,8) and jps.DispelOffensive(rangedTarget) , rangedTarget , "|cff1eff00DispelOffensive_" },
 	-- "Icebound Fortitude" 48792 "Robustesse glaciale" -- The Death Knight freezes his blood to become immune to Stun effects and reduce all damage taken by 20% for 8 sec.
 	{ dk.spells["Icebound"] , playerWasControl , "player" , "Stun_Icebound" },
 	

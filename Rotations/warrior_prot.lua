@@ -225,9 +225,8 @@ local spellTable = {
 
 	-- TRINKETS -- jps.useTrinket(0) est "Trinket0Slot" est slotId  13 -- "jps.useTrinket(1) est "Trinket1Slot" est slotId  14
 	{ jps.useTrinket(0), jps.useTrinketBool(0) and not playerWasControl and jps.combatStart > 0 },
-	{ jps.useTrinket(0), jps.useTrinketBool(0) and not playerWasControl and jps.buff(12292) },
-	{ jps.useTrinket(1), jps.PvP and jps.useTrinketBool(1) and playerIsStun },
-	{ jps.useTrinket(1), not jps.PvP and jps.useTrinketBool(1) and not playerWasControl and jps.combatStart > 0 },
+	{ jps.useTrinket(0), jps.useTrinketBool(0) and not playerWasControl and jps.buff(12292) and jps.combatStart > 0 },
+	{ jps.useTrinket(1), jps.useTrinketBool(1) and playerIsStun and jps.combatStart > 0 },
 	
 	-- "Berserker Rage" 18499 "Rage de berserker" -- "Enrage" 12880 "Enrager" -- Buff "Shield Charge" 169667 -- "Bloodbath" 12292 "Bain de sang"
 	{ warrior.spells["BerserkerRage"] , not jps.buff(12880) and jps.buff(169667) , rangedTarget , "|cFFFF0000BerserkerRage" },

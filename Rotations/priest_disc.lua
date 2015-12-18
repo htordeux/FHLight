@@ -353,20 +353,20 @@ spellTable = {
 	{ 1706, jps.PvP and jps.debuff(77606,"player") , "player" , "DarkSim_Levitate" },
 	-- "Angelic Feather" 121536 "Plume angélique"
 	{ 121536, IsControlKeyDown() },
-	-- "Fade" 586 "Oubli" -- "Glyph of Shadow Magic" 159628
-	{ 586, EnemyIsCastingControl ~= nil and jps.glyphInfo(159628) , "player" , "Control_Oubli" },
-	-- "Spectral Guise" 112833 "Semblance spectrale"
-	{ 112833, EnemyIsCastingControl ~= nil and jps.IsSpellKnown(112833) , "player" , "Control_Spectral" },
-	
+	-- "Spectral Guise" 112833 "Semblance spectrale" gives buff 119032
+	{ 112833, jps.Interrupts and EnemyIsCastingControl ~= nil and jps.IsSpellKnown(112833) and not jps.buff(159630) , "player" , "Aggro_Spectral" },
+	-- "Fade" 586 "Oubli" -- "Glyph of Shadow Magic" 159628 -- gives buff "Shadow Magic" 159630 "Magie des Ténèbres"
+	{ 586, EnemyIsCastingControl ~= nil and jps.glyphInfo(159628) and not jps.buff(119032), "player" , "Control_Oubli" },
+
 	-- "Suppression de la douleur" 33206 "Pain Suppression" -- Buff "Pain Suppression" 33206
 	{ 33206, jps.hp(Tank) < 0.30 , Tank , "StunPain" },
 	{ 33206, jps.hp("player") < 0.30 , "player" , "StunPain" },
 	{ 33206, jps.hp(LowestImportantUnit) < 0.30 , LowestImportantUnit , "StunPain" },
 	-- "Soins rapides" 2061 -- "Vague de Lumière" 114255 "Surge of Light"
-	{ 2061, jps.buff(114255) and jps.hp(LowestImportantUnit) < 0.75 , LowestImportantUnit , "FlashHeal_Light" },
+	{ 2061, jps.buff(114255) and jps.hp(LowestImportantUnit) < 0.80 , LowestImportantUnit , "FlashHeal_Light" },
 	{ 2061, jps.buff(114255) and jps.buffDuration(114255) < 4 , LowestImportantUnit , "FlashHeal_Light" },	
 	-- "Saving Grace" 152116 "Grâce salvatrice"
-	{ 152116, jps.hp(LowestImportantUnit) < 0.30 and jps.debuffStacks(155274,"player") == 0 , LowestImportantUnit , "Emergency_SavingGrace" },
+	{ 152116, jps.hp(LowestImportantUnit) < 0.50 and jps.debuffStacks(155274,"player") < 2 , LowestImportantUnit , "Emergency_SavingGrace" },
 
 	-- SNM RACIAL COUNTERS -- share 30s cd with trinket
 	{"nested", jps.PvP and jps.UseCDs , RacialCounters },
@@ -378,14 +378,14 @@ spellTable = {
 	
 	-- PLAYER AGGRO PVP
 	{ "nested", playerAggro or playerWasControl or playerIsTargeted ,{
-		-- "Spectral Guise" 112833 "Semblance spectrale"
-		{ 112833, jps.Interrupts and jps.IsSpellKnown(112833) , "player" , "Aggro_Spectral" },
+		-- "Spectral Guise" 112833 "Semblance spectrale" gives buff 119032
+		{ 112833, jps.Interrupts and EnemyIsCastingControl ~= nil and jps.IsSpellKnown(112833) and not jps.buff(159630) , "player" , "Aggro_Spectral" },
+		-- "Fade" 586 "Oubli" -- "Glyph of Shadow Magic" 159628 -- gives buff "Shadow Magic" 159630 "Magie des Ténèbres"
+		{ 586, EnemyIsCastingControl ~= nil and jps.glyphInfo(159628) and not jps.buff(119032), "player" , "Control_Oubli" },
 		-- "Oubli" 586 -- Fantasme 108942 -- vous dissipez tous les effets affectant le déplacement sur vous-même
 		{ 586, jps.IsSpellKnown(108942) , "player" , "Aggro_Oubli" },
 		-- "Oubli" 586 -- Glyphe d'oubli 55684 -- Votre technique Oubli réduit à présent tous les dégâts subis de 10%.
 		{ 586, jps.glyphInfo(55684) , "player" , "Aggro_Oubli" },
-		-- "Fade" 586 "Oubli" -- "Glyph of Shadow Magic" 159628 -- Use if will die soon and have aggro
-		{ 586, jps.glyphInfo(159628) , "player" , "Control_Oubli" },
 		-- "Glyph of Purify" 55677 Your Purify spell also heals your target for 5% of maximum health
 		{ 527, jps.canDispel("player",{"Magic"}) , "player" , "Aggro_Dispel" },
 		-- "Power Word: Shield" 17
@@ -471,7 +471,7 @@ spellTable = {
 	-- "Prière de guérison" 33076 -- Buff POM 41635 -- 
 	{ 33076, jps.Defensive and not jps.Moving and canHeal(Tank) and not jps.buff(41635,Tank) , Tank , "Mending_Tank" },
 	{ 33076, jps.Defensive and not jps.Moving and canHeal(TankThreat) and not jps.buff(41635,TankThreat) , TankThreat , "Mending_TankThreat" },
-	{ "nested", not jps.Moving and CountFriendLowest > 3 and jps.hpSum(LowestImportantUnit) > 0.30 ,{
+	{ "nested", not jps.Moving and CountFriendLowest > 3 and jps.hpSum(LowestImportantUnit) > 0.50 ,{
 		{ 33076,  MendingFriend ~= nil , MendingFriend ,  "Mending_CountFriendLowest" },
 		{ 33076, not jps.buff(41635,LowestImportantUnit) , LowestImportantUnit ,  "Mending_CountFriendLowest" },
 	}},
@@ -556,7 +556,7 @@ spellTable = {
 		{ 33076, canHeal(TankThreat) , TankThreat , "Tracker_Mending_TankThreat" },
 		{ 33076, canHeal(Tank) , Tank , "Tracker_Mending_Tank" },
 		{ 33076, MendingFriend ~= nil , MendingFriend , "Tracker_Mending_Friend" },
-		{ 33076, true , LowestImportantUnit , "Tracker_Mending_Lowest" },
+		{ 33076, not jps.buff(41635,LowestImportantUnit) , LowestImportantUnit , "Tracker_Mending_Lowest" },
 	}},	
 	
 	-- TANK
@@ -608,7 +608,7 @@ spellTable = {
 	}},
 	
 	-- "Nova" 132157 -- "Words of Mending" 155362 "Mot de guérison"
-	{ 132157, jps.Moving and countFriendNearby > 3 , "player" , "Nova" },
+	{ 132157, jps.Moving and countFriendNearby > 2 , "player" , "Nova" },
 	-- "Torve-esprit" 123040 -- "Ombrefiel" 34433 "Shadowfiend"
 	{ 34433, priest.canShadowfiend("target") , "target" },
 	{ 123040, priest.canShadowfiend("target") , "target" },
@@ -622,7 +622,7 @@ spellTable = {
 	return spell,target
 end
 
-jps.registerRotation("PRIEST","DISCIPLINE", priestDisc , "Disc Priest")
+jps.registerRotation("PRIEST","DISCIPLINE", priestDisc , "Disc Priest PvE")
 
 ----------------------------------------------------------------------------------------------------------------
 -------------------------------------------------- ROTATION OOC ------------------------------------------------
@@ -668,8 +668,7 @@ jps.registerRotation("PRIEST","DISCIPLINE",function()
 	{ 2060, not jps.Moving and jps.hp(LowestImportantUnit) < 0.90 , LowestImportantUnit , "Soins"  },
 	
 	-- "Nova" 132157 -- buff "Words of Mending" 155362 "Mot de guérison"
-	{ 132157, jps.PvP and jps.UseCDs and jps.buffStacks(155362) < 5 , "player" , "Nova_WoM" },
-	{ 132157, jps.UseCDs and jps.buffDuration(155362) < 9 , "player" , "Nova_WoM" },
+	{ 132157, jps.IsSpellKnown(152117) and jps.UseCDs and jps.buffDuration(155362) < 9 , "player" , "Nova_WoM" },
 	
 	-- TIMER POM -- "Prière de guérison" 33076 -- Buff POM 41635
 	{ 33076, jps.UseCDs and not jps.Moving and not jps.buff(41635,Tank) and canHeal(Tank) , Tank , "Mending_Tank" },

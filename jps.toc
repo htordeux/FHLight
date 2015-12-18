@@ -48,6 +48,7 @@ Rotations\priest.lua
 Rotations\warrior.lua
 
 Rotations\priest_disc.lua
+Rotations\priest_disc_pvp.lua
 Rotations\priest_holy.lua
 Rotations\priest_shadow.lua
 

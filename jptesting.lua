@@ -100,6 +100,8 @@ end
 
 	Test()
 	--DkTest()
+	--jps.Lookup()
+
 	--	TurnLeftStart()
 	--	C_Timer.After(1,function() print("test") TurnLeftStop() end)
 	--	MoveForwardStart()
@@ -121,11 +123,9 @@ end
 --		auraName, _, _, _, debuffType, _, expirationTime, unitCaster, _, _, spellId, _, isBossDebuff = UnitDebuff(Tank, i)
 --	end
 
-	local lowestUnit = jps.HighestIncomingDamage()
-	local lowestTTD = jps.LowestFriendTimeToDie(5)
-	print("|cffffffffDamage: |cffff8000",lowestUnit,"|cffffffffTTD: |cffff8000",lowestTTD)
-
-	--jps.Lookup()
+--	local lowestUnit = jps.HighestIncomingDamage()
+--	local lowestTTD = jps.LowestFriendTimeToDie(5)
+--	print("|cffffffffDamage: |cffff8000",lowestUnit,"|cffffffffTTD: |cffff8000",lowestTTD)
 
 end
 

@@ -86,7 +86,7 @@ jps.LoseControl = function(unit,controlTable)
 	local i = 1
 	auraName, _, _, _, debuffType, duration, expTime, _, _, _, spellId, _ = UnitDebuff(unit,i)
 	while auraName do
-		local Priority = jps.SpellControl[spellId]
+		local Priority = DebuffControl[auraName] -- jps.SpellControl[spellId]
 		if Priority then
 			for i=1,#controlTable do
 				if Priority == controlTable[i] then

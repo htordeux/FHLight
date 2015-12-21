@@ -14,6 +14,7 @@ local strfind = string.find
 local UnitClass = UnitClass
 local UnitChannelInfo = UnitChannelInfo
 local GetSpellInfo = GetSpellInfo
+local UnitAffectingCombat = UnitAffectingCombat
 local UnitIsUnit = UnitIsUnit
 
 -- Channeling
@@ -340,8 +341,10 @@ local parseHeal = {
 local parseAggro = {
 	-- "Power Word: Shield" 17	
 	{ 17, not jps.debuff(6788,"player") and not jps.buff(17,"player") , "player" },
-	-- "Semblance spectrale" 112833
-	{ 112833, jps.Interrupts and jps.IsSpellKnown(112833) , "player" , "Aggro_Spectral" },
+	-- "Spectral Guise" 112833 "Semblance spectrale" gives buff 119032
+	{ 112833, jps.Interrupts and jps.IsSpellKnown(112833) and not jps.buff(159630) , "player" , "Aggro_Spectral" },
+	-- "Fade" 586 "Oubli" -- "Glyph of Shadow Magic" 159628 -- gives buff "Shadow Magic" 159630 "Magie des Ténèbres"
+	{ 586, jps.glyphInfo(159628) and not jps.buff(119032), "player" , "Control_Oubli" },
 	-- "Oubli" 586 -- Fantasme 108942 -- vous dissipez tous les effets affectant le déplacement sur vous-même et votre vitesse de déplacement ne peut être réduite pendant 5 s
 	{ 586, jps.IsSpellKnown(108942) and jps.hp("player") < 0.70 , "player" , "Aggro_Oubli" },
 	-- "Oubli" 586 -- Glyphe d'oubli 55684 -- Votre technique Oubli réduit à présent tous les dégâts subis de 10%.
@@ -376,6 +379,10 @@ local spellTable = {
 	{ 1706, jps.PvP and jps.debuff(77606,"player") , "player" , "DarkSim_Levitate" },
 	-- "Angelic Feather" 121536 "Plume angélique"
 	{ 121536, IsControlKeyDown() },
+	-- "Spectral Guise" 112833 "Semblance spectrale" gives buff 119032
+	{ 112833, jps.Interrupts and EnemyIsCastingControl ~= nil and jps.IsSpellKnown(112833) and not jps.buff(159630) , "player" , "Aggro_Spectral" },
+	-- "Fade" 586 "Oubli" -- "Glyph of Shadow Magic" 159628 -- gives buff "Shadow Magic" 159630 "Magie des Ténèbres"
+	{ 586, EnemyIsCastingControl ~= nil and jps.glyphInfo(159628) and not jps.buff(119032), "player" , "Control_Oubli" },
 
 	-- SNM RACIAL COUNTERS -- share 30s cd with trinket
 	{"nested", jps.PvP and jps.UseCDs , RacialCounters },

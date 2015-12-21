@@ -6,7 +6,6 @@
 -- jps.MultiTarget to DPS
 -- IsControlKeyDown() for "Angelic Feather" 121536 "Plume angélique"
 
-
 local L = MyLocalizationTable
 local canDPS = jps.canDPS
 local canHeal = jps.canHeal
@@ -316,9 +315,9 @@ local priestDisc = function()
 	-- "Archange surpuissant" 172359  100 % critique POH or FH
 	-- "Power Infusion" 10060 "Infusion de puissance"
 	local InterruptTable = {
-		{priest.Spell.FlashHeal, 0.75, jps.buffId(priest.Spell.SpiritShellBuild) or jps.buff(172359) },
-		{priest.Spell.Heal, 0.95, jps.buffId(priest.Spell.SpiritShellBuild) },
-		{priest.Spell.PrayerOfHealing, 0.80, jps.buff(10060) or jps.buff(172359) or jps.buffId(priest.Spell.SpiritShellBuild) },
+		{priest.Spell.FlashHeal, 0.80, jps.buffId(priest.Spell.SpiritShellBuild) or jps.buff(172359) or jps.PvP },
+		{priest.Spell.Heal, 1, jps.buffId(priest.Spell.SpiritShellBuild) },
+		{priest.Spell.PrayerOfHealing, 0.80, jps.buff(10060) or jps.buff(172359) or jps.buffId(priest.Spell.SpiritShellBuild) or jps.PvP },
 		{priest.Spell.HolyCascade, 3 , false}
 	}
 	  
@@ -357,16 +356,7 @@ spellTable = {
 	{ 112833, jps.Interrupts and EnemyIsCastingControl ~= nil and jps.IsSpellKnown(112833) and not jps.buff(159630) , "player" , "Aggro_Spectral" },
 	-- "Fade" 586 "Oubli" -- "Glyph of Shadow Magic" 159628 -- gives buff "Shadow Magic" 159630 "Magie des Ténèbres"
 	{ 586, EnemyIsCastingControl ~= nil and jps.glyphInfo(159628) and not jps.buff(119032), "player" , "Control_Oubli" },
-		
-	-- "Suppression de la douleur" 33206 "Pain Suppression" -- Buff "Pain Suppression" 33206
-	{ 33206, jps.hp("player") < 0.40 , "player" , "StunPain" },
-	{ 33206, jps.hp(LowestImportantUnit) < 0.40 , LowestImportantUnit , "StunPain" },
-	-- "Soins rapides" 2061 -- "Vague de Lumière" 114255 "Surge of Light"
-	{ 2061, jps.buff(114255) and jps.hp(LowestImportantUnit) < 0.80 , LowestImportantUnit , "FlashHeal_Light" },
-	{ 2061, jps.buff(114255) and jps.buffDuration(114255) < 4 , LowestImportantUnit , "FlashHeal_Light" },	
-	-- "Saving Grace" 152116 "Grâce salvatrice"
-	{ 152116, jps.hp(LowestImportantUnit) < 0.50 and jps.debuffStacks(155274,"player") < 2 , LowestImportantUnit , "Emergency_SavingGrace" },
-
+	
 	-- SNM RACIAL COUNTERS -- share 30s cd with trinket
 	{"nested", jps.PvP and jps.UseCDs , RacialCounters },
 	-- SNM "Chacun pour soi" 59752 "Every Man for Himself" -- Human
@@ -374,6 +364,15 @@ spellTable = {
 	-- TRINKETS -- jps.useTrinket(0) est "Trinket0Slot" est slotId  13 -- "jps.useTrinket(1) est "Trinket1Slot" est slotId  14
 	{ jps.useTrinket(0), jps.useTrinketBool(0) and not playerWasControl and jps.combatStart > 0 },
 	{ jps.useTrinket(1), jps.useTrinketBool(1) and playerIsStun and jps.combatStart > 0 },
+
+	-- "Suppression de la douleur" 33206 "Pain Suppression" -- Buff "Pain Suppression" 33206
+	{ 33206, jps.hp("player") < 0.40 and UnitAffectingCombat("player") , "player" , "StunPain_player" },
+	{ 33206, jps.hp(LowestImportantUnit) < 0.40 and UnitAffectingCombat(LowestImportantUnit) , LowestImportantUnit , "StunPain_Lowest" },
+	-- "Soins rapides" 2061 -- "Vague de Lumière" 114255 "Surge of Light"
+	{ 2061, jps.buff(114255) and jps.hp(LowestImportantUnit) < 0.80 , LowestImportantUnit , "FlashHeal_Light" },
+	{ 2061, jps.buff(114255) and jps.buffDuration(114255) < 4 , LowestImportantUnit , "FlashHeal_Light" },	
+	-- "Saving Grace" 152116 "Grâce salvatrice"
+	{ 152116, jps.hp(LowestImportantUnit) < 0.40 and jps.debuffStacks(155274,"player") < 2 , LowestImportantUnit , "Emergency_SavingGrace" },
 	
 	-- PLAYER AGGRO PVP
 	{ "nested", playerAggro or playerWasControl or playerIsTargeted ,{
@@ -391,12 +390,8 @@ spellTable = {
 		{ 17, not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Aggro_Shield" },
 		-- FAKE CAST -- 6948 -- "Hearthstone"
 		--{ {"macro","/use item:6948"}, jps.PvP and jps.hp(LowestImportantUnit) > 0.80 and not jps.Moving and jps.itemCooldown(6948) == 0 , "player" , "Aggro_FAKECAST" },
-	}},
-	
-	-- PLAYER AGGRO PVP
-	{ "nested", jps.hp() < 0.80 ,{
-		-- "Power Word: Shield" 17
-		{ 17, not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Aggro_Shield" },
+		-- "Saving Grace" 152116 "Grâce salvatrice"
+		{ 152116, jps.hp() < 0.50 and jps.debuffStacks(155274,"player") < 2 , "player" , "Aggro_SavingGrace" },
 		-- "Prière du désespoir" 19236
 		{ 19236, jps.hp() < 0.60 and jps.IsSpellKnown(19236) , "player" , "Aggro_DESESPERATE" },
 		-- "Pierre de soins" 5512
@@ -405,8 +400,6 @@ spellTable = {
 		{ 47540, jps.hp() < 0.80 , "player" , "Aggro_Penance" },
 		-- "Don des naaru" 59544
 		{ 59544, jps.hp() < 0.80 , "player" , "Aggro_Naaru" },
-		-- "Saving Grace" 152116 "Grâce salvatrice"
-		{ 152116, jps.hp() < 0.50 and jps.debuffStacks(155274,"player") < 2 , "player" , "Aggro_SavingGrace" },
 	}},
 
 	-- PAIN FRIEND
@@ -434,39 +427,52 @@ spellTable = {
 	{ "nested", jps.UseCDs , parseDispel },
 	-- OFFENSIVE Dispel -- "Dissipation de la magie" 528
 	{ 528, jps.castEverySeconds(528,8) and jps.DispelOffensive(rangedTarget) , rangedTarget , "|cff1eff00DispelOffensive" },
-
+	
+	-- TANK THREAT
+	-- "Power Word: Shield" 17
+	{ 17, canHeal("targettarget") and not jps.buff(17,"targettarget") and not jps.debuff(6788,"targettarget") , "targettarget" , "Shield_targettarget" },
+	
 	-- "Power Word: Shield" 17 -- "Body and Soul" 65081 buff -- Glyph of Reflective Shield 33202
 	{ 17, jps.glyphInfo(33202) and not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Defensive_Shield" },
 	{ 17, not jps.buff(65081,"player") and jps.Moving and BodyAndSoul and not jps.debuff(6788,"player") , "player" , "Shield_Moving" },
+
+	-- "Power Infusion" 10060 "Infusion de puissance"
+	{ 10060, jps.hp(LowestImportantUnit) < 0.50 , "player" , "POWERINFUSION_Lowest" },
+	{ 10060, groupHealth < 0.80 , "player" , "POWERINFUSION_POH" },
+	{ 10060, CountFriendLowest > 1 , "player" , "POWERINFUSION_Count" },
+	{ 10060, CountFriendEmergency > 2 , "player" , "POWERINFUSION_Count" },
+	-- SNM Troll "Berserker" 26297 -- haste buff
+	{ 26297, CountFriendEmergency > 2 , "player" },
+	
+	-- "Divine Star" Holy 110744 Shadow 122121
+	{ 110744, FriendIsFacingLowest ~= nil and CountFriendIsFacing > 3 , FriendIsFacingLowest ,  "DivineStar_Count" },
+	{ 110744, FriendIsFacingLowest ~= nil and jps.hp(FriendIsFacingLowest) < 0.80 , FriendIsFacingLowest ,  "DivineStar_Lowest" },
+	-- "Cascade" Holy 121135 Shadow 127632
+	{ 121135, not jps.Moving and CountFriendLowest > 2 , LowestImportantUnit ,  "Cascade_Count" },
+	{ 121135, not jps.Moving and POHTarget ~= nil and canHeal(POHTarget) , POHTarget ,  "Cascade_POH" },
+
+	-- TIMER POM
 	-- "Prière de guérison" 33076 -- Buff POM 41635 -- 
 	{ "nested", not jps.Moving and jps.hpSum(LowestImportantUnit) > 0.50 ,{
 		{ 33076,  MendingFriend ~= nil , MendingFriend ,  "Mending_CountFriendLowest" },
 		{ 33076, not jps.buff(41635,LowestImportantUnit) , LowestImportantUnit ,  "Mending_CountFriendLowest" },
 	}},
-	
-	-- "Power Infusion" 10060 "Infusion de puissance"
-	{ 10060, CountFriendLowest > 0 , "player" , "POWERINFUSION_Count" },
-	-- SNM Troll "Berserker" 26297 -- haste buff
-	{ 26297, CountFriendEmergency > 2 , "player" },
-	
-	-- "Divine Star" Holy 110744 Shadow 122121
-	{ 110744, FriendIsFacingLowest ~= nil and jps.hp(FriendIsFacingLowest) < 0.80 , FriendIsFacingLowest ,  "DivineStar_Lowest" },
-	-- "Cascade" Holy 121135 Shadow 127632
-	{ 121135, not jps.Moving and CountFriendLowest > 2 , LowestImportantUnit ,  "Cascade_Count" },
 
 	-- "Archange" 81700 -- Buff 81700 -- "Archange surpuissant" 172359  100 % critique POH or FH
+	{ 81700, jps.buffStacks(81661) == 5 and  groupHealth < 0.80 , "player", "ARCHANGE_POH" },
 	{ 81700, jps.buffStacks(81661) == 5 and  jps.hp(LowestImportantUnit) < 0.50 , "player", "ARCHANGE_Lowest" },
 
-	{ "nested", not jps.Moving and groupHealth < 0.80 and jps.hp(LowestImportantUnit) > 0.50 ,{
+	-- GROUP HEAL --
+	{ "nested", not jps.Moving and POHTarget ~= nil and canHeal(POHTarget) ,{
 		-- "POH" 596 -- "Archange surpuissant" 172359  100 % critique POH or FH
-		{ 596, jps.buff(172359) , LowestImportantUnit , "Archange_POH" },
+		{ 596, jps.buff(172359) , POHTarget , "Archange_POH" },
 		-- "POH" 596 -- "Power Infusion" 10060 "Infusion de puissance"
-		{ 596, jps.buff(10060) , LowestImportantUnit , "PowerInfusion_POH" },
+		{ 596, jps.buff(10060) , POHTarget , "PowerInfusion_POH" },
 		-- "POH" 596 -- Buff "Borrowed" 59889
-		{ 596, jps.buff(59889) , LowestImportantUnit , "Borrowed_POH" },
+		{ 596, jps.buff(59889) and jps.hpSum(LowestImportantUnit) > 0.40 , POHTarget , "Borrowed_POH" },
 	}},
 	
-	-- EMERGENCY HEAL --
+	-- EMERGENCY HEAL -- groupHealth > 0.80
 	{ "nested", jps.hp(LowestImportantUnit) < 0.50 ,{
 		-- "Power Word: Shield" 17 -- Keep Buff "Borrowed" 59889 always
 		{ 17, not jps.buff(17,LowestImportantUnit) and not jps.debuff(6788,LowestImportantUnit) , LowestImportantUnit , "Emergency_Shield" },
@@ -474,6 +480,12 @@ spellTable = {
 		-- "Pénitence" 47540
 		{ 47540, true , LowestImportantUnit , "Emergency_Penance" },
 		-- "Soins rapides" 2061 -- Buff "Borrowed" 59889 -- "Archange surpuissant" 172359  100 % critique POH or FH
+		{ 2061, not jps.Moving and jps.buff(172359) , LowestImportantUnit , "Emergency_FlashHeal_Archange" },
+		{ 2061, not jps.Moving and jps.buff(10060) , LowestImportantUnit , "Emergency_FlashHeal_Infusion" },
+		{ 2061, not jps.Moving and jps.hp(LowestImportantUnit) < 0.30 , LowestImportantUnit , "Emergency_FlashHeal_Low" },
+		-- "Clarity of Will" 152118 shields with protective ward for 20 sec -- 2.5 sec cast
+		{ 152118, not jps.Moving and priest.unitForClarity(LowestImportantUnit) and jps.debuff(6788,LowestImportantUnit) and jps.buff(59889) , LowestImportantUnit  , "Emergency_Clarity"  },
+		-- "Soins rapides" 2061
 		{ 2061, not jps.Moving , LowestImportantUnit , "Emergency_FlashHeal" },
 	}},
 
@@ -498,7 +510,8 @@ spellTable = {
 		{ 2061, not jps.Moving and groupHealth > 0.80 and jps.hp(IncomingDamageFriend) < 0.60 , IncomingDamageFriend , "FlashHeal_Lowest_DAMAGE" },
 	}},
 
-	-- TIMER POM  -- "Prière de guérison" 33076 -- Buff POM 41635
+	-- TIMER POM
+	-- "Prière de guérison" 33076 -- Buff POM 41635
 	{ "nested", not jps.Moving and not jps.buffTracker(41635) ,{
 		{ 33076, MendingFriend ~= nil , MendingFriend , "Tracker_Mending_Friend" },
 		{ 33076, not jps.buff(41635,LowestImportantUnit) , LowestImportantUnit , "Tracker_Mending_Lowest" },
@@ -524,6 +537,14 @@ spellTable = {
 		{ 47540, not IsInGroup() , rangedTarget ,"|cFFFF0000Penance_Solo" },
 	}},
 
+	-- GROUP HEAL --
+	-- "Carapace spirituelle" spell & buff "player" 109964 buff target 114908
+	{ "nested", jps.buffId(109964) and not jps.Moving , parseShell },
+	-- "Carapace spirituelle" spell & buff "player" 109964 buff target 114908
+	{ 109964, jps.IsSpellKnown(109964) and POHTarget ~= nil and canHeal(POHTarget) , POHTarget , "Carapace_POH" },
+	-- "Prière de soins" 596 "Prayer of Healing"
+	{ 596, not jps.Moving and POHTarget ~= nil and canHeal(POHTarget) , POHTarget , "POH" },
+
 	-- HEAL --
 	-- "Shield" 17
 	{ 17, jps.hp(LowestImportantUnit) < 0.80 and not jps.buff(17,LowestImportantUnit) and not jps.debuff(6788,LowestImportantUnit) , LowestImportantUnit , "Top_Shield" },
@@ -533,8 +554,8 @@ spellTable = {
 	{ 59544, jps.hp(LowestImportantUnit) < 0.80 , LowestImportantUnit , "Top_Naaru" },
 		
 	{ "nested", not jps.Moving and jps.hp(LowestImportantUnit) < 0.80 ,{	
-		-- SNM Flash Heal top off -- Less important to be conservative with mana in PvP
-		{ 2061, isArena and jps.mana() > 0.50 , LowestImportantUnit , "Top_FlashHeal" },
+		-- "Flash Heal" top off -- Less important to be conservative with mana in PvP
+		{ 2061, jps.PvP and jps.mana() > 0.50 and jps.hpSum(LowestImportantUnit) < 0.80 , LowestImportantUnit , "Top_FlashHeal" },
 		-- "Soins" 2060 -- Buff "Borrowed" 59889 -- Buff "Clarity of Will" 152118
 		{ 2060, jps.buff(17,LowestImportantUnit) , LowestImportantUnit , "Top_Soins_Shield"  },
 		{ 2060, jps.buff(59889) , LowestImportantUnit , "Top_Soins_Borrowed"  },
@@ -558,7 +579,7 @@ spellTable = {
 	return spell,target
 end
 
-jps.registerRotation("PRIEST","DISCIPLINE", priestDisc , "Disc Priest PvP")
+jps.registerRotation("PRIEST","DISCIPLINE", priestDisc , "Disc Priest PvP", false, true)
 ----------------------------------------------------------------------------------------------------------------
 -------------------------------------------------- ROTATION OOC ------------------------------------------------
 ----------------------------------------------------------------------------------------------------------------

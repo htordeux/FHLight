@@ -135,15 +135,7 @@ elseif canAttack("mouseover") then rangedTarget = "mouseover"
 end
 if canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
 
-local playerIsTargeted = false
-for i=1,#EnemyUnit do -- for _,unit in ipairs(EnemyUnit) do
-	local unit = EnemyUnit[i]
-	if TargetCount > 0 then
-		if UnitIsUnit(unit.."target","player") then
-			playerIsTargeted = true
-		break end
-	end
-end
+local playerIsTargeted = jps.playerIsTargeted()
 
 ------------------------
 -- LOCAL FUNCTIONS ENEMY
@@ -373,16 +365,22 @@ local spellTable = {
 	
 	-- "Shadowform" 15473
 	{ 15473, not jps.buff(15473) , "player" },
-	
-	-- SNM "Levitate" 1706 -- "Dark Simulacrum" debuff 77606
-	{ 1706, jps.PvP and jps.fallingFor() > 1.5 and not jps.buff(111759) , "player" },
-	{ 1706, jps.PvP and jps.debuff(77606,"player") , "player" , "DarkSim_Levitate" },
-	-- "Angelic Feather" 121536 "Plume angélique"
-	{ 121536, IsControlKeyDown() },
+
 	-- "Spectral Guise" 112833 "Semblance spectrale" gives buff 119032
 	{ 112833, jps.Interrupts and EnemyIsCastingControl ~= nil and jps.IsSpellKnown(112833) and not jps.buff(159630) , "player" , "Aggro_Spectral" },
 	-- "Fade" 586 "Oubli" -- "Glyph of Shadow Magic" 159628 -- gives buff "Shadow Magic" 159630 "Magie des Ténèbres"
 	{ 586, EnemyIsCastingControl ~= nil and jps.glyphInfo(159628) and not jps.buff(119032), "player" , "Control_Oubli" },
+	-- PLAYER AGGRO PVP
+	{ "nested", playerAggro or playerWasControl or playerIsTargeted ,{
+		-- "Spectral Guise" 112833 "Semblance spectrale" gives buff 119032
+		{ 112833, jps.Interrupts and jps.IsSpellKnown(112833) and not jps.buff(159630) , "player" , "Aggro_Spectral" },
+		-- "Fade" 586 "Oubli" -- "Glyph of Shadow Magic" 159628 -- gives buff "Shadow Magic" 159630 "Magie des Ténèbres"
+		{ 586, jps.glyphInfo(159628) and not jps.buff(119032), "player" , "Control_Oubli" },
+		-- "Oubli" 586 -- Fantasme 108942 -- vous dissipez tous les effets affectant le déplacement sur vous-même
+		{ 586, jps.IsSpellKnown(108942) , "player" , "Aggro_Oubli" },
+		-- "Oubli" 586 -- Glyphe d'oubli 55684 -- Votre technique Oubli réduit à présent tous les dégâts subis de 10%.
+		{ 586, jps.glyphInfo(55684) , "player" , "Aggro_Oubli" },
+	}},
 
 	-- SNM RACIAL COUNTERS -- share 30s cd with trinket
 	{"nested", jps.PvP and jps.UseCDs , RacialCounters },
@@ -410,6 +408,12 @@ local spellTable = {
 	{ 73325 , jps.PvP and LeapFriend ~= nil , LeapFriend , "|cff1eff00Leap_MultiUnit" },
 	-- "Gardien de peur" 634
 	{ 6346, jps.PvP and not jps.buff(6346,"player") , "player" },
+	
+	-- SNM "Levitate" 1706 -- "Dark Simulacrum" debuff 77606
+	{ 1706, jps.PvP and jps.fallingFor() > 1.5 and not jps.buff(111759) , "player" },
+	{ 1706, jps.PvP and jps.debuff(77606,"player") , "player" , "DarkSim_Levitate" },
+	-- "Angelic Feather" 121536 "Plume angélique"
+	{ 121536, IsControlKeyDown() },
 
 	-- HEAL --
 	-- "Vampiric Embrace" 15286

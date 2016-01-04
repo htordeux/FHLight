@@ -139,6 +139,23 @@ jps.LowestTarget = function()
 	return dupe[1] or "target", dupe, #dupe
 end
 
+jps.playerIsTargeted = function()
+	local RaidTarget = {}
+	for unit,_ in pairs(RaidStatus) do
+		if jps.UnitExists(unit.."target") then
+			local unittarget = unit.."target"
+			RaidTarget[#RaidTarget+1] = unittarget -- tinsert(RaidTarget, unittarget)
+		end
+	end
+	for i=1,#RaidTarget do
+		local target = RaidTarget[i].."target"
+		if jps.UnitExists(target) then
+			if UnitIsUnit(target,"player") then return true end
+		end
+	end
+	return false
+end
+
 --------------------------
 -- TANK
 --------------------------

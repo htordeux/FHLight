@@ -115,6 +115,27 @@ end
 -- Find ENEMY TARGET
 ----------------------
 
+--  "arenaN" Opposing arena member with index N (1,2,3,4 or 5)
+function jps.playerIsTargetedInArena()
+	local arenaEnemy = {}
+	local arenaTarget = {}
+	for n=1,5 do
+		local unit = "arena"..n
+		if jps.UnitExists(unit) then arenaEnemy[#arenaEnemy + 1] = unit end
+	end
+	for i=1,#arenaEnemy do
+		local target = arenaEnemy[i].."target"
+		if jps.UnitExists(target) then
+			arenaTarget[#arenaTarget + 1] = target
+		end
+	end
+	for i=1,#arenaTarget do
+		if UnitIsUnit(arenaTarget[i],"player") then return true,arenaTarget end
+	end
+	return false,arenaTarget
+end
+
+
 function jps.targetIsRaidBoss(target)
 	if target == nil then target = "target" end
 	if not jps.UnitExists(target) then return false end

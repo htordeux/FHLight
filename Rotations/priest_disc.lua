@@ -465,7 +465,7 @@ spellTable = {
 	-- "Prière de guérison" 33076 -- Buff POM 41635 -- 
 	{ 33076, jps.Defensive and not jps.Moving and canHeal(Tank) and not jps.buff(41635,Tank) , Tank , "Mending_Tank" },
 	{ 33076, jps.Defensive and not jps.Moving and canHeal(TankThreat) and not jps.buff(41635,TankThreat) , TankThreat , "Mending_TankThreat" },
-	{ "nested", not jps.Moving and CountFriendLowest > 4 and jps.hpSum(LowestImportantUnit) > 0.50 ,{
+	{ "nested", not jps.Moving and CountFriendLowest > 2 and jps.hpSum(LowestImportantUnit) > 0.50 ,{
 		{ 33076,  MendingFriend ~= nil , MendingFriend ,  "Mending_CountFriendLowest" },
 		{ 33076, not jps.buff(41635,LowestImportantUnit) , LowestImportantUnit ,  "Mending_CountFriendLowest" },
 	}},
@@ -510,7 +510,7 @@ spellTable = {
 		-- "Pénitence" 47540
 		{ 47540, jps.hp(LowestFriendTTD) < 0.60 , LowestFriendTTD , "Penance_Lowest_TTD" },
 		-- "Soins rapides" 2061
-		{ 2061, not jps.Moving and groupHealth > 0.80 and jps.hp(LowestFriendTTD) < 0.60 , LowestFriendTTD , "FlashHeal_Lowest_TTD" },
+		{ 2061, not jps.Moving and groupHealth > 0.80 and jps.hp(LowestFriendTTD) < 0.50 , LowestFriendTTD , "FlashHeal_Lowest_TTD" },
 
 	}},
 	
@@ -521,7 +521,7 @@ spellTable = {
 		-- "Pénitence" 47540
 		{ 47540, jps.hp(IncomingDamageFriend) < 0.60 , IncomingDamageFriend , "Penance_Lowest_DAMAGE" },
 		-- "Soins rapides" 2061
-		{ 2061, not jps.Moving and groupHealth > 0.80 and jps.hp(IncomingDamageFriend) < 0.60 , IncomingDamageFriend , "FlashHeal_Lowest_DAMAGE" },
+		{ 2061, not jps.Moving and groupHealth > 0.80 and jps.hp(IncomingDamageFriend) < 0.50 , IncomingDamageFriend , "FlashHeal_Lowest_DAMAGE" },
 	}},
 
 	-- TIMER POM
@@ -535,9 +535,9 @@ spellTable = {
 	
 	-- DAMAGE
 	-- "Mot de pouvoir : Réconfort" -- "Power Word: Solace" 129250 -- REGEN MANA
-	{ 129250, canDPS(rangedTarget) , rangedTarget, "|cFFFF0000Solace" },
+	{ 129250, jps.IsSpellInRange(129250,rangedTarget) and canDPS(rangedTarget) , rangedTarget, "|cFFFF0000Solace" },
 	-- "Flammes sacrées" 14914  -- "Evangélisme" 81661
-	{ 14914, canDPS(rangedTarget) , rangedTarget , "|cFFFF0000Flammes" },
+	{ 14914, jps.IsSpellInRange(14914,rangedTarget) and canDPS(rangedTarget) , rangedTarget , "|cFFFF0000Flammes" },
 	{ "nested", jps.hp(LowestImportantUnit) > 0.80 and jps.MultiTarget and canDPS(rangedTarget) ,{
 		-- "Mot de l'ombre: Douleur" 589
 		{ 589, jps.myDebuffDuration(589,rangedTarget) == 0 and jps.PvP , rangedTarget , "|cFFFF0000Douleur" },
@@ -558,11 +558,11 @@ spellTable = {
 	{ 152118, not jps.Moving and canHeal(TankThreat) and priest.unitForClarity(TankThreat) and jps.hp(LowestImportantUnit) > 0.50 and jps.hp(TankThreat) > 0.80  , TankThreat , "Clarity_TankThreat" },
 	{ 152118, not jps.Moving and canHeal(Tank) and priest.unitForClarity(Tank) and jps.hp(LowestImportantUnit) > 0.50 and jps.hp(Tank) > 0.80  , Tank , "Clarity_Tank" },
 	-- "Soins" 2060
-	{ 2060, groupHealth > 0.80 and not jps.Moving and canHeal(TankThreat) and jps.hp(LowestImportantUnit) > 0.50 and jps.hpInc(TankThreat) < 0.90 and jps.hpSum(TankThreat) > 0.70 , TankThreat , "Soins_TankThreat"  },
-	{ 2060, groupHealth > 0.80 and not jps.Moving and canHeal(Tank) and jps.hp(LowestImportantUnit) > 0.50 and jps.hpInc(Tank) < 0.90 and jps.hpSum(Tank) > 0.70 , Tank , "Soins_Tank"  },
+	{ 2060, groupHealth > 0.80 and not jps.Moving and canHeal(TankThreat) and jps.hpInc(TankThreat) < 0.90 and jps.hpSum(TankThreat) > 0.60 , TankThreat , "Soins_TankThreat"  },
+	{ 2060, groupHealth > 0.80 and not jps.Moving and canHeal(Tank) and jps.hpInc(Tank) < 0.90 and jps.hpSum(Tank) > 0.60 , Tank , "Soins_Tank"  },
 	-- "Soins rapides" 2061
-	{ 2061, groupHealth > 0.80 and not jps.Moving and canHeal(TankThreat) and jps.hp(LowestImportantUnit) > 0.50 and jps.hpInc(TankThreat) < 0.90 and jps.hpSum(TankThreat) < 0.70 , TankThreat , "FlashHeal_TankThreat"  },
-	{ 2061, groupHealth > 0.80 and not jps.Moving and canHeal(Tank) and jps.hp(LowestImportantUnit) > 0.50 and jps.hpInc(Tank) < 0.90 and jps.hpSum(Tank) < 0.70 , Tank , "FlashHeal_Tank"  },
+	{ 2061, groupHealth > 0.80 and not jps.Moving and canHeal(TankThreat) and jps.hpInc(TankThreat) < 0.90 and jps.hpSum(TankThreat) < 0.60 , TankThreat , "FlashHeal_TankThreat"  },
+	{ 2061, groupHealth > 0.80 and not jps.Moving and canHeal(Tank) and jps.hpInc(Tank) < 0.90 and jps.hpSum(Tank) < 0.60 , Tank , "FlashHeal_Tank"  },
 	
 	-- SHIELD BOSS DEBUFF
 	{ "nested", canHeal(TankBossDebuff) ,{
@@ -580,7 +580,7 @@ spellTable = {
 
 	-- HEAL --
 	-- "Shield" 17
-	{ 17, jps.hp(LowestImportantUnit) < 0.80 and not jps.buff(17,LowestImportantUnit) and not jps.debuff(6788,LowestImportantUnit) , LowestImportantUnit , "Top_Shield" },
+	{ 17, jps.hpSum(LowestImportantUnit) < 0.80 and not jps.buff(17,LowestImportantUnit) and not jps.debuff(6788,LowestImportantUnit) , LowestImportantUnit , "Top_Shield" },
 	-- "Pénitence" 47540
 	{ 47540, jps.hp(LowestImportantUnit) < 0.80 , LowestImportantUnit , "Top_Penance" },
 	-- "Don des naaru" 59544

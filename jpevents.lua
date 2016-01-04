@@ -556,13 +556,17 @@ jps.listener.registerEvent("UNIT_SPELLCAST_SENT", function(unitID,spellname,_,sp
 	end
 end)
 
-local descriptorTable = { L["Strikes"] , L["Roots"] , L["Transforms"] , L["Forces"] , L["Seduces"] }
+local IsCastingSpellControl = false
 jps.listener.registerEvent("UNIT_SPELLCAST_START", function(unitID,spellname,_,_,spellID)
 		if unitID == "player" then
 			jps.CurrentCast = spellname
 			jps.Latency = GetTime() - sendTime
 			jps.GCD = GlobalCooldown()
 			--print("SPELLCAST_START: ",unitID,"spellname: ",spellname,"spellID: ",spellID)
+		elseif canDPS(unitID) and jps.UnitExists(unitID.."target") then
+			if UnitIsUnit(unitID.."target","player") then
+				IsCastingSpellControl = true
+			end
 		end
 end)
 
@@ -623,13 +627,11 @@ jps.listener.registerEvent("LOSS_OF_CONTROL_ADDED", function ()
 		if spellID then collectControlSpell(spellID) end
     	if locType == "SCHOOL_INTERRUPT" then
     		jps.createTimer("PlayerInterrupt",duration)
-    		jps.createTimer("PlayerWasControl",duration + 2)
     	return end
 		for i=1,#stunTypeTable do -- for _,stuntype in ipairs(stunTypeTable) do
 			local stuntype = stunTypeTable[i]
 			if locType == stuntype then 
 				jps.createTimer("PlayerStun",duration)
-				jps.createTimer("PlayerWasControl",duration + 2)
 			break end
 		end
     end
@@ -768,6 +770,7 @@ local COMBATLOG_OBJECT_REACTION_HOSTILE	= COMBATLOG_OBJECT_REACTION_HOSTILE
 local COMBATLOG_OBJECT_REACTION_FRIENDLY = COMBATLOG_OBJECT_REACTION_FRIENDLY
 local COMBATLOG_OBJECT_AFFILIATION_OUTSIDER = COMBATLOG_OBJECT_AFFILIATION_OUTSIDER
 local RAID_AFFILIATION = bit.bor(COMBATLOG_OBJECT_AFFILIATION_PARTY, COMBATLOG_OBJECT_AFFILIATION_RAID, COMBATLOG_OBJECT_AFFILIATION_MINE)
+local COMBATLOG_OBJECT_CONTROL_PLAYER = COMBATLOG_OBJECT_CONTROL_PLAYER
 local bitband = bit.band
 
 -- TABLE ENEMIES IN COMBAT
@@ -831,9 +834,9 @@ jps.listener.registerEvent("COMBAT_LOG_EVENT_UNFILTERED", function(...)
 --				"|cff1eff00sourceName: |cffffffff",sourceName,"F:",isSourceFriend,"E:",isSourceEnemy)
 		
 			if isDestEnemy and isSourceEnemy then
-				local healId = select(12, ...)
+				local spellID = select(12, ...)
 				local addEnemyHealer = false
-				local classHealer = jps.HealerSpellID[healId]
+				local classHealer = jps.HealerSpellID[spellID]
 				if classHealer then
 					if EnemyHealer[sourceGUID] == nil then addEnemyHealer = true end
 					if addEnemyHealer then EnemyHealer[sourceGUID] = {classHealer,sourceName} end

@@ -109,15 +109,7 @@ local priestDisc = function()
 	-- if your target is friendly keep it as target
 	if not canHeal("target") and canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
 	
-	local playerIsTargeted = false
-	for i=1,#EnemyUnit do -- for _,unit in ipairs(EnemyUnit) do
-		local unit = EnemyUnit[i]
-		if TargetCount > 0 then
-			if UnitIsUnit(unit.."target","player") then
-				playerIsTargeted = true
-			break end
-		end
-	end
+	local playerIsTargeted = jps.playerIsTargeted()
 
 ----------------------------
 -- LOCAL FUNCTIONS FRIENDS
@@ -353,7 +345,7 @@ spellTable = {
 	-- "Angelic Feather" 121536 "Plume angélique"
 	{ 121536, IsControlKeyDown() },
 	-- "Spectral Guise" 112833 "Semblance spectrale" gives buff 119032
-	{ 112833, jps.Interrupts and EnemyIsCastingControl ~= nil and jps.IsSpellKnown(112833) and not jps.buff(159630) , "player" , "Aggro_Spectral" },
+	{ 112833, jps.Interrupts and EnemyIsCastingControl ~= nil and jps.IsSpellKnown(112833) and not jps.buff(159630) , "player" , "Control_Spectral" },
 	-- "Fade" 586 "Oubli" -- "Glyph of Shadow Magic" 159628 -- gives buff "Shadow Magic" 159630 "Magie des Ténèbres"
 	{ 586, EnemyIsCastingControl ~= nil and jps.glyphInfo(159628) and not jps.buff(119032), "player" , "Control_Oubli" },
 	
@@ -376,32 +368,41 @@ spellTable = {
 	-- "Saving Grace" 152116 "Grâce salvatrice"
 	{ 152116, jps.hp(LowestImportantUnit) < 0.40 and jps.debuffStacks(155274,"player") < 2 , LowestImportantUnit , "Emergency_SavingGrace" },
 	
-	-- PLAYER AGGRO PVP
+	-- DISPEL -- "Glyph of Purify" 55677 Your Purify spell also heals your target for 5% of maximum health
+	-- "Dispel" 527 "Purifier"
+	{ 527, jps.canDispel("player",{"Magic"}) , "player" , "Aggro_Dispel" },
+	{ 527, jps.canDispel("mouseover") , "mouseover" , "Dispel_Mouseover"},
+	{ "nested", jps.UseCDs , parseDispel },
+	
+	-- PLAYER AGGRO
 	{ "nested", playerAggro or playerWasControl or playerIsTargeted ,{
 		-- "Spectral Guise" 112833 "Semblance spectrale" gives buff 119032
 		{ 112833, jps.Interrupts and jps.IsSpellKnown(112833) and not jps.buff(159630) , "player" , "Aggro_Spectral" },
 		-- "Fade" 586 "Oubli" -- "Glyph of Shadow Magic" 159628 -- gives buff "Shadow Magic" 159630 "Magie des Ténèbres"
-		{ 586, jps.glyphInfo(159628) and not jps.buff(119032), "player" , "Control_Oubli" },
+		{ 586, jps.glyphInfo(159628) and not jps.buff(119032), "player" , "Aggro_Oubli" },
 		-- "Oubli" 586 -- Fantasme 108942 -- vous dissipez tous les effets affectant le déplacement sur vous-même
 		{ 586, jps.IsSpellKnown(108942) , "player" , "Aggro_Oubli" },
 		-- "Oubli" 586 -- Glyphe d'oubli 55684 -- Votre technique Oubli réduit à présent tous les dégâts subis de 10%.
 		{ 586, jps.glyphInfo(55684) , "player" , "Aggro_Oubli" },
-		-- "Glyph of Purify" 55677 Your Purify spell also heals your target for 5% of maximum health
-		{ 527, jps.canDispel("player",{"Magic"}) , "player" , "Aggro_Dispel" },
 		-- "Power Word: Shield" 17
 		{ 17, not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Aggro_Shield" },
-		-- FAKE CAST -- 6948 -- "Hearthstone"
-		--{ {"macro","/use item:6948"}, jps.PvP and jps.hp(LowestImportantUnit) > 0.80 and not jps.Moving and jps.itemCooldown(6948) == 0 , "player" , "Aggro_FAKECAST" },
+	}},
+	
+	{ "nested", jps.hp("player") < 1 ,{
 		-- "Saving Grace" 152116 "Grâce salvatrice"
 		{ 152116, jps.hp() < 0.50 and jps.debuffStacks(155274,"player") < 2 , "player" , "Aggro_SavingGrace" },
 		-- "Prière du désespoir" 19236
-		{ 19236, jps.hp() < 0.60 and jps.IsSpellKnown(19236) , "player" , "Aggro_DESESPERATE" },
+		{ 19236, jps.hp() < 0.50 and jps.IsSpellKnown(19236) , "player" , "Aggro_DESESPERATE" },
+		-- "Power Word: Shield" 17
+		{ 17, not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Aggro_Shield" },
 		-- "Pierre de soins" 5512
 		{ {"macro","/use item:5512"}, jps.hp() < 0.60 and jps.itemCooldown(5512) == 0 , "player" , "Aggro_Item5512" },
 		-- "Pénitence" 47540
 		{ 47540, jps.hp() < 0.80 , "player" , "Aggro_Penance" },
 		-- "Don des naaru" 59544
 		{ 59544, jps.hp() < 0.80 , "player" , "Aggro_Naaru" },
+		-- "Nova" 132157 -- "Words of Mending" 155362 "Mot de guérison"
+		{ 132157, jps.Moving and jps.hp() < 0.90 , "player" , "Aggro_Nova" },
 	}},
 
 	-- PAIN FRIEND
@@ -412,7 +413,6 @@ spellTable = {
 		{ 47540, jps.hpInc(PainFriend) < 0.60 , PainFriend , "Penance_PainFriend" },
 		-- "Soins rapides" 2061
 		{ 2061, not jps.Moving and jps.hpInc(PainFriend) < 0.60 , PainFriend, "FlashHeal_PainFriend" },
-
 	}},
 
 	-- CONTROL --
@@ -422,11 +422,7 @@ spellTable = {
 	{ 73325, jps.PvP and LeapFriend ~= nil , LeapFriend , "|cff1eff00Leap_MultiUnit" },
 	-- "Gardien de peur" 6346
 	{ 6346, jps.PvP and not jps.buff(6346,"player") , "player" },
-	
-	-- DISPEL -- "Glyph of Purify" 55677 Your Purify spell also heals your target for 5% of maximum health
-	-- "Dispel" 527 "Purifier"
-	{ 527, jps.canDispel("mouseover") , "mouseover" , "Dispel_Mouseover"},
-	{ "nested", jps.UseCDs , parseDispel },
+
 	-- OFFENSIVE Dispel -- "Dissipation de la magie" 528
 	{ 528, jps.castEverySeconds(528,8) and jps.DispelOffensive(rangedTarget) , rangedTarget , "|cff1eff00DispelOffensive" },
 	
@@ -579,8 +575,6 @@ spellTable = {
 	{ 596, not jps.Moving and POHTarget ~= nil and canHeal(POHTarget) , POHTarget , "POH" },
 
 	-- HEAL --
-	-- "Shield" 17
-	{ 17, jps.hpSum(LowestImportantUnit) < 0.80 and not jps.buff(17,LowestImportantUnit) and not jps.debuff(6788,LowestImportantUnit) , LowestImportantUnit , "Top_Shield" },
 	-- "Pénitence" 47540
 	{ 47540, jps.hp(LowestImportantUnit) < 0.80 , LowestImportantUnit , "Top_Penance" },
 	-- "Don des naaru" 59544

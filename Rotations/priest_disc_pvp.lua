@@ -364,7 +364,7 @@ spellTable = {
 	{ 33206, jps.hp(LowestImportantUnit) < 0.40 and UnitAffectingCombat(LowestImportantUnit) , LowestImportantUnit , "StunPain_Lowest" },
 	
 	-- "Spectral Guise" 112833 "Semblance spectrale" gives buff 119032
-	{ 112833, jps.Interrupts and EnemyIsCastingControl ~= nil and jps.IsSpellKnown(112833) and not jps.buff(159630) , "player" , "Aggro_Spectral" },
+	{ 112833, jps.Interrupts and EnemyIsCastingControl ~= nil and jps.IsSpellKnown(112833) and not jps.buff(159630) , "player" , "Control_Spectral" },
 	-- "Fade" 586 "Oubli" -- "Glyph of Shadow Magic" 159628 -- gives buff "Shadow Magic" 159630 "Magie des Ténèbres"
 	{ 586, EnemyIsCastingControl ~= nil and jps.glyphInfo(159628) and not jps.buff(119032), "player" , "Control_Oubli" },
 	-- PLAYER AGGRO PVP
@@ -372,7 +372,7 @@ spellTable = {
 		-- "Spectral Guise" 112833 "Semblance spectrale" gives buff 119032
 		{ 112833, jps.Interrupts and jps.IsSpellKnown(112833) and not jps.buff(159630) , "player" , "Aggro_Spectral" },
 		-- "Fade" 586 "Oubli" -- "Glyph of Shadow Magic" 159628 -- gives buff "Shadow Magic" 159630 "Magie des Ténèbres"
-		{ 586, jps.glyphInfo(159628) and not jps.buff(119032), "player" , "Control_Oubli" },
+		{ 586, jps.glyphInfo(159628) and not jps.buff(119032), "player" , "Aggro_Oubli" },
 		-- "Oubli" 586 -- Fantasme 108942 -- vous dissipez tous les effets affectant le déplacement sur vous-même
 		{ 586, jps.IsSpellKnown(108942) , "player" , "Aggro_Oubli" },
 		-- "Oubli" 586 -- Glyphe d'oubli 55684 -- Votre technique Oubli réduit à présent tous les dégâts subis de 10%.

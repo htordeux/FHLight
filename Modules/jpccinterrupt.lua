@@ -25,7 +25,7 @@
 -- name, rank, icon, castTime, minRange, maxRange, spellID = GetSpellInfo(spellID or spellName)
 
 local L = MyLocalizationTable
-local UnitAura = UnitAura
+local UnitDebuff = UnitDebuff
 local UnitCastingInfo = UnitCastingInfo
 local UnitChannelInfo = UnitChannelInfo
 local canDPS = jps.canDPS
@@ -93,7 +93,7 @@ jps.LoseControl = function(unit,controlTable)
 	-- Check debuffs
 	local auraName, debuffType, duration, expTime, spellID
 	local i = 1
-	auraName, _, _, _, debuffType, duration, expTime, _, _, _, spellID, _ = UnitAura(unit,i)
+	auraName, _, _, _, debuffType, duration, expTime, _, _, _, spellID, _ = UnitDebuff(unit,i)
 	while auraName do
 		local Priority = DebuffControl[auraName] -- jps.SpellControl[spellID]
 		if Priority then
@@ -105,7 +105,7 @@ jps.LoseControl = function(unit,controlTable)
 			end
 		end
 		i = i + 1
-		auraName, _, _, _, debuffType, duration, expTime, _, _, _, spellID, _ = UnitAura(unit,i)
+		auraName, _, _, _, debuffType, duration, expTime, _, _, _, spellID, _ = UnitDebuff(unit,i)
 	end
 	return false
 end
@@ -119,7 +119,7 @@ jps.DispelLoseControl = function(unit,controlTable)
 	-- Check debuffs
 	local auraName, debuffType, duration, expTime, spellID
 	local i = 1
-	auraName, _, _, _, debuffType, duration, expTime, _, _, _, spellID, _ = UnitAura(unit,i)
+	auraName, _, _, _, debuffType, duration, expTime, _, _, _, spellID, _ = UnitDebuff(unit,i)
 	while auraName do
 		local Priority = DebuffControl[auraName] -- jps.SpellControl[spellID]
 		if Priority and debuffType == "Magic" then -- {"Magic", "Poison", "Disease", "Curse"}
@@ -131,7 +131,7 @@ jps.DispelLoseControl = function(unit,controlTable)
 			end
 		end
 		i = i + 1
-		auraName, _, _, _, debuffType, duration, expTime, _, _, _, spellID, _ = UnitAura(unit,i)
+		auraName, _, _, _, debuffType, duration, expTime, _, _, _, spellID, _ = UnitDebuff(unit,i)
 	end
 	return false
 end
@@ -411,7 +411,7 @@ jps.DispelFriendly = function(unit,time)
 	-- Check debuffs
 	local auraName, debuffType, duration, expTime, spellID
 	local i = 1
-	auraName, _, _, _, debuffType, duration, expTime, _, _, _, spellID = UnitAura(unit, i)
+	auraName, _, _, _, debuffType, duration, expTime, _, _, _, spellID = UnitDebuff(unit, i)
 	while auraName do
 		if debuffType == "Magic" then -- {"Magic", "Poison", "Disease", "Curse"}
 			if BigDebuff[spellID]  == "cc" then
@@ -420,7 +420,7 @@ jps.DispelFriendly = function(unit,time)
 			end
 		end
 		i = i + 1
-		auraName, _, _, _, debuffType, duration, expTime, _, _, _, spellID = UnitAura(unit, i)
+		auraName, _, _, _, debuffType, duration, expTime, _, _, _, spellID = UnitDebuff(unit, i)
 	end
 	return false
 end

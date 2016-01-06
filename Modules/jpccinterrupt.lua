@@ -413,11 +413,9 @@ jps.DispelFriendly = function(unit,time)
 	local i = 1
 	auraName, _, _, _, debuffType, duration, expTime, _, _, _, spellID = UnitDebuff(unit, i)
 	while auraName do
-		if debuffType == "Magic" then -- {"Magic", "Poison", "Disease", "Curse"}
-			if BigDebuff[spellID]  == "cc" then
-				if expTime ~= nil then timeControlled = expTime - GetTime() end
-				if timeControlled > time then return true end
-			end
+		if BigDebuff[spellID]  == "cc" and debuffType == "Magic" then -- {"Magic", "Poison", "Disease", "Curse"}
+			if expTime ~= nil then timeControlled = expTime - GetTime() end
+			if timeControlled > time then return true end
 		end
 		i = i + 1
 		auraName, _, _, _, debuffType, duration, expTime, _, _, _, spellID = UnitDebuff(unit, i)

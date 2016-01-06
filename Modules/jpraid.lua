@@ -112,29 +112,33 @@ function jps.fallingFor()
 end
 
 ----------------------
--- Find ENEMY TARGET
+-- ENEMY TARGET
 ----------------------
 
---  "arenaN" Opposing arena member with index N (1,2,3,4 or 5)
-function jps.playerIsTargetedInArena()
-	local arenaEnemy = {}
-	local arenaTarget = {}
-	for n=1,5 do
-		local unit = "arena"..n
-		if jps.UnitExists(unit) then arenaEnemy[#arenaEnemy + 1] = unit end
-	end
-	for i=1,#arenaEnemy do
-		local target = arenaEnemy[i].."target"
-		if jps.UnitExists(target) then
-			arenaTarget[#arenaTarget + 1] = target
+-- Debuff EnemyTarget NOT DPS
+local DebuffUnitCyclone = function (unit)
+	local i = 1
+	local auraName = select(1,UnitDebuff(unit, i))
+	while auraName do
+		if strfind(auraName,L["Polymorph"]) then
+			return true
+		elseif strfind(auraName,L["Cyclone"]) then
+			return true
+		elseif strfind(auraName,L["Hex"]) then
+			return true
 		end
+		i = i + 1
+		auraName = select(1,UnitDebuff(unit, i))
 	end
-	for i=1,#arenaTarget do
-		if UnitIsUnit(arenaTarget[i],"player") then return true,arenaTarget end
-	end
-	return false,arenaTarget
+	return false
 end
 
+jps.CanAttack = function(unit)
+	if not canDPS(unit) then return false end
+	if not UnitAffectingCombat(unit) then return false end
+	if DebuffUnitCyclone(unit) then return false end
+	return true
+end
 
 function jps.targetIsRaidBoss(target)
 	if target == nil then target = "target" end
@@ -201,30 +205,4 @@ function jps.getInstanceInfo()
 	jps.instance["difficulty"] = diffTable[difficultyID]
 
 	return jps.instance
-end
-
--- Debuff EnemyTarget NOT DPS
-
-local DebuffUnitCyclone = function (unit)
-	local i = 1
-	local auraName = select(1,UnitDebuff(unit, i))
-	while auraName do
-		if strfind(auraName,L["Polymorph"]) then
-			return true
-		elseif strfind(auraName,L["Cyclone"]) then
-			return true
-		elseif strfind(auraName,L["Hex"]) then
-			return true
-		end
-		i = i + 1
-		auraName = select(1,UnitDebuff(unit, i))
-	end
-	return false
-end
-
-jps.CanAttack = function(unit)
-	if not canDPS(unit) then return false end
-	if not UnitAffectingCombat(unit) then return false end
-	if DebuffUnitCyclone(unit) then return false end
-	return true
 end

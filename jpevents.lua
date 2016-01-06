@@ -653,7 +653,7 @@ end)
 -- "UNIT_HEALTH_PREDICTION" arg1 unitId receiving the incoming heal
 
 jps.listener.registerEvent("UNIT_HEALTH_FREQUENT", function(unitID)
-	if jps.PvP and not jps.Combat and jps.RaidEnemyCount() > 0 then jps.Cycle() end
+	if jps.PvP and not jps.Combat and canHeal(unitID) then jps.Cycle() end
 	if jps.isHealer then jps.UpdateRaidUnit(unitID) end
 end)
 

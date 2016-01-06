@@ -109,7 +109,7 @@ local priestDisc = function()
 	-- if your target is friendly keep it as target
 	if not canHeal("target") and canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
 	
-	local playerIsTargeted,arenaTarget = jps.playerIsTargetedInArena()
+	local playerIsTargeted,arenaTarget = jps.playerIsTargetedArena()
 
 ----------------------------
 -- LOCAL FUNCTIONS FRIENDS
@@ -166,17 +166,14 @@ local priestDisc = function()
 	-- DISPEL --
 	
 	local DispelFriendPvE = jps.FindMeDispelTarget( {"Magic"} ) -- {"Magic", "Poison", "Disease", "Curse"}
+	local DispelFriendLoseControl = nil
 	local DispelFriendPvP = nil
 	local DispelFriendHealth = 100
 	for i=1,#FriendUnit do -- for _,unit in ipairs(FriendUnit) do
 		local unit = FriendUnit[i]
 		local unitHP = jps.hp(unit)
+		if DispelFriendLoseControl == nil and jps.DispelLoseControl(unit) then DispelFriendLoseControl = unit end
 		if jps.DispelFriendly(unit) then -- jps.DispelFriendly includes UnstableAffliction
-			if unitHP < DispelFriendHealth then
-				DispelFriendPvP = unit
-				DispelFriendHealth = unitHP
-			end
-		elseif jps.DispelLoseControl(unit) then
 			if unitHP < DispelFriendHealth then
 				DispelFriendPvP = unit
 				DispelFriendHealth = unitHP
@@ -238,7 +235,14 @@ local priestDisc = function()
 ------------------------
 -- LOCAL FUNCTIONS ENEMY
 ------------------------
-
+	local EnemyArena = {"arena1","arena2","arena3","arena4","arena5"}
+	local EnemyIsCastingControlArena = nil
+	for i=1,#EnemyArena do -- for _,unit in ipairs(EnemyUnit) do
+		local unit = EnemyArena[i]
+		if jps.IsCastingSpellControl(unit) then EnemyIsCastingControlArena = unit
+		break end
+	end
+	
 	local EnemyIsCastingControl = nil
 	for i=1,#EnemyUnit do -- for _,unit in ipairs(EnemyUnit) do
 		local unit = EnemyUnit[i]
@@ -297,6 +301,7 @@ local priestDisc = function()
 	local parseDispel = {
 		-- "Dispel" "Purifier" 527
 		{ 527, DispelFriendRole ~= nil , DispelFriendRole , "|cff1eff00DispelFriend_Role" },
+		{ 527, DispelFriendLoseControl ~= nil , DispelFriendLoseControl , "|cff1eff00DispelFriend_LoseControl" },
 		{ 527, DispelFriendPvP ~= nil , DispelFriendPvP , "|cff1eff00DispelFriend_PvP" },
 		{ 527, DispelFriendPvE ~= nil , DispelFriendPvE , "|cff1eff00DispelFriend_PvE" },
 	}
@@ -364,8 +369,10 @@ spellTable = {
 	{ 33206, jps.hp(LowestImportantUnit) < 0.40 and UnitAffectingCombat(LowestImportantUnit) , LowestImportantUnit , "StunPain_Lowest" },
 	
 	-- "Spectral Guise" 112833 "Semblance spectrale" gives buff 119032
+	{ 112833, jps.Interrupts and EnemyIsCastingControlArena ~= nil and jps.IsSpellKnown(112833) and not jps.buff(159630) , "player" , "Control_Spectral_Arene" },
 	{ 112833, jps.Interrupts and EnemyIsCastingControl ~= nil and jps.IsSpellKnown(112833) and not jps.buff(159630) , "player" , "Control_Spectral" },
 	-- "Fade" 586 "Oubli" -- "Glyph of Shadow Magic" 159628 -- gives buff "Shadow Magic" 159630 "Magie des Ténèbres"
+	{ 586, EnemyIsCastingControlArena ~= nil and jps.glyphInfo(159628) and not jps.buff(119032), "player" , "Control_Oubli_Arene" },
 	{ 586, EnemyIsCastingControl ~= nil and jps.glyphInfo(159628) and not jps.buff(119032), "player" , "Control_Oubli" },
 	-- PLAYER AGGRO PVP
 	{ "nested", playerAggro or playerWasControl or playerIsTargeted ,{

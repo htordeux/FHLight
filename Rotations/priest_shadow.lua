@@ -330,22 +330,6 @@ local parseHeal = {
 	--{ 2061, not jps.Moving and jps.hp("player") < 0.50 , "player" , "FlashHeal" },
 }
 
-local parseAggro = {
-	-- "Power Word: Shield" 17	
-	{ 17, not jps.debuff(6788,"player") and not jps.buff(17,"player") , "player" },
-	-- "Spectral Guise" 112833 "Semblance spectrale" gives buff 119032
-	{ 112833, jps.Interrupts and jps.IsSpellKnown(112833) and not jps.buff(159630) , "player" , "Aggro_Spectral" },
-	-- "Fade" 586 "Oubli" -- "Glyph of Shadow Magic" 159628 -- gives buff "Shadow Magic" 159630 "Magie des Ténèbres"
-	{ 586, jps.glyphInfo(159628) and not jps.buff(119032), "player" , "Control_Oubli" },
-	-- "Oubli" 586 -- Fantasme 108942 -- vous dissipez tous les effets affectant le déplacement sur vous-même et votre vitesse de déplacement ne peut être réduite pendant 5 s
-	{ 586, jps.IsSpellKnown(108942) and jps.hp("player") < 0.70 , "player" , "Aggro_Oubli" },
-	-- "Oubli" 586 -- Glyphe d'oubli 55684 -- Votre technique Oubli réduit à présent tous les dégâts subis de 10%.
-	{ 586, jps.glyphInfo(55684) and jps.hp("player") < 0.70 , "player" , "Aggro_Oubli" },
-	-- "Dispersion" 47585
-	{ 47585, jps.PvP and jps.hp("player") < 0.40 , "player" , "Aggro_Dispersion" },
-	{ 47585, jps.cooldown(112833) > 0 and jps.cooldown(112833) > 0 and jps.debuff(6788,"player") and jps.hp("player") < 0.40 , "player" , "Aggro_Dispersion" },
-}
-
 local RacialCounters = {
 	-- Undead "Will of the Forsaken" 7744 -- SNM priest is undead ;)
 	{ 7744, jps.debuff("psychic scream","player") }, -- Fear
@@ -365,23 +349,13 @@ local spellTable = {
 	
 	-- "Shadowform" 15473
 	{ 15473, not jps.buff(15473) , "player" },
-
-	-- "Spectral Guise" 112833 "Semblance spectrale" gives buff 119032
-	{ 112833, jps.Interrupts and EnemyIsCastingControl ~= nil and jps.IsSpellKnown(112833) and not jps.buff(159630) , "player" , "Aggro_Spectral" },
-	-- "Fade" 586 "Oubli" -- "Glyph of Shadow Magic" 159628 -- gives buff "Shadow Magic" 159630 "Magie des Ténèbres"
-	{ 586, EnemyIsCastingControl ~= nil and jps.glyphInfo(159628) and not jps.buff(119032), "player" , "Control_Oubli" },
-	-- PLAYER AGGRO PVP
-	{ "nested", playerAggro or playerWasControl or playerIsTargeted ,{
-		-- "Spectral Guise" 112833 "Semblance spectrale" gives buff 119032
-		{ 112833, jps.Interrupts and jps.IsSpellKnown(112833) and not jps.buff(159630) , "player" , "Aggro_Spectral" },
-		-- "Fade" 586 "Oubli" -- "Glyph of Shadow Magic" 159628 -- gives buff "Shadow Magic" 159630 "Magie des Ténèbres"
-		{ 586, jps.glyphInfo(159628) and not jps.buff(119032), "player" , "Control_Oubli" },
-		-- "Oubli" 586 -- Fantasme 108942 -- vous dissipez tous les effets affectant le déplacement sur vous-même
-		{ 586, jps.IsSpellKnown(108942) , "player" , "Aggro_Oubli" },
-		-- "Oubli" 586 -- Glyphe d'oubli 55684 -- Votre technique Oubli réduit à présent tous les dégâts subis de 10%.
-		{ 586, jps.glyphInfo(55684) , "player" , "Aggro_Oubli" },
-	}},
-
+	
+	-- SNM "Levitate" 1706 -- "Dark Simulacrum" debuff 77606
+	{ 1706, jps.PvP and jps.fallingFor() > 1.5 and not jps.buff(111759) , "player" },
+	{ 1706, jps.PvP and jps.debuff(77606,"player") , "player" , "DarkSim_Levitate" },
+	-- "Angelic Feather" 121536 "Plume angélique"
+	{ 121536, IsControlKeyDown() },
+	
 	-- SNM RACIAL COUNTERS -- share 30s cd with trinket
 	{"nested", jps.PvP and jps.UseCDs , RacialCounters },
 	-- SNM "Chacun pour soi" 59752 "Every Man for Himself" -- Human
@@ -389,6 +363,11 @@ local spellTable = {
 	-- TRINKETS -- jps.useTrinket(0) est "Trinket0Slot" est slotId  13 -- "jps.useTrinket(1) est "Trinket1Slot" est slotId  14
 	{ jps.useTrinket(0), jps.useTrinketBool(0) and not playerWasControl and jps.combatStart > 0 , "player" , "useTrinket0" },
 	{ jps.useTrinket(1), jps.useTrinketBool(1) and playerIsStun and jps.combatStart > 0 , "player" , "useTrinket1" },
+
+	-- "Spectral Guise" 112833 "Semblance spectrale" gives buff 119032
+	{ 112833, jps.Interrupts and EnemyIsCastingControl ~= nil and jps.IsSpellKnown(112833) and not jps.buff(159630) , "player" , "Control_Spectral" },
+	-- "Fade" 586 "Oubli" -- "Glyph of Shadow Magic" 159628 -- gives buff "Shadow Magic" 159630 "Magie des Ténèbres"
+	{ 586, EnemyIsCastingControl ~= nil and jps.glyphInfo(159628) and not jps.buff(119032), "player" , "Control_Oubli" },
 	
 	-- FOCUS CONTROL
 	-- "Silence" 15487
@@ -398,9 +377,24 @@ local spellTable = {
 	-- OFFENSIVE DISPEL -- "Dissipation de la magie" 528 (jps.DispelOffensive includes canDPS)
 	{ 528, jps.castEverySeconds(528,8) and jps.DispelOffensive(rangedTarget) , rangedTarget , "|cff1eff00Dispel_Offensive" },
 	{ 528, jps.castEverySeconds(528,8) and DispelOffensiveTarget ~= nil  , DispelOffensiveTarget , "|cff1eff00Dispel_Offensive_MultiUnit" },
-	
-	-- PLAYER AGGRO
-	{ "nested", playerAggro or playerWasControl or playerIsTargeted , parseAggro },
+
+	-- PLAYER AGGRO PVP
+	{ "nested", playerAggro or playerWasControl or playerIsTargeted ,{
+		-- "Spectral Guise" 112833 "Semblance spectrale" gives buff 119032
+		{ 112833, jps.Interrupts and jps.IsSpellKnown(112833) and not jps.buff(159630) , "player" , "Aggro_Spectral" },
+		-- "Fade" 586 "Oubli" -- "Glyph of Shadow Magic" 159628 -- gives buff "Shadow Magic" 159630 "Magie des Ténèbres"
+		{ 586, jps.glyphInfo(159628) and not jps.buff(119032), "player" , "Aggro_Oubli" },
+		-- "Oubli" 586 -- Fantasme 108942 -- vous dissipez tous les effets affectant le déplacement sur vous-même
+		{ 586, jps.IsSpellKnown(108942) and jps.hp("player") < 0.70 , "player" , "Aggro_Oubli" },
+		-- "Oubli" 586 -- Glyphe d'oubli 55684 -- Votre technique Oubli réduit à présent tous les dégâts subis de 10%.
+		{ 586, jps.glyphInfo(55684) and jps.hp("player") < 0.70 , "player" , "Aggro_Oubli" },
+		-- "Power Word: Shield" 17	
+		{ 17, not jps.debuff(6788,"player") and not jps.buff(17,"player") , "player" },
+		-- "Dispersion" 47585
+		{ 47585, jps.PvP and jps.hp("player") < 0.40 , "player" , "Aggro_Dispersion" },
+		{ 47585, jps.cooldown(112833) > 0 and jps.cooldown(112833) > 0 and jps.debuff(6788,"player") and jps.hp("player") < 0.40 , "player" , "Aggro_Dispersion" },
+	}},
+
 	-- "Power Word: Shield" 17 -- Glyph of Reflective Shield 33202
 	{ 17, jps.Defensive and not jps.buff(132573) and not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Defensive_Shield" },
 	{ 17, jps.glyphInfo(33202) and not jps.buff(132573) and not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Defensive_Shield" },
@@ -408,12 +402,6 @@ local spellTable = {
 	{ 73325 , jps.PvP and LeapFriend ~= nil , LeapFriend , "|cff1eff00Leap_MultiUnit" },
 	-- "Gardien de peur" 634
 	{ 6346, jps.PvP and not jps.buff(6346,"player") , "player" },
-	
-	-- SNM "Levitate" 1706 -- "Dark Simulacrum" debuff 77606
-	{ 1706, jps.PvP and jps.fallingFor() > 1.5 and not jps.buff(111759) , "player" },
-	{ 1706, jps.PvP and jps.debuff(77606,"player") , "player" , "DarkSim_Levitate" },
-	-- "Angelic Feather" 121536 "Plume angélique"
-	{ 121536, IsControlKeyDown() },
 
 	-- HEAL --
 	-- "Vampiric Embrace" 15286
@@ -429,9 +417,9 @@ local spellTable = {
 	{ 2944, Orbs > 2 and jps.MultiTarget , rangedTarget , "PLAGUE_MultiTarget" },
 	-- "Devouring Plague" 2944 consumes 3 Shadow Orbs, you don't have the ability to use with less Orbs
 	{ "nested", not jps.buff(132573) and Orbs > 2 , {
-		{ 2944, jps.hp("player") < 0.75 , rangedTarget , "PLAGUE_LowHealth" },
-		{ 2944, jps.hp(rangedTarget) < 0.20 , rangedTarget , "PLAGUE_LowHealth" },
-		{ 2944, jps.myDebuffDuration(34914,rangedTarget) > 5 and jps.myDebuffDuration(589,rangedTarget) > 5 , rangedTarget , "PLAGUE_Debuff" },
+		{ 2944, jps.hp("player") < 0.75 , rangedTarget , "PLAGUE_LowHealth_Player" },
+		{ 2944, jps.hp(rangedTarget) < 0.20 , rangedTarget , "PLAGUE_LowHealth_Target" },
+		{ 2944, jps.myDebuffDuration(34914,rangedTarget) > 5 and jps.myDebuffDuration(589,rangedTarget) > 5 , rangedTarget , "PLAGUE_Debuff_Duration" },
 	}},
 		
 	-- "MindSear" 48045 -- "Insanité incendiaire" 179338 "Searing Insanity"
@@ -458,16 +446,6 @@ local spellTable = {
 	{ 73510, jps.buff(87160) and jps.hp(rangedTarget) < 0.20 , rangedTarget , "Spike_SurgeofDarkness_LowHealth" },
 	{ 73510, jps.buff(87160) and jps.buffDuration(87160) < 4 , rangedTarget , "Spike_SurgeofDarkness_CD" },
 	
-	-- "Shadow Word: Pain" 589 -- "Shadow Word: Insanity" buff 132573
-	{ 589, Orbs > 3 and fnPainEnemyTarget(rangedTarget) and not jps.isRecast(589,rangedTarget) , rangedTarget , "Pain_Orbs" },
-	-- "Vampiric Touch" 34914 -- "Shadow Word: Insanity" buff 132573
-	{ 34914, Orbs > 3 and not jps.Moving and fnVampEnemyTarget(rangedTarget) and not jps.isRecast(34914,rangedTarget) , rangedTarget , "VT_Orbs" },
-	
-	-- "Shadow Word: Pain" 589 -- "Shadow Word: Insanity" buff 132573
-	--{ 589, fnPainEnemyTarget(rangedTarget) and not jps.isRecast(589,rangedTarget) , rangedTarget , "Pain_Target" },
-	-- "Vampiric Touch" 34914 -- "Shadow Word: Insanity" buff 132573
-	--{ 34914, not jps.Moving and fnVampEnemyTarget(rangedTarget) and not jps.isRecast(34914,rangedTarget) , rangedTarget , "VT_Target" },
-	
 	-- MULTITARGET
 	-- "Mindbender" "Torve-esprit" 123040 -- "Ombrefiel" 34433 "Shadowfiend"
 	{ 34433, priest.canShadowfiend(rangedTarget) , rangedTarget },
@@ -476,6 +454,13 @@ local spellTable = {
 	{ 127632, jps.UseCDs and not jps.Moving , rangedTarget , "Cascade"  },
 	-- "Divine Star" Holy 110744 Shadow 122121 -- "Dissipation de la magie" 528 to check in range 30 y
 	{ 122121, jps.IsSpellInRange(528,rangedTarget) and jps.myLastCast(15407) , rangedTarget , "DivineStar"  },
+	
+	-- "Shadow Word: Pain" 589 -- "Shadow Word: Insanity" buff 132573
+	--{ 589, Orbs > 3 and fnPainEnemyTarget(rangedTarget) and not jps.isRecast(589,rangedTarget) , rangedTarget , "Pain_Orbs" },
+	{ 589, fnPainEnemyTarget(rangedTarget) and not jps.isRecast(589,rangedTarget) , rangedTarget , "Pain_Target" },
+	-- "Vampiric Touch" 34914 -- "Shadow Word: Insanity" buff 132573
+	--{ 34914, Orbs > 3 and not jps.Moving and fnVampEnemyTarget(rangedTarget) and not jps.isRecast(34914,rangedTarget) , rangedTarget , "VT_Orbs" },
+	{ 34914, not jps.Moving and fnVampEnemyTarget(rangedTarget) and not jps.isRecast(34914,rangedTarget) , rangedTarget , "VT_Target" },
 
 	-- "Shadow Word: Pain" 589 -- "Shadow Word: Insanity" buff 132573	
 	{ 589, not jps.buff(132573) and PainEnemyTarget ~= nil and not UnitIsUnit(PainEnemyTarget,"target") , PainEnemyTarget , "Pain_MultiUnit" },

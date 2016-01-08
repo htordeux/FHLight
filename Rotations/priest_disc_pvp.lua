@@ -374,6 +374,14 @@ spellTable = {
 	-- "Fade" 586 "Oubli" -- "Glyph of Shadow Magic" 159628 -- gives buff "Shadow Magic" 159630 "Magie des Ténèbres"
 	{ 586, EnemyIsCastingControlArena ~= nil and jps.glyphInfo(159628) and not jps.buff(119032), "player" , "Control_Oubli_Arene" },
 	{ 586, EnemyIsCastingControl ~= nil and jps.glyphInfo(159628) and not jps.buff(119032), "player" , "Control_Oubli" },
+	
+	-- "Soins rapides" 2061 -- "Vague de Lumière" 114255 "Surge of Light"
+	{ 2061, jps.buff(114255) and jps.hp(LowestImportantUnit) < 0.80 , LowestImportantUnit , "FlashHeal_Light" },
+	{ 2061, jps.buff(114255) and jps.buffDuration(114255) < 4 , LowestImportantUnit , "FlashHeal_Light" },	
+	-- "Saving Grace" 152116 "Grâce salvatrice"
+	{ 152116, jps.hp("player") < 0.40 and jps.debuffStacks(155274,"player") < 2 , "player" , "Emergency_SavingGrace" },
+	{ 152116, jps.hp(LowestImportantUnit) < 0.40 and jps.debuffStacks(155274,"player") < 2 , LowestImportantUnit , "Emergency_SavingGrace" },
+
 	-- PLAYER AGGRO PVP
 	{ "nested", playerAggro or playerWasControl or playerIsTargeted ,{
 		-- "Spectral Guise" 112833 "Semblance spectrale" gives buff 119032
@@ -386,14 +394,31 @@ spellTable = {
 		{ 586, jps.glyphInfo(55684) , "player" , "Aggro_Oubli" },
 		-- "Power Word: Shield" 17
 		{ 17, not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Aggro_Shield" },
+		-- "Prière du désespoir" 19236
+		{ 19236, jps.hp() < 0.60 and jps.IsSpellKnown(19236) , "player" , "Aggro_DESESPERATE" },
+		-- "Pierre de soins" 5512
+		{ {"macro","/use item:5512"}, jps.hp() < 0.60 and jps.itemCooldown(5512) == 0 , "player" , "Aggro_Item5512" },
+		-- "Pénitence" 47540
+		{ 47540, jps.hp() < 0.80 , "player" , "Aggro_Penance" },
+		-- "Don des naaru" 59544
+		{ 59544, jps.hp() < 0.80 , "player" , "Aggro_Naaru" },
 	}},
-	
-	-- "Soins rapides" 2061 -- "Vague de Lumière" 114255 "Surge of Light"
-	{ 2061, jps.buff(114255) and jps.hp(LowestImportantUnit) < 0.80 , LowestImportantUnit , "FlashHeal_Light" },
-	{ 2061, jps.buff(114255) and jps.buffDuration(114255) < 4 , LowestImportantUnit , "FlashHeal_Light" },	
-	-- "Saving Grace" 152116 "Grâce salvatrice"
-	{ 152116, jps.hp("player") < 0.40 and jps.debuffStacks(155274,"player") < 2 , "player" , "Emergency_SavingGrace" },
-	{ 152116, jps.hp(LowestImportantUnit) < 0.40 and jps.debuffStacks(155274,"player") < 2 , LowestImportantUnit , "Emergency_SavingGrace" },
+
+	-- "Power Infusion" 10060 "Infusion de puissance"
+	{ 10060, jps.hp(LowestImportantUnit) < 0.80 , "player" , "POWERINFUSION_Lowest" },
+	{ 10060, CountFriendLowest > 1 , "player" , "POWERINFUSION_Count" },
+	-- SNM Troll "Berserker" 26297 -- haste buff
+	{ 26297, CountFriendEmergency > 1 , "player" },
+
+	-- EMERGENCY HEAL --
+	{ "nested", jps.hp(LowestImportantUnit) < 0.50 ,{
+		-- "Power Word: Shield" 17 -- Keep Buff "Borrowed" 59889 always
+		{ 17, not jps.buff(17,LowestImportantUnit) and not jps.debuff(6788,LowestImportantUnit) , LowestImportantUnit , "Emergency_Shield" },
+		-- "Pénitence" 47540
+		{ 47540, true , LowestImportantUnit , "Emergency_Penance" },
+		-- "Soins rapides" 2061
+		{ 2061, not jps.Moving , LowestImportantUnit , "Emergency_FlashHeal" },
+	}},
 
 	-- CONTROL --
 	{ 15487, SilenceEnemyTarget ~= nil , SilenceEnemyTarget , "Silence_MultiUnit" },
@@ -414,46 +439,16 @@ spellTable = {
 	{ 1706, jps.PvP and jps.debuff(77606,"player") , "player" , "DarkSim_Levitate" },
 	-- "Angelic Feather" 121536 "Plume angélique"
 	{ 121536, IsControlKeyDown() },
-	-- "Power Word: Shield" 17 -- Keep Buff "Borrowed" 59889 always
-	{ 17, ShieldArenaFriend ~= nil and not jps.buff(59889) , ShieldArenaFriend , "Emergency_ShieldArenaFriend" },
+	-- "Power Word: Shield" 17 -- Keep Buff "Borrowed" 59889 always 
+	{ 17, ShieldArenaFriend ~= nil and jps.IncomingDamage(ShieldArenaFriend) > 0 , ShieldArenaFriend , "Emergency_ShieldArenaFriend" },
 	{ 17, ShieldFriend ~= nil and not jps.buff(59889) , ShieldFriend , "Emergency_ShieldFriend" },
 	{ 17, canHeal("targettarget") and not jps.buff(17,"targettarget") and not jps.debuff(6788,"targettarget") , "targettarget" , "Shield_targettarget" },
 	-- "Power Word: Shield" 17 -- "Body and Soul" 65081 buff -- Glyph of Reflective Shield 33202
 	{ 17, jps.glyphInfo(33202) and not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Defensive_Shield" },
 	{ 17, not jps.buff(65081,"player") and jps.Moving and BodyAndSoul and not jps.debuff(6788,"player") , "player" , "Shield_Moving" },
 
-	-- "Power Infusion" 10060 "Infusion de puissance"
-	{ 10060, jps.hp(LowestImportantUnit) < 0.60 , "player" , "POWERINFUSION_Lowest" },
-	{ 10060, CountFriendLowest > 1 , "player" , "POWERINFUSION_Count" },
-	-- SNM Troll "Berserker" 26297 -- haste buff
-	{ 26297, CountFriendEmergency > 2 , "player" },
-	
-	-- EMERGENCY HEAL --
-	{ "nested", jps.hp(LowestImportantUnit) < 0.50 ,{
-		-- "Power Word: Shield" 17 -- Keep Buff "Borrowed" 59889 always
-		{ 17, not jps.buff(17,LowestImportantUnit) and not jps.debuff(6788,LowestImportantUnit) , LowestImportantUnit , "Emergency_Shield" },
-		-- "Pénitence" 47540
-		{ 47540, true , LowestImportantUnit , "Emergency_Penance" },
-		-- "Soins rapides" 2061
-		{ 2061, not jps.Moving , LowestImportantUnit , "Emergency_FlashHeal" },
-	}},
-	
-	{ "nested", jps.hp("player") < 1 ,{
-		-- "Saving Grace" 152116 "Grâce salvatrice"
-		{ 152116, jps.hp() < 0.60 and jps.debuffStacks(155274,"player") < 2 , "player" , "Aggro_SavingGrace" },
-		-- "Prière du désespoir" 19236
-		{ 19236, jps.hp() < 0.60 and jps.IsSpellKnown(19236) , "player" , "Aggro_DESESPERATE" },
-		-- "Power Word: Shield" 17
-		{ 17, not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Aggro_Shield" },
-		-- "Pierre de soins" 5512
-		{ {"macro","/use item:5512"}, jps.hp() < 0.60 and jps.itemCooldown(5512) == 0 , "player" , "Aggro_Item5512" },
-		-- "Pénitence" 47540
-		{ 47540, jps.hp() < 0.80 , "player" , "Aggro_Penance" },
-		-- "Don des naaru" 59544
-		{ 59544, jps.hp() < 0.80 , "player" , "Aggro_Naaru" },
-		-- "Nova" 132157 -- "Words of Mending" 155362 "Mot de guérison"
-		{ 132157, jps.Moving and jps.hp() < 0.90 , "player" , "Aggro_Nova" },
-	}},
+	-- "Nova" 132157 -- "Words of Mending" 155362 "Mot de guérison"
+	{ 132157, jps.Moving and jps.hp() < 0.90 , "player" , "Aggro_Nova" },
 	
 	-- OFFENSIVE Dispel -- "Dissipation de la magie" 528
 	{ 528, jps.castEverySeconds(528,8) and jps.DispelOffensive(rangedTarget) , rangedTarget , "|cff1eff00DispelOffensive" },

@@ -289,7 +289,6 @@ local fnOrbs = function(unit)
 	if DebuffUnitCyclone(unit) then return false end
 	if jps.ShouldKick(unit) then return true end
 	if jps.EnemyHealer(unit) then return true end
-	if UnitIsUnit(unit.."target","player") then return true end
 	return false
 end
 

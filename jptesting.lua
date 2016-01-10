@@ -100,7 +100,7 @@ end
 
 	Test()
 	--DkTest()
-	--jps.Lookup()
+	jps.Lookup()
 
 	--	TurnLeftStart()
 	--	C_Timer.After(1,function() print("test") TurnLeftStop() end)

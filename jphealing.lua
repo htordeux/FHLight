@@ -171,9 +171,9 @@ function jps.playerIsTargetedArena()
 		end
 	end
 	for i=1,#arenaTarget do
-		if UnitIsUnit(arenaTarget[i],"player") then return true,arenaTarget end
+		if UnitIsUnit(arenaTarget[i],"player") then return true end
 	end
-	return false,arenaTarget
+	return false
 end
 
 --------------------------

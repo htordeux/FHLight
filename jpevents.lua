@@ -42,6 +42,9 @@ setmetatable(IncomingDamage, { __mode = 'k' }) -- creation of a weak table
 -- Incoming Heal
 local IncomingHeal = {}
 setmetatable(IncomingHeal, { __mode = 'k' }) -- creation of a weak table
+-- PlayerControlSpell
+local PlayerControlSpell = {}
+setmetatable(PlayerControlSpell, { __mode = 'k' }) -- creation of a weak table
 
 -- RaidStatus
 local UnitGUID = UnitGUID
@@ -442,6 +445,7 @@ local leaveCombat = function()
 	IncomingDamage = {}
 	IncomingHeal = {}
 	Healtable = {}
+	PlayerControlSpell = {} 
 	jps.LastMessage = {}
 	jps.TimeToDieData = {}
 	jps.TimedCasting = {}
@@ -612,19 +616,12 @@ end)
 -- if spell has no cd then start, duration, enabled = 0,0,1
 -- if spell has cd then duration is the global cooldown
 
-local hostileControlSpell = {}
-local collectControlSpell = function(spellID)
-	if not hostileControlSpell[spellID] then hostileControlSpell[spellID] = {} end
-	hostileControlSpell[spellID] = "CC"
-end
-
 local stunTypeTable = {"STUN_MECHANIC","STUN","FEAR","CHARM","CONFUSE","PACIFY","SILENCE","PACIFYSILENCE"}
 jps.listener.registerEvent("LOSS_OF_CONTROL_ADDED", function ()
 	local i = C_LossOfControl.GetNumEvents()
     local locType, spellID, text, _, _, _, duration = C_LossOfControl.GetEventInfo(i)
     --print("CONTROL:", locType,"/",text,"/",duration)
     if text and duration then
-		if spellID then collectControlSpell(spellID) end
     	if locType == "SCHOOL_INTERRUPT" then
     		jps.createTimer("PlayerInterrupt",duration)
     	return end
@@ -637,11 +634,38 @@ jps.listener.registerEvent("LOSS_OF_CONTROL_ADDED", function ()
     end
 end)
 
---jps.listener.registerEvent("LOSS_OF_CONTROL_UPDATE", function()
---	local i = C_LossOfControl.GetNumEvents()
---	local locType, spellID, text, _, _, _, duration = C_LossOfControl.GetEventInfo(i)
---	print("CONTROL_UPDATE: ",text, duration)
---end)
+-- locType, spellID, text, iconTexture, startTime, timeRemaining, duration, lockoutSchool, priority, displayType = C_LossOfControl.GetEventInfo(eventIndex)
+-- locType: String - Effect type, e.g. "SCHOOL_INTERRUPT"
+-- spellID: Number - Spell ID causing the effect, e.g. 33786 for Cyclone.
+-- text: String - Name of the effect, e.g. "Interrupted".
+-- startTime: Number - Time at which this effect began, as per GetTime()
+
+jps.listener.registerEvent("LOSS_OF_CONTROL_UPDATE", function()
+	local i = C_LossOfControl.GetNumEvents()
+	local locType, spellID, text, _, startTime, _, duration = C_LossOfControl.GetEventInfo(i)
+	if text and duration then
+		if not PlayerControlSpell[locType] then PlayerControlSpell[locType] = {} end
+		if spellID and startTime and duration then
+			PlayerControlSpell[locType] = {spellID,startTime,duration}
+			--tinsert(PlayerControlSpell[locType],1,{spellID,startTime,duration})
+		end
+	end
+end)
+
+-- [locType] = { {spellID_1,startTime_1,duration_1}, {spellID_2,startTime_2,duration_2} }
+local updatePlayerControlSpell = function()
+	for locType,index in pairs(PlayerControlSpell) do
+		local SpellCD = jps.SpellCD[index[1]]
+		if SpellCD == nil then SpellCD = 12 end
+		local delta = GetTime() - (index[2] + SpellCD)
+		if delta > 0 then PlayerControlSpell[locType] = nil end
+	end
+end
+
+function jps.PlayerControlSpell()
+	if jps.tableLength(PlayerControlSpell) == 0 then return false end -- means the Control spells are ready
+	return true -- means the Control spells are in cd
+end
 
 ----------------------
 -- UPDATE RAID STATUS
@@ -724,6 +748,7 @@ local UpdateIntervalRaidStatus = function()
 	updateEnemyDamager()
 	updateIncomingDamage()
 	updateIncomingHeal()
+	updatePlayerControlSpell()
 end
 
 -- HealerBlacklist Update
@@ -1006,11 +1031,11 @@ jps.Lookup = function()
 --	for unit,index in pairs (IncomingDamage) do
 --		print(#index,"|cFFFF0000unit:",unit,"destname:",index[1][3],"dmg:",index[1][2])
 --	end
-	
-	-- hostileControlSpell[spellID] = "CC"
-	for spell,index in pairs (hostileControlSpell) do
-		print("|cFFFF0000ControlSpell:",spell,"-",index)
+
+	for unit,index in pairs (PlayerControlSpell) do
+		print("|cFFFF0000unit: ",unit,"spellID: ",index[1],"startTime: ",index[2])
 	end
+
 end
 
 

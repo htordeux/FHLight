@@ -154,17 +154,14 @@ local priestDisc = function()
 	-- DISPEL --
 	
 	local DispelFriendPvE = jps.FindMeDispelTarget( {"Magic"} ) -- {"Magic", "Poison", "Disease", "Curse"}
+	local DispelFriendLoseControl = nil
 	local DispelFriendPvP = nil
 	local DispelFriendHealth = 100
 	for i=1,#FriendUnit do -- for _,unit in ipairs(FriendUnit) do
 		local unit = FriendUnit[i]
 		local unitHP = jps.hp(unit)
+		if DispelFriendLoseControl == nil and jps.DispelLoseControl(unit) then DispelFriendLoseControl = unit end
 		if jps.DispelFriendly(unit) then -- jps.DispelFriendly includes UnstableAffliction
-			if unitHP < DispelFriendHealth then
-				DispelFriendPvP = unit
-				DispelFriendHealth = unitHP
-			end
-		elseif jps.DispelLoseControl(unit) then
 			if unitHP < DispelFriendHealth then
 				DispelFriendPvP = unit
 				DispelFriendHealth = unitHP
@@ -285,6 +282,7 @@ local priestDisc = function()
 	local parseDispel = {
 		-- "Dispel" "Purifier" 527
 		{ 527, DispelFriendRole ~= nil , DispelFriendRole , "|cff1eff00DispelFriend_Role" },
+		{ 527, DispelFriendLoseControl ~= nil , DispelFriendLoseControl , "|cff1eff00DispelFriend_LoseControl" },
 		{ 527, DispelFriendPvP ~= nil , DispelFriendPvP , "|cff1eff00DispelFriend_PvP" },
 		{ 527, DispelFriendPvE ~= nil , DispelFriendPvE , "|cff1eff00DispelFriend_PvE" },
 	}
@@ -339,16 +337,11 @@ if jps.hp("player") < 0.25 then CreateMessage("LOW HEALTH!") end -- CreateFlashe
 
 spellTable = {
 
-	-- SNM "Levitate" 1706 -- "Dark Simulacrum" debuff 77606
-	{ 1706, jps.PvP and jps.fallingFor() > 1.5 and not jps.buff(111759) , "player" },
-	{ 1706, jps.PvP and jps.debuff(77606,"player") , "player" , "DarkSim_Levitate" },
+	-- SNM "Levitate" 1706
+	{ 1706, jps.fallingFor() > 1.5 and not jps.buff(111759) , "player" },
 	-- "Angelic Feather" 121536 "Plume angélique"
 	{ 121536, IsControlKeyDown() },
-	-- "Spectral Guise" 112833 "Semblance spectrale" gives buff 119032
-	{ 112833, jps.Interrupts and EnemyIsCastingControl ~= nil and jps.IsSpellKnown(112833) and not jps.buff(159630) , "player" , "Control_Spectral" },
-	-- "Fade" 586 "Oubli" -- "Glyph of Shadow Magic" 159628 -- gives buff "Shadow Magic" 159630 "Magie des Ténèbres"
-	{ 586, EnemyIsCastingControl ~= nil and jps.glyphInfo(159628) and not jps.buff(119032), "player" , "Control_Oubli" },
-	
+
 	-- SNM RACIAL COUNTERS -- share 30s cd with trinket
 	{"nested", jps.PvP and jps.UseCDs , RacialCounters },
 	-- SNM "Chacun pour soi" 59752 "Every Man for Himself" -- Human
@@ -362,18 +355,37 @@ spellTable = {
 	{ 33206, jps.hp(Tank) < 0.30 and UnitAffectingCombat(Tank) , Tank , "StunPain_Tank" },
 	{ 33206, jps.hp("player") < 0.40 and UnitAffectingCombat("player") , "player" , "StunPain_player" },
 	{ 33206, jps.hp(LowestImportantUnit) < 0.40 and UnitAffectingCombat(LowestImportantUnit) , LowestImportantUnit , "StunPain_Lowest" },
+
+	-- "Spectral Guise" 112833 "Semblance spectrale" gives buff 119032
+	{ 112833, jps.Interrupts and EnemyIsCastingControl ~= nil and jps.IsSpellKnown(112833) and not jps.buff(159630) , "player" , "Control_Spectral" },
+	-- "Fade" 586 "Oubli" -- "Glyph of Shadow Magic" 159628 -- gives buff "Shadow Magic" 159630 "Magie des Ténèbres"
+	{ 586, EnemyIsCastingControl ~= nil and jps.glyphInfo(159628) and not jps.buff(119032), "player" , "Control_Oubli" },
+
 	-- "Soins rapides" 2061 -- "Vague de Lumière" 114255 "Surge of Light"
 	{ 2061, jps.buff(114255) and jps.hp(LowestImportantUnit) < 0.80 , LowestImportantUnit , "FlashHeal_Light" },
-	{ 2061, jps.buff(114255) and jps.buffDuration(114255) < 4 , LowestImportantUnit , "FlashHeal_Light" },	
+	{ 2061, jps.buff(114255) and jps.buffDuration(114255) < 4 , LowestImportantUnit , "FlashHeal_Light" },
 	-- "Saving Grace" 152116 "Grâce salvatrice"
+	{ 152116, jps.hp("player") < 0.40 and jps.debuffStacks(155274,"player") < 2 , "player" , "Emergency_SavingGrace" },
 	{ 152116, jps.hp(LowestImportantUnit) < 0.40 and jps.debuffStacks(155274,"player") < 2 , LowestImportantUnit , "Emergency_SavingGrace" },
+	-- "Soins rapides" 2061 -- Buff Borrowed 59889 -- Buff infusion 10060
+	{ 2061, jps.hpInc(LowestImportantUnit) < 0.60 and not jps.Moving and jps.buff(59889) and jps.buff(10060) , LowestImportantUnit , "FlashHeal_Borrowed"  },
 	
-	-- DISPEL -- "Glyph of Purify" 55677 Your Purify spell also heals your target for 5% of maximum health
-	-- "Dispel" 527 "Purifier"
+	-- PAIN FRIEND
+	{ "nested", PainFriend ~= nil and jps.hpInc(PainFriend) < 0.80 ,{
+		-- "Power Word: Shield"
+		{ 17, not jps.buff(17,PainFriend) and not jps.debuff(6788,PainFriend) , PainFriend , "Bubble_PainFriend" },
+		-- "Pénitence" 47540
+		{ 47540, jps.hpInc(PainFriend) < 0.60 , PainFriend , "Penance_PainFriend" },
+		-- "Soins rapides" 2061
+		{ 2061, not jps.Moving and jps.hpInc(PainFriend) < 0.60 , PainFriend, "FlashHeal_PainFriend" },
+	}},
+	
+	-- DISPEL
+	-- "Dispel" 527 "Purifier" -- "Glyph of Purify" 55677 Your Purify spell also heals your target for 5% of maximum health
 	{ 527, jps.canDispel("player",{"Magic"}) , "player" , "Aggro_Dispel" },
 	{ 527, jps.canDispel("mouseover") , "mouseover" , "Dispel_Mouseover"},
 	{ "nested", jps.UseCDs , parseDispel },
-	
+
 	-- PLAYER AGGRO
 	{ "nested", playerAggro or playerWasControl or playerIsTargeted ,{
 		-- "Spectral Guise" 112833 "Semblance spectrale" gives buff 119032
@@ -386,33 +398,16 @@ spellTable = {
 		{ 586, jps.glyphInfo(55684) , "player" , "Aggro_Oubli" },
 		-- "Power Word: Shield" 17
 		{ 17, not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Aggro_Shield" },
-	}},
-	
-	{ "nested", jps.hp("player") < 1 ,{
-		-- "Saving Grace" 152116 "Grâce salvatrice"
-		{ 152116, jps.hp() < 0.50 and jps.debuffStacks(155274,"player") < 2 , "player" , "Aggro_SavingGrace" },
 		-- "Prière du désespoir" 19236
-		{ 19236, jps.hp() < 0.50 and jps.IsSpellKnown(19236) , "player" , "Aggro_DESESPERATE" },
-		-- "Power Word: Shield" 17
-		{ 17, not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Aggro_Shield" },
+		{ 19236, jps.hp() < 0.60 and jps.IsSpellKnown(19236) , "player" , "Aggro_DESESPERATE" },
 		-- "Pierre de soins" 5512
 		{ {"macro","/use item:5512"}, jps.hp() < 0.60 and jps.itemCooldown(5512) == 0 , "player" , "Aggro_Item5512" },
 		-- "Pénitence" 47540
 		{ 47540, jps.hp() < 0.80 , "player" , "Aggro_Penance" },
 		-- "Don des naaru" 59544
 		{ 59544, jps.hp() < 0.80 , "player" , "Aggro_Naaru" },
-		-- "Nova" 132157 -- "Words of Mending" 155362 "Mot de guérison"
-		{ 132157, jps.Moving and jps.hp() < 0.90 , "player" , "Aggro_Nova" },
-	}},
-
-	-- PAIN FRIEND
-	{ "nested", PainFriend ~= nil and jps.hpInc(PainFriend) < 0.80 ,{
-		-- "Power Word: Shield"
-		{ 17, not jps.buff(17,PainFriend) and not jps.debuff(6788,PainFriend) , PainFriend , "Bubble_PainFriend" },
-		-- "Pénitence" 47540
-		{ 47540, jps.hpInc(PainFriend) < 0.60 , PainFriend , "Penance_PainFriend" },
 		-- "Soins rapides" 2061
-		{ 2061, not jps.Moving and jps.hpInc(PainFriend) < 0.60 , PainFriend, "FlashHeal_PainFriend" },
+		{ 2061, not jps.Moving and jps.hp() < 0.60 , "player" , "Aggro_FlashHeal" },
 	}},
 
 	-- CONTROL --
@@ -421,7 +416,9 @@ spellTable = {
 	-- "Leap of Faith" 73325 -- "Saut de foi"
 	{ 73325, jps.PvP and LeapFriend ~= nil , LeapFriend , "|cff1eff00Leap_MultiUnit" },
 	-- "Gardien de peur" 6346
-	{ 6346, jps.PvP and not jps.buff(6346,"player") , "player" },
+	{ 6346, jps.PvP and not jps.buff(6346,"player") and jps.hp() > 0.80 , "player" },
+	-- SNM "Levitate" 1706 -- "Dark Simulacrum" debuff 77606
+	{ 1706, jps.PvP and jps.debuff(77606,"player") , "player" , "DarkSim_Levitate" },
 
 	-- OFFENSIVE Dispel -- "Dissipation de la magie" 528
 	{ 528, jps.castEverySeconds(528,8) and jps.DispelOffensive(rangedTarget) , rangedTarget , "|cff1eff00DispelOffensive" },
@@ -580,9 +577,7 @@ spellTable = {
 	-- "Don des naaru" 59544
 	{ 59544, jps.hp(LowestImportantUnit) < 0.80 , LowestImportantUnit , "Top_Naaru" },
 		
-	{ "nested", not jps.Moving and jps.hp(LowestImportantUnit) < 0.80 ,{	
-		-- "Flash Heal" top off -- Less important to be conservative with mana in PvP
-		{ 2061, jps.PvP and jps.mana() > 0.50 and jps.hpSum(LowestImportantUnit) < 0.80 , LowestImportantUnit , "Top_FlashHeal" },
+	{ "nested", not jps.Moving and jps.hp(LowestImportantUnit) < 0.80 ,{
 		-- "Soins" 2060 -- Buff "Borrowed" 59889 -- Buff "Clarity of Will" 152118
 		{ 2060, jps.buff(17,LowestImportantUnit) , LowestImportantUnit , "Top_Soins_Shield"  },
 		{ 2060, jps.buff(59889) , LowestImportantUnit , "Top_Soins_Borrowed"  },

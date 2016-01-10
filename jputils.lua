@@ -516,7 +516,7 @@ end)
 ---------------------------
 -- If you wish to disable an ability tracker, put '--' infront of the ID.
 
-jps.SpellCDs = {
+jps.SpellCD = {
 
 -- ["MISC"]
 	[28730] = 120,				--"Arcane Torrent",

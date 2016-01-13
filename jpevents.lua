@@ -385,7 +385,6 @@ jps.listener.registerEvent("PLAYER_ENTERING_WORLD", function()
 	jps.UpdateRaidStatus()
 	jps.UpdateRaidRole()
 	EnemyHealer = {} -- keep healer enemy table during all RBG time?
-	jps.Timers = {} -- keep Holy Word: Chastise 88625 Cooldown
 end)
 
 -- INSPECT_READY
@@ -430,15 +429,17 @@ jps.listener.registerEvent("PLAYER_REGEN_DISABLED", function()
 	jps.combatStart = GetTime()
 	jps.UpdateRaidStatus()
 	jps.UpdateRaidRole()
+	jps.Timers = {} -- keep Holy Word: Chastise 88625 Cooldown?
 end)
 
 -- Leave Combat
 local leaveCombat = function()
-	jps.Opening = true
 	jps.Combat = false
 	jps.gui_toggleCombat(false)
 	jps.combatStart = 0
 	jps.NextSpell = nil
+	jps.SpellSchool = 0
+	jps.EnemyCastingSpellControl = false
 
 	-- nil all tables
 	EnemyDamager = {}
@@ -458,23 +459,6 @@ end
 
 jps.listener.registerEvent("PLAYER_REGEN_ENABLED", leaveCombat)
 jps.listener.registerEvent("PLAYER_UNGHOST", leaveCombat)
-
--- "UNIT_AURA"
--- Fired when a buff, debuff, status, or item bonus was gained by or faded from an entity (player, pet, NPC, or mob.)
--- This event fires before the associated effects take place
-local updateAverageHeal = function()
-	local masteryValue = math.ceil(GetMastery())/100
-	local bonusHealing = math.ceil(GetSpellBonusHealing())
-	local minCrit = math.ceil(GetSpellCritChance(2))/100 -- 2 - Holy
-	priest.AvgAmountFlashHeal = (1+masteryValue)*(1+minCrit)*(14664+(1.314*bonusHealing))
-	priest.AvgAmountGreatHeal = (1+masteryValue)*(1+minCrit)*(24430+(2.219*bonusHealing))
-end
-
-jps.listener.registerEvent("UNIT_AURA", function(unitID)
-	if unitID == "player" then
-		updateAverageHeal()
-	end
-end)
 
 --------------------------
 -- GLOBAL COOLDOWN
@@ -560,17 +544,12 @@ jps.listener.registerEvent("UNIT_SPELLCAST_SENT", function(unitID,spellname,_,sp
 	end
 end)
 
-local IsCastingSpellControl = false
 jps.listener.registerEvent("UNIT_SPELLCAST_START", function(unitID,spellname,_,_,spellID)
 		if unitID == "player" then
 			jps.CurrentCast = spellname
 			jps.Latency = GetTime() - sendTime
 			jps.GCD = GlobalCooldown()
 			--print("SPELLCAST_START: ",unitID,"spellname: ",spellname,"spellID: ",spellID)
-		elseif canDPS(unitID) and jps.UnitExists(unitID.."target") then
-			if UnitIsUnit(unitID.."target","player") then
-				IsCastingSpellControl = true
-			end
 		end
 end)
 
@@ -643,28 +622,17 @@ end)
 jps.listener.registerEvent("LOSS_OF_CONTROL_UPDATE", function()
 	local i = C_LossOfControl.GetNumEvents()
 	local locType, spellID, text, _, startTime, _, duration = C_LossOfControl.GetEventInfo(i)
-	if text and duration then
-		if not PlayerControlSpell[locType] then PlayerControlSpell[locType] = {} end
-		if spellID and startTime and duration then
-			PlayerControlSpell[locType] = {spellID,startTime,duration}
-			--tinsert(PlayerControlSpell[locType],1,{spellID,startTime,duration})
-		end
+	if spellID and duration then
+		if not PlayerControlSpell[spellID] then PlayerControlSpell[spellID] = {} end
+		PlayerControlSpell[spellID] = {locType,startTime,duration}
 	end
 end)
 
--- [locType] = { {spellID_1,startTime_1,duration_1}, {spellID_2,startTime_2,duration_2} }
 local updatePlayerControlSpell = function()
-	for locType,index in pairs(PlayerControlSpell) do
-		local SpellCD = jps.SpellCD[index[1]]
-		if SpellCD == nil then SpellCD = 12 end
-		local delta = GetTime() - (index[2] + SpellCD)
-		if delta > 0 then PlayerControlSpell[locType] = nil end
+	for spellID,index in pairs(PlayerControlSpell) do
+		local SpellCD = GetTime() - (index[2] + index[3])
+		if SpellCD > 0 then PlayerControlSpell[spellID] = nil end
 	end
-end
-
-function jps.PlayerControlSpell()
-	if jps.tableLength(PlayerControlSpell) == 0 then return false end -- means the Control spells are ready
-	return true -- means the Control spells are in cd
 end
 
 ----------------------
@@ -710,7 +678,7 @@ local updateEnemyDamager = function()
 		local dataset = index.friendaggro
 		if dataset then 
 			local timeDelta = GetTime() - dataset
-			if timeDelta > 5 then EnemyDamager[unit] = nil end
+			if timeDelta > 4 then EnemyDamager[unit] = nil end
 		end
 	end
 end
@@ -720,7 +688,7 @@ local updateIncomingDamage = function()
 	for unit,index in pairs(IncomingDamage) do
 		local data = #index
 		local delta = GetTime() - index[1][1]
-		if delta > 5 then IncomingDamage[unit] = nil end
+		if delta > 4 then IncomingDamage[unit] = nil end
 	end
 end
 
@@ -729,7 +697,7 @@ local updateIncomingHeal = function()
 	for unit,index in pairs(IncomingHeal) do
 		local data = #index
 		local delta = GetTime() - index[1][1]
-		if delta > 5 then IncomingHeal[unit] = nil end
+		if delta > 4 then IncomingHeal[unit] = nil end
 	end
 end
 
@@ -812,8 +780,6 @@ jps.listener.registerEvent("COMBAT_LOG_EVENT_UNFILTERED", function(...)
 -- The numeric values of the global variables starts with 1 for MINE and increases toward OUTSIDER with 8
 	local isSourceEnemy = bitband(sourceFlags, COMBATLOG_OBJECT_REACTION_HOSTILE) == COMBATLOG_OBJECT_REACTION_HOSTILE
 	local isDestEnemy = bitband(destFlags, COMBATLOG_OBJECT_REACTION_HOSTILE) == COMBATLOG_OBJECT_REACTION_HOSTILE
-	local isDestRaid = bitband(destFlags, RAID_AFFILIATION) > 0
-	local isSourceRaid = bitband(sourceFlags, RAID_AFFILIATION) > 0
 	local isSourceFriend = bitband(sourceFlags,COMBATLOG_OBJECT_REACTION_FRIENDLY) == COMBATLOG_OBJECT_REACTION_FRIENDLY
 	local isDestFriend = bitband(destFlags,COMBATLOG_OBJECT_REACTION_FRIENDLY) == COMBATLOG_OBJECT_REACTION_FRIENDLY
 	
@@ -829,8 +795,15 @@ jps.listener.registerEvent("COMBAT_LOG_EVENT_UNFILTERED", function(...)
 --	end
 
 	if sourceGUID and destGUID then
-			local sourceName = select(5,...) 
-			local destName = select(9,...)
+		local sourceName = select(5,...) 
+		local destName = select(9,...)
+
+		-- Enemy Casting SpellControl according to table jps.SpellControl[spellID]
+		if isSourceEnemy and destGUID == UnitGUID("player") then
+			if jps.tableLength(PlayerControlSpell) == 0 then jps.EnemyCastingSpellControl = false end
+			local spellID = select(12, ...)
+			if jps.SpellControl[spellID] ~= nil then jps.EnemyCastingSpellControl = true end
+		end
 
 -- HEAL TABLE -- Average value of player healing spells
 --		if sourceGUID == UnitGUID("player") then
@@ -880,7 +853,7 @@ jps.listener.registerEvent("COMBAT_LOG_EVENT_UNFILTERED", function(...)
 --		print("|cFFFF0000Event: ",event)
 --		print("|cFFFF0000destName: |cffffffff",destName,"F:",isDestFriend,"E:",isDestEnemy,
 --				"|cFFFF0000sourceName: |cffffffff",sourceName,"F:",isSourceFriend,"E:",isSourceEnemy)
-		
+			if jps.IncomingDamage("player") == 0 then jps.SpellSchool = 0 end
 			if isDestFriend and UnitCanAssist("player",destName) then
 				-- SPELLSCHOOL -- 1 Physical, 2 Holy, 4 Fire, 8 Nature, 16 Frost, 32 Shadow, 64 Arcane
 				local spellSchool = select(14,...)
@@ -1032,8 +1005,8 @@ jps.Lookup = function()
 --		print(#index,"|cFFFF0000unit:",unit,"destname:",index[1][3],"dmg:",index[1][2])
 --	end
 
-	for unit,index in pairs (PlayerControlSpell) do
-		print("|cFFFF0000unit: ",unit,"spellID: ",index[1],"startTime: ",index[2])
+	for unit,index in pairs(PlayerControlSpell) do
+		print("|cFFFF0000SpellID: ",unit,"locType: ",index[1],"Duration: ",GetTime() - (index[2] + index[3]))
 	end
 
 end

@@ -65,6 +65,7 @@ jps.NextSpell = nil
 jps.GCD = 1
 jps.startedFalling = 0
 jps.SpellSchool = 0
+jps.EnemyCastingSpellControl = false
 
 -- Class
 jps.Class = nil

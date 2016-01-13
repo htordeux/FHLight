@@ -33,6 +33,7 @@ local canHeal = jps.canHeal
 local UnitIsUnit = UnitIsUnit
 local GetTime = GetTime
 local toSpellName = jps.toSpellName
+local latencyWorld = select(4,GetNetStats())/1000
 
 --------------------------
 -- DISPEL TABLE
@@ -95,7 +96,7 @@ jps.LoseControl = function(unit,controlTable)
 	local i = 1
 	auraName, _, _, _, debuffType, duration, expTime, _, _, _, spellID, _ = UnitDebuff(unit,i)
 	while auraName do
-		local Priority = DebuffControl[auraName] -- jps.SpellControl[spellID]
+		local Priority = jps.SpellControl[spellID] -- DebuffControl[auraName] --
 		if Priority then
 			for i=1,#controlTable do
 				if Priority == controlTable[i] then
@@ -121,7 +122,7 @@ jps.DispelLoseControl = function(unit,controlTable)
 	local i = 1
 	auraName, _, _, _, debuffType, duration, expTime, _, _, _, spellID, _ = UnitDebuff(unit,i)
 	while auraName do
-		local Priority = DebuffControl[auraName] -- jps.SpellControl[spellID]
+		local Priority = jps.SpellControl[spellID] -- DebuffControl[auraName] --
 		if Priority and debuffType == "Magic" then -- {"Magic", "Poison", "Disease", "Curse"}
 			for i=1,#controlTable do
 				if Priority == controlTable[i] then
@@ -132,272 +133,6 @@ jps.DispelLoseControl = function(unit,controlTable)
 		end
 		i = i + 1
 		auraName, _, _, _, debuffType, duration, expTime, _, _, _, spellID, _ = UnitDebuff(unit,i)
-	end
-	return false
-end
-
---------------------------
--- DEBUFF RBG -- Credits - BigDebuffs Addon
---------------------------
-
-local BigDebuff = {
-	-- Immunities
-	[46924]  = "immunities" , -- Bladestorm
-	[642]    = "immunities" , -- Divine Shield
-	[19263]  = "immunities" , -- Deterrence
-		[148467] = "immunities" , -- Deterrence (Glyph of Mirrored Blades)
-	[51690]  = "immunities" , -- Killing Spree
-	[115018] = "immunities" , -- Desecrated Ground
-	[45438]  = "immunities" , -- Ice Block
-	[115760] = "immunities" , -- Glyph of Ice Block
-	[157913] = "immunities" , -- Evanesce
-
-	-- Spell Immunities
-	[23920]  = "immunities_spells" , -- Spell Reflection
-		[114028] = "immunities_spells" , -- Mass Spell Reflection
-	[31821]  = "immunities_spells" , -- Devotion Aura
-	[31224]  = "immunities_spells" , -- Cloak of Shadows
-	[159630] = "immunities_spells" , -- Shadow Magic
-	[8178]   = "immunities_spells" , -- Grounding Totem
-		[89523]  = "immunities_spells" , -- Grounding Totem (Glyph of Grounding Totem)
-	[159652] = "immunities_spells" , -- Glyph of Spiritwalker's Aegis
-	[48707]  = "immunities_spells" , -- Anti-Magic Shell
-	[104773] = "immunities_spells" , -- Unending Resolve
-	[159546] = "immunities_spells" , -- Glyph of Zen Focus
-	[159438] = "immunities_spells" , -- Glyph of Enchanted Bark
-
-	-- CC
-	[33786]  = "cc" , -- Cyclone
-	[605]    = "cc" , -- Dominate Mind (Mind Control)
-	[20549]  = "cc" , -- War Stomp
-	[107079] = "cc" , -- Quaking Palm
-	[129597] = "cc" , -- Arcane Torrent
-		[28730]  = "cc" , -- Arcane Torrent
-		[25046]  = "cc" , -- Arcane Torrent
-		[50613]  = "cc" , -- Arcane Torrent
-		[69179]  = "cc" , -- Arcane Torrent
-		[155145] = "cc" , -- Arcane Torrent
-		[80483]  = "cc" , -- Arcane Torrent
-	[155335] = "cc" , -- Touched by Ice
-	[5246]   = "cc" , -- Intimidating Shout
-	[24394]  = "cc" , -- Intimidation
-	[132168] = "cc" , -- Shockwave
-	[132169] = "cc" , -- Storm Bolt
-	[853]    = "cc" , -- Hammer of Justice
-	[10326]  = "cc" , -- Turn Evil
-	[20066]  = "cc" , -- Repentance
-	[31935]  = "cc" , -- Avengers Shield
-	[105421] = "cc" , -- Blinding Light
-	[105593] = "cc" , -- Fist of Justice
-	[119072] = "cc" , -- Holy Wrath
-	[3355]   = "cc" , -- Freezing Trap
-	[19386]  = "cc" , -- Wyvern Sting
-	[117526] = "cc" , -- Binding Shot
-	[408]    = "cc" , -- Kidney Shot
-	[1330]   = "cc" , -- Garrote - Silence
-	[1776]   = "cc" , -- Gouge
-	[1833]   = "cc" , -- Cheap Shot
-	[2094]   = "cc" , -- Blind
-	[6770]   = "cc" , -- Sap
-	[88611]  = "cc" , -- Smoke Bomb
-	[8122]   = "cc" , -- Psychic Scream
-	[9484]   = "cc" , -- Shackle Undead
-	[15487]  = "cc" , -- Silence
-	[64044]  = "cc" , -- Psychic Horror
-	[87204]  = "cc" , -- Sin and Punishment
-	[88625]  = "cc" , -- Holy Word: Chastise
-	[47476] = "cc" , -- Strangulate
-		[115502] = "cc" , -- Strangulate (Asphyxiate)
-	[91797]  = "cc" , -- Monstrous Blow
-	[91800]  = "cc" , -- Gnaw
-	[108194] = "cc" , -- Asphyxiate
-	[115001] = "cc" , -- Remorseless Winter
-	[51514]  = "cc" , -- Hex
-	[77505]  = "cc" , -- Earthquake
-	[118345] = "cc" , -- Pulverize
-	[118905] = "cc" , -- Static Charge (Capacitor Totem)
-	[118]    = "cc" , -- Polymorph
-		[61305]  = "cc" , -- Polymorph Black Cat
-		[28272]  = "cc" , -- Polymorph Pig
-		[61721]  = "cc" , -- Polymorph Rabbit
-		[61780]  = "cc" , -- Polymorph Turkey
-		[28271]  = "cc" , -- Polymorph Turtle
-	[31661]  = "cc" , -- Dragon's Breath
-	[44572]  = "cc" , -- Deep Freeze
-	[82691]  = "cc" , -- Ring of Frost
-	[102051] = "cc" , -- Frostjaw
-	[710]    = "cc" , -- Banish
-	[5484]   = "cc" , -- Howl of Terror
-	[6358]   = "cc" , -- Seduction
-	[6789]   = "cc" , -- Mortal Coil
-	[22703]  = "cc" , -- Infernal Awakening
-	[30283]  = "cc" , -- Shadowfury
-	[31117]  = "cc" , -- Unstable Affliction (Silence)
-	[89766]  = "cc" , -- Axe Toss
-	[115268] = "cc" , -- Mesmerize
-	[118699] = "cc" , -- Fear
-		[130616] = "cc", parent = 118699 , -- Fear (Glyph of Fear)
-	[137143] = "cc" , -- Blood Horror
-	[115078] = "cc" , -- Paralysis
-	[119381] = "cc" , -- Leg Sweep
-	[119392] = "cc" , -- Charging Ox Wave
-	[120086] = "cc" , -- Fists of Fury
-	[123393] = "cc" , -- Breath of Fire
-	[137460] = "cc" , -- Incapacitated
-	[99]     = "cc" , -- Incapacitating Roar
-	[5211]   = "cc" , -- Mighty Bash
-	[22570]  = "cc" , -- Maim
-	[81261]  = "cc" , -- Solar Beam
-	[114238] = "cc" , -- Fae Silence
-	[163505] = "cc" , -- Rake
-
-	-- Defensive Buffs
-	[871]    = "buffs_defensive" , -- Shield Wall
-	[108271] = "buffs_defensive" , -- Astral Shift
-	[157128] = "buffs_defensive" , -- Saved by the Light
-	[33206]  = "buffs_defensive" , -- Pain Suppression
-	[116849] = "buffs_defensive" , -- Life Cocoon
-	[47788]  = "buffs_defensive" , -- Guardian Spirit
-	[47585]  = "buffs_defensive" , -- Dispersion
-	[122783] = "buffs_defensive" , -- Diffuse Magic
-	[178858] = "buffs_defensive" , -- Contender
-	[61336]  = "buffs_defensive" , -- Survival Instincts
-	[98007]  = "buffs_defensive" , -- Spirit Link
-	[118038] = "buffs_defensive" , -- Die by the Sword
-	[74001]  = "buffs_defensive" , -- Combat Readiness
-	[30823]  = "buffs_defensive" , -- Shamanistic Rage
-	[114917] = "buffs_defensive" , -- Stay of Execution
-	[114029] = "buffs_defensive" , -- Safeguard
-	[5277]   = "buffs_defensive" , -- Evasion
-	[49039]  = "buffs_defensive" , -- Lichborne
-	[117679] = "buffs_defensive" , -- Incarnation: Tree of Life
-	[137562] = "buffs_defensive" , -- Nimble Brew
-	[102342] = "buffs_defensive" , -- Ironbark
-	[22812]  = "buffs_defensive" , -- Barkskin
-	[110913] = "buffs_defensive" , -- Dark Bargain
-	[122278] = "buffs_defensive" , -- Dampen Harm
-	[53480]  = "buffs_defensive" , -- Roar of Sacrifice
-	[55694]  = "buffs_defensive" , -- Enraged Regeneration
-	[12975]  = "buffs_defensive" , -- Last Stand
-	[1966]   = "buffs_defensive" , -- Feint
-	[6940]   = "buffs_defensive" , -- Hand of Sacrifice
-	[97463]  = "buffs_defensive" , -- Rallying Cry
-	[115176] = "buffs_defensive" , -- Zen Meditation
-	[120954] = "buffs_defensive" , -- Fortifying Brew
-	[118347] = "buffs_defensive" , -- Reinforce
-	[81782]  = "buffs_defensive" , -- Power Word: Barrier
-	[30884]  = "buffs_defensive" , -- Nature's Guardian
-	[155835] = "buffs_defensive" , -- Bristling Fur
-	[62606]  = "buffs_defensive" , -- Savage Defense
-	[1022]   = "buffs_defensive" , -- Hand of Protection
-	[48743]  = "buffs_defensive" , -- Death Pact
-	[31850]  = "buffs_defensive" , -- Ardent Defender
-	[114030] = "buffs_defensive" , -- Vigilance
-	[498]    = "buffs_defensive" , -- Divine Protection
-	[122470] = "buffs_defensive" , -- Touch of Karma
-	[48792]  = "buffs_defensive" , -- Icebound Fortitude
-	[55233]  = "buffs_defensive" , -- Vampiric Blood
-	[114039] = "buffs_defensive" , -- Hand of Purity
-	[86659]  = "buffs_defensive" , -- Guardian of Ancient Kings
-	[108416] = "buffs_defensive" , -- Sacrificial Pact
-
-	-- Offensive Buffs
-	[19574]  = "buffs_offensive" , -- Bestial Wrath
-	[84747]  = "buffs_offensive" , -- Deep Insight
-	[131894] = "buffs_offensive" , -- A Murder of Crows
-	[152151] = "buffs_offensive" , -- Shadow Reflection
-	[31842]  = "buffs_offensive" , -- Avenging Wrath
-	[114916] = "buffs_offensive" , -- Execution Sentence
-	[83853]  = "buffs_offensive" , -- Combustion
-	[51690]  = "buffs_offensive" , -- Killing Spree
-	[79140]  = "buffs_offensive" , -- Vendetta
-	[102560] = "buffs_offensive" , -- Incarnation: Chosen of Elune
-	[102543] = "buffs_offensive" , -- Incarnation: King of the Jungle
-	[123737] = "buffs_offensive" , -- Heart of the Wild
-		[108291] = "buffs_offensive" , -- Heart of the Wild (Balance)
-		[108292] = "buffs_offensive" , -- Heart of the Wild (Feral)
-		[108293] = "buffs_offensive" , -- Heart of the Wild (Guardian)
-		[108294] = "buffs_offensive" , -- Heart of the Wild (Restoration)
-	[124974] = "buffs_offensive" , -- Nature's Vigil
-	[12472]  = "buffs_offensive" , -- Icy Veins
-	[77801]  = "buffs_offensive" , -- Dark Soul
-		[113860] = "buffs_offensive" , -- Dark Soul (Misery)
-		[113861] = "buffs_offensive" , -- Dark Soul (Knowledge)
-		[113858] = "buffs_offensive" , -- Dark Soul (Instability)
-	[16166]  = "buffs_offensive" , -- Elemental Mastery
-	[114049] = "buffs_offensive" , -- Ascendance
-		[114052] = "buffs_offensive" , -- Ascendance (Restoration)
-		[114050] = "buffs_offensive" , -- Ascendance (Elemental)
-		[114051] = "buffs_offensive" , -- Ascendance (Enhancement)
-	[107574] = "buffs_offensive" , -- Avatar
-	[51713]  = "buffs_offensive" , -- Shadow Dance
-	[13750]  = "buffs_offensive" , -- Adrenaline Rush
-	[1719]   = "buffs_offensive" , -- Recklessness
-	[84746]  = "buffs_offensive" , -- Moderate Insight
-	[112071] = "buffs_offensive" , -- Celestial Alignment
-	[106951] = "buffs_offensive" , -- Berserk
-	[12042]  = "buffs_offensive" , -- Arcane Power
-	[51271]  = "buffs_offensive" , -- Pillar of Frost
-	[152279] = "buffs_offensive" , -- Breath of Sindragosa
-
-	[41425]  = "buffs_other" , -- Hypothermia
-	[130736] = "buffs_other" , -- Soul Reaper (Blood)
-		[114866] = "buffs_other" , -- Soul Reaper (Unholy)
-		[130735] = "buffs_other" , -- Soul Reaper (Frost)
-	[12043]  = "buffs_other" , -- Presence of Mind
-	[16188]  = "buffs_other" , -- Ancestral Swiftness
-	[132158] = "buffs_other" , -- Nature's Swiftness
-	[6346]   = "buffs_other" , -- Fear Ward
-	[77606]  = "buffs_other" , -- Dark Simulacrum
-	[172786] = "buffs_other" , -- Drink
-		[167152] = "buffs_other" , -- Refreshment
-	[114239] = "buffs_other" , -- Phantasm
-	[119032] = "buffs_other" , -- Spectral Guise
-	[1044]   = "buffs_other" , -- Hand of Freedom
-	[10060]  = "buffs_other" , -- Power Infusion
-	[5384]   = "buffs_other" , -- Feign Death
-	[108978] = "buffs_other" , -- Alter Time
-	[170856] = "buffs_other" , -- Nature's Grasp
-	[110959] = "buffs_other" , -- Greater Invisibility
-	[18499]  = "buffs_other" , -- Berserker Rage	
-	[111397] = "buffs_other" , -- Blood Horror (Buff)
-	[114896] = "buffs_other" , -- Windwalk Totem
-
-	-- Roots
-	[122]    = "roots" , -- Frost Nova
-		[33395] = "roots" , -- Freeze
-	[339]    = "roots" , -- Entangling Roots
-		[113770] = "roots" , -- Entangling Roots
-		[170855] = "roots" , -- Entangling Roots (Nature's Grasp)
-	[53148]  = "roots" , -- Charge (Hunter)
-	[105771] = "roots" , -- Charge (Warrior)
-	[63685]  = "roots" , -- Frozen Power
-	[64695]  = "roots" , -- Earthgrab Totem
-	[87194]  = "roots" , -- Glyph of Mind Blast
-	[96294]  = "roots" , -- Chains of Ice
-	[102359] = "roots" , -- Mass Entanglement
-	[111340] = "roots" , -- Ice Ward
-	[114404] = "roots" , -- Void Tendrils
-	[116706] = "roots" , -- Disable
-	[135373] = "roots" , -- Entrapment
-	[136634] = "roots" , -- Narrow Escape
-	[55536]  = "roots" , -- Frostweave Net
-	[157997] = "roots" , -- Ice Nova
-	[45334]  = "roots" , -- Wild Charge
-
-}
-
--- Enemy Casting SpellControl according to table jps.SpellControl[spellID]
-local latencyWorld = select(4,GetNetStats())/1000
-
-function jps.IsCastingSpellControl(unit) -- WORKS FOR CASTING SPELL NOT CHANNELING SPELL
-	if unit == nil then unit = "player" end
-	-- name, nameSubtext, text, texture, startTime, endTime, isTradeSkill, notInterruptible = UnitCastingInfo("unit")
-	local spellName, _, _, _, startTime, endTime, _, _, interrupt = UnitCastingInfo(unit)
-	if not spellName then return false end
-	if DebuffControl[spellName] == "CC" then return true
-	elseif DebuffControl[spellName] == "Silence" then return true
-	elseif DebuffControl[spellName] == "Root" then return true
 	end
 	return false
 end
@@ -413,7 +148,7 @@ jps.DispelFriendly = function(unit,time)
 	local i = 1
 	auraName, _, _, _, debuffType, duration, expTime, _, _, _, spellID = UnitDebuff(unit, i)
 	while auraName do
-		if BigDebuff[spellID]  == "cc" and debuffType == "Magic" then -- {"Magic", "Poison", "Disease", "Curse"}
+		if jps.BigDebuff[spellID]  == "cc" and debuffType == "Magic" then -- {"Magic", "Poison", "Disease", "Curse"}
 			if expTime ~= nil then timeControlled = expTime - GetTime() end
 			if timeControlled > time then return true end
 		end

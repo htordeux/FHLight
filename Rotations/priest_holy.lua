@@ -292,7 +292,7 @@ local spellTable = {
 	{ 59544, jps.hp() < 0.75 , "player" , "Aggro_Naaru" },
 
 	-- PLAYER AGGRO
-	{ "nested", playerAggro or playerWasControl or playerIsTargeted ,{
+	{ "nested", playerAggro or playerIsTargeted ,{
 		-- "Power Word: Shield" 17
 		{ 17, jps.IsSpellKnown(64129) and not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Aggro_Shield" },
 		-- "Spectral Guise" 112833 "Semblance spectrale"

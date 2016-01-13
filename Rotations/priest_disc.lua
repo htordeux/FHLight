@@ -224,13 +224,6 @@ local priestDisc = function()
 -- LOCAL FUNCTIONS ENEMY
 ------------------------
 
-	local EnemyIsCastingControl = nil
-	for i=1,#EnemyUnit do -- for _,unit in ipairs(EnemyUnit) do
-		local unit = EnemyUnit[i]
-		if jps.IsCastingSpellControl(unit) then EnemyIsCastingControl = unit
-		break end
-	end
-
 	local SilenceEnemyTarget = nil
 	for i=1,#EnemyUnit do -- for _,unit in ipairs(EnemyUnit) do
 		local unit = EnemyUnit[i]
@@ -306,7 +299,7 @@ local priestDisc = function()
 	-- "Power Infusion" 10060 "Infusion de puissance"
 	local InterruptTable = {
 		{priest.Spell.FlashHeal, 0.80, jps.buffId(priest.Spell.SpiritShellBuild) or jps.buff(172359) },
-		{priest.Spell.Heal, 1, jps.buffId(priest.Spell.SpiritShellBuild) },
+		{priest.Spell.Heal, 0.90, jps.buffId(priest.Spell.SpiritShellBuild) },
 		{priest.Spell.PrayerOfHealing, 0.80, jps.buff(10060) or jps.buff(172359) or jps.buffId(priest.Spell.SpiritShellBuild) },
 		{priest.Spell.HolyCascade, 3 , false}
 	}
@@ -357,9 +350,9 @@ spellTable = {
 	{ 33206, jps.hp(LowestImportantUnit) < 0.40 and UnitAffectingCombat(LowestImportantUnit) , LowestImportantUnit , "StunPain_Lowest" },
 
 	-- "Spectral Guise" 112833 "Semblance spectrale" gives buff 119032
-	{ 112833, jps.Interrupts and EnemyIsCastingControl ~= nil and jps.IsSpellKnown(112833) and not jps.buff(159630) , "player" , "Control_Spectral" },
+	{ 112833, jps.Interrupts and jps.EnemyCastingSpellControl and jps.IsSpellKnown(112833) and not jps.buff(159630) , "player" , "Control_Spectral" },
 	-- "Fade" 586 "Oubli" -- "Glyph of Shadow Magic" 159628 -- gives buff "Shadow Magic" 159630 "Magie des Ténèbres"
-	{ 586, EnemyIsCastingControl ~= nil and jps.glyphInfo(159628) and not jps.buff(119032), "player" , "Control_Oubli" },
+	{ 586, jps.EnemyCastingSpellControl and jps.glyphInfo(159628) and not jps.buff(119032), "player" , "Control_Oubli" },
 
 	-- "Soins rapides" 2061 -- "Vague de Lumière" 114255 "Surge of Light"
 	{ 2061, jps.buff(114255) and jps.hp(LowestImportantUnit) < 0.80 , LowestImportantUnit , "FlashHeal_Light" },
@@ -387,15 +380,13 @@ spellTable = {
 	{ "nested", jps.UseCDs , parseDispel },
 
 	-- PLAYER AGGRO
-	{ "nested", playerAggro or playerWasControl or playerIsTargeted ,{
+	{ "nested", playerAggro or playerIsTargeted ,{
 		-- "Spectral Guise" 112833 "Semblance spectrale" gives buff 119032
 		{ 112833, jps.Interrupts and jps.IsSpellKnown(112833) and not jps.buff(159630) , "player" , "Aggro_Spectral" },
-		-- "Fade" 586 "Oubli" -- "Glyph of Shadow Magic" 159628 -- gives buff "Shadow Magic" 159630 "Magie des Ténèbres"
-		{ 586, jps.glyphInfo(159628) and not jps.buff(119032), "player" , "Aggro_Oubli" },
-		-- "Oubli" 586 -- Fantasme 108942 -- vous dissipez tous les effets affectant le déplacement sur vous-même
-		{ 586, jps.IsSpellKnown(108942) , "player" , "Aggro_Oubli" },
-		-- "Oubli" 586 -- Glyphe d'oubli 55684 -- Votre technique Oubli réduit à présent tous les dégâts subis de 10%.
+		-- "Fade" 586 "Oubli" 586 -- Glyphe d'oubli 55684 -- Votre technique Oubli réduit à présent tous les dégâts subis de 10%.
 		{ 586, jps.glyphInfo(55684) , "player" , "Aggro_Oubli" },
+		-- "Fade" 586 "Oubli" 586 -- Fantasme 108942 -- vous dissipez tous les effets affectant le déplacement sur vous-même
+		{ 586, jps.IsSpellKnown(108942) , "player" , "Aggro_Oubli" },
 		-- "Power Word: Shield" 17
 		{ 17, not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Aggro_Shield" },
 		-- "Prière du désespoir" 19236

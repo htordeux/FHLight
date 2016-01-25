@@ -154,14 +154,12 @@ local priestDisc = function()
 	-- DISPEL --
 	
 	local DispelFriendPvE = jps.FindMeDispelTarget( {"Magic"} ) -- {"Magic", "Poison", "Disease", "Curse"}
-	local DispelFriendLoseControl = nil
 	local DispelFriendPvP = nil
 	local DispelFriendHealth = 100
 	for i=1,#FriendUnit do -- for _,unit in ipairs(FriendUnit) do
 		local unit = FriendUnit[i]
-		local unitHP = jps.hp(unit)
-		if DispelFriendLoseControl == nil and jps.DispelLoseControl(unit) then DispelFriendLoseControl = unit end
 		if jps.DispelFriendly(unit) then -- jps.DispelFriendly includes UnstableAffliction
+			local unitHP = jps.hp(unit)
 			if unitHP < DispelFriendHealth then
 				DispelFriendPvP = unit
 				DispelFriendHealth = unitHP
@@ -169,12 +167,17 @@ local priestDisc = function()
 		end
 	end
 
+	local DispelFriendLoseControl = nil
+	for i=1,#FriendUnit do -- for _,unit in ipairs(FriendUnit) do
+		local unit = FriendUnit[i]
+		if DispelFriendLoseControl == nil and jps.DispelLoseControl(unit) then DispelFriendLoseControl = unit
+		break end
+	end
+
 	local DispelFriendRole = nil
 	for i=1,#TankUnit do -- for _,unit in ipairs(TankUnit) do
 		local unit = TankUnit[i]
 		if jps.canDispel(unit,{"Magic"}) then -- jps.canDispel includes UnstableAffliction
-			DispelFriendRole = unit
-		elseif jps.PvP and jps.RoleInRaid(unit) == "HEALER" then
 			DispelFriendRole = unit
 		break end
 	end
@@ -348,9 +351,9 @@ spellTable = {
 	{ 33206, jps.hp(LowestImportantUnit) < 0.40 and UnitAffectingCombat(LowestImportantUnit) , LowestImportantUnit , "StunPain_Lowest" },
 
 	-- "Spectral Guise" 112833 "Semblance spectrale" gives buff 119032
-	{ 112833, jps.Interrupts and jps.EnemyCastingSpellControl and jps.IsSpellKnown(112833) and not jps.buff(159630) , "player" , "Control_Spectral" },
+	{ 112833, jps.Interrupts and jps.EnemyCastingSpellControl() and jps.IsSpellKnown(112833) and not jps.buff(159630) , "player" , "Control_Spectral" },
 	-- "Fade" 586 "Oubli" -- "Glyph of Shadow Magic" 159628 -- gives buff "Shadow Magic" 159630 "Magie des Ténèbres"
-	{ 586, jps.EnemyCastingSpellControl and jps.glyphInfo(159628) and not jps.buff(119032), "player" , "Control_Oubli" },
+	{ 586, jps.EnemyCastingSpellControl() and jps.glyphInfo(159628) and not jps.buff(119032), "player" , "Control_Oubli" },
 
 	-- "Soins rapides" 2061 -- "Vague de Lumière" 109186 "Surge of Light" -- gives buff 114255
 	{ 2061, jps.buff(114255) and jps.hp(LowestImportantUnit) < 0.80 , LowestImportantUnit , "FlashHeal_Light" },
@@ -360,7 +363,7 @@ spellTable = {
 	{ 152116, jps.hp(LowestImportantUnit) < 0.40 and jps.debuffStacks(155274,"player") < 2 , LowestImportantUnit , "Emergency_SavingGrace" },
 	-- "Soins rapides" 2061 -- Buff Borrowed 59889 -- Buff infusion 10060
 	{ 2061, jps.hpInc("player") < 0.60 and not jps.Moving and jps.buff(59889) and jps.buff(10060) ,"player" , "FlashHeal_Borrowed"  },
-	{ 2061, jps.hpInc(LowestImportantUnit) < 0.70 and not jps.Moving and jps.buff(59889) and jps.buff(10060) , LowestImportantUnit , "FlashHeal_Borrowed"  },
+	{ 2061, jps.hpInc(LowestImportantUnit) < 0.60 and not jps.Moving and jps.buff(59889) and jps.buff(10060) , LowestImportantUnit , "FlashHeal_Borrowed"  },
 	
 	-- PAIN FRIEND
 	{ "nested", PainFriend ~= nil and jps.hpInc(PainFriend) < 0.80 ,{
@@ -372,7 +375,7 @@ spellTable = {
 		{ 2061, not jps.Moving and jps.hpInc(PainFriend) < 0.60 , PainFriend, "FlashHeal_PainFriend" },
 	}},
 	
-	-- DISPEL 
+	-- DISPEL --
 	-- "Dispel" 527 "Purifier" -- "Glyph of Purify" 55677 Your Purify spell also heals your target for 5% of maximum health
 	{ 527, jps.canDispel("player",{"Magic"}) , "player" , "Aggro_Dispel" },
 	{ 527, jps.canDispel("mouseover") , "mouseover" , "Dispel_Mouseover"},
@@ -449,7 +452,7 @@ spellTable = {
 	{ 110744, FriendIsFacingLowest ~= nil and CountFriendIsFacing > 3 , FriendIsFacingLowest ,  "DivineStar_Count" },
 	{ 110744, FriendIsFacingLowest ~= nil and jps.hp(FriendIsFacingLowest) < 0.80 , FriendIsFacingLowest ,  "DivineStar_Lowest" },
 	-- "Cascade" Holy 121135 Shadow 127632
-	{ 121135, not jps.Moving and CountFriendLowest > 2 , LowestImportantUnit ,  "Cascade_Count" },
+	{ 121135, not jps.Moving and CountFriendLowest > 3 , LowestImportantUnit ,  "Cascade_Count" },
 	{ 121135, not jps.Moving and POHTarget ~= nil and canHeal(POHTarget) , POHTarget ,  "Cascade_POH" },
 	-- "Torve-esprit" 123040 -- "Ombrefiel" 34433 "Shadowfiend"
 	{ 34433, priest.canShadowfiend("target") , "target" },
@@ -484,7 +487,7 @@ spellTable = {
 	-- 6948 -- "Hearthstone"
 	--{ {"macro","/use item:6948"}, jps.PvP and jps.hp(LowestImportantUnit) > 0.80 and not jps.Moving and jps.itemCooldown(6948) == 0 , "player" , "FAKECAST" },
 	-- "Soins" 2060
-	{ 2060, not jps.Moving and jps.hp(LowestImportantUnit) > 0.80 and playerIsTargeted , LowestImportantUnit , "Fake_Soins"  },
+	--{ 2060, not jps.Moving and jps.hp(LowestImportantUnit) > 0.80 and playerIsTargeted , LowestImportantUnit , "Fake_Soins"  },
 
 	-- DAMAGE
 	{ "nested", jps.hp(LowestImportantUnit) > 0.80 and jps.MultiTarget and canDPS(rangedTarget) ,{

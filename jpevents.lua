@@ -439,7 +439,6 @@ local leaveCombat = function()
 	jps.combatStart = 0
 	jps.NextSpell = nil
 	jps.SpellSchool = 0
-	jps.EnemyCastingSpellControl = false
 
 	-- nil all tables
 	EnemyDamager = {}
@@ -600,15 +599,20 @@ jps.listener.registerEvent("LOSS_OF_CONTROL_ADDED", function ()
 	local i = C_LossOfControl.GetNumEvents()
     local locType, spellID, text, _, _, _, duration = C_LossOfControl.GetEventInfo(i)
     --print("CONTROL:", locType,"/",text,"/",duration)
-    if text and duration then
+    if spellID and duration then
+    	if not PlayerControlSpell[spellID] then PlayerControlSpell[spellID] = {} end
+		PlayerControlSpell[spellID] = {locType,startTime,duration}
+		if not jps.SpellControl[spellID] then jps.SpellControl[spellID] = locType end
+		
     	if locType == "SCHOOL_INTERRUPT" then
-    		jps.createTimer("PlayerInterrupt",duration)
-    	return end
-		for i=1,#stunTypeTable do -- for _,stuntype in ipairs(stunTypeTable) do
-			local stuntype = stunTypeTable[i]
-			if locType == stuntype then 
-				jps.createTimer("PlayerStun",duration)
-			break end
+    		if jps.checkTimer("PlayerInterrupt") == 0 then jps.createTimer("PlayerInterrupt",duration) end
+    	else
+			for i=1,#stunTypeTable do -- for _,stuntype in ipairs(stunTypeTable) do
+				local stunType = stunTypeTable[i]
+				if locType == stunType then 
+					if jps.checkTimer("PlayerStun") == 0 then jps.createTimer("PlayerStun",duration) end
+				break end
+			end
 		end
     end
 end)
@@ -655,6 +659,7 @@ jps.listener.registerEvent("GROUP_ROSTER_UPDATE", function()
 	jps.UpdateRaidStatus()
 	jps.UpdateRaidRole()
 end)
+
 jps.listener.registerEvent("PARTY_MEMBER_DISABLE", function()
 	jps.UpdateRaidStatus()
 	jps.UpdateRaidRole()
@@ -800,9 +805,10 @@ jps.listener.registerEvent("COMBAT_LOG_EVENT_UNFILTERED", function(...)
 
 		-- Enemy Casting SpellControl according to table jps.SpellControl[spellID]
 		if isSourceEnemy and destGUID == UnitGUID("player") then
-			if jps.tableLength(PlayerControlSpell) == 0 then jps.EnemyCastingSpellControl = false end
 			local spellID = select(12, ...)
-			if jps.SpellControl[spellID] ~= nil then jps.EnemyCastingSpellControl = true end
+			if jps.checkTimer("SpellControl") == 0 and jps.SpellControl[spellID] ~= nil then
+				jps.createTimer("SpellControl",2)
+			end
 		end
 
 -- HEAL TABLE -- Average value of player healing spells

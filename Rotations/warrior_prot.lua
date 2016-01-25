@@ -208,8 +208,8 @@ local spellTable = {
 	}},
 	
 	-- player.hasBuff(spells.shieldWall) or player.hasBuff(spells.lastStand) or player.hasBuff(spells.enragedRegeneration)
-	{ warrior.spells["ShieldBarrier"] , jps.buff(71) and not jps.buff(112048) and jps.IncomingDamage("player") > UnitHealthMax("player")*0.10 , rangedTarget , "|cff1eff00ShieldBarrier_IncDmg" },
-	
+	{ warrior.spells["ShieldBarrier"] , jps.buff(71) and not jps.buff(112048) and jps.IncomingDamage("player") > jps.IncomingHeal("player") , rangedTarget , "|cff1eff00ShieldBarrier_IncDmg" },
+
 	{"nested", jps.buff(71) and jps.hp("player") < 0.80 and jps.hpSum("player") < 0.80 ,{
 		-- "Shield Block" 2565 "Maîtrise du blocage" -- works against physical attacks, it does nothing against magic -- Buff "Shield Block" 132404 -- 60 rage
 		{ warrior.spells["ShieldBlock"] , jps.SchoolDamage("physical") and not jps.buff(132404) , rangedTarget , "|cff1eff00ShieldBlock_Physical" },
@@ -346,8 +346,7 @@ jps.registerStaticTable("WARRIOR","PROTECTION",{
 	-- "Shield Barrier" 112048 "Barrière protectrice" -- Shield Barrier works against all types of damage (excluding fall damage) -- 20 + 40 rage
 	{ warrior.spells["ShieldBarrier"] , 'jps.SchoolDamage("magic") and not jps.buff(112048)' , "target" },
 	{ warrior.spells["ShieldBarrier"] , 'jps.hp("player") < 0.80 and not jps.buff(112048)' , "target" },
-	
-	{ warrior.spells["Bloodbath"], 'jps.rage() > 89' , "target" },
+	{ warrior.spells["ShieldBarrier"] , 'jps.IncomingDamage("player") > jps.IncomingHeal("player") and not jps.buff(112048)' , "target" },
 
 	-- "Thunder Clap" 6343 "Coup de tonnerre"
 	{ warrior.spells["ThunderClap"] , 'jps.MultiTarget' , "target" },

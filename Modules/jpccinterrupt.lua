@@ -85,6 +85,11 @@ function jps.ControlEvents() -- ONLY FOR PLAYER
 	return false
 end
 
+function jps.EnemyCastingSpellControl()
+	if jps.checkTimer("SpellControl") > 0 then return true end
+	return false
+end
+
 -- Check if unit loosed control
 -- { "CC" , "Snare" , "Root" , "Silence" , "Immune", "ImmuneSpell", "Disarm" }
 -- LoseControl could be FRIEND or ENEMY

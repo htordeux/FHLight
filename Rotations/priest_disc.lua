@@ -154,14 +154,12 @@ local priestDisc = function()
 	-- DISPEL --
 	
 	local DispelFriendPvE = jps.FindMeDispelTarget( {"Magic"} ) -- {"Magic", "Poison", "Disease", "Curse"}
-	local DispelFriendLoseControl = nil
 	local DispelFriendPvP = nil
 	local DispelFriendHealth = 100
 	for i=1,#FriendUnit do -- for _,unit in ipairs(FriendUnit) do
 		local unit = FriendUnit[i]
-		local unitHP = jps.hp(unit)
-		if DispelFriendLoseControl == nil and jps.DispelLoseControl(unit) then DispelFriendLoseControl = unit end
 		if jps.DispelFriendly(unit) then -- jps.DispelFriendly includes UnstableAffliction
+			local unitHP = jps.hp(unit)
 			if unitHP < DispelFriendHealth then
 				DispelFriendPvP = unit
 				DispelFriendHealth = unitHP
@@ -169,12 +167,17 @@ local priestDisc = function()
 		end
 	end
 
+	local DispelFriendLoseControl = nil
+	for i=1,#FriendUnit do -- for _,unit in ipairs(FriendUnit) do
+		local unit = FriendUnit[i]
+		if DispelFriendLoseControl == nil and jps.DispelLoseControl(unit) then DispelFriendLoseControl = unit
+		break end
+	end
+
 	local DispelFriendRole = nil
 	for i=1,#TankUnit do -- for _,unit in ipairs(TankUnit) do
 		local unit = TankUnit[i]
 		if jps.canDispel(unit,{"Magic"}) then -- jps.canDispel includes UnstableAffliction
-			DispelFriendRole = unit
-		elseif jps.PvP and jps.RoleInRaid(unit) == "HEALER" then
 			DispelFriendRole = unit
 		break end
 	end
@@ -275,8 +278,8 @@ local priestDisc = function()
 	local parseDispel = {
 		-- "Dispel" "Purifier" 527
 		{ 527, DispelFriendRole ~= nil , DispelFriendRole , "|cff1eff00DispelFriend_Role" },
-		{ 527, DispelFriendLoseControl ~= nil , DispelFriendLoseControl , "|cff1eff00DispelFriend_LoseControl" },
 		{ 527, DispelFriendPvP ~= nil , DispelFriendPvP , "|cff1eff00DispelFriend_PvP" },
+		{ 527, DispelFriendLoseControl ~= nil , DispelFriendLoseControl , "|cff1eff00DispelFriend_LoseControl" },
 		{ 527, DispelFriendPvE ~= nil , DispelFriendPvE , "|cff1eff00DispelFriend_PvE" },
 	}
 
@@ -350,17 +353,18 @@ spellTable = {
 	{ 33206, jps.hp(LowestImportantUnit) < 0.40 and UnitAffectingCombat(LowestImportantUnit) , LowestImportantUnit , "StunPain_Lowest" },
 
 	-- "Spectral Guise" 112833 "Semblance spectrale" gives buff 119032
-	{ 112833, jps.Interrupts and jps.EnemyCastingSpellControl and jps.IsSpellKnown(112833) and not jps.buff(159630) , "player" , "Control_Spectral" },
+	{ 112833, jps.Interrupts and jps.EnemyCastingSpellControl() and jps.IsSpellKnown(112833) and not jps.buff(159630) , "player" , "Control_Spectral" },
 	-- "Fade" 586 "Oubli" -- "Glyph of Shadow Magic" 159628 -- gives buff "Shadow Magic" 159630 "Magie des Ténèbres"
-	{ 586, jps.EnemyCastingSpellControl and jps.glyphInfo(159628) and not jps.buff(119032), "player" , "Control_Oubli" },
+	{ 586, jps.EnemyCastingSpellControl() and jps.glyphInfo(159628) and not jps.buff(119032), "player" , "Control_Oubli" },
 
-	-- "Soins rapides" 2061 -- "Vague de Lumière" 114255 "Surge of Light"
+	-- "Soins rapides" 2061 -- "Vague de Lumière" 109186 "Surge of Light" -- gives buff 114255
 	{ 2061, jps.buff(114255) and jps.hp(LowestImportantUnit) < 0.80 , LowestImportantUnit , "FlashHeal_Light" },
 	{ 2061, jps.buff(114255) and jps.buffDuration(114255) < 4 , LowestImportantUnit , "FlashHeal_Light" },
 	-- "Saving Grace" 152116 "Grâce salvatrice"
 	{ 152116, jps.hp("player") < 0.40 and jps.debuffStacks(155274,"player") < 2 , "player" , "Emergency_SavingGrace" },
 	{ 152116, jps.hp(LowestImportantUnit) < 0.40 and jps.debuffStacks(155274,"player") < 2 , LowestImportantUnit , "Emergency_SavingGrace" },
 	-- "Soins rapides" 2061 -- Buff Borrowed 59889 -- Buff infusion 10060
+	{ 2061, jps.hpInc("player") < 0.60 and not jps.Moving and jps.buff(59889) and jps.buff(10060) ,"player" , "FlashHeal_Borrowed"  },
 	{ 2061, jps.hpInc(LowestImportantUnit) < 0.60 and not jps.Moving and jps.buff(59889) and jps.buff(10060) , LowestImportantUnit , "FlashHeal_Borrowed"  },
 	
 	-- PAIN FRIEND
@@ -373,7 +377,7 @@ spellTable = {
 		{ 2061, not jps.Moving and jps.hpInc(PainFriend) < 0.60 , PainFriend, "FlashHeal_PainFriend" },
 	}},
 	
-	-- DISPEL
+	-- DISPEL --
 	-- "Dispel" 527 "Purifier" -- "Glyph of Purify" 55677 Your Purify spell also heals your target for 5% of maximum health
 	{ 527, jps.canDispel("player",{"Magic"}) , "player" , "Aggro_Dispel" },
 	{ 527, jps.canDispel("mouseover") , "mouseover" , "Dispel_Mouseover"},
@@ -383,9 +387,9 @@ spellTable = {
 	{ "nested", playerAggro or playerIsTargeted ,{
 		-- "Spectral Guise" 112833 "Semblance spectrale" gives buff 119032
 		{ 112833, jps.Interrupts and jps.IsSpellKnown(112833) and not jps.buff(159630) , "player" , "Aggro_Spectral" },
-		-- "Fade" 586 "Oubli" 586 -- Glyphe d'oubli 55684 -- Votre technique Oubli réduit à présent tous les dégâts subis de 10%.
+		-- "Fade" 586 "Oubli" -- Glyphe d'oubli 55684 -- Votre technique Oubli réduit à présent tous les dégâts subis de 10%.
 		{ 586, jps.glyphInfo(55684) , "player" , "Aggro_Oubli" },
-		-- "Fade" 586 "Oubli" 586 -- Fantasme 108942 -- vous dissipez tous les effets affectant le déplacement sur vous-même
+		-- "Fade" 586 "Oubli" -- Fantasme 108942 -- vous dissipez tous les effets affectant le déplacement sur vous-même
 		{ 586, jps.IsSpellKnown(108942) , "player" , "Aggro_Oubli" },
 		-- "Power Word: Shield" 17
 		{ 17, not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Aggro_Shield" },
@@ -433,7 +437,7 @@ spellTable = {
 	-- "Power Infusion" 10060 "Infusion de puissance"
 	{ 10060, jps.hp(LowestImportantUnit) < 0.50 , "player" , "POWERINFUSION_Lowest" },
 	{ 10060, groupHealth < 0.80 , "player" , "POWERINFUSION_POH" },
-	{ 10060, CountFriendLowest > 4 , "player" , "POWERINFUSION_Count" },
+	{ 10060, CountFriendLowest > 3 , "player" , "POWERINFUSION_Count" },
 	{ 10060, CountFriendEmergency > 2 , "player" , "POWERINFUSION_Count" },
 	-- SNM Troll "Berserker" 26297 -- haste buff
 	{ 26297, CountFriendEmergency > 2 , "player" },
@@ -442,7 +446,7 @@ spellTable = {
 	{ 110744, FriendIsFacingLowest ~= nil and CountFriendIsFacing > 3 , FriendIsFacingLowest ,  "DivineStar_Count" },
 	{ 110744, FriendIsFacingLowest ~= nil and jps.hp(FriendIsFacingLowest) < 0.80 , FriendIsFacingLowest ,  "DivineStar_Lowest" },
 	-- "Cascade" Holy 121135 Shadow 127632
-	{ 121135, not jps.Moving and CountFriendLowest > 2 , LowestImportantUnit ,  "Cascade_Count" },
+	{ 121135, not jps.Moving and CountFriendLowest > 3 , LowestImportantUnit ,  "Cascade_Count" },
 	{ 121135, not jps.Moving and POHTarget ~= nil and canHeal(POHTarget) , POHTarget ,  "Cascade_POH" },
 
 	-- TIMER POM
@@ -458,7 +462,7 @@ spellTable = {
 	{ 81700, jps.buffStacks(81661) == 5 and  jps.hp(TankThreat) < 0.70 , "player" , "ARCHANGE_TankThreat" },
 	{ 81700, jps.buffStacks(81661) == 5 and  jps.hp(Tank) < 0.70 , "player" , "ARCHANGE_Tank" },
 	{ 81700, jps.buffStacks(81661) == 5 and  groupHealth < 0.80 , "player", "ARCHANGE_POH" },
-	{ 81700, jps.buffStacks(81661) == 5 and  jps.hp(LowestImportantUnit) < 0.50 , "player", "ARCHANGE_Lowest" },
+	{ 81700, jps.buffStacks(81661) == 5 and  jps.hp(LowestImportantUnit) < 0.60 , "player", "ARCHANGE_Lowest" },
 
 	-- GROUP HEAL --
 	{ "nested", not jps.Moving and POHTarget ~= nil and canHeal(POHTarget) ,{

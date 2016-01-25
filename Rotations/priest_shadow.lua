@@ -364,9 +364,9 @@ local spellTable = {
 	{ jps.useTrinket(1), jps.useTrinketBool(1) and playerIsStun and jps.combatStart > 0 , "player" , "useTrinket1" },
 
 	-- "Spectral Guise" 112833 "Semblance spectrale" gives buff 119032
-	{ 112833, jps.Interrupts and jps.EnemyCastingSpellControl and jps.IsSpellKnown(112833) and not jps.buff(159630) , "player" , "Control_Spectral" },
+	{ 112833, jps.Interrupts and jps.EnemyCastingSpellControl() and jps.IsSpellKnown(112833) and not jps.buff(159630) , "player" , "Control_Spectral" },
 	-- "Fade" 586 "Oubli" -- "Glyph of Shadow Magic" 159628 -- gives buff "Shadow Magic" 159630 "Magie des Ténèbres"
-	{ 586, jps.EnemyCastingSpellControl and jps.glyphInfo(159628) and not jps.buff(119032), "player" , "Control_Oubli" },
+	{ 586, jps.EnemyCastingSpellControl() and jps.glyphInfo(159628) and not jps.buff(119032), "player" , "Control_Oubli" },
 	
 	-- FOCUS CONTROL
 	-- "Silence" 15487
@@ -391,7 +391,7 @@ local spellTable = {
 		{ 17, not jps.debuff(6788,"player") and not jps.buff(17,"player") , "player" },
 		-- "Dispersion" 47585
 		{ 47585, jps.PvP and jps.hp("player") < 0.40 , "player" , "Aggro_Dispersion" },
-		{ 47585, jps.cooldown(112833) > 0 and jps.cooldown(112833) > 0 and jps.debuff(6788,"player") and jps.hp("player") < 0.40 , "player" , "Aggro_Dispersion" },
+		{ 47585, jps.cooldown(112833) > 0 and jps.debuff(6788,"player") and jps.hp("player") < 0.40 , "player" , "Aggro_Dispersion" },
 	}},
 
 	-- "Power Word: Shield" 17 -- Glyph of Reflective Shield 33202

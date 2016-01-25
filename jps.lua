@@ -65,7 +65,6 @@ jps.NextSpell = nil
 jps.GCD = 1
 jps.startedFalling = 0
 jps.SpellSchool = 0
-jps.EnemyCastingSpellControl = false
 
 -- Class
 jps.Class = nil
@@ -370,6 +369,7 @@ function jps.Cycle()
 	if UnitIsDeadOrGhost("player") then return end
 	
 	-- GCD -- if too small value we can't get spellstopcasting
+	-- To check the Global Cooldown, you can use the spell ID 61304. This is a dummy spell specifically for the GCD
 	local cdStart,duration,_ = GetSpellCooldown(61304)
 	local timeLeft = 0
 	if cdStart > 0 then timeLeft = duration - (GetTime() - cdStart ) end

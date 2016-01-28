@@ -42,9 +42,6 @@ setmetatable(IncomingDamage, { __mode = 'k' }) -- creation of a weak table
 -- Incoming Heal
 local IncomingHeal = {}
 setmetatable(IncomingHeal, { __mode = 'k' }) -- creation of a weak table
--- PlayerControlSpell
-local PlayerControlSpell = {}
-setmetatable(PlayerControlSpell, { __mode = 'k' }) -- creation of a weak table
 
 -- RaidStatus
 local UnitGUID = UnitGUID
@@ -445,7 +442,6 @@ local leaveCombat = function()
 	IncomingDamage = {}
 	IncomingHeal = {}
 	Healtable = {}
-	PlayerControlSpell = {} 
 	jps.LastMessage = {}
 	jps.TimeToDieData = {}
 	jps.TimedCasting = {}
@@ -600,9 +596,7 @@ jps.listener.registerEvent("LOSS_OF_CONTROL_ADDED", function ()
     local locType, spellID, text, _, _, _, duration = C_LossOfControl.GetEventInfo(i)
     --print("CONTROL:", locType,"/",text,"/",duration)
     if spellID and duration then
-    	if not PlayerControlSpell[spellID] then PlayerControlSpell[spellID] = {} end
-		PlayerControlSpell[spellID] = {locType,startTime,duration}
-		if not jps.SpellControl[spellID] then jps.SpellControl[spellID] = locType end
+		if jps.SpellControl[spellID] == nil then jps.SpellControl[spellID] = locType end
 		
     	if locType == "SCHOOL_INTERRUPT" then
     		if jps.checkTimer("PlayerInterrupt") == 0 then jps.createTimer("PlayerInterrupt",duration) end
@@ -627,17 +621,18 @@ jps.listener.registerEvent("LOSS_OF_CONTROL_UPDATE", function()
 	local i = C_LossOfControl.GetNumEvents()
 	local locType, spellID, text, _, startTime, _, duration = C_LossOfControl.GetEventInfo(i)
 	if spellID and duration then
-		if not PlayerControlSpell[spellID] then PlayerControlSpell[spellID] = {} end
-		PlayerControlSpell[spellID] = {locType,startTime,duration}
+    	if locType == "SCHOOL_INTERRUPT" then
+    		jps.createTimer("PlayerInterrupt",duration)
+    	else
+			for i=1,#stunTypeTable do -- for _,stuntype in ipairs(stunTypeTable) do
+				local stunType = stunTypeTable[i]
+				if locType == stunType then 
+					jps.createTimer("PlayerStun",duration)
+				break end
+			end
+		end
 	end
 end)
-
-local updatePlayerControlSpell = function()
-	for spellID,index in pairs(PlayerControlSpell) do
-		local SpellCD = GetTime() - (index[2] + index[3])
-		if SpellCD > 0 then PlayerControlSpell[spellID] = nil end
-	end
-end
 
 ----------------------
 -- UPDATE RAID STATUS
@@ -711,7 +706,7 @@ end
 -----------------------
 
 local scoreLastUpdate = GetTime()
-local scoreFrequency  = 2 -- sec
+local scoreFrequency  = 1 -- sec
 local UpdateIntervalRaidStatus = function()
 	local curTime = GetTime()
 	local diff = curTime - scoreLastUpdate
@@ -721,7 +716,6 @@ local UpdateIntervalRaidStatus = function()
 	updateEnemyDamager()
 	updateIncomingDamage()
 	updateIncomingHeal()
-	updatePlayerControlSpell()
 end
 
 -- HealerBlacklist Update
@@ -806,8 +800,10 @@ jps.listener.registerEvent("COMBAT_LOG_EVENT_UNFILTERED", function(...)
 		-- Enemy Casting SpellControl according to table jps.SpellControl[spellID]
 		if isSourceEnemy and destGUID == UnitGUID("player") then
 			local spellID = select(12, ...)
-			if jps.checkTimer("SpellControl") == 0 and jps.SpellControl[spellID] ~= nil then
-				jps.createTimer("SpellControl",2)
+			if jps.SpellControl[spellID] ~= nil and not jps.ControlEvents() then
+				if jps.checkTimer("SpellControl") < 2 then jps.createTimer("SpellControl",2) end
+			else
+				jps.resetTimer("SpellControl")
 			end
 		end
 
@@ -1010,10 +1006,6 @@ jps.Lookup = function()
 --	for unit,index in pairs (IncomingDamage) do
 --		print(#index,"|cFFFF0000unit:",unit,"destname:",index[1][3],"dmg:",index[1][2])
 --	end
-
-	for unit,index in pairs(PlayerControlSpell) do
-		print("|cFFFF0000SpellID: ",unit,"locType: ",index[1],"Duration: ",GetTime() - (index[2] + index[3]))
-	end
 
 end
 

@@ -349,11 +349,22 @@ spellTable = {
 	-- "Suppression de la douleur" 33206 "Pain Suppression" -- Buff "Pain Suppression" 33206
 	{ 33206, jps.hp("player") < 0.40 and UnitAffectingCombat("player") , "player" , "StunPain_player" },
 	{ 33206, jps.hp(LowestImportantUnit) < 0.40 and UnitAffectingCombat(LowestImportantUnit) , LowestImportantUnit , "StunPain_Lowest" },
+	
+	{"nested", jps.buff(159630) , {
+		-- "Saving Grace" 152116 "Grâce salvatrice"
+		{ 152116, jps.hp("player") < 0.60 and jps.debuffStacks(155274,"player") < 2 , "player" , "Control_SavingGrace" },
+		-- "Soins rapides" 2061
+		{ 2061, not jps.Moving and jps.hpInc("player") < 0.60 , "player" , "Control_FlashHeal" },
+		-- "Power Word: Shield"
+		{ 17, not jps.buff(17,"player") and not jps.debuff(6788,"player") ,"player" , "Control_Bubble" },
+		-- "Pénitence" 47540
+		{ 47540, jps.hpInc("player") < 0.80 , "player" , "Control_Penance" },
+	}},
 
 	-- "Spectral Guise" 112833 "Semblance spectrale" gives buff 119032
-	{ 112833, jps.Interrupts and jps.EnemyCastingSpellControl() and jps.IsSpellKnown(112833) and not jps.buff(159630) , "player" , "Control_Spectral" },
-	-- "Fade" 586 "Oubli" -- "Glyph of Shadow Magic" 159628 -- gives buff "Shadow Magic" 159630 "Magie des Ténèbres"
-	{ 586, jps.EnemyCastingSpellControl() and jps.glyphInfo(159628) and not jps.buff(119032), "player" , "Control_Oubli" },
+	{ 112833, jps.Interrupts and jps.EnemyCastingSpellControl() and jps.IsSpellKnown(112833) and jps.cooldown(586) > 0 , "player" , "Control_Spectral" },
+	-- "Fade" 586 "Oubli" -- "Glyph of Shadow Magic" 159628 -- Buff "Shadow Magic" 159630 "Magie des Ténèbres"
+	{ 586, jps.EnemyCastingSpellControl() and jps.glyphInfo(159628) , "player" , "Control_Oubli" },
 
 	-- "Soins rapides" 2061 -- "Vague de Lumière" 109186 "Surge of Light" -- gives buff 114255
 	{ 2061, jps.buff(114255) and jps.hp(LowestImportantUnit) < 0.80 , LowestImportantUnit , "FlashHeal_Light" },
@@ -372,7 +383,7 @@ spellTable = {
 		-- "Pénitence" 47540
 		{ 47540, jps.hpInc(PainFriend) < 0.60 , PainFriend , "Penance_PainFriend" },
 		-- "Soins rapides" 2061
-		{ 2061, not jps.Moving and jps.hpInc(PainFriend) < 0.60 , PainFriend, "FlashHeal_PainFriend" },
+		{ 2061, not jps.Moving and jps.hpInc(PainFriend) < 0.60 , PainFriend , "FlashHeal_PainFriend" },
 	}},
 	
 	-- DISPEL --
@@ -383,7 +394,7 @@ spellTable = {
 
 	-- PLAYER AGGRO
 	{ "nested", playerAggro or playerIsTargeted ,{
-		-- "Spectral Guise" 112833 "Semblance spectrale" gives buff 119032
+		-- "Spectral Guise" 112833 "Semblance spectrale" Buff 119032 -- "Glyph of Shadow Magic" 159628 -- Buff "Shadow Magic" 159630 "Magie des Ténèbres"
 		{ 112833, jps.Interrupts and jps.IsSpellKnown(112833) and not jps.buff(159630) , "player" , "Aggro_Spectral" },
 		-- "Fade" 586 "Oubli" -- Glyphe d'oubli 55684 -- Votre technique Oubli réduit à présent tous les dégâts subis de 10%.
 		{ 586, jps.glyphInfo(55684) , "player" , "Aggro_Oubli" },
@@ -428,6 +439,9 @@ spellTable = {
 	{ 6346, jps.PvP and not jps.buff(6346,"player") and jps.hp() > 0.80 , "player" },
 	-- SNM "Levitate" 1706 -- "Dark Simulacrum" debuff 77606
 	{ 1706, jps.PvP and jps.debuff(77606,"player") , "player" , "DarkSim_Levitate" },
+	
+	-- OFFENSIVE Dispel -- "Dissipation de la magie" 528
+	{ 528, jps.castEverySeconds(528,8) and jps.DispelOffensive(rangedTarget) , rangedTarget , "|cff1eff00DispelOffensive" },
 
 	-- "Power Word: Shield" 17 -- Keep Buff "Borrowed" 59889 always 
 	{ 17, ShieldFriend ~= nil and not jps.buff(59889) , ShieldFriend , "Emergency_ShieldFriend" },
@@ -435,9 +449,6 @@ spellTable = {
 	-- "Power Word: Shield" 17 -- "Body and Soul" 65081 buff -- Glyph of Reflective Shield 33202
 	{ 17, jps.glyphInfo(33202) and not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Defensive_Shield" },
 	{ 17, not jps.buff(65081,"player") and jps.Moving and BodyAndSoul and not jps.debuff(6788,"player") , "player" , "Shield_Moving" },
-	
-	-- OFFENSIVE Dispel -- "Dissipation de la magie" 528
-	{ 528, jps.castEverySeconds(528,8) and jps.DispelOffensive(rangedTarget) , rangedTarget , "|cff1eff00DispelOffensive" },
 	
 	-- DAMAGE
 	-- "Mot de pouvoir : Réconfort" -- "Power Word: Solace" 129250 -- REGEN MANA

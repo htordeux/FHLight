@@ -352,11 +352,6 @@ spellTable = {
 	{ 33206, jps.hp("player") < 0.40 and UnitAffectingCombat("player") , "player" , "StunPain_player" },
 	{ 33206, jps.hp(LowestImportantUnit) < 0.40 and UnitAffectingCombat(LowestImportantUnit) , LowestImportantUnit , "StunPain_Lowest" },
 
-	-- "Spectral Guise" 112833 "Semblance spectrale" gives buff 119032
-	{ 112833, jps.Interrupts and jps.EnemyCastingSpellControl() and jps.IsSpellKnown(112833) and jps.cooldown(586) > 0 , "player" , "Control_Spectral" },
-	-- "Fade" 586 "Oubli" -- "Glyph of Shadow Magic" 159628 -- Buff "Shadow Magic" 159630 "Magie des Ténèbres"
-	{ 586, jps.EnemyCastingSpellControl() and jps.glyphInfo(159628) , "player" , "Control_Oubli" },
-
 	-- "Soins rapides" 2061 -- "Vague de Lumière" 109186 "Surge of Light" -- gives buff 114255
 	{ 2061, jps.buff(114255) and jps.hp(LowestImportantUnit) < 0.80 , LowestImportantUnit , "FlashHeal_Light" },
 	{ 2061, jps.buff(114255) and jps.buffDuration(114255) < 4 , LowestImportantUnit , "FlashHeal_Light" },
@@ -419,8 +414,6 @@ spellTable = {
 	{ 528, jps.castEverySeconds(528,8) and jps.DispelOffensive(rangedTarget) , rangedTarget , "|cff1eff00DispelOffensive" },
 	
 	-- TANK THREAT
-	-- "Power Word: Shield" 17
-	{ 17, canHeal("targettarget") and not jps.buff(17,"targettarget") and not jps.debuff(6788,"targettarget") , "targettarget" , "Shield_targettarget" },
 	-- "Power Word: Shield"
 	{ 17, canHeal(TankThreat) and not jps.buff(17,TankThreat) and not jps.debuff(6788,TankThreat) , TankThreat , "Shield_TankThreat" },
 	-- "Pénitence" 47540
@@ -429,7 +422,10 @@ spellTable = {
 	{ 17, canHeal(Tank) and not jps.buff(17,Tank) and not jps.debuff(6788,Tank) , Tank , "Shield_Tank" },
 	-- "Pénitence" 47540
 	{ 47540, canHeal(Tank) and jps.hp(Tank) < 0.80 , Tank , "Penance_Tank" },
-	
+
+	-- "Power Word: Shield" 17 -- Keep Buff "Borrowed" 59889 always
+	{ 17, ShieldFriend ~= nil and not jps.buff(59889) , ShieldFriend , "ShieldFriend" },
+	{ 17, canHeal("targettarget") and not jps.buff(17,"targettarget") and not jps.debuff(6788,"targettarget") , "targettarget" , "Shield_targettarget" },
 	-- "Power Word: Shield" 17 -- "Body and Soul" 65081 buff -- Glyph of Reflective Shield 33202
 	{ 17, jps.glyphInfo(33202) and not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Defensive_Shield" },
 	{ 17, not jps.buff(65081,"player") and jps.Moving and BodyAndSoul and not jps.debuff(6788,"player") , "player" , "Shield_Moving" },
@@ -478,7 +474,6 @@ spellTable = {
 	{ "nested", jps.hp(LowestImportantUnit) < 0.50 ,{
 		-- "Power Word: Shield" 17 -- Keep Buff "Borrowed" 59889 always
 		{ 17, not jps.buff(17,LowestImportantUnit) and not jps.debuff(6788,LowestImportantUnit) , LowestImportantUnit , "Emergency_Shield" },
-		{ 17, ShieldFriend ~= nil and not jps.buff(59889) , ShieldFriend , "Emergency_ShieldFriend" },
 		-- "Pénitence" 47540
 		{ 47540, true , LowestImportantUnit , "Emergency_Penance" },
 		-- "Soins rapides" 2061 -- Buff "Borrowed" 59889 -- "Archange surpuissant" 172359  100 % critique POH or FH
@@ -584,7 +579,7 @@ spellTable = {
 	}},
 	
 	-- "Nova" 132157 -- "Words of Mending" 155362 "Mot de guérison"
-	{ 132157, jps.Moving and countFriendNearby > 2 , "player" , "Nova" },
+	{ 132157, jps.Moving and countFriendNearby > 2 , "player" , "Nova_Count" },
 	-- "Torve-esprit" 123040 -- "Ombrefiel" 34433 "Shadowfiend"
 	{ 34433, priest.canShadowfiend("target") , "target" },
 	{ 123040, priest.canShadowfiend("target") , "target" },

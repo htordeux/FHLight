@@ -597,7 +597,6 @@ jps.listener.registerEvent("LOSS_OF_CONTROL_ADDED", function ()
     --print("CONTROL:", locType,"/",text,"/",duration)
     if spellID and duration then
 		if jps.SpellControl[spellID] == nil then jps.SpellControl[spellID] = locType end
-		
     	if locType == "SCHOOL_INTERRUPT" then
     		if jps.checkTimer("PlayerInterrupt") == 0 then jps.createTimer("PlayerInterrupt",duration) end
     	else
@@ -802,8 +801,6 @@ jps.listener.registerEvent("COMBAT_LOG_EVENT_UNFILTERED", function(...)
 			local spellID = select(12, ...)
 			if jps.SpellControl[spellID] ~= nil and not jps.ControlEvents() then
 				if jps.checkTimer("SpellControl") < 2 then jps.createTimer("SpellControl",2) end
-			else
-				jps.resetTimer("SpellControl")
 			end
 		end
 

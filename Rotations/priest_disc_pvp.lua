@@ -337,6 +337,11 @@ spellTable = {
 	{ 1706, jps.fallingFor() > 1.5 and not jps.buff(111759) , "player" },
 	-- "Angelic Feather" 121536 "Plume angélique"
 	{ 121536, IsControlKeyDown() },
+	
+	-- "Spectral Guise" 112833 "Semblance spectrale" gives buff 119032
+	{ 112833, jps.Interrupts and jps.EnemyCastingSpellControl() and jps.IsSpellKnown(112833) and jps.cooldown(586) > 0 , "player" , "Control_Spectral" },
+	-- "Fade" 586 "Oubli" -- "Glyph of Shadow Magic" 159628 -- Buff "Shadow Magic" 159630 "Magie des Ténèbres"
+	{ 586, jps.EnemyCastingSpellControl() and jps.glyphInfo(159628) , "player" , "Control_Oubli" },
 
 	-- SNM RACIAL COUNTERS -- share 30s cd with trinket
 	{"nested", jps.PvP and jps.UseCDs , RacialCounters },
@@ -353,18 +358,13 @@ spellTable = {
 	{"nested", jps.buff(159630) , {
 		-- "Saving Grace" 152116 "Grâce salvatrice"
 		{ 152116, jps.hp("player") < 0.60 and jps.debuffStacks(155274,"player") < 2 , "player" , "Control_SavingGrace" },
-		-- "Soins rapides" 2061
-		{ 2061, not jps.Moving and jps.hpInc("player") < 0.60 , "player" , "Control_FlashHeal" },
 		-- "Power Word: Shield"
 		{ 17, not jps.buff(17,"player") and not jps.debuff(6788,"player") ,"player" , "Control_Bubble" },
+		-- "Soins rapides" 2061
+		{ 2061, not jps.Moving and jps.hpInc("player") < 0.80 , "player" , "Control_FlashHeal" },
 		-- "Pénitence" 47540
 		{ 47540, jps.hpInc("player") < 0.80 , "player" , "Control_Penance" },
 	}},
-
-	-- "Spectral Guise" 112833 "Semblance spectrale" gives buff 119032
-	{ 112833, jps.Interrupts and jps.EnemyCastingSpellControl() and jps.IsSpellKnown(112833) and jps.cooldown(586) > 0 , "player" , "Control_Spectral" },
-	-- "Fade" 586 "Oubli" -- "Glyph of Shadow Magic" 159628 -- Buff "Shadow Magic" 159630 "Magie des Ténèbres"
-	{ 586, jps.EnemyCastingSpellControl() and jps.glyphInfo(159628) , "player" , "Control_Oubli" },
 
 	-- "Soins rapides" 2061 -- "Vague de Lumière" 109186 "Surge of Light" -- gives buff 114255
 	{ 2061, jps.buff(114255) and jps.hp(LowestImportantUnit) < 0.80 , LowestImportantUnit , "FlashHeal_Light" },
@@ -439,12 +439,12 @@ spellTable = {
 	{ 6346, jps.PvP and not jps.buff(6346,"player") and jps.hp() > 0.80 , "player" },
 	-- SNM "Levitate" 1706 -- "Dark Simulacrum" debuff 77606
 	{ 1706, jps.PvP and jps.debuff(77606,"player") , "player" , "DarkSim_Levitate" },
-	
+
 	-- OFFENSIVE Dispel -- "Dissipation de la magie" 528
 	{ 528, jps.castEverySeconds(528,8) and jps.DispelOffensive(rangedTarget) , rangedTarget , "|cff1eff00DispelOffensive" },
 
-	-- "Power Word: Shield" 17 -- Keep Buff "Borrowed" 59889 always 
-	{ 17, ShieldFriend ~= nil and not jps.buff(59889) , ShieldFriend , "Emergency_ShieldFriend" },
+	-- "Power Word: Shield" 17 -- Keep Buff "Borrowed" 59889 always
+	{ 17, ShieldFriend ~= nil and not jps.buff(59889) , ShieldFriend , "ShieldFriend" },
 	{ 17, canHeal("targettarget") and not jps.buff(17,"targettarget") and not jps.debuff(6788,"targettarget") , "targettarget" , "Shield_targettarget" },
 	-- "Power Word: Shield" 17 -- "Body and Soul" 65081 buff -- Glyph of Reflective Shield 33202
 	{ 17, jps.glyphInfo(33202) and not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Defensive_Shield" },
@@ -535,8 +535,8 @@ spellTable = {
 	{ 2060, not jps.Moving and jps.hp(LowestImportantUnit) < 0.80 , LowestImportantUnit , "Top_Soins"  },
 
 	-- "Nova" 132157 -- "Words of Mending" 155362 "Mot de guérison"
-	{ 132157, jps.Moving and countFriendNearby > 2 , "player" , "Nova" },
-	{ 132157, jps.Moving and jps.hp() < 0.90 , "player" , "Aggro_Nova" },
+	{ 132157, jps.Moving and countFriendNearby > 2 , "player" , "Nova_Count" },
+	{ 132157, jps.Moving and jps.hp() < 0.90 , "player" , "Nova_player" },
 	-- "Châtiment" 585
 	{ 585, not jps.Moving and jps.buffStacks(81661) < 5 and canDPS(rangedTarget) , rangedTarget , "|cFFFF0000Chatiment_Stacks" },
 	{ 585, not jps.Moving and jps.buffDuration(81661) < 9 and canDPS(rangedTarget) , rangedTarget , "|cFFFF0000Chatiment_Stacks" }

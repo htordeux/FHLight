@@ -64,7 +64,6 @@ jps.Latency = 0
 jps.NextSpell = nil
 jps.GCD = 1
 jps.startedFalling = 0
-jps.SpellSchool = 0
 
 -- Class
 jps.Class = nil

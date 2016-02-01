@@ -435,7 +435,6 @@ local leaveCombat = function()
 	jps.gui_toggleCombat(false)
 	jps.combatStart = 0
 	jps.NextSpell = nil
-	jps.SpellSchool = 0
 
 	-- nil all tables
 	EnemyDamager = {}
@@ -733,13 +732,13 @@ jps.registerOnUpdate(UpdateIntervalRaidStatus)
 -- eventtable[15] -- amount if suffix is SPELL_DAMAGE or SPELL_HEAL
 -- eventtable[12] -- amount if suffix is SWING_DAMAGE
 
+local SpellSchoolDamage = 0
 local damageEvents = {
         ["SWING_DAMAGE"] = true,
         ["SPELL_DAMAGE"] = true,
         ["SPELL_PERIODIC_DAMAGE"] = true,
         ["RANGE_DAMAGE"] = true,
 }
-
 local healEvents = {
         ["SPELL_HEAL"] = true,
         ["SPELL_PERIODIC_HEAL"] = true,
@@ -852,12 +851,12 @@ jps.listener.registerEvent("COMBAT_LOG_EVENT_UNFILTERED", function(...)
 --		print("|cFFFF0000Event: ",event)
 --		print("|cFFFF0000destName: |cffffffff",destName,"F:",isDestFriend,"E:",isDestEnemy,
 --				"|cFFFF0000sourceName: |cffffffff",sourceName,"F:",isSourceFriend,"E:",isSourceEnemy)
-			if jps.IncomingDamage("player") == 0 then jps.SpellSchool = 0 end
 			if isDestFriend and UnitCanAssist("player",destName) then
 				-- SPELLSCHOOL -- 1 Physical, 2 Holy, 4 Fire, 8 Nature, 16 Frost, 32 Shadow, 64 Arcane
+				if jps.IncomingDamage("player") == 0 then SpellSchoolDamage = 0 end
 				local spellSchool = select(14,...)
 				if destGUID == UnitGUID("player") and spellSchool then
-					jps.SpellSchool = spellSchool
+					SpellSchoolDamage = spellSchool
 				end
 
 				local dmg = 0
@@ -892,9 +891,9 @@ end)
 
 function jps.SchoolDamage(string) -- "physical" or "magic"
 	if string == nil then return false end
-	if jps.SpellSchool > 0 then
-		if jps.SpellSchool == 1 and string == "physical" then return true end
-		if jps.SpellSchool > 1 and string == "magic" then return true end
+	if SpellSchoolDamage > 0 then
+		if SpellSchoolDamage == 1 and string == "physical" then return true end
+		if SpellSchoolDamage > 1 and string == "magic" then return true end
 	end
 	return false
 end

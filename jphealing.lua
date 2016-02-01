@@ -340,50 +340,50 @@ jps.LowestImportantUnit = function()
 	return LowestImportantUnit
 end
 
-	-- LOWEST TIME TO DIE
-	jps.LowestFriendTimeToDie = function(timetodie)
-		if timetodie == nil then timetodie = 5 end
-		local myFriends = {}
-		local lowestFriendTTD = nil
-		local lowestTTD = 60 -- Second
-		for unit,_ in pairs(RaidStatus) do
-			if canHeal(unit) then
-				local TTD = jps.TimeToDie(unit)
-				if TTD < timetodie then
-					myFriends[#myFriends+1] = unit -- tinsert(myFriends, unit)
-					lowestFriendTTD = unit
-					lowestTTD = TTD
+-- LOWEST TIME TO DIE
+jps.LowestFriendTimeToDie = function(timetodie)
+	if timetodie == nil then timetodie = 5 end
+	local myFriends = {}
+	local lowestFriendTTD = nil
+	local lowestTTD = 60 -- Second
+	for unit,_ in pairs(RaidStatus) do
+		if canHeal(unit) then
+			local TTD = jps.TimeToDie(unit)
+			if TTD < timetodie then
+				myFriends[#myFriends+1] = unit -- tinsert(myFriends, unit)
+				lowestFriendTTD = unit
+				lowestTTD = TTD
+			end
+		end
+	end
+	tsort(myFriends, function(a,b) return jps.hpInc(a) < jps.hpInc(b) end)
+	return myFriends[1] or lowestFriendTTD
+end
+
+-- INCOMING DAMAGE
+jps.HighestIncomingDamage = function()
+	if lowHealth == nil then lowHealth = 1 end
+	local lowestUnit = nil
+	local lowestHealth = 1
+	for unit,_ in pairs(RaidStatus) do
+		if canHeal(unit) then
+			local incomingDamageFriend = jps.IncomingDamage(unit)
+			local incomingHealFriend = jps.IncomingHeal(unit)
+			local delta = incomingHealFriend - incomingDamageFriend
+			if delta < 0 then -- dmg > heal
+				local dmghealth = (UnitHealth(unit) + delta) / UnitHealthMax(unit)
+				local inchealth = UnitGetIncomingHeals(unit)
+				local abshealth = UnitGetTotalAbsorbs(unit)
+				local health = dmghealth + inchealth + abshealth
+				if health < lowestHealth then
+					lowestUnit = unit
+					lowestHealth = health 
 				end
 			end
 		end
-		tsort(myFriends, function(a,b) return jps.hpInc(a) < jps.hpInc(b) end)
-		return myFriends[1] or lowestFriendTTD
 	end
-	
-	-- INCOMING DAMAGE
-	jps.HighestIncomingDamage = function()
-		if lowHealth == nil then lowHealth = 1 end
-		local lowestUnit = nil
-		local lowestHealth = 1
-		for unit,_ in pairs(RaidStatus) do
-			if canHeal(unit) then
-				local incomingDamageFriend = jps.IncomingDamage(unit)
-				local incomingHealFriend = jps.IncomingHeal(unit)
-				local delta = incomingHealFriend - incomingDamageFriend
-				if delta < 0 then -- dmg > heal
-					local dmghealth = (UnitHealth(unit) + delta) / UnitHealthMax(unit)
-					local inchealth = UnitGetIncomingHeals(unit)
-					local abshealth = UnitGetTotalAbsorbs(unit)
-					local health = dmghealth + inchealth + abshealth
-					if health < lowestHealth then
-						lowestUnit = unit
-						lowestHealth = health 
-					end
-				end
-			end
-		end
-		return lowestUnit
-	end
+	return lowestUnit
+end
 
 ------------------------------------
 -- GROUP FUNCTION IN RAID

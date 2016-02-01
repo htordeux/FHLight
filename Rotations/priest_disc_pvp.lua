@@ -337,11 +337,6 @@ spellTable = {
 	{ 1706, jps.fallingFor() > 1.5 and not jps.buff(111759) , "player" },
 	-- "Angelic Feather" 121536 "Plume angélique"
 	{ 121536, IsControlKeyDown() },
-	
-	-- "Spectral Guise" 112833 "Semblance spectrale" gives buff 119032
-	{ 112833, jps.Interrupts and jps.EnemyCastingSpellControl() and jps.IsSpellKnown(112833) and jps.cooldown(586) > 0 , "player" , "Control_Spectral" },
-	-- "Fade" 586 "Oubli" -- "Glyph of Shadow Magic" 159628 -- Buff "Shadow Magic" 159630 "Magie des Ténèbres"
-	{ 586, jps.EnemyCastingSpellControl() and jps.glyphInfo(159628) , "player" , "Control_Oubli" },
 
 	-- SNM RACIAL COUNTERS -- share 30s cd with trinket
 	{"nested", jps.PvP and jps.UseCDs , RacialCounters },
@@ -355,6 +350,11 @@ spellTable = {
 	{ 33206, jps.hp("player") < 0.40 and UnitAffectingCombat("player") , "player" , "StunPain_player" },
 	{ 33206, jps.hp(LowestImportantUnit) < 0.40 and UnitAffectingCombat(LowestImportantUnit) , LowestImportantUnit , "StunPain_Lowest" },
 	
+	-- "Spectral Guise" 112833 "Semblance spectrale" gives buff 119032
+	{ 112833, jps.Interrupts and jps.EnemyCastingSpellControl() and jps.IsSpellKnown(112833) and jps.cooldown(586) > 0 , "player" , "Control_Spectral" },
+	-- "Fade" 586 "Oubli" -- "Glyph of Shadow Magic" 159628 -- Buff "Shadow Magic" 159630 "Magie des Ténèbres"
+	{ 586, jps.EnemyCastingSpellControl() and jps.glyphInfo(159628) , "player" , "Control_Oubli" },
+
 	{"nested", jps.buff(159630) , {
 		-- "Saving Grace" 152116 "Grâce salvatrice"
 		{ 152116, jps.hp("player") < 0.60 and jps.debuffStacks(155274,"player") < 2 , "player" , "Control_SavingGrace" },

@@ -40,12 +40,11 @@ local function Test()
 	--print("CountInRange80: ",jps.CountInRaidLowest(0.80))
 
 	local Tank,Tanks = jps.findTankInRaid()
-	print("|cff0070ddmyTank: ",GetUnitName(Tank))
 	for i=1,#Tanks do
-		print("|cff0070ddTanks: ",GetUnitName(Tanks[i]))
+		print("|cff0070ddTank: ",GetUnitName(Tanks[i]))
 	end
 	local aggroTank = jps.findThreatInRaid()
-	print("|cFFFF0000Aggro: ",GetUnitName(aggroTank))
+	print("|cFFFF0000AggroTank: ",GetUnitName(aggroTank))
 	local lowestUnit = jps.LowestImportantUnit()
 	print("|cff1eff00Lowest: ",GetUnitName(lowestUnit))
 

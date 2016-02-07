@@ -347,10 +347,10 @@ spellTable = {
 	{ jps.useTrinket(1), jps.useTrinketBool(1) and playerIsStun and jps.combatStart > 0 },
 
 	-- "Suppression de la douleur" 33206 "Pain Suppression" -- Buff "Pain Suppression" 33206
-	{ 33206, jps.hp(TankThreat) < 0.30 and UnitAffectingCombat(TankThreat) , TankThreat , "StunPain_TankThreat" },
-	{ 33206, jps.hp(Tank) < 0.30 and UnitAffectingCombat(Tank) , Tank , "StunPain_Tank" },
-	{ 33206, jps.hp("player") < 0.40 and UnitAffectingCombat("player") , "player" , "StunPain_player" },
-	{ 33206, jps.hp(LowestImportantUnit) < 0.40 and UnitAffectingCombat(LowestImportantUnit) , LowestImportantUnit , "StunPain_Lowest" },
+	{ 33206, jps.hp(TankThreat) < 0.30 and UnitAffectingCombat(TankThreat) , TankThreat , "Pain_TankThreat" },
+	{ 33206, jps.hp(Tank) < 0.30 and UnitAffectingCombat(Tank) , Tank , "Pain_Tank" },
+	{ 33206, jps.hp("player") < 0.40 and UnitAffectingCombat("player") , "player" , "Pain_player" },
+	{ 33206, jps.hp(LowestImportantUnit) < 0.40 and UnitAffectingCombat(LowestImportantUnit) , LowestImportantUnit , "Pain_Lowest" },
 
 	-- "Soins rapides" 2061 -- "Vague de Lumière" 109186 "Surge of Light" -- gives buff 114255
 	{ 2061, jps.buff(114255) and jps.hp(LowestImportantUnit) < 0.80 , LowestImportantUnit , "FlashHeal_Light" },
@@ -636,7 +636,7 @@ jps.registerRotation("PRIEST","DISCIPLINE",function()
 	-- "Prière de soins" 596 "Prayer of Healing"
 	{ 596, not jps.Moving and canHeal(POHTarget) , POHTarget , "POH" },
 	-- "Soins" 2060
-	{ 2060, not jps.Moving and jps.hp(LowestImportantUnit) < 0.90 , LowestImportantUnit , "Soins"  },
+	{ 2060, not jps.Moving and jps.hp(LowestImportantUnit) < 0.60 , LowestImportantUnit , "Soins"  },
 	
 	-- "Nova" 132157 -- buff "Words of Mending" 155362 "Mot de guérison"
 	{ 132157, jps.IsSpellKnown(152117) and jps.UseCDs and jps.buffDuration(155362) < 9 , "player" , "Nova_WoM" },

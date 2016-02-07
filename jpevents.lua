@@ -401,10 +401,10 @@ jps.listener.registerEvent("ACTIVE_TALENT_GROUP_CHANGED", function()
 	jps.resetRotationTable()
 	jps.detectSpec()
 end)
-jps.listener.registerEvent("SPELLS_CHANGED", function()
-	GetHarmfulSpell()
-end)
 
+jps.listener.registerEvent("SPELLS_CHANGED", function()
+	jps.GetHarmfulSpell()
+end)
 
 -- Save on Logout
 jps.listener.registerEvent("PLAYER_LEAVING_WORLD", jps_SAVE_PROFILE)

@@ -347,8 +347,8 @@ spellTable = {
 	{ jps.useTrinket(1), jps.useTrinketBool(1) and playerIsStun and jps.combatStart > 0 },
 
 	-- "Suppression de la douleur" 33206 "Pain Suppression" -- Buff "Pain Suppression" 33206
-	{ 33206, jps.hp("player") < 0.40 and UnitAffectingCombat("player") , "player" , "StunPain_player" },
-	{ 33206, jps.hp(LowestImportantUnit) < 0.40 and UnitAffectingCombat(LowestImportantUnit) , LowestImportantUnit , "StunPain_Lowest" },
+	{ 33206, jps.hp("player") < 0.40 and UnitAffectingCombat("player") , "player" , "Pain_player" },
+	{ 33206, jps.hp(LowestImportantUnit) < 0.40 and UnitAffectingCombat(LowestImportantUnit) , LowestImportantUnit , "Pain_Lowest" },
 	
 	-- "Spectral Guise" 112833 "Semblance spectrale" gives buff 119032
 	{ 112833, jps.Interrupts and jps.EnemyCastingSpellControl() and jps.IsSpellKnown(112833) and jps.cooldown(586) > 0 , "player" , "Control_Spectral" },
@@ -589,7 +589,7 @@ jps.registerRotation("PRIEST","DISCIPLINE",function()
 	-- "Prière de soins" 596 "Prayer of Healing"
 	{ 596, not jps.Moving and canHeal(POHTarget) , POHTarget , "POH" },
 	-- "Soins" 2060
-	{ 2060, not jps.Moving and jps.hp(LowestImportantUnit) < 0.90 , LowestImportantUnit , "Soins"  },
+	{ 2060, not jps.Moving and jps.hp(LowestImportantUnit) < 0.60 , LowestImportantUnit , "Soins"  },
 	
 	-- "Nova" 132157 -- buff "Words of Mending" 155362 "Mot de guérison"
 	{ 132157, jps.IsSpellKnown(152117) and jps.UseCDs and jps.buffDuration(155362) < 9 , "player" , "Nova_WoM" },

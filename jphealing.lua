@@ -139,6 +139,22 @@ jps.LowestTarget = function()
 	return dupe[1] or "target", dupe, #dupe
 end
 
+--local locClass, enClass, classID = UnitClass(unit)
+jps.LowestTargetRole = function()
+	local _,EnemyUnit,_ = jps.LowestTarget()
+	local EnemyRole = {}
+	for i=1,#EnemyUnit do
+		 local unit = EnemyUnit[i]
+		 local _, _, classID = UnitClass(unit)
+		 local numTabs = GetNumSpecializationsForClassID(classID)
+		for i = 1, numTabs do
+			local id, name, _, icon, _, role = GetSpecializationInfoForClassID(classID, i)
+			if id then tinsert(EnemyRole,{unit,role}) end-- classNames[classID]
+		end
+	end
+	return EnemyRole
+end
+
 jps.playerIsTargeted = function()
 	local isArena, _ = IsActiveBattlefieldArena()
 	if isArena then

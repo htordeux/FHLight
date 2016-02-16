@@ -63,4 +63,6 @@ Rotations\dk_unholy.lua
 
 Rotations\mage_arcane.lua
 
+Rotations\paladin_ret.lua
+
 

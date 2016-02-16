@@ -335,6 +335,7 @@ spellTable = {
 
 	-- SNM "Levitate" 1706
 	{ 1706, jps.fallingFor() > 1.5 and not jps.buff(111759) , "player" },
+	{ 1706, jps.PvP and jps.debuff(77606,"player") , "player" , "DarkSim_Levitate" },
 	-- "Angelic Feather" 121536 "Plume angélique"
 	{ 121536, IsControlKeyDown() },
 

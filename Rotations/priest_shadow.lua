@@ -350,7 +350,7 @@ local spellTable = {
 	{ 15473, not jps.buff(15473) , "player" },
 	
 	-- SNM "Levitate" 1706 -- "Dark Simulacrum" debuff 77606
-	{ 1706, jps.PvP and jps.fallingFor() > 1.5 and not jps.buff(111759) , "player" },
+	{ 1706, jps.fallingFor() > 1.5 and not jps.buff(111759) , "player" },
 	{ 1706, jps.PvP and jps.debuff(77606,"player") , "player" , "DarkSim_Levitate" },
 	-- "Angelic Feather" 121536 "Plume angélique"
 	{ 121536, IsControlKeyDown() },
@@ -381,14 +381,12 @@ local spellTable = {
 	{ "nested", playerAggro or playerIsTargeted ,{
 		-- "Spectral Guise" 112833 "Semblance spectrale" gives buff 119032
 		{ 112833, jps.Interrupts and jps.IsSpellKnown(112833) and not jps.buff(159630) , "player" , "Aggro_Spectral" },
-		-- "Fade" 586 "Oubli" -- "Glyph of Shadow Magic" 159628 -- gives buff "Shadow Magic" 159630 "Magie des Ténèbres"
-		{ 586, jps.glyphInfo(159628) and not jps.buff(119032), "player" , "Aggro_Oubli" },
-		-- "Oubli" 586 -- Fantasme 108942 -- vous dissipez tous les effets affectant le déplacement sur vous-même
-		{ 586, jps.IsSpellKnown(108942) and jps.hp("player") < 0.70 , "player" , "Aggro_Oubli" },
-		-- "Oubli" 586 -- Glyphe d'oubli 55684 -- Votre technique Oubli réduit à présent tous les dégâts subis de 10%.
-		{ 586, jps.glyphInfo(55684) and jps.hp("player") < 0.70 , "player" , "Aggro_Oubli" },
+		-- "Fade" 586 "Oubli" -- Glyphe d'oubli 55684 -- Votre technique Oubli réduit à présent tous les dégâts subis de 10%.
+		{ 586, jps.glyphInfo(55684) , "player" , "Aggro_Oubli" },
+		-- "Fade" 586 "Oubli" -- Fantasme 108942 -- vous dissipez tous les effets affectant le déplacement sur vous-même
+		{ 586, jps.IsSpellKnown(108942) , "player" , "Aggro_Oubli" },
 		-- "Power Word: Shield" 17	
-		{ 17, not jps.debuff(6788,"player") and not jps.buff(17,"player") , "player" },
+		{ 17, not jps.debuff(6788,"player") and not jps.buff(17,"player") , "player" , "Aggro_Shield" },
 		-- "Dispersion" 47585
 		{ 47585, jps.PvP and jps.hp("player") < 0.40 , "player" , "Aggro_Dispersion" },
 		{ 47585, jps.cooldown(112833) > 0 and jps.debuff(6788,"player") and jps.hp("player") < 0.40 , "player" , "Aggro_Dispersion" },

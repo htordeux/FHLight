@@ -985,7 +985,7 @@ end
 jps.LookupEnemyHealer = function()
 	if jps.tableLength(EnemyHealer) == 0 then print("EnemyHealer is Empty") end
 	for _,index in pairs(EnemyHealer) do
-		print("Class:|cFFFF0000: ",index[1]," |cffffffffName:|cFFFF0000: ",index[2])
+		print("HealerClass:|cFFFF0000: ",index[1]," |cffffffffName:|cFFFF0000: ",index[2])
 	end
 end
 

@@ -84,9 +84,7 @@ function jps_RaidTest()
 
 	jps.LookupRaid ()
 	jps.LookupEnemyDamager()
-	local rangedTarget, EnemyUnit, TargetCount = jps.LowestTarget()
-	print("rangedTarget: ",rangedTarget,"TargetCount: ",TargetCount)
-	print("EnemyUnit: ",unpack(EnemyUnit))
+	jps.LookupEnemyHealer()
 
 end
  
@@ -95,6 +93,19 @@ end
 	Test()
 	--DkTest()
 	jps.Lookup()
+	
+	local rangedTarget, EnemyUnit, TargetCount = jps.LowestTarget()
+	print("RangedTarget: ",rangedTarget,"TargetCount: ",TargetCount)
+	print("EnemyUnit: ",unpack(EnemyUnit))
+	local enemytable = jps.LowestTargetRole()
+	for i,j in pairs(enemytable) do
+		print(i,"unit: ",j[1],"role: ",j[2])
+	end
+	
+	--local table = {{"target",UnitClass("target")},{"playertarget","DEFENSIVE"},{"raid4target","DAMAGE"}}
+--	for i,j in pairs(table) do
+--		print(i,"unit: ",j[1],"role: ",j[2])
+--	end
 
 	--	TurnLeftStart()
 	--	C_Timer.After(1,function() print("test") TurnLeftStop() end)

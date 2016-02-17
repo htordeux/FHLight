@@ -96,15 +96,18 @@ end
 	
 	local rangedTarget, EnemyUnit, TargetCount = jps.LowestTarget()
 	print("RangedTarget: ",rangedTarget,"TargetCount: ",TargetCount)
-	print("EnemyUnit: ",unpack(EnemyUnit))
-	local enemytable = jps.LowestTargetRole()
-	for i,j in pairs(enemytable) do
-		print(i,"unit: ",j[1],"role: ",j[2])
+	local enemyTable = jps.LowestTargetRole()
+	for i,j in pairs(enemyTable) do
+		print("unit: ",GetUnitName(i),"role: ",j)
 	end
 	
-	--local table = {{"target",UnitClass("target")},{"playertarget","DEFENSIVE"},{"raid4target","DAMAGE"}}
+--	local table = { {"target",UnitClass("target")}, {"playertarget","DEFENSIVE"}, {"raid4target","DAMAGE"} }
+--	local table = { ["target"] = UnitClass("target"), ["playertarget"] = "DEFENSIVE", ["raid4target"] = "DAMAGE" }
+--	local table = { ["target"] = {UnitClass("target"),"A"}, ["playertarget"] = {"DEFENSIVE","B"}, ["raid4target"] = {"DAMAGE","C"} }
 --	for i,j in pairs(table) do
 --		print(i,"unit: ",j[1],"role: ",j[2])
+--		print("unit: ",i,"role: ",j)
+--		print("unit: ",i,"role: ",j[1],j[2])
 --	end
 
 	--	TurnLeftStart()

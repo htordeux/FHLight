@@ -100,8 +100,10 @@ local priestDisc = function()
 	local isBoss = UnitLevel("target") == -1 or UnitClassification("target") == "elite"
 	-- rangedTarget returns "target" by default, sometimes could be friend
 	local rangedTarget, EnemyUnit, TargetCount = jps.LowestTarget()
+	local enemyHealer = jps.LowestTargetHealer()
 
 	if canDPS("target") and not DebuffUnitCyclone(rangedTarget) then rangedTarget =  "target"
+	elseif canDPS(enemyHealer) and not DebuffUnitCyclone(enemyHealer) then rangedTarget =  enemyHealer
 	elseif canDPS(TankTarget) and not DebuffUnitCyclone(rangedTarget) then rangedTarget = TankTarget
 	elseif canDPS("targettarget") and not DebuffUnitCyclone(rangedTarget) then rangedTarget = "targettarget"
 	elseif canAttack("mouseover") then rangedTarget = "mouseover"

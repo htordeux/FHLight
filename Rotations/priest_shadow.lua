@@ -99,6 +99,7 @@ local playerWasControl = jps.ControlEvents() -- return true/false Player was int
 local rangedTarget, EnemyUnit, TargetCount = jps.LowestTarget()
 local EnemyCount = jps.RaidEnemyCount()
 local isBoss = (UnitLevel("target") == -1) or (UnitClassification("target") == "elite")
+local enemyHealer = jps.LowestTargetHealer()
 
 -- Config FOCUS with MOUSEOVER
 local name = GetUnitName("focus") or ""
@@ -129,6 +130,7 @@ elseif jps.UnitExists("focus") and not canDPS("focus") then
 end
 
 if canDPS("target") and not DebuffUnitCyclone(rangedTarget) then rangedTarget =  "target"
+elseif canDPS(enemyHealer) and not DebuffUnitCyclone(enemyHealer) then rangedTarget =  enemyHealer
 elseif canDPS(TankTarget) and not DebuffUnitCyclone(rangedTarget) then rangedTarget = TankTarget
 elseif canDPS("targettarget") and not DebuffUnitCyclone(rangedTarget) then rangedTarget = "targettarget"
 elseif canAttack("mouseover") then rangedTarget = "mouseover"

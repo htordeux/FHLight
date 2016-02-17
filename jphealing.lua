@@ -144,15 +144,24 @@ jps.LowestTargetRole = function()
 	local _,EnemyUnit,_ = jps.LowestTarget()
 	local EnemyRole = {}
 	for i=1,#EnemyUnit do
-		 local unit = EnemyUnit[i]
-		 local _, _, classID = UnitClass(unit)
-		 local numTabs = GetNumSpecializationsForClassID(classID)
+		local unit = EnemyUnit[i]
+		local _, _, classID = UnitClass(unit)
+		local numTabs = GetNumSpecializationsForClassID(classID)
 		for i = 1, numTabs do
 			local id, name, _, icon, _, role = GetSpecializationInfoForClassID(classID, i)
-			if id then tinsert(EnemyRole,{unit,role}) end-- classNames[classID]
+			if id then
+				if EnemyRole[unit] == nil then EnemyRole[unit] = role end
+			end
 		end
 	end
-	return EnemyRole
+	return EnemyRole -- "DAMAGER" "TANK" "HEALER"
+end
+
+jps.LowestTargetHealer = function()
+	local enemyTable = jps.LowestTargetRole()
+	for unit,index in pairs(enemyTable) do
+		if index == "HEALER" then return unit end
+	end
 end
 
 jps.playerIsTargeted = function()

@@ -97,6 +97,13 @@ local priestDisc = function()
 -- ENEMY TARGET
 ---------------------
 
+if not jps.UnitExists("focus") and UnitAffectingCombat("mouseover") then
+	if jps.EnemyHealer("mouseover") then
+		jps.Macro("/focus mouseover")
+		--print("Enemy HEALER|cff1eff00 "..name.." |cffffffffset as FOCUS")
+	end
+end
+
 	local isBoss = UnitLevel("target") == -1 or UnitClassification("target") == "elite"
 	-- rangedTarget returns "target" by default, sometimes could be friend
 	local rangedTarget, EnemyUnit, TargetCount = jps.LowestTarget()
@@ -327,7 +334,8 @@ local priestDisc = function()
 -- False if stunned/incapacitated but lowest friendly unit is good health
 -- False if stunned/incapacitated and playerAggro but player health is good
 
-if jps.hp("player") < 0.25 then CreateMessage("LOW HEALTH!") end -- CreateFlasher()
+--if jps.hp("player") < 0.25 then CreateMessage("LOW HEALTH!") end -- CreateFlasher()
+if jps.debuffAoE() then CreateMessage("DEBUFF AOE!") end -- CreateFlasher()
 
 ------------------------
 -- SPELL TABLE ---------
@@ -422,6 +430,8 @@ spellTable = {
 	{ 10060, CountFriendLowest > 1 , "player" , "POWERINFUSION_Count" },
 	-- SNM Troll "Berserker" 26297 -- Haste Buff
 	{ 26297, CountFriendEmergency > 1 , "player" },
+	-- "Cascade" Holy 121135 Shadow 127632
+	{ 121135, not jps.Moving and CountFriendEmergency > 3 , LowestImportantUnit ,  "Cascade_Emergency" },
 
 	-- EMERGENCY HEAL --
 	{ "nested", jps.hp(LowestImportantUnit) < 0.60 ,{

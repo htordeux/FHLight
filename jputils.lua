@@ -1015,3 +1015,58 @@ jps.SpellCD = {
 	[18499] = 30,				-- Berserker Rage
 	[107570] = 30,				-- Storm Bolt
 }
+
+---------------------------
+-- DEBUFF AOE            -- Credits - GTFO Addon
+---------------------------
+
+
+local PvPEnemyAoE = {
+-- Generic
+46264,    --"Void Zone Effect (Unknown)"
+49699,    --"Consumption"
+39004,    --"Consumption"
+30538,    --"Consumption"
+30498,    --"Consumption"
+35951,    --"Consumption"
+-- Paladin
+81297,    --"Consecration"
+-- Mage
+2120,    --"Flamestrike"
+10,    --"Blizzard"
+42208,    --"Blizzard"
+82739,    --"Flame Orb"
+84721,    --"Frostfire Orb"
+-- Warlock
+5740,    --"Rain of Fire"
+42223,    --"Rain of Fire"
+5857,    --"Hellfire Effect"
+-- Druid
+50288,    --"Starfall"
+16914,    --"Hurricane"
+42231,    --"Hurricane"
+-- Death Knight
+43265,    --"Death and Decay"
+52212,    --"Death and Decay"
+68766,    --"Desecration"
+-- Shaman
+8187,    --"Magma Totem"
+8349,    --"Fire Nova"
+77478,    --"Earthquake"
+20754,    --"Rain of Fire"
+36808,    --"Rain of Fire"
+76055,    --"Flame Patch"
+13812,    --"Explosive Trap"
+033239, --"Whirlwind"
+15578,    --"Whirlwind"
+114919, --"Arcing Light"
+}
+
+function jps.debuffAoE(unit)
+	if unit == nil then unit = "player" end
+	for i=1,#PvPEnemyAoE do
+		local spellname = PvPEnemyAoE[i]
+		if jps.debuff(spellname,unit) then return true end
+	end
+   return false
+end

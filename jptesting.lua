@@ -81,24 +81,22 @@ local function DkTest()
 end
 
 function jps_RaidTest()
-
 	jps.LookupRaid ()
-	jps.LookupEnemyDamager()
-	jps.LookupEnemyHealer()
-
 end
  
  function jps_Test()
 
 	Test()
 	--DkTest()
-	jps.Lookup()
+	--jps.LookupIncomingDamage()
+	--jps.LookupEnemyDamager()
+	jps.LookupEnemyHealer()
 	
 	local rangedTarget, EnemyUnit, TargetCount = jps.LowestTarget()
-	print("RangedTarget: ",rangedTarget,"TargetCount: ",TargetCount)
+	print("|cffffffffRangedTarget:|cff1eff00",rangedTarget,"|cffffffffTargetCount:|cff1eff00",TargetCount)
 	local enemyTable = jps.LowestTargetRole()
-	for i,j in pairs(enemyTable) do
-		print("unit: ",GetUnitName(i),"role: ",j)
+	for unit,role in pairs(enemyTable) do
+		print("|cffffffffRole:|cff1eff00",role,"|cffffffffUnit:|cff1eff00",GetUnitName(unit))
 	end
 	
 --	local table = { {"target",UnitClass("target")}, {"playertarget","DEFENSIVE"}, {"raid4target","DAMAGE"} }

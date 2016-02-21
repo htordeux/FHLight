@@ -977,7 +977,7 @@ end
 jps.LookupEnemyDamager = function()
 	if jps.tableLength(EnemyDamager) == 0 then print("EnemyDamager is Empty") end
 	for unit,index in pairs(EnemyDamager) do
-		print("EnemyGuid_|cFFFF0000: ",unit," |cffffffffFriendGuid_|cff1eff00: ",index.friendguid)
+		print("|cffffffffEnemyGuid_|cFFFF0000: ",unit," |cffffffffFriendGuid_|cff1eff00: ",index.friendguid)
 	end
 end
 
@@ -985,20 +985,18 @@ end
 jps.LookupEnemyHealer = function()
 	if jps.tableLength(EnemyHealer) == 0 then print("EnemyHealer is Empty") end
 	for _,index in pairs(EnemyHealer) do
-		print("HealerClass:|cFFFF0000: ",index[1]," |cffffffffName:|cFFFF0000: ",index[2])
+		print("|cffffffffHealerClass:|cFFFF0000: ",index[1]," |cffffffffName:|cFFFF0000: ",index[2])
 	end
 end
 
+jps.LookupIncomingDamage = function()
 
-
-jps.Lookup = function()
-	print("|cffff8000------------------------|cffffffff")
-	-- IncomingHeal[destGUID] = {GetTime(),heal,destName}
+-- IncomingHeal[destGUID] = {GetTime(),heal,destName}
 --	for unit,index in pairs (IncomingHeal) do
 --		print(#index,"|cff1eff00unit:",unit,"destname:",index[1][3],"heal:",index[1][2])
 --	end
 	
-	-- IncomingDamage[destGUID] = {GetTime(),dmg,destName}
+-- IncomingDamage[destGUID] = {GetTime(),dmg,destName}
 --	for unit,index in pairs (IncomingDamage) do
 --		print(#index,"|cFFFF0000unit:",unit,"destname:",index[1][3],"dmg:",index[1][2])
 --	end

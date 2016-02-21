@@ -442,6 +442,12 @@ spellTable = {
 		-- "Soins rapides" 2061
 		{ 2061, not jps.Moving , LowestImportantUnit , "Emergency_FlashHeal" },
 	}},
+	
+	-- DAMAGE
+	-- "Mot de pouvoir : Réconfort" -- "Power Word: Solace" 129250 -- REGEN MANA
+	{ 129250, jps.IsSpellInRange(129250,rangedTarget) and canDPS(rangedTarget) , rangedTarget, "|cFFFF0000Solace" },
+	-- "Flammes sacrées" 14914  -- "Evangélisme" 81661
+	{ 14914, jps.IsSpellInRange(14914,rangedTarget) and canDPS(rangedTarget) , rangedTarget , "|cFFFF0000Flammes" },
 
 	-- CONTROL --
 	{ 15487, SilenceEnemyTarget ~= nil , SilenceEnemyTarget , "Silence_MultiUnit" },
@@ -464,10 +470,6 @@ spellTable = {
 	{ 17, not jps.buff(65081,"player") and jps.Moving and BodyAndSoul and not jps.debuff(6788,"player") , "player" , "Shield_Moving" },
 	
 	-- DAMAGE
-	-- "Mot de pouvoir : Réconfort" -- "Power Word: Solace" 129250 -- REGEN MANA
-	{ 129250, jps.IsSpellInRange(129250,rangedTarget) and canDPS(rangedTarget) , rangedTarget, "|cFFFF0000Solace" },
-	-- "Flammes sacrées" 14914  -- "Evangélisme" 81661
-	{ 14914, jps.IsSpellInRange(14914,rangedTarget) and canDPS(rangedTarget) , rangedTarget , "|cFFFF0000Flammes" },
 	-- "Châtiment" 585
 	{ 585, not jps.Moving and jps.buffStacks(81661) < 5 , rangedTarget , "|cFFFF0000Chatiment_Stacks" },
 	{ 585, not jps.Moving and jps.buffDuration(81661) < 9 , rangedTarget , "|cFFFF0000Chatiment_Stacks" },

@@ -160,7 +160,7 @@ end
 jps.LowestTargetHealer = function()
 	local enemyTable = jps.LowestTargetRole()
 	for unit,index in pairs(enemyTable) do
-		if index == "HEALER" then return unit end
+		if jps.EnemyHealer(unit) then return unit end
 	end
 end
 

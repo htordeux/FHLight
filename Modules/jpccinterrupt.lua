@@ -86,6 +86,7 @@ function jps.ControlEvents() -- ONLY FOR PLAYER
 end
 
 function jps.EnemyCastingSpellControl()
+	if jps.ControlEvents() then return false end
 	if jps.checkTimer("SpellControl") > 0 then return true end
 	return false
 end

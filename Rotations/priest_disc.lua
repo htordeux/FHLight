@@ -303,8 +303,8 @@ local priestDisc = function()
 	local InterruptTable = {
 		{priest.Spell.FlashHeal, 0.80, jps.buffId(priest.Spell.SpiritShellBuild) or jps.buff(172359) },
 		{priest.Spell.Heal, 0.90, jps.buffId(priest.Spell.SpiritShellBuild) },
-		{priest.Spell.PrayerOfHealing, 0.80, jps.buff(10060) or jps.buff(172359) or jps.buffId(priest.Spell.SpiritShellBuild) },
-		{priest.Spell.HolyCascade, 3 , false}
+		{priest.Spell.PrayerOfHealing, 0.80, jps.buff(10060) or jps.buff(172359) or jps.buffId(priest.Spell.SpiritShellBuild) or jps.PvP },
+		{priest.Spell.HolyCascade, 3 , jps.PvP}
 	}
 	  
 	-- AVOID OVERHEALING
@@ -351,16 +351,6 @@ spellTable = {
 	{ 33206, jps.hp(Tank) < 0.30 and UnitAffectingCombat(Tank) , Tank , "Pain_Tank" },
 	{ 33206, jps.hp("player") < 0.40 and UnitAffectingCombat("player") , "player" , "Pain_player" },
 	{ 33206, jps.hp(LowestImportantUnit) < 0.40 and UnitAffectingCombat(LowestImportantUnit) , LowestImportantUnit , "Pain_Lowest" },
-
-	-- "Soins rapides" 2061 -- "Vague de Lumière" 109186 "Surge of Light" -- gives buff 114255
-	{ 2061, jps.buff(114255) and jps.hp(LowestImportantUnit) < 0.80 , LowestImportantUnit , "FlashHeal_Light" },
-	{ 2061, jps.buff(114255) and jps.buffDuration(114255) < 4 , LowestImportantUnit , "FlashHeal_Light" },
-	-- "Saving Grace" 152116 "Grâce salvatrice"
-	{ 152116, jps.hp("player") < 0.40 and jps.debuffStacks(155274,"player") < 2 , "player" , "Emergency_SavingGrace" },
-	{ 152116, jps.hp(LowestImportantUnit) < 0.40 and jps.debuffStacks(155274,"player") < 2 , LowestImportantUnit , "Emergency_SavingGrace" },
-	-- "Soins rapides" 2061 -- Buff Borrowed 59889 -- Buff infusion 10060
-	{ 2061, jps.hpInc("player") < 0.60 and not jps.Moving and jps.buff(59889) and jps.buff(10060) ,"player" , "FlashHeal_Borrowed"  },
-	{ 2061, jps.hpInc(LowestImportantUnit) < 0.60 and not jps.Moving and jps.buff(59889) and jps.buff(10060) , LowestImportantUnit , "FlashHeal_Borrowed"  },
 	
 	-- PAIN FRIEND
 	{ "nested", PainFriend ~= nil and jps.hpInc(PainFriend) < 0.80 ,{
@@ -371,12 +361,30 @@ spellTable = {
 		-- "Soins rapides" 2061
 		{ 2061, not jps.Moving and jps.hpInc(PainFriend) < 0.60 , PainFriend , "FlashHeal_PainFriend" },
 	}},
-	
+
+	-- "Soins rapides" 2061 -- "Vague de Lumière" 109186 "Surge of Light" -- gives buff 114255
+	{ 2061, jps.buff(114255) and jps.hp(LowestImportantUnit) < 0.80 , LowestImportantUnit , "FlashHeal_Light" },
+	{ 2061, jps.buff(114255) and jps.buffDuration(114255) < 4 , LowestImportantUnit , "FlashHeal_Light" },
+	-- "Saving Grace" 152116 "Grâce salvatrice"
+	{ 152116, jps.hp("player") < 0.40 and jps.debuffStacks(155274,"player") < 2 , "player" , "Emergency_SavingGrace" },
+	{ 152116, jps.hp(LowestImportantUnit) < 0.40 and jps.debuffStacks(155274,"player") < 2 , LowestImportantUnit , "Emergency_SavingGrace" },
+	-- "Pénitence" 47540
+	{ 47540, jps.hpInc(LowestImportantUnit) < 0.50 , LowestImportantUnit , "Emergency_Penance" },
+	-- "Soins rapides" 2061 -- Buff Borrowed 59889 -- Buff infusion 10060
+	{ 2061, not jps.Moving and jps.hpInc("player") < 0.50 and jps.buff(59889) and jps.buff(10060) ,"player" , "FlashHeal_Borrowed"  },
+	{ 2061, not jps.Moving and jps.hpInc(LowestImportantUnit) < 0.50 and jps.buff(59889) and jps.buff(10060) , LowestImportantUnit , "FlashHeal_Borrowed"  },
+
 	-- DISPEL --
 	-- "Dispel" 527 "Purifier" -- "Glyph of Purify" 55677 Your Purify spell also heals your target for 5% of maximum health
 	{ 527, jps.canDispel("player",{"Magic"}) , "player" , "Aggro_Dispel" },
 	{ 527, jps.canDispel("mouseover") , "mouseover" , "Dispel_Mouseover"},
 	{ "nested", jps.UseCDs , parseDispel },
+	
+	-- DAMAGE
+	-- "Mot de pouvoir : Réconfort" -- "Power Word: Solace" 129250 -- REGEN MANA
+	{ 129250, jps.IsSpellInRange(129250,rangedTarget) and canDPS(rangedTarget) , rangedTarget, "|cFFFF0000Solace" },
+	-- "Flammes sacrées" 14914  -- "Evangélisme" 81661
+	{ 14914, jps.IsSpellInRange(14914,rangedTarget) and canDPS(rangedTarget) , rangedTarget , "|cFFFF0000Flammes" },
 
 	-- PLAYER AGGRO
 	{ "nested", playerAggro or playerIsTargeted ,{
@@ -400,6 +408,8 @@ spellTable = {
 		{ 2061, not jps.Moving and jps.hp() < 0.60 , "player" , "Aggro_FlashHeal" },
 	}},
 
+	-- OFFENSIVE Dispel -- "Dissipation de la magie" 528
+	{ 528, jps.castEverySeconds(528,8) and jps.DispelOffensive(rangedTarget) , rangedTarget , "|cff1eff00DispelOffensive" },
 	-- CONTROL --
 	{ 15487, SilenceEnemyTarget ~= nil , SilenceEnemyTarget , "Silence_MultiUnit" },
 	{ "nested", jps.PvP and not jps.LoseControl(rangedTarget) and canDPS(rangedTarget) , parseControl },
@@ -410,9 +420,6 @@ spellTable = {
 	-- SNM "Levitate" 1706 -- "Dark Simulacrum" debuff 77606
 	{ 1706, jps.PvP and jps.debuff(77606,"player") , "player" , "DarkSim_Levitate" },
 
-	-- OFFENSIVE Dispel -- "Dissipation de la magie" 528
-	{ 528, jps.castEverySeconds(528,8) and jps.DispelOffensive(rangedTarget) , rangedTarget , "|cff1eff00DispelOffensive" },
-	
 	-- TANK THREAT
 	-- "Power Word: Shield"
 	{ 17, canHeal(TankThreat) and not jps.buff(17,TankThreat) and not jps.debuff(6788,TankThreat) , TankThreat , "Shield_TankThreat" },
@@ -494,7 +501,6 @@ spellTable = {
 		{ 47540, jps.hp(LowestFriendTTD) < 0.60 , LowestFriendTTD , "Penance_Lowest_TTD" },
 		-- "Soins rapides" 2061
 		{ 2061, not jps.Moving and groupHealth > 0.80 and jps.hp(LowestFriendTTD) < 0.50 , LowestFriendTTD , "FlashHeal_Lowest_TTD" },
-
 	}},
 	
 	-- HIGHEST DAMAGE -- Highest Damage Friend with Lowest Health

@@ -771,9 +771,7 @@ jps.listener.registerEvent("COMBAT_LOG_EVENT_UNFILTERED", function(...)
 	local sourceFlags = select(6,...)
 	local destGUID = select(8,...)
 	local destFlags = select(10,...)
-	
-	local suffix = event:match(".+(_.-)$")
-	
+
 -- The numeric values of the global variables starts with 1 for MINE and increases toward OUTSIDER with 8
 	local isSourceEnemy = bitband(sourceFlags, COMBATLOG_OBJECT_REACTION_HOSTILE) == COMBATLOG_OBJECT_REACTION_HOSTILE
 	local isDestEnemy = bitband(destFlags, COMBATLOG_OBJECT_REACTION_HOSTILE) == COMBATLOG_OBJECT_REACTION_HOSTILE
@@ -797,6 +795,7 @@ jps.listener.registerEvent("COMBAT_LOG_EVENT_UNFILTERED", function(...)
 
 		-- Enemy Casting SpellControl according to table jps.SpellControl[spellID]
 		if isSourceEnemy and destGUID == UnitGUID("player") then
+			local suffix = event:match(".+(_.-)$")
 			local spellID = select(12, ...)
 			if jps.SpellControl[spellID] ~= nil and not jps.ControlEvents() then
 				if jps.checkTimer("SpellControl") < 2 then jps.createTimer("SpellControl",2) end

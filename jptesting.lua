@@ -29,7 +29,7 @@ local function Test()
 	print("|cFFFF0000IncDamage:|cff0070dd ", jps.IncomingDamage("player"))
 	print("IncHeal:|cff0070dd ", jps.IncomingHeal("player"))
 	print("ControlEvents: ",jps.ControlEvents())
-	print("EnemyCastingSpellControl: ",jps.checkTimer("SpellControl"))
+	print("EnemyCastingSpellControl: ",jps.checkTimer("SpellControl") > 0)
 	--print("GCD: ", jps.GCD)
 	--print("Distance12: ", jps.FriendNearby(12))
 	write("***************************")
@@ -81,7 +81,7 @@ local function DkTest()
 end
 
 function jps_RaidTest()
-	jps.LookupRaid ()
+	jps.LookupRaid()
 end
  
  function jps_Test()
@@ -91,13 +91,16 @@ end
 	--jps.LookupIncomingDamage()
 	--jps.LookupEnemyDamager()
 	jps.LookupEnemyHealer()
-	
+	local healerTarget = jps.LowestTargetHealer()
+	if healerTarget ~= nil then print("|cffffffffhealerTarget:|cff1eff00",healerTarget,"|cffffffffUnit:|cff1eff00",GetUnitName(healerTarget)) end
+
 	local rangedTarget, EnemyUnit, TargetCount = jps.LowestTarget()
 	print("|cffffffffRangedTarget:|cff1eff00",rangedTarget,"|cffffffffTargetCount:|cff1eff00",TargetCount)
-	local enemyTable = jps.LowestTargetRole()
-	for unit,role in pairs(enemyTable) do
-		print("|cffffffffRole:|cff1eff00",role,"|cffffffffUnit:|cff1eff00",GetUnitName(unit))
-	end
+
+--	local enemyTable = jps.LowestTargetRole()
+--	for unit,role in pairs(enemyTable) do
+--		print("|cffffffffRole:|cff1eff00",role,"|cffffffffUnit:|cff1eff00",GetUnitName(unit))
+--	end
 	
 --	local table = { {"target",UnitClass("target")}, {"playertarget","DEFENSIVE"}, {"raid4target","DAMAGE"} }
 --	local table = { ["target"] = UnitClass("target"), ["playertarget"] = "DEFENSIVE", ["raid4target"] = "DAMAGE" }

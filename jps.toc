@@ -65,4 +65,6 @@ Rotations\mage_arcane.lua
 
 Rotations\paladin_ret.lua
 
+Rotations\rogue.lua
+
 

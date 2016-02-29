@@ -188,11 +188,11 @@ function jps.canHeal(unit)
 	if unit == "player" then return true end
 	if not jps.UnitExists(unit) then return false end
 	if UnitInVehicle(unit) then return false end
-	if not UnitCanAssist("player",unit) then return false end
-	if not UnitIsFriend("player",unit) then return false end
 	if jps.PlayerIsBlacklisted(unit) then return false end
 	if unit == "target" and UnitCanAssist("player","target") and UnitIsFriend("player","target") then return true end
 	if unit == "focus" and UnitCanAssist("player","focus") and UnitIsFriend("player","focus") then return true end
+	if not UnitCanAssist("player",unit) then return false end
+	if not UnitIsFriend("player",unit) then return false end
 	if not select(1,UnitInRange(unit)) then return false end
 	return true
 end

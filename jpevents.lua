@@ -658,11 +658,6 @@ jps.listener.registerEvent("PARTY_MEMBER_DISABLE", function()
 	jps.UpdateRaidRole()
 end)
 
---------------------------
--- TRACKING ENEMY COOLDOWNS
---------------------------
-
-
 -----------------------
 -- UPDATE ENEMY TABLE
 -----------------------
@@ -797,7 +792,7 @@ jps.listener.registerEvent("COMBAT_LOG_EVENT_UNFILTERED", function(...)
 		if isSourceEnemy and destGUID == UnitGUID("player") then
 			local suffix = event:match(".+(_.-)$")
 			local spellID = select(12, ...)
-			if jps.SpellControl[spellID] ~= nil and not jps.ControlEvents() then
+			if jps.SpellControl[spellID] ~= nil then
 				if jps.checkTimer("SpellControl") < 2 then jps.createTimer("SpellControl",2) end
 			end
 		end

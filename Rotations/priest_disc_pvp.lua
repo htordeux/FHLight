@@ -1,8 +1,8 @@
 -- jps.UseCDs for RACIAL COUNTERS
--- jps.UseCDs for "Nova" 132157 "Words of Mending" 155362 "Mot de guérison" When OOC
 -- jps.UseCDs for Dispel
 -- jps.Interrupts for "Semblance spectrale" 112833 "Spectral Guise" -- PvP it loses the orb in Kotmogu Temple
 -- jps.Defensive changes the LowestImportantUnit to table = {"player","mouseover","target","focus","targettarget","focustarget"} with table.insert TankUnit  = jps.findTankInRaid()
+-- jps.Defensive for "Nova" 132157 "Words of Mending" 155362 "Mot de guérison" When OOC
 -- jps.MultiTarget to DPS
 -- IsControlKeyDown() for "Angelic Feather" 121536 "Plume angélique"
 
@@ -603,10 +603,10 @@ jps.registerRotation("PRIEST","DISCIPLINE",function()
 	{ 2060, not jps.Moving and jps.hp(LowestImportantUnit) < 0.60 , LowestImportantUnit , "Soins"  },
 	
 	-- "Nova" 132157 -- buff "Words of Mending" 155362 "Mot de guérison"
-	{ 132157, jps.IsSpellKnown(152117) and jps.UseCDs and jps.buffDuration(155362) < 9 , "player" , "Nova_WoM" },
+	{ 132157, jps.IsSpellKnown(152117) and jps.Defensive and jps.buffDuration(155362) < 9 , "player" , "Nova_WoM" },
 	
 	-- TIMER POM -- "Prière de guérison" 33076 -- Buff POM 41635
-	{ 33076, jps.UseCDs and UnitIsPlayer(Tank) and not jps.Moving and not jps.buff(41635,Tank) and canHeal(Tank) , Tank , "Mending_Tank" },
+	{ 33076, jps.Defensive and UnitIsPlayer(Tank) and not jps.Moving and not jps.buff(41635,Tank) and canHeal(Tank) , Tank , "Mending_Tank" },
 	-- ClarityTank -- "Clarity of Will" 152118 shields with protective ward for 20 sec
 	{ 152118, not jps.Moving and canHeal(Tank) and not jps.buff(152118,Tank) and not jps.isRecast(152118,Tank) , Tank , "Clarity_Tank" },
 	

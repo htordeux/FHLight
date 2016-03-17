@@ -72,8 +72,8 @@ local priestDisc = function()
 	local CountInRange, AvgHealthLoss, FriendUnit = jps.CountInRaidStatus()
 	local LowestImportantUnit = jps.LowestImportantUnit()
 	local countFriendNearby = jps.FriendNearby(12)
-	local POHTarget, groupToHeal, groupHealth = jps.FindSubGroupHeal(0.70) -- Target to heal with POH in RAID with AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
-	--local POHTarget, groupToHeal = jps.FindSubGroupTarget(0.70) -- Target to heal with POH in RAID with AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
+	local POHTarget, groupToHeal, groupHealth = jps.FindSubGroupHeal(0.75) -- Target to heal with POH in RAID with AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
+	--local POHTarget, groupToHeal = jps.FindSubGroupTarget(0.75) -- Target to heal with POH in RAID with AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
 	local CountFriendLowest = jps.CountInRaidLowest(0.80)
 	local CountFriendEmergency = jps.CountInRaidLowest(0.50)
 
@@ -89,7 +89,6 @@ local priestDisc = function()
 	local playerWasControl = jps.ControlEvents() -- return true/false Player was interrupt or stun 2 sec ago ONLY FOR PLAYER
 	local playerTTD = jps.TimeToDie("player")
 	local ShellTarget = jps.FindSubGroupAura(114908) -- buff target Spirit Shell 114908 need SPELLID
-
 	local BodyAndSoul = jps.IsSpellKnown(64129) -- "Body and Soul" 64129
 	local isArena, _ = IsActiveBattlefieldArena()
 
@@ -299,26 +298,11 @@ local priestDisc = function()
 		{priest.Spell.PrayerOfHealing, 0.80, jps.buff(10060) or jps.buff(172359) or jps.buffId(priest.Spell.SpiritShellBuild) or jps.PvP },
 		{priest.Spell.HolyCascade, 3 , jps.PvP}
 	}
-	  
+
 	-- AVOID OVERHEALING
 	priest.ShouldInterruptCasting(InterruptTable , groupHealth , CountFriendLowest)
 
-	-- FAKE CAST -- 6948 -- "Hearthstone"
-	local FakeCast = UnitCastingInfo("player")
-	if FakeCast == GetItemInfo(6948) then
-		if jps.CastTimeLeft() < 4 then
-			SpellStopCasting()
-		elseif jps.hp(LowestImportantUnit) < 0.80 then
-			SpellStopCasting()
-		end
-	end
-
--- SNM Trinket 1 use function to avoid blowing trinket when not needed
--- False if rooted, not moving, and lowest friendly unit in range
--- False if stunned/incapacitated but lowest friendly unit is good health
--- False if stunned/incapacitated and playerAggro but player health is good
-
-if jps.hp("player") < 0.25 then CreateMessage("LOW HEALTH!") end -- CreateFlasher()
+	if jps.hp("player") < 0.25 then CreateMessage("LOW HEALTH!") end -- CreateFlasher()
 
 ------------------------
 -- SPELL TABLE ---------
@@ -414,7 +398,7 @@ spellTable = {
 	{ 1706, jps.PvP and jps.debuff(77606,"player") , "player" , "DarkSim_Levitate" },
 	
 	-- TIMER POM -- "Prière de guérison" 33076 -- Buff POM 41635
-	{ "nested", not jps.Moving and CountFriendLowest > 2 and jps.hpSum(LowestImportantUnit) > 0.50 ,{
+	{ "nested", not jps.Moving and CountFriendLowest > 2 and jps.hpSum(LowestImportantUnit) > 0.60 ,{
 		{ 33076, canHeal(TankThreat) , TankThreat , "Tracker_Mending_TankThreat" },
 		{ 33076, canHeal(Tank) , Tank , "Tracker_Mending_Tank" },
 		{ 33076, MendingFriend ~= nil , MendingFriend , "Mending_CountFriendLowest" },
@@ -463,7 +447,7 @@ spellTable = {
 	{ 10060, jps.hp(LowestImportantUnit) < 0.50 , "player" , "POWERINFUSION_Lowest" },
 	{ 10060, groupHealth < 0.80 , "player" , "POWERINFUSION_POH" },
 	{ 10060, CountFriendLowest > 3 , "player" , "POWERINFUSION_Count" },
-	-- SNM Troll "Berserker" 26297 -- haste buff
+	-- SNM Troll "Berserker" 26297 -- Haste Buff
 	{ 26297, CountFriendEmergency > 1 , "player" },
 
 	-- "Divine Star" Holy 110744 Shadow 122121
@@ -518,8 +502,7 @@ spellTable = {
 		{ 2061, not jps.Moving and groupHealth > 0.80 and jps.hp(IncomingDamageFriend) < 0.50 , IncomingDamageFriend , "FlashHeal_Lowest_DAMAGE" },
 	}},
 
-	-- TIMER POM --
-	-- "Prière de guérison" 33076 -- Buff POM 41635
+	-- TIMER POM -- "Prière de guérison" 33076 -- Buff POM 41635
 	{ "nested", not jps.Moving and not jps.buffTracker(41635) ,{
 		{ 33076, canHeal(TankThreat) , TankThreat , "Tracker_Mending_TankThreat" },
 		{ 33076, canHeal(Tank) , Tank , "Tracker_Mending_Tank" },
@@ -562,7 +545,7 @@ spellTable = {
 	{ 59544, jps.hp(LowestImportantUnit) < 0.80 , LowestImportantUnit , "Top_Naaru" },
 	-- "Soins" 2060
 	{ 2060, not jps.Moving and jps.hp(LowestImportantUnit) < 0.80 , LowestImportantUnit , "Top_Soins"  },
-	
+
 	-- "Nova" 132157 -- "Words of Mending" 155362 "Mot de guérison"
 	{ 132157, jps.Moving and countFriendNearby > 2 , "player" , "Nova_Count" },
 	-- "Torve-esprit" 123040 -- "Ombrefiel" 34433 "Shadowfiend"

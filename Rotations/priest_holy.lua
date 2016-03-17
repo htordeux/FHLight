@@ -1,6 +1,10 @@
--- jps.Interrupts for Dispel
--- jps.Defensive changes the LowestImportantUnit to table = { "player","focus","target","mouseover" } with table.insert TankUnit  = jps.findTankInRaid()
--- jps.MultiTarget to DPSing
+-- jps.UseCDs for RACIAL COUNTERS
+-- jps.UseCDs for Dispel
+-- jps.Interrupts for "Semblance spectrale" 112833 "Spectral Guise" -- PvP it loses the orb in Kotmogu Temple
+-- jps.Defensive changes the LowestImportantUnit to table = {"player","mouseover","target","focus","targettarget","focustarget"} with table.insert TankUnit  = jps.findTankInRaid()
+-- jps.Defensive for "Nova" 132157 "Words of Mending" 155362 "Mot de guérison" When OOC
+-- jps.MultiTarget to DPS
+-- IsControlKeyDown() for "Angelic Feather" 121536 "Plume angélique"
 
 local L = MyLocalizationTable
 local spellTable = {}
@@ -10,11 +14,13 @@ local parseDispel = {}
 
 local canDPS = jps.canDPS
 local canHeal = jps.canHeal
+local canAttack = jps.CanAttack
 local UnitGetTotalAbsorbs = UnitGetTotalAbsorbs
 local strfind = string.find
 local UnitClass = UnitClass
 local UnitChannelInfo = UnitChannelInfo
 local GetSpellInfo = GetSpellInfo
+local UnitAffectingCombat = UnitAffectingCombat
 local UnitIsUnit = UnitIsUnit
 
 local POH = tostring(select(1,GetSpellInfo(596)))
@@ -54,6 +60,24 @@ local EnemyCaster = function(unit)
 	return ClassEnemy[classTarget]
 end
 
+-- Debuff EnemyTarget NOT DPS
+local DebuffUnitCyclone = function (unit)
+	local i = 1
+	local auraName = select(1,UnitDebuff(unit, i))
+	while auraName do
+		if strfind(auraName,L["Polymorph"]) then
+			return true
+		elseif strfind(auraName,L["Cyclone"]) then
+			return true
+		elseif strfind(auraName,L["Hex"]) then
+			return true
+		end
+		i = i + 1
+		auraName = select(1,UnitDebuff(unit, i))
+	end
+	return false
+end
+
 ----------------------------------------------------------------------------------------------------------------
 -------------------------------------------------- ROTATION PVE ------------------------------------------------
 ----------------------------------------------------------------------------------------------------------------
@@ -69,7 +93,6 @@ local priestHoly = function()
 
 	local CountInRange, AvgHealthLoss, FriendUnit = jps.CountInRaidStatus()
 	local LowestImportantUnit = jps.LowestImportantUnit()
-	local LowestImportantUnitHpct = jps.hp(LowestImportantUnit) -- UnitHealth(unit) / UnitHealthMax(unit)
 	local countFriendNearby = jps.FriendNearby(12)
 	local POHTarget, groupToHeal, groupHealth = jps.FindSubGroupHeal(0.75) -- Target to heal with POH in RAID with AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
 	--local POHTarget, groupToHeal = jps.FindSubGroupTarget(0.75) -- Target to heal with POH in RAID with AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
@@ -79,6 +102,7 @@ local priestHoly = function()
 	local Tank,TankUnit = jps.findTankInRaid() -- default "focus"
 	local TankTarget = "target"
 	if canHeal(Tank) then TankTarget = Tank.."target" end
+	local TankThreat = jps.findThreatInRaid()
 
 	local playerAggro = jps.FriendAggro("player")
 	local playerIsStun = jps.StunEvents(2) -- return true/false ONLY FOR PLAYER -- "ROOT" was removed of Stuntype
@@ -86,7 +110,8 @@ local priestHoly = function()
 	local playerIsInterrupt = jps.InterruptEvents() -- return true/false ONLY FOR PLAYER
 	local playerWasControl = jps.ControlEvents() -- return true/false Player was interrupt or stun 2 sec ago ONLY FOR PLAYER
 	local playerTTD = jps.TimeToDie("player")
-	local PlayerIsFacingLowest = jps.PlayerIsFacing(LowestImportantUnit,30)	-- angle value between 10-180
+	local BodyAndSoul = jps.IsSpellKnown(64129) -- "Body and Soul" 64129
+	local isArena, _ = IsActiveBattlefieldArena()
 
 ---------------------
 -- ENEMY TARGET
@@ -96,11 +121,10 @@ local priestHoly = function()
 	-- rangedTarget returns "target" by default, sometimes could be friend
 	local rangedTarget, EnemyUnit, TargetCount = jps.LowestTarget()
 
-	if canDPS("target") then rangedTarget =  "target"
-	elseif canDPS(TankTarget) then rangedTarget = TankTarget 
-	elseif canDPS("targettarget") then rangedTarget = "targettarget"
-	elseif canDPS("focustarget") then rangedTarget = "focustarget"
-	elseif canDPS("mouseover") and UnitAffectingCombat("mouseover") then rangedTarget = "mouseover"
+	if canDPS("target") and not DebuffUnitCyclone(rangedTarget) then rangedTarget =  "target"
+	elseif canDPS(TankTarget) and not DebuffUnitCyclone(rangedTarget) then rangedTarget = TankTarget
+	elseif canDPS("targettarget") and not DebuffUnitCyclone(rangedTarget) then rangedTarget = "targettarget"
+	elseif canAttack("mouseover") then rangedTarget = "mouseover"
 	end
 	-- if your target is friendly keep it as target
 	if not canHeal("target") and canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
@@ -128,7 +152,7 @@ local priestHoly = function()
 	local LeapFriend = nil
 	for i=1,#FriendUnit do -- for _,unit in ipairs(FriendUnit) do
 		local unit = FriendUnit[i]
-		if priest.unitForLeap(unit) and jps.hp(unit) < 0.25 then 
+		if priest.unitForLeap(unit) and jps.hpInc(unit) < 0.30 then 
 			LeapFriend = unit
 		break end
 	end
@@ -147,14 +171,32 @@ local priestHoly = function()
 	end
 
 	-- DISPEL --
-	local DispelFriend = jps.FindMeDispelTarget( {"Magic"} ) -- {"Magic", "Poison", "Disease", "Curse"}
+	
+	local DispelFriendPvE = jps.FindMeDispelTarget( {"Magic"} ) -- {"Magic", "Poison", "Disease", "Curse"}
+	local DispelFriendPvP = nil
+	local DispelFriendHealth = 100
+	for i=1,#FriendUnit do -- for _,unit in ipairs(FriendUnit) do
+		local unit = FriendUnit[i]
+		if jps.DispelFriendly(unit) then -- jps.DispelFriendly includes UnstableAffliction
+			local unitHP = jps.hp(unit)
+			if unitHP < DispelFriendHealth then
+				DispelFriendPvP = unit
+				DispelFriendHealth = unitHP
+			end
+		end
+	end
+
+	local DispelFriendLoseControl = nil
+	for i=1,#FriendUnit do -- for _,unit in ipairs(FriendUnit) do
+		local unit = FriendUnit[i]
+		if DispelFriendLoseControl == nil and jps.DispelLoseControl(unit) then DispelFriendLoseControl = unit
+		break end
+	end
 
 	local DispelFriendRole = nil
 	for i=1,#TankUnit do -- for _,unit in ipairs(TankUnit) do
 		local unit = TankUnit[i]
 		if jps.canDispel(unit,{"Magic"}) then -- jps.canDispel includes UnstableAffliction
-			DispelFriendRole = unit
-		elseif jps.PvP and jps.RoleInRaid(unit) == "HEALER" then
 			DispelFriendRole = unit
 		break end
 	end
@@ -197,7 +239,7 @@ local priestHoly = function()
 	local DispelOffensiveEnemyTarget = nil
 	for i=1,#EnemyUnit do -- for _,unit in ipairs(EnemyUnit) do
 		local unit = EnemyUnit[i]
-		if jps.DispelOffensive(unit) and LowestImportantUnitHpct > 0.85 then
+		if jps.DispelOffensive(unit) and jps.hp(LowestImportantUnit) > 0.85 then
 			DispelOffensiveEnemyTarget = unit
 		break end
 	end
@@ -238,7 +280,7 @@ local priestHoly = function()
 		-- "Châtiment" 585
 		{ 585, jps.buffId(81209) and not jps.Moving , rangedTarget  },
 	}
-	
+
 ------------------------------------------------------
 -- OVERHEAL -- OPENING -- CANCELAURA -- STOPCASTING --
 ------------------------------------------------------
@@ -270,7 +312,7 @@ local spellTable = {
 			-- "Circle of Healing" 34861
 			{ 34861, AvgHealthLoss < 0.75 , LowestImportantUnit },
 			-- "Soins rapides" 2061
-			{ 2061, LowestImportantUnitHpct < 0.75 , LowestImportantUnit },
+			{ 2061, jps.hp(LowestImportantUnit) < 0.75 , LowestImportantUnit },
 			-- "Renew" 139
 			{ 139, type(RenewFriend) == "string" , RenewFriend },
 		},
@@ -283,7 +325,7 @@ local spellTable = {
 	{ jps.useTrinket(1), jps.useTrinketBool(1) and not playerWasControl and jps.combatStart > 0 , "player" , "Trinket1"},
 
 	-- "Guardian Spirit"
-	{ 47788, playerIsStun and LowestImportantUnitHpct < 0.30 , LowestImportantUnit , "Guardian_" },
+	{ 47788, playerIsStun and jps.hp(LowestImportantUnit) < 0.30 , LowestImportantUnit , "Guardian_" },
 	-- "Pierre de soins" 5512
 	{ {"macro","/use item:5512"}, jps.itemCooldown(5512) == 0 and jps.hp() < 0.75 , "player" , "Item5512" },
 	-- "Prière du désespoir" 19236
@@ -296,7 +338,7 @@ local spellTable = {
 		-- "Power Word: Shield" 17
 		{ 17, jps.IsSpellKnown(64129) and not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Aggro_Shield" },
 		-- "Spectral Guise" 112833 "Semblance spectrale"
-		{ 112833, jps.IsSpellKnown(112833) , "player" , "Aggro_Spectral" },
+		{ 112833, jps.Interrupts and jps.IsSpellKnown(112833) , "player" , "Aggro_Spectral" },
 		-- "Oubli" 586 -- Fantasme 108942 -- vous dissipez tous les effets affectant le déplacement sur vous-même
 		{ 586, jps.IsSpellKnown(108942) , "player" , "Aggro_Oubli" },
 		-- "Oubli" 586 -- Glyphe d'oubli 55684 -- Votre technique Oubli réduit à présent tous les dégâts subis de 10%.
@@ -308,7 +350,7 @@ local spellTable = {
 	-- "Leap of Faith" 73325 -- "Saut de foi"
 	--{ 73325, type(LeapFriend) == "string" , LeapFriend , "|cff1eff00Leap_MultiUnit_" },
 	-- "Soins rapides" 2061 -- "Vague de Lumière" 114255 "Surge of Light"
-	{ 2061, jps.buff(114255) and LowestImportantUnitHpct < 0.75 , LowestImportantUnit , "FlashHeal_Light_" },
+	{ 2061, jps.buff(114255) and jps.hp(LowestImportantUnit) < 0.75 , LowestImportantUnit , "FlashHeal_Light_" },
 	{ 2061, jps.buff(114255) and jps.buffDuration(114255) < 4 , LowestImportantUnit , "FlashHeal_Light_" },
 
 	-- "Mot de pouvoir : Réconfort" -- "Power Word: Solace" 129250 -- REGEN MANA
@@ -332,11 +374,11 @@ local spellTable = {
 	-- CHAKRA
 	-- Chakra: Serenity 81208 -- "Holy Word: Serenity" 88684
 	{ 81208, not jps.buffId(81208) , "player" , "|cffa335eeChakra_Serenity" },
-	{ 81208, not jps.buffId(81208) and LowestImportantUnitHpct < 0.85 and jps.FinderLastMessage("Cancelaura") == false , "player" , "|cffa335eeChakra_Serenity" },
+	{ 81208, not jps.buffId(81208) and jps.hp(LowestImportantUnit) < 0.85 and jps.FinderLastMessage("Cancelaura") == false , "player" , "|cffa335eeChakra_Serenity" },
 	{ 81208, not jps.buffId(81208) and jps.FinderLastMessage("Cancelaura") == false , "player" , "|cffa335eeChakra_Serenity" },
 
 	-- "Infusion de puissance" 10060
-	{ 10060, jps.combatStart > 0 and LowestImportantUnitHpct < 0.50 , "player" , "Emergency_POWERINFUSION" },
+	{ 10060, jps.combatStart > 0 and jps.hp(LowestImportantUnit) < 0.50 , "player" , "Emergency_POWERINFUSION" },
 	
 	-- GROUP HEAL
 	-- "Circle of Healing" 34861
@@ -350,13 +392,13 @@ local spellTable = {
 	}},
 
 	-- EMERGENCY HEAL -- "Serendipity" 63735
-	{ "nested", LowestImportantUnitHpct < 0.50 ,{
+	{ "nested", jps.hp(LowestImportantUnit) < 0.50 ,{
 		-- "Guardian Spirit" 47788
-		{ 47788, LowestImportantUnitHpct < 0.30 , LowestImportantUnit , "Emergency_Guardian_" },
+		{ 47788, jps.hp(LowestImportantUnit) < 0.30 , LowestImportantUnit , "Emergency_Guardian_" },
 		-- "Holy Word: Serenity" 88684 -- Chakra: Serenity 81208
 		{ {"macro",macroSerenity}, jps.cooldown(88684) == 0 and jps.buffId(81208) , LowestImportantUnit , "Emergency_Serenity_" },
 		-- "Power Word: Shield" 17 
-		{ 17, LowestImportantUnitHpct < 0.30 and not jps.buff(17,LowestImportantUnit) and not jps.debuff(6788,LowestImportantUnit) , LowestImportantUnit , "Emergency_Shield_" },
+		{ 17, jps.hp(LowestImportantUnit) < 0.30 and not jps.buff(17,LowestImportantUnit) and not jps.debuff(6788,LowestImportantUnit) , LowestImportantUnit , "Emergency_Shield_" },
 		-- "Soins supérieurs" 2060
 		{ 2060,  jps.buffStacks(63735,"player") == 2 , LowestImportantUnit , "Emergency_Soins_"  },
 		-- "Soins de lien"
@@ -367,16 +409,16 @@ local spellTable = {
 	}},
 	
 	-- DISPEL -- "Glyph of Purify" 55677 Your Purify spell also heals your target for 5% of maximum health
-	{ "nested", jps.Interrupts , parseDispel },
+	{ "nested", jps.UseCDs , parseDispel },
 	-- OFFENSIVE Dispel -- "Dissipation de la magie" 528
-	{ 528, jps.castEverySeconds(528,8) and jps.DispelOffensive(rangedTarget) and LowestImportantUnitHpct > 0.85 , rangedTarget , "|cff1eff00DispelOffensive_" },
+	{ 528, jps.castEverySeconds(528,8) and jps.DispelOffensive(rangedTarget) and jps.hp(LowestImportantUnit) > 0.85 , rangedTarget , "|cff1eff00DispelOffensive_" },
 	{ 528, jps.castEverySeconds(528,8) and type(DispelOffensiveEnemyTarget) == "string"  , DispelOffensiveEnemyTarget , "|cff1eff00DispelOffensive_MULTITARGET_" },
 
 	-- CONTROL --
 	--{ 15487, type(SilenceEnemyTarget) == "string" , SilenceEnemyTarget , "Silence_MultiUnit" },
 	--{ "nested", not jps.LoseControl(rangedTarget) and canDPS(rangedTarget) , parseControl },
 
-	{ "nested", LowestImportantUnitHpct < 0.85 ,{
+	{ "nested", jps.hp(LowestImportantUnit) < 0.85 ,{
 		-- "Holy Word: Serenity" 88684 -- Chakra: Serenity 81208
 		{ {"macro",macroSerenity}, jps.cooldown(88684) == 0 and jps.buffId(81208) , LowestImportantUnit , "Serenity_" },
 		-- "Renew" 139 -- Haste breakpoints are 12.5 and 16.7%(Holy)
@@ -395,7 +437,7 @@ local spellTable = {
 	{ 34433, priest.canShadowfiend(rangedTarget) , rangedTarget },
 	{ 123040, priest.canShadowfiend(rangedTarget) , rangedTarget },
 	-- DAMAGE -- Chakra: Chastise 81209
-	{ "nested", jps.MultiTarget and canDPS(rangedTarget) and LowestImportantUnitHpct > 0.85 , parseDamage },
+	{ "nested", jps.MultiTarget and canDPS(rangedTarget) and jps.hp(LowestImportantUnit) > 0.85 , parseDamage },
 
 	-- "Renew" 139 -- Haste breakpoints are 12.5 and 16.7%(Holy)
 	{ 139, type(RenewFriend) == "string" , RenewFriend , "Tracker_Renew_Friend" },

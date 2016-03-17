@@ -140,7 +140,8 @@ jps.LowestTarget = function()
 end
 
 --local locClass, enClass, classID = UnitClass(unit)
-jps.LowestTargetRole = function()
+jps.LowestTargetRole = function(spec)
+	if spec == nil then spec = "HEALER" end
 	local _,EnemyUnit,_ = jps.LowestTarget()
 	local EnemyRole = {}
 	for i=1,#EnemyUnit do
@@ -149,12 +150,12 @@ jps.LowestTargetRole = function()
 		local numTabs = GetNumSpecializationsForClassID(classID)
 		for i = 1, numTabs do
 			local id, name, _, icon, _, role = GetSpecializationInfoForClassID(classID, i)
-			if id then
+			if id and role == spec then
 				if EnemyRole[unit] == nil then EnemyRole[unit] = role end
 			end
 		end
 	end
-	return EnemyRole -- "DAMAGER" "TANK" "HEALER"
+	return EnemyRole -- table with choosen role "DAMAGER" "TANK" "HEALER"
 end
 
 jps.LowestTargetHealer = function()

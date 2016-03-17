@@ -72,8 +72,8 @@ local priestDisc = function()
 	local CountInRange, AvgHealthLoss, FriendUnit = jps.CountInRaidStatus()
 	local LowestImportantUnit = jps.LowestImportantUnit()
 	local countFriendNearby = jps.FriendNearby(12)
-	local POHTarget, groupToHeal, groupHealth = jps.FindSubGroupHeal(0.70) -- Target to heal with POH in RAID with AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
-	--local POHTarget, groupToHeal = jps.FindSubGroupTarget(0.70) -- Target to heal with POH in RAID with AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
+	local POHTarget, groupToHeal, groupHealth = jps.FindSubGroupHeal(0.75) -- Target to heal with POH in RAID with AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
+	--local POHTarget, groupToHeal = jps.FindSubGroupTarget(0.75) -- Target to heal with POH in RAID with AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
 	local CountFriendLowest = jps.CountInRaidLowest(0.80)
 	local CountFriendEmergency = jps.CountInRaidLowest(0.50)
 
@@ -89,7 +89,6 @@ local priestDisc = function()
 	local playerWasControl = jps.ControlEvents() -- return true/false Player was interrupt or stun 2 sec ago ONLY FOR PLAYER
 	local playerTTD = jps.TimeToDie("player")
 	local ShellTarget = jps.FindSubGroupAura(114908) -- buff target Spirit Shell 114908 need SPELLID
-
 	local BodyAndSoul = jps.IsSpellKnown(64129) -- "Body and Soul" 64129
 	local isArena, _ = IsActiveBattlefieldArena()
 
@@ -308,7 +307,7 @@ local priestDisc = function()
 		{priest.Spell.PrayerOfHealing, 0.80, jps.buff(10060) or jps.buff(172359) or jps.buffId(priest.Spell.SpiritShellBuild) or jps.PvP },
 		{priest.Spell.HolyCascade, 3 , jps.PvP}
 	}
-	  
+
 	-- AVOID OVERHEALING
 	priest.ShouldInterruptCasting(InterruptTable , groupHealth , CountFriendLowest)
 
@@ -322,13 +321,8 @@ local priestDisc = function()
 		end
 	end
 
--- SNM Trinket 1 use function to avoid blowing trinket when not needed
--- False if rooted, not moving, and lowest friendly unit in range
--- False if stunned/incapacitated but lowest friendly unit is good health
--- False if stunned/incapacitated and playerAggro but player health is good
-
-if jps.hp("player") < 0.25 then CreateMessage("LOW HEALTH!") -- CreateFlasher()
-elseif jps.debuffAoE() then CreateMessage("DEBUFF AOE!") end -- CreateFlasher()
+	if jps.hp("player") < 0.25 then CreateMessage("LOW HEALTH!") -- CreateFlasher()
+	elseif jps.debuffAoE() then CreateMessage("DEBUFF AOE!") end -- CreateFlasher()
 
 ------------------------
 -- SPELL TABLE ---------
@@ -440,7 +434,7 @@ spellTable = {
 	{ 1706, jps.PvP and jps.debuff(77606,"player") , "player" , "DarkSim_Levitate" },
 	
 	-- TIMER POM -- "Prière de guérison" 33076 -- Buff POM 41635
-	{ "nested", not jps.Moving and CountFriendLowest > 2 and jps.hpSum(LowestImportantUnit) > 0.50 ,{
+	{ "nested", not jps.Moving and CountFriendLowest > 2 and jps.hpSum(LowestImportantUnit) > 0.60 ,{
 		{ 33076, MendingFriend ~= nil , MendingFriend , "Mending_CountFriendLowest" },
 		{ 33076, not jps.buff(41635,LowestImportantUnit) , LowestImportantUnit , "Mending_CountFriendLowest" },
 	}},
@@ -512,7 +506,7 @@ spellTable = {
 	--{ 2060, not jps.Moving and jps.hp(LowestImportantUnit) > 0.80 and playerIsTargeted , LowestImportantUnit , "Fake_Soins"  },
 
 	-- DAMAGE
-	{ "nested", jps.hp(LowestImportantUnit) > 0.80 and jps.MultiTarget and canDPS(rangedTarget) ,{
+	{ "nested", jps.MultiTarget and jps.hp(LowestImportantUnit) > 0.80 and canDPS(rangedTarget) ,{
 		-- "Mot de l'ombre: Douleur" 589
 		{ 589, jps.myDebuffDuration(589,rangedTarget) == 0 and jps.PvP , rangedTarget , "|cFFFF0000Douleur" },
 		{ 589, jps.myDebuffDuration(589,rangedTarget) == 0 and not IsInGroup() , rangedTarget , "|cFFFF0000Douleur" },

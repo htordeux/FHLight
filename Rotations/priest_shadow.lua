@@ -404,7 +404,7 @@ local spellTable = {
 
 	-- HEAL --
 	-- "Vampiric Embrace" 15286
-	{ 15286, CountInRange > 5 , rangedTarget , "VampiricEmbrace"  },
+	{ 15286, CountInRange > 5 and AvgHealthLoss > 0.90 , rangedTarget , "VampiricEmbrace"  },
 	{ 15286, jps.hp("player") < 0.75 and not IsInGroup() , rangedTarget , "VampiricEmbrace"  },
 	{ "nested", jps.hp("player") < 0.75 , parseHeal },
 

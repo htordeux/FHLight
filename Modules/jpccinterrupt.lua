@@ -38,12 +38,6 @@ local latencyWorld = select(4,GetNetStats())/1000
 --------------------------
 -- DISPEL TABLE
 --------------------------
--- Create table with jps.SpellControl[spellID] in a local table DebuffControl[SpellName]
-
-local DebuffControl = {}
-for spellID,control in pairs(jps.SpellControl) do
-	DebuffControl[toSpellName(spellID)] = control
-end
 
 -- Don't Dispel if unit is affected by some debuffs
 local DebuffNotDispel = {
@@ -102,7 +96,7 @@ jps.LoseControl = function(unit,controlTable)
 	local i = 1
 	auraName, _, _, _, debuffType, duration, expTime, _, _, _, spellID, _ = UnitDebuff(unit,i)
 	while auraName do
-		local Priority = jps.SpellControl[spellID] -- DebuffControl[auraName] --
+		local Priority = jps.SpellControl[spellID]
 		if Priority then
 			for i=1,#controlTable do
 				if Priority == controlTable[i] then
@@ -128,7 +122,7 @@ jps.DispelLoseControl = function(unit,controlTable)
 	local i = 1
 	auraName, _, _, _, debuffType, duration, expTime, _, _, _, spellID, _ = UnitDebuff(unit,i)
 	while auraName do
-		local Priority = jps.SpellControl[spellID] -- DebuffControl[auraName] --
+		local Priority = jps.SpellControl[spellID]
 		if Priority and debuffType == "Magic" then -- {"Magic", "Poison", "Disease", "Curse"}
 			for i=1,#controlTable do
 				if Priority == controlTable[i] then

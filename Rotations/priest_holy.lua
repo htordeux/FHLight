@@ -1,17 +1,6 @@
--- jps.UseCDs for RACIAL COUNTERS
--- jps.UseCDs for Dispel
--- jps.Interrupts for "Semblance spectrale" 112833 "Spectral Guise" -- PvP it loses the orb in Kotmogu Temple
--- jps.Defensive changes the LowestImportantUnit to table = {"player","mouseover","target","focus","targettarget","focustarget"} with table.insert TankUnit  = jps.findTankInRaid()
--- jps.Defensive for "Nova" 132157 "Words of Mending" 155362 "Mot de guérison" When OOC
--- jps.MultiTarget to DPS
--- IsControlKeyDown() for "Angelic Feather" 121536 "Plume angélique"
 
 local L = MyLocalizationTable
-local spellTable = {}
-local parseDamage = {}
-local parseControl = {}
-local parseDispel = {}
-
+local spells = jps.spells.priest
 local canDPS = jps.canDPS
 local canHeal = jps.canHeal
 local canAttack = jps.CanAttack
@@ -22,43 +11,6 @@ local UnitChannelInfo = UnitChannelInfo
 local GetSpellInfo = GetSpellInfo
 local UnitAffectingCombat = UnitAffectingCombat
 local UnitIsUnit = UnitIsUnit
-
-local POH = tostring(select(1,GetSpellInfo(596)))
-local Hymn = tostring(select(1,GetSpellInfo(64843))) -- "Divine Hymn" 64843
-local Serenity = tostring(select(1,GetSpellInfo(88684))) -- "Holy Word: Serenity" 88684
-local Chastise = tostring(select(1,GetSpellInfo(88625))) -- Holy Word: Chastise 88625
-local Santuary = tostring(select(1,GetSpellInfo(88685))) -- Holy Word: Sanctuary 88685
-
-local ChakraSanctuary = tostring(select(1,GetSpellInfo(81206))) -- Chakra: Sanctuary 81206
-local ChakraChastise = tostring(select(1,GetSpellInfo(81209))) -- Chakra: Chastise 81209
-local ChakraSerenity = tostring(select(1,GetSpellInfo(81208))) -- Chakra: Serenity 81208
-
-local sanctuaryPOH = "/cast "..ChakraSanctuary.."\n".."/cast "..POH
-local sanctuaryHymn = "/cast "..ChakraSanctuary.."\n".."/cast "..Hymn
-local macroSerenity = "/cast "..Serenity
-local macroChastise = "/cast "..Chastise
-local macroCancelaura = "/cancelaura "..ChakraSerenity.."\n".."/cancelaura "..ChakraSanctuary -- takes 1 GCD
-local macroCancelauraChastise = macroCancelaura.."\n"..macroChastise -- takes 2 GCD
-
-local ClassEnemy = {
-	["WARRIOR"] = "cac",
-	["PALADIN"] = "caster",
-	["HUNTER"] = "cac",
-	["ROGUE"] = "cac",
-	["PRIEST"] = "caster",
-	["DEATHKNIGHT"] = "cac",
-	["SHAMAN"] = "caster",
-	["MAGE"] = "caster",
-	["WARLOCK"] = "caster",
-	["MONK"] = "caster",
-	["DRUID"] = "caster"
-}
-
-local EnemyCaster = function(unit)
-	if not jps.UnitExists(unit) then return false end
-	local _, classTarget, classIDTarget = UnitClass(unit)
-	return ClassEnemy[classTarget]
-end
 
 -- Debuff EnemyTarget NOT DPS
 local DebuffUnitCyclone = function (unit)
@@ -78,11 +30,11 @@ local DebuffUnitCyclone = function (unit)
 	return false
 end
 
-----------------------------------------------------------------------------------------------------------------
--------------------------------------------------- ROTATION PVE ------------------------------------------------
-----------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------
+---------------------------------------------- ROTATION ----------------------------------------------
+------------------------------------------------------------------------------------------------------
 
-local priestHoly = function()
+jps.registerRotation("PRIEST","HOLY", function()
 
 	local spell = nil
 	local target = nil
@@ -121,10 +73,9 @@ local priestHoly = function()
 	-- rangedTarget returns "target" by default, sometimes could be friend
 	local rangedTarget, EnemyUnit, TargetCount = jps.LowestTarget()
 
-	if canDPS("target") and not DebuffUnitCyclone(rangedTarget) then rangedTarget =  "target"
-	elseif canDPS(TankTarget) and not DebuffUnitCyclone(rangedTarget) then rangedTarget = TankTarget
-	elseif canDPS("targettarget") and not DebuffUnitCyclone(rangedTarget) then rangedTarget = "targettarget"
-	elseif canAttack("mouseover") then rangedTarget = "mouseover"
+	if canDPS("target") then rangedTarget =  "target"
+	elseif canDPS(TankTarget) then rangedTarget = TankTarget
+	elseif canDPS("targettarget") then rangedTarget = "targettarget"
 	end
 	-- if your target is friendly keep it as target
 	if not canHeal("target") and canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
@@ -139,7 +90,7 @@ local priestHoly = function()
 	local MendingFriendHealth = 100
 	for i=1,#FriendUnit do -- for _,unit in ipairs(FriendUnit) do
 		local unit = FriendUnit[i]
-		if priest.unitForMending(unit) then
+		if jps.unitForMending(unit) then
 			local unitHP = jps.hp(unit)
 			if unitHP < MendingFriendHealth then
 				MendingFriend = unit
@@ -148,20 +99,34 @@ local priestHoly = function()
 		end
 	end
 	
-	-- priest.unitForLeap includes jps.FriendAggro and jps.LoseControl
+	-- jps.unitForLeap includes jps.FriendAggro and jps.LoseControl
 	local LeapFriend = nil
 	for i=1,#FriendUnit do -- for _,unit in ipairs(FriendUnit) do
 		local unit = FriendUnit[i]
-		if priest.unitForLeap(unit) and jps.hpInc(unit) < 0.30 then 
+		if jps.unitForLeap(unit) and jps.hpInc(unit) < 0.30 then 
 			LeapFriend = unit
 		break end
+	end
+	
+	-- jps.unitForShield includes jps.FriendAggro
+	local ShieldFriend = nil
+	local ShieldFriendHealth = 100
+	for i=1,#FriendUnit do -- for _,unit in ipairs(FriendUnit) do
+		local unit = FriendUnit[i]
+		if jps.unitForShield(unit) then
+			local unitHP = jps.hp(unit)
+			if unitHP < ShieldFriendHealth then
+				ShieldFriend = unit
+				ShieldFriendHealth = unitHP
+			end
+		end
 	end
 	
 	local BindingHealFriend = nil
 	local BindingHealFriendHealth = 100
 	for i=1,#FriendUnit do -- for _,unit in ipairs(FriendUnit) do
 		local unit = FriendUnit[i]
-		if priest.unitForBinding(unit) then
+		if jps.unitForBinding(unit) then
 			local unitHP = jps.hp(unit)
 			if unitHP < BindingHealFriendHealth then
 				BindingHealFriend = unit
@@ -213,6 +178,12 @@ local priestHoly = function()
 			end
 		end
 	end
+	
+	-- INCOMING DAMAGE
+	local IncomingDamageFriend = jps.HighestIncomingDamage()
+	
+	-- LOWEST TTD
+	local LowestFriendTTD = jps.LowestFriendTimeToDie(5)
 
 ------------------------
 -- LOCAL FUNCTIONS ENEMY
@@ -231,7 +202,7 @@ local priestHoly = function()
 	local FearEnemyTarget = nil
 	for i=1,#EnemyUnit do -- for _,unit in ipairs(EnemyUnit) do
 		local unit = EnemyUnit[i]
-		if priest.canFear(unit) and not jps.LoseControl(unit) then
+		if jps.canFear(unit) and not jps.LoseControl(unit) then
 			FearEnemyTarget = unit
 		break end
 	end
@@ -247,38 +218,22 @@ local priestHoly = function()
 ------------------------
 -- LOCAL TABLES
 ------------------------
-
-	parseControl = {
-		-- Chakra: Chastise 81209 -- Chakra: Sanctuary 81206 -- Chakra: Serenity 81208 -- Holy Word: Chastise 88625
-		{ 88625, not jps.buffId(81208) and not jps.buffId(81206) , rangedTarget  , "|cFFFF0000Chastise_NO_Chakra_" },
-		{ 88625, jps.buffId(81209) , rangedTarget , "|cFFFF0000Chastise_Chakra_" },
-		-- "Psychic Scream" "Cri psychique" 8122 -- FARMING OR PVP -- NOT PVE -- debuff same ID 8122
-		{ 8122, priest.canFear(rangedTarget) , rangedTarget },
+	
+	local parseControl = {
+		-- "Silence" 15487
+		{ 15487, jps.IsSpellInRange(15487,rangedTarget) , rangedTarget },
+		-- "Psychic Scream" "Cri psychique" 8122 -- debuff same ID 8122
+		{ 8122, jps.canFear(rangedTarget) , rangedTarget },
 		-- "Void Tendrils" 108920 -- debuff "Void Tendril's Grasp" 114404
-		{ 108920, priest.canFear(rangedTarget) , rangedTarget },
+		{ 108920, jps.canFear(rangedTarget) , rangedTarget },
 	}
 	
-	parseDispel = {
+	local parseDispel = {
 		-- "Dispel" "Purifier" 527
-		{ 527, type(DispelFriendRole) == "string" , DispelFriendRole , "|cff1eff00DispelFriendRole_MultiUnit_" },
-		{ 527, type(DispelFriend) == "string" , DispelFriend , "|cff1eff00DispelFriend_MultiUnit_" },
-	}
-	
-	parseDamage = {
-		-- Chakra: Chastise 81209 -- Chakra: Sanctuary 81206 -- Chakra: Serenity 81208 -- Holy Word: Chastise 88625
-		{ {"macro",macroCancelaura}, jps.checkTimer("Chastise") == 0 and canDPS(rangedTarget) and jps.buffId(81208) and jps.cooldown(81208) == 0 , "player"  , "Cancelaura_Chakra_" },
-		-- Chakra: Chastise 81209
-		{ 81209, not jps.buffId(81209) , "player" , "|cffa335eeChakra_Chastise" },
-		-- "Chastise" 88625 -- Chakra: Chastise 81209
-		{ 88625, jps.buffId(81209) , rangedTarget , "|cFFFF0000Chastise_" },
-		-- "Flammes sacrées" 14914
-		{ 14914, jps.buffId(81209) , rangedTarget },
-		-- "Mot de pouvoir : Réconfort" -- "Power Word: Solace" 129250 -- REGEN MANA
-		{ 129250, jps.buffId(81209) , rangedTarget },
-		-- "Mot de l'ombre: Douleur" 589 -- FARMING OR PVP -- NOT PVE -- Only if 1 targeted enemy 
-		{ 589, TargetCount == 1 and jps.myDebuffDuration(589,rangedTarget) == 0 and not IsInGroup() , rangedTarget  },
-		-- "Châtiment" 585
-		{ 585, jps.buffId(81209) and not jps.Moving , rangedTarget  },
+		{ 527, DispelFriendRole ~= nil , DispelFriendRole , "|cff1eff00DispelFriend_Role" },
+		{ 527, DispelFriendPvP ~= nil , DispelFriendPvP , "|cff1eff00DispelFriend_PvP" },
+		{ 527, DispelFriendLoseControl ~= nil , DispelFriendLoseControl , "|cff1eff00DispelFriend_LoseControl" },
+		{ 527, DispelFriendPvE ~= nil , DispelFriendPvE , "|cff1eff00DispelFriend_PvE" },
 	}
 
 ------------------------------------------------------
@@ -286,18 +241,18 @@ local priestHoly = function()
 ------------------------------------------------------
 
 	local InterruptTable = {
-		{priest.Spell.FlashHeal, 0.75 , jps.buff(27827) }, -- "Esprit de rédemption" 27827
-		{priest.Spell.Heal, 0.90 , jps.buff(27827) },
-		{priest.Spell.PrayerOfHealing, 0.80, jps.buffId(81206) or jps.buff(27827) }, -- Chakra: Sanctuary 81206
+		{jps.spells.priest.flashHeal, 0.75 , jps.buff(27827) }, -- "Esprit de rédemption" 27827
+		{jps.spells.priest.heal, 0.90 , jps.buff(27827) },
+		{jps.spells.priest.prayerOfHealing , 0.80, jps.buffId(81206) or jps.buff(27827) }, -- Chakra: Sanctuary 81206
 	}
 
 	-- AVOID OVERHEALING
-	priest.ShouldInterruptCasting(InterruptTable , groupHealth , CountFriendLowest)
+	jps.ShouldInterruptCasting(InterruptTable , groupHealth , CountFriendLowest)
 
 ------------------------
 -- SPELL TABLE ---------
 ------------------------
-	
+
 local spellTable = {
 
 	-- "Esprit de rédemption" 27827
@@ -402,7 +357,7 @@ local spellTable = {
 		-- "Soins supérieurs" 2060
 		{ 2060,  jps.buffStacks(63735,"player") == 2 , LowestImportantUnit , "Emergency_Soins_"  },
 		-- "Soins de lien"
-		{ 32546 , priest.unitForBinding(LowestImportantUnit) , LowestImportantUnit , "Emergency_Lien_" },
+		{ 32546 , jps.unitForBinding(LowestImportantUnit) , LowestImportantUnit , "Emergency_Lien_" },
 		-- "Soins rapides" 2061
 		{ 2061, true , LowestImportantUnit , "Emergency_FlashHeal_" },
 
@@ -434,8 +389,8 @@ local spellTable = {
 	}},
 	
 	-- "Torve-esprit" 123040 -- "Ombrefiel" 34433 "Shadowfiend"
-	{ 34433, priest.canShadowfiend(rangedTarget) , rangedTarget },
-	{ 123040, priest.canShadowfiend(rangedTarget) , rangedTarget },
+	{ 34433, jps.canShadowfiend(rangedTarget) , rangedTarget },
+	{ 123040, jps.canShadowfiend(rangedTarget) , rangedTarget },
 	-- DAMAGE -- Chakra: Chastise 81209
 	{ "nested", jps.MultiTarget and canDPS(rangedTarget) and jps.hp(LowestImportantUnit) > 0.85 , parseDamage },
 
@@ -446,8 +401,6 @@ local spellTable = {
 
 }
 
-	local spell,target = parseSpellTable(spellTable)
+	spell,target = parseSpellTable(spellTable)
 	return spell,target
-end
-
-jps.registerRotation("PRIEST","HOLY", priestHoly, "Holy Priest Default" )
+end , "Holy Priest Default" )

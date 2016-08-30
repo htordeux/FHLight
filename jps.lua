@@ -25,13 +25,13 @@ local IsHelpfulSpell = IsHelpfulSpell
 		
 jps = {}
 
+jps.spells = {}
 jps.Version = "1.5"
 jps.Rotation = nil
 jps.UpdateInterval = 0.1
 jps.Enabled = false
 jps.Combat = false
 jps.Debug = false
-jps.DebugMsg = false
 jps.DebugLevel = 1
 jps.MoveToTarget = false
 jps.FaceTarget = true
@@ -73,8 +73,6 @@ jps.Level = 1
 jps.isNotBehind = false
 jps.isBehind = true
 jps.isHealer = false
-jps.DPSRacial = nil
-jps.isTank = false
 
 -- Tables
 jps.Timers = {}
@@ -119,23 +117,8 @@ end
 -- DETECT CLASS SPEC
 ------------------------
 
-local getDPSRacial = function()
-	-- Trolls n' Orcs
-	if jps.DPSRacial ~= nil then return jps.DPSRacial end -- no more checks needed
-	if jps.Race == nil then jps.Race = UnitRace("player") end
-	if jps.Race == "Troll" then
-		return "Berserking"
-	elseif jps.Race == "Orc" then
-		return "Blood Fury"
-	end
-	return nil
-end
-
 local setClassCooldowns = function()
 	local options = {}
-	jps.DPSRacial = getDPSRacial()
-	if jps.DPSRacial then tinsert(options,"DPS Racial") end
-
 	-- Add spells
 	for i,spell in pairs(options) do
 		if jpsDB[jpsRealm][jpsName][spell] == nil then
@@ -175,8 +158,6 @@ function jps.detectSpec()
 			end
 		end
 	end
-	if jps.Spec == L["Discipline"] or jps.Spec == L["Holy"] or jps.Spec == L["Restoration"] or jps.Spec == L["Mistweaver"] then jps.isHealer = true end
-	if jps.Spec == L["Blood"] or jps.Spec == L["Protection"] or jps.Spec == L["Brewmaster"] or jps.Spec == L["Guardian"] then jps.isTank = true end
 	setClassCooldowns()
 	jps_VARIABLES_LOADED()
 	if jps.initializedRotation == false then
@@ -272,9 +253,6 @@ function SlashCmdList.jps(cmd, editbox)
 	elseif msg == "debug" then
 		jps.Debug = not jps.Debug
 		write("Debug mode set to",tostring(jps.Debug))
-	elseif msg == "msg" then
-		jps.DebugMsg = not jps.DebugMsg
-		write("DebugMsg mode set to",tostring(jps.DebugMsg))
 	elseif msg == "face" then
 		jps.gui_toggleRot()
 		write("jps.FaceTarget set to",tostring(jps.FaceTarget))

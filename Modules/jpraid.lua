@@ -111,6 +111,11 @@ function jps.fallingFor()
 	return GetTime() - jps.startedFalling
 end
 
+-- currentCharges, maxCharges, cooldownStart, cooldownDuration = GetSpellCharges(spellId or "spellName")
+function jps.spellCharges(spell)
+    return GetSpellCharges(spell) or 0
+end
+
 ----------------------
 -- ENEMY TARGET
 ----------------------

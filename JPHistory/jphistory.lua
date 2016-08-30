@@ -25,7 +25,7 @@ jphistory.showNext = false
 
 jps.listener.registerEvent("UNIT_SPELLCAST_SUCCEEDED", function(unit,spellName,rank,lineId,spellId)
     -- lineId is 0 for ticks!
-    if unit=="player" and lineId > 1 and lineId ~= jphistory.lastSpellLineId then
+    if unit=="player" and lineId ~= jphistory.lastSpellLineId then
         jphistory.addSpellEvent(spellId)
         jphistory.isCasting = false
         jphistory.lastSpellLineId = lineId

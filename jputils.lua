@@ -14,23 +14,7 @@ local L = MyLocalizationTable
 -- numTabs = GetNumSpellTabs() -- numTabs Number - number of ability tabs in the player's spellbook (e.g. 4 -- "General", "Arcane", "Fire", "Frost") 
 -- Name, Subtext = GetSpellBookItemName(index, "bookType") or GetSpellBookItemName("spellName")
 -- Name - Name of the spell. (string)
--- skillType, spellId = GetSpellBookItemInfo(index, "bookType") or GetSpellBookItemInfo("spellName") -- spellId - The global spell id (number) 
-
----------------------------
--- GET CLASS COOLDOWNS
----------------------------
-
-function jps.getDPSRacial()
-	-- Trolls n' Orcs
-	if jps.DPSRacial ~= nil then return jps.DPSRacial end -- no more checks needed
-	if jps.Race == nil then jps.Race = UnitRace("player") end
-	if jps.Race == "Troll" then
-		return "Berserking"
-	elseif jps.Race == "Orc" then
-		return "Blood Fury"
-	end
-	return nil
-end
+-- skillType, spellId = GetSpellBookItemInfo(index, "bookType") or GetSpellBookItemInfo("spellName") -- spellId - The global spell id (number)
 
 ------------------------
 -- HEALER ENEMY Table
@@ -651,12 +635,6 @@ end)
 
 hooksecurefunc(GameTooltip, "SetUnitAura", function(self,...)
 	local id = select(11,UnitAura(...))
-	if id then addLine(self,id) end
-end)
-
--- local enabled, glyphType, glyphTooltipIndex, glyphSpellID, icon = GetGlyphSocketInfo(i) 
-hooksecurefunc(GameTooltip, "SetGlyph", function(self,...)
-	local id = select(4,GetGlyphSocketInfo(...))
 	if id then addLine(self,id) end
 end)
 

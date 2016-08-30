@@ -1,12 +1,6 @@
--- jps.UseCDs for RACIAL COUNTERS
--- jps.UseCDs for Dispel
--- jps.Interrupts for "Semblance spectrale" 112833 "Spectral Guise" -- PvP it loses the orb in Kotmogu Temple
--- jps.Defensive changes the LowestImportantUnit to table = {"player","mouseover","target","focus","targettarget","focustarget"} with table.insert TankUnit  = jps.findTankInRaid()
--- jps.Defensive for "Nova" 132157 "Words of Mending" 155362 "Mot de guérison" When OOC
--- jps.MultiTarget to DPS
--- IsControlKeyDown() for "Angelic Feather" 121536 "Plume angélique"
 
 local L = MyLocalizationTable
+local spells = jps.spells.priest
 local canDPS = jps.canDPS
 local canHeal = jps.canHeal
 local canAttack = jps.CanAttack
@@ -17,26 +11,6 @@ local UnitChannelInfo = UnitChannelInfo
 local GetSpellInfo = GetSpellInfo
 local UnitAffectingCombat = UnitAffectingCombat
 local UnitIsUnit = UnitIsUnit
-
-local ClassEnemy = {
-	["WARRIOR"] = "cac",
-	["PALADIN"] = "caster",
-	["HUNTER"] = "cac",
-	["ROGUE"] = "cac",
-	["PRIEST"] = "caster",
-	["DEATHKNIGHT"] = "cac",
-	["SHAMAN"] = "caster",
-	["MAGE"] = "caster",
-	["WARLOCK"] = "caster",
-	["MONK"] = "caster",
-	["DRUID"] = "caster"
-}
-
-local EnemyCaster = function(unit)
-	if not jps.UnitExists(unit) then return false end
-	local _, classTarget, classIDTarget = UnitClass(unit)
-	return ClassEnemy[classTarget]
-end
 
 -- Debuff EnemyTarget NOT DPS
 local DebuffUnitCyclone = function (unit)
@@ -56,11 +30,11 @@ local DebuffUnitCyclone = function (unit)
 	return false
 end
 
-----------------------------------------------------------------------------------------------------------------
----------------------------------------------- ROTATION PVP & PVP ----------------------------------------------
-----------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------
+---------------------------------------------- ROTATION ----------------------------------------------
+------------------------------------------------------------------------------------------------------
 
-local priestDisc = function()
+jps.registerRotation("PRIEST","DISCIPLINE", function()
 
 	local spell = nil
 	local target = nil
@@ -88,7 +62,6 @@ local priestDisc = function()
 	local playerIsInterrupt = jps.InterruptEvents() -- return true/false ONLY FOR PLAYER
 	local playerWasControl = jps.ControlEvents() -- return true/false Player was interrupt or stun 2 sec ago ONLY FOR PLAYER
 	local playerTTD = jps.TimeToDie("player")
-	local ShellTarget = jps.FindSubGroupAura(114908) -- buff target Spirit Shell 114908 need SPELLID
 	local BodyAndSoul = jps.IsSpellKnown(64129) -- "Body and Soul" 64129
 	local isArena, _ = IsActiveBattlefieldArena()
 
@@ -100,10 +73,9 @@ local priestDisc = function()
 	-- rangedTarget returns "target" by default, sometimes could be friend
 	local rangedTarget, EnemyUnit, TargetCount = jps.LowestTarget()
 
-	if canDPS("target") and not DebuffUnitCyclone(rangedTarget) then rangedTarget =  "target"
-	elseif canDPS(TankTarget) and not DebuffUnitCyclone(rangedTarget) then rangedTarget = TankTarget
-	elseif canDPS("targettarget") and not DebuffUnitCyclone(rangedTarget) then rangedTarget = "targettarget"
-	elseif canAttack("mouseover") then rangedTarget = "mouseover"
+	if canDPS("target") then rangedTarget =  "target"
+	elseif canDPS(TankTarget) then rangedTarget = TankTarget
+	elseif canDPS("targettarget") then rangedTarget = "targettarget"
 	end
 	-- if your target is friendly keep it as target
 	if not canHeal("target") and canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
@@ -118,7 +90,7 @@ local priestDisc = function()
 	local MendingFriendHealth = 100
 	for i=1,#FriendUnit do -- for _,unit in ipairs(FriendUnit) do
 		local unit = FriendUnit[i]
-		if priest.unitForMending(unit) then
+		if jps.unitForMending(unit) then
 			local unitHP = jps.hp(unit)
 			if unitHP < MendingFriendHealth then
 				MendingFriend = unit
@@ -127,25 +99,38 @@ local priestDisc = function()
 		end
 	end
 	
-	-- priest.unitForLeap includes jps.FriendAggro and jps.LoseControl
+	-- jps.unitForLeap includes jps.FriendAggro and jps.LoseControl
 	local LeapFriend = nil
 	for i=1,#FriendUnit do -- for _,unit in ipairs(FriendUnit) do
 		local unit = FriendUnit[i]
-		if priest.unitForLeap(unit) and jps.hpInc(unit) < 0.30 then 
+		if jps.unitForLeap(unit) and jps.hpInc(unit) < 0.30 then 
 			LeapFriend = unit
 		break end
 	end
 	
-	-- priest.unitForShield includes jps.FriendAggro
+	-- jps.unitForShield includes jps.FriendAggro
 	local ShieldFriend = nil
 	local ShieldFriendHealth = 100
 	for i=1,#FriendUnit do -- for _,unit in ipairs(FriendUnit) do
 		local unit = FriendUnit[i]
-		if priest.unitForShield(unit) then
+		if jps.unitForShield(unit) then
 			local unitHP = jps.hp(unit)
 			if unitHP < ShieldFriendHealth then
 				ShieldFriend = unit
 				ShieldFriendHealth = unitHP
+			end
+		end
+	end
+	
+	local BindingHealFriend = nil
+	local BindingHealFriendHealth = 100
+	for i=1,#FriendUnit do -- for _,unit in ipairs(FriendUnit) do
+		local unit = FriendUnit[i]
+		if jps.unitForBinding(unit) then
+			local unitHP = jps.hp(unit)
+			if unitHP < BindingHealFriendHealth then
+				BindingHealFriend = unit
+				BindingHealFriendHealth = unitHP
 			end
 		end
 	end
@@ -178,16 +163,6 @@ local priestDisc = function()
 		local unit = TankUnit[i]
 		if jps.canDispel(unit,{"Magic"}) then -- jps.canDispel includes UnstableAffliction
 			DispelFriendRole = unit
-		break end
-	end
-
-	-- PAIN SUPPRESSION
-	local PainFriend = nil
-	for i=1,#FriendUnit do -- for _,unit in ipairs(FriendUnit) do
-		local unit = FriendUnit[i]
-		if jps.cooldown(33206) == 0 then break end 
-		if jps.buff(33206,unit) then
-			PainFriend = unit
 		break end
 	end
 
@@ -232,7 +207,7 @@ local priestDisc = function()
 	local FearEnemyTarget = nil
 	for i=1,#EnemyUnit do -- for _,unit in ipairs(EnemyUnit) do
 		local unit = EnemyUnit[i]
-		if priest.canFear(unit) and not jps.LoseControl(unit) then
+		if jps.canFear(unit) and not jps.LoseControl(unit) then
 			FearEnemyTarget = unit
 		break end
 	end
@@ -248,23 +223,14 @@ local priestDisc = function()
 ------------------------
 -- LOCAL TABLES
 ------------------------
-
-	local parseShell = {
-	--TANK not Buff Spirit Shell 114908
-		{ 2061, jps.buff(114255) , LowestImportantUnit , "Carapace_FlashHeal_Light" },
-		{ 596, canHeal(ShellTarget) , ShellTarget , "Carapace_Shell_Target" },
-		{ 2061, not jps.buffId(114908,LowestImportantUnit) , LowestImportantUnit , "Carapace_NoBuff_FlashHeal" },
-	--TANK Buff Spirit Shell 114908
-		{ 2060, jps.buffId(114908,LowestImportantUnit) , LowestImportantUnit , "Carapace_Buff_Soins" },
-	}
 	
 	local parseControl = {
 		-- "Silence" 15487
-		{ 15487, jps.IsSpellInRange(15487,rangedTarget) and EnemyCaster(rangedTarget) == "caster" , rangedTarget },
+		{ 15487, jps.IsSpellInRange(15487,rangedTarget) , rangedTarget },
 		-- "Psychic Scream" "Cri psychique" 8122 -- debuff same ID 8122
-		{ 8122, priest.canFear(rangedTarget) , rangedTarget },
+		{ 8122, jps.canFear(rangedTarget) , rangedTarget },
 		-- "Void Tendrils" 108920 -- debuff "Void Tendril's Grasp" 114404
-		{ 108920, priest.canFear(rangedTarget) , rangedTarget },
+		{ 108920, jps.canFear(rangedTarget) , rangedTarget },
 	}
 	
 	local parseDispel = {
@@ -275,40 +241,24 @@ local priestDisc = function()
 		{ 527, DispelFriendPvE ~= nil , DispelFriendPvE , "|cff1eff00DispelFriend_PvE" },
 	}
 
-	local RacialCounters = {
-		-- Undead "Will of the Forsaken" 7744 -- SNM priest is undead ;)
-		{ 7744, jps.debuff("psychic scream","player") }, -- Fear
-		{ 7744, jps.debuff("fear","player") }, -- Fear
-		{ 7744, jps.debuff("intimidating shout","player") }, -- Fear
-		{ 7744, jps.debuff("howl of terror","player") }, -- Fear
-		{ 7744, jps.debuff("mind control","player") }, -- Charm
-		{ 7744, jps.debuff("seduction","player") }, -- Charm
-		{ 7744, jps.debuff("wyvern sting","player") }, -- Sleep
-	}
-
 ------------------------------------------------------
 -- OVERHEAL -- OPENING -- CANCELAURA -- STOPCASTING --
 ------------------------------------------------------
 
-	-- "Archange surpuissant" 172359  100 % critique POH or FH
-	-- "Power Infusion" 10060 "Infusion de puissance"
 	local InterruptTable = {
-		{priest.Spell.FlashHeal, 0.80, jps.buffId(priest.Spell.SpiritShellBuild) or jps.buff(172359) },
-		{priest.Spell.Heal, 0.90, jps.buffId(priest.Spell.SpiritShellBuild) },
-		{priest.Spell.PrayerOfHealing, 0.80, jps.buff(10060) or jps.buff(172359) or jps.buffId(priest.Spell.SpiritShellBuild) or jps.PvP },
-		{priest.Spell.HolyCascade, 3 , jps.PvP}
+		{jps.spells.priest.flashHeal, 0.80, jps.buff(172359) },
+		{jps.spells.priest.heal, 0.90, jps.PvP },
+		{jps.spells.priest.prayerOfHealing, 0.80, jps.buff(10060) or jps.buff(172359) or jps.PvP },
 	}
 
 	-- AVOID OVERHEALING
-	priest.ShouldInterruptCasting(InterruptTable , groupHealth , CountFriendLowest)
-
-	if jps.hp("player") < 0.25 then CreateMessage("LOW HEALTH!") end -- CreateFlasher()
+	jps.ShouldInterruptCasting(InterruptTable , groupHealth , CountFriendLowest)
 
 ------------------------
 -- SPELL TABLE ---------
 ------------------------
 
-spellTable = {
+local spellTable = {
 
 	-- SNM "Levitate" 1706
 	{ 1706, jps.fallingFor() > 1.5 and not jps.buff(111759) , "player" },
@@ -328,16 +278,6 @@ spellTable = {
 	{ 33206, jps.hp(Tank) < 0.30 and UnitAffectingCombat(Tank) , Tank , "Pain_Tank" },
 	{ 33206, jps.hp("player") < 0.40 and UnitAffectingCombat("player") , "player" , "Pain_player" },
 	{ 33206, jps.hp(LowestImportantUnit) < 0.40 and UnitAffectingCombat(LowestImportantUnit) , LowestImportantUnit , "Pain_Lowest" },
-	
-	-- PAIN FRIEND --
-	{ "nested", PainFriend ~= nil and jps.hpInc(PainFriend) < 0.80 ,{
-		-- "Power Word: Shield"
-		{ 17, not jps.buff(17,PainFriend) and not jps.debuff(6788,PainFriend) , PainFriend , "Bubble_PainFriend" },
-		-- "Pénitence" 47540
-		{ 47540, jps.hpInc(PainFriend) < 0.60 , PainFriend , "Penance_PainFriend" },
-		-- "Soins rapides" 2061
-		{ 2061, not jps.Moving and jps.hpInc(PainFriend) < 0.60 , PainFriend , "FlashHeal_PainFriend" },
-	}},
 
 	-- "Soins rapides" 2061 -- "Vague de Lumière" 109186 "Surge of Light" -- gives buff 114255
 	{ 2061, jps.buff(114255) and jps.hp(LowestImportantUnit) < 0.80 , LowestImportantUnit , "FlashHeal_Light" },
@@ -559,9 +499,7 @@ spellTable = {
 
 	spell,target = parseSpellTable(spellTable)
 	return spell,target
-end
-
-jps.registerRotation("PRIEST","DISCIPLINE", priestDisc , "Disc Priest PvE", true, false)
+end , "Disc Priest PvE", true, false)
 
 ----------------------------------------------------------------------------------------------------------------
 -------------------------------------------------- ROTATION OOC ------------------------------------------------

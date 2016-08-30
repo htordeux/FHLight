@@ -39,14 +39,14 @@ local function Test()
 	--print("CountInRaid50: ",jps.CountInRaidLowest(0.50))
 	--print("CountInRange80: ",jps.CountInRaidLowest(0.80))
 
-	local Tank,Tanks = jps.findTankInRaid()
-	for i=1,#Tanks do
-		print("|cff0070ddTank: ",GetUnitName(Tanks[i]))
-	end
-	local aggroTank = jps.findThreatInRaid()
-	print("|cFFFF0000AggroTank: ",GetUnitName(aggroTank))
-	local lowestUnit = jps.LowestImportantUnit()
-	print("|cff1eff00Lowest: ",GetUnitName(lowestUnit))
+--	local Tank,Tanks = jps.findTankInRaid()
+--	for i=1,#Tanks do
+--		print("|cff0070ddTank: ",GetUnitName(Tanks[i]))
+--	end
+--	local aggroTank = jps.findThreatInRaid()
+--	print("|cFFFF0000AggroTank: ",GetUnitName(aggroTank))
+--	local lowestUnit = jps.LowestImportantUnit()
+--	print("|cff1eff00Lowest: ",GetUnitName(lowestUnit))
 
 --	local mastery = GetMasteryEffect()
 --	local masteryValue = math.ceil(mastery)/100
@@ -90,12 +90,12 @@ end
 	--DkTest()
 	--jps.LookupIncomingDamage()
 	--jps.LookupEnemyDamager()
-	jps.LookupEnemyHealer()
-	local healerTarget = jps.LowestTargetHealer()
-	if healerTarget ~= nil then print("|cffffffffhealerTarget:|cff1eff00",healerTarget,"|cffffffffUnit:|cff1eff00",GetUnitName(healerTarget)) end
-
-	local rangedTarget, EnemyUnit, TargetCount = jps.LowestTarget()
-	print("|cffffffffRangedTarget:|cff1eff00",rangedTarget,"|cffffffffTargetCount:|cff1eff00",TargetCount)
+--	jps.LookupEnemyHealer()
+--	local healerTarget = jps.LowestTargetHealer()
+--	if healerTarget ~= nil then print("|cffffffffhealerTarget:|cff1eff00",healerTarget,"|cffffffffUnit:|cff1eff00",GetUnitName(healerTarget)) end
+--
+--	local rangedTarget, EnemyUnit, TargetCount = jps.LowestTarget()
+--	print("|cffffffffRangedTarget:|cff1eff00",rangedTarget,"|cffffffffTargetCount:|cff1eff00",TargetCount)
 
 --	local enemyTable = jps.LowestTargetRole()
 --	for unit,role in pairs(enemyTable) do

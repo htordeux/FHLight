@@ -356,16 +356,6 @@ end
 -- PLUA PROTECTED
 ------------------------------
 
-local fh = {}
-function fh.groundClick(spell,unit)
-	if unit == nil then unit = "player" end
-	local UnitGuid = UnitGUID(unit)
-	if FireHack and UnitGuid ~= nil then
-		local UnitObject = GetObjectFromGUID(UnitGuid)
-		UnitObject:CastSpellByName(spell)
-	end
-end
-
 function jps.groundClick(spellname)
 	SetCVar("deselectOnClick", "0") --	jps.Macro("/console deselectOnClick 0")
 	CastSpellByName(spellname)
@@ -388,17 +378,12 @@ function jps.Cast(spell) -- "number" "string"
 	if jps.Target == nil then jps.Target = "target" end
 	
 	if jps.spellNeedSelect(spellname) then
-		if FireHack then
-			fh.groundClick(spellname,jps.target)
-		else
-			jps.groundClick(spellname)
-		end
+		jps.groundClick(spellname)
 	else 
 		CastSpellByName(spellname,jps.Target)
 	end
 
 	if jps.Debug then write(spellname,"|cff1eff00","|",GetUnitName(jps.Target),"|cffffffff","|",jps.Message) end
-	if jps.DebugMsg then write("|cffffffff","|",jps.Message) end
 		
 	jps.TimedCasting[spellname] = math.ceil(GetTime())
 	jps.LastCast = spellname
@@ -444,6 +429,14 @@ end
 -------------------------------------------- PARSE -----------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------
 
+local function fnSpellEval(spell)
+    if type(spell) == "function" then
+        return spell()
+    else
+        return spell
+    end
+end
+
 local function fnMessageEval(message)
     if message == nil then
         return ""
@@ -462,45 +455,29 @@ local function fnTargetEval(target)
     end
 end
 
-local function fnConditionEval(conditions)
-    if conditions == nil then
+local function fnConditionEval(condition)
+    if condition == nil then
         return true
-    elseif type(conditions) == "boolean" then
-        return conditions
-    elseif type(conditions) == "number" then
-        return conditions ~= 0
-    elseif type(conditions) == "function" then
-        return conditions()
+    elseif type(condition) == "boolean" then
+        return condition
+    elseif type(condition) == "number" then
+        return condition ~= 0
+    elseif type(condition) == "function" then
+        return condition()
     else
         return false
     end
 end
 
--- { {"macro","/cast Sanguinaire"} , conditions , "target" }
--- fnParseMacro(spellTable[1][2], fnConditionEval(spellTable[2]), fnTargetEval(spellTable[3]))
-local function fnParseMacro(macro, conditions, target)
-    if conditions then
-    	if target == nil then target = "target" end 
-        -- Workaround for TargetUnit is still PROTECTED despite goblin active
-        local changeTargets = not UnitIsUnit(target,"target") and jps.UnitExists(target)
-        if changeTargets then jps.Macro("/target "..target) end
-		local macroSpell = ""
-        if type(macro) == "string" then
-            if string.find(macro,"%s") == nil then -- {"macro","/startattack"}
-                macroSpell = macro
-            else
-                macroSpell = select(3,string.find(macro,"%s(.*)")) -- {"macro","/cast Sanguinaire"}
-            end
-            if not jps.Casting then jps.Macro(macro) end -- Avoid interrupt Channeling with Macro
+local function fnParseMacro(condition,macro)
+    if condition then
+    	if not jps.Casting then jps.Macro(macro) -- Avoid interrupt Channeling with Macro
         -- CASTSEQUENCE WORKS ONLY FOR INSTANT CAST SPELL
 		-- "#showtooltip\n/cast Frappe du colosse\n/cast Sanguinaire"
-		elseif type(macro) == "number" then
-			macroSpell = GetSpellInfo(macro)
-			jps.Macro("/cast "..tostring(macroSpell))
+		elseif string.find(macro,"stopcasting") then
+			print("macrostopcastig")
+			jps.Macro("/stopcasting")
 		end
-		if jps.Debug then macrowrite(macroSpell,"|cff1eff00",target) end
-        if jps.DebugMsg then macrowrite("|cffffffff",jps.Message) end
-		if changeTargets and not jps.Casting then jps.Macro("/targetlasttarget") end
 	end
 end
 
@@ -556,33 +533,32 @@ parseSpellTable = function(hydraTable)
 --	myListOfObjects = setmetatable({}, {__mode = 'v' }) -- creation of a weak table
 
 	local spell = nil
-	local conditions = nil
+	local condition = nil
 	local target = nil
 	local message = ""
 
 	for i=1,#hydraTable do -- for i, spellTable in ipairs(hydraTable) do
 		local spellTable = hydraTable[i]
         if type(spellTable) == "function" then spellTable = spellTable() end
-		spell = spellTable[1] 
-		conditions = fnConditionEval(spellTable[2])
+		spell = fnSpellEval(spellTable[1])
+		condition = fnConditionEval(spellTable[2])
 		target = fnTargetEval(spellTable[3])
         message = fnMessageEval(spellTable[4])
         if jps.Message ~= message then jps.Message = message end
 
 		-- MACRO -- BE SURE THAT CONDITION TAKES CARE OF CANCAST -- TRUE or FALSE NOT NIL
-		if type(spell) == "table" and spell[1] == "macro" then
-			fnParseMacro(spellTable[1][2], fnConditionEval(spellTable[2]), fnTargetEval(spellTable[3]))
-			
-		-- NESTED TABLE
+		-- {"macro", condition, "MACRO_TEXT" }
+		if spell == "macro" and type(target) == "string"then
+			fnParseMacro(condition, target)
+		-- NESTED TABLE { {"nested"}, condition, { nested spell table } }
 		elseif spell == "nested" and type(target) == "table" then
-			if fnConditionEval(spellTable[2]) then
+			if condition then
 				spell,target = parseSpellTable(target)
 			end
 		end
-
 		-- DEFAULT {spell[[, condition[, target]]}
-		-- Return spell if conditions are true and spell is castable.
-		if spell ~= nil and conditions and jps.canCast(spell,target) then
+		-- Return spell if condition are true and spell is castable.
+		if spell ~= nil and condition and jps.canCast(spell,target) then
 			return spell,target
 		end
 	end

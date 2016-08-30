@@ -14,7 +14,7 @@ LOG.debug("this is a number: %s", 2)[br]
 [/code]
 ]]--
 
-jps.LogLevel={ DEBUG=1, INFO=2, WARN=3, ERROR=4, NONE=5 }
+jps.LogLevel = { DEBUG=1, INFO=2, WARN=3, ERROR=4, NONE=5 }
 local function split(str, sep)
 	local sep, fields = sep or ":", {}
 	local pattern = string.format("([^%s]+)", sep)

@@ -1,5 +1,6 @@
 -- jps.UseCDs for "Charge"
 -- jps.Interrupts for "Pummel"
+-- jps.MultiTarget for Multitarget
 -- jps.Defensive for "Provocation"
 
 local L = MyLocalizationTable
@@ -68,7 +69,6 @@ local playerIsStun = jps.StunEvents(2) -- return true/false ONLY FOR PLAYER -- "
 -- {"STUN_MECHANIC","STUN","FEAR","CHARM","CONFUSE","PACIFY","SILENCE","PACIFYSILENCE"}
 local playerIsInterrupt = jps.InterruptEvents() -- return true/false ONLY FOR PLAYER
 local playerWasControl = jps.ControlEvents() -- return true/false Player was interrupt or stun 2 sec ago ONLY FOR PLAYER
-
 local inMelee = jps.IsSpellInRange(20243,"target") -- "Dévaster" 20243 "Devastate"
 local inRanged = jps.IsSpellInRange(57755,"target") -- "Heroic Throw" 57755 "Lancer héroïque"
 
@@ -125,9 +125,9 @@ end
 if canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
 local TargetMoving = select(1,GetUnitSpeed(rangedTarget)) > 0
 
-local TankBossDebuff = jps.BossDebuff("player")
+local PlayerBossDebuff = jps.BossDebuff("player")
 if jps.hp("player") < 0.25 then CreateMessage("LOW HEALTH!") -- CreateFlasher()
-elseif TankBossDebuff then CreateMessage("BOSS DEBUFF!") end
+elseif PlayerBossDebuff then CreateMessage("BOSS DEBUFF!") end
 
 ------------------------
 -- SPELL TABLE ---------
@@ -165,7 +165,11 @@ local spellTable = {
 	
 	-- "Stoneform" 20594 "Forme de pierre"
 	{ warrior.spells["Stoneform"] , jps.canDispel("player",{"Magic","Poison","Disease","Curse"}) , rangedTarget , "|cff1eff00Stoneform_Dispel" },
-
+	-- "Pierre de soins" 5512
+	{ {"macro","/use item:5512"}, playerAggro and jps.hp("player") < 0.80 and jps.itemCooldown(5512) == 0 , "player" , "Item5512" },
+	-- "Stoneform" 20594 "Forme de pierre"
+	{ warrior.spells["Stoneform"] , playerAggro and jps.hp("player") < 0.80 , rangedTarget , "|cff1eff00Stoneform_Health" },
+	
 	-- "Proteger" 114029 -- "Intervention" 3411
 	{ 3411, IsInGroup() and not UnitIsUnit(Tank,"player") and jps.hp(Tank) < 0.30 and jps.hp("player") > 0.85 and UnitCanAssist("player",Tank) , Tank , "Intervention_myTank" },
 	{ 114029, IsInGroup() and not UnitIsUnit(Tank,"player") and jps.hp(Tank) < 0.30 and jps.hp("player") > 0.85 and UnitCanAssist("player",Tank) , Tank , "Proteger_myTank" },
@@ -202,9 +206,9 @@ local spellTable = {
 	{ warrior.spells["EnragedRegeneration"] , playerAggro and jps.hp("player") < 0.60 and jps.hpInc("player") < 0.80 , rangedTarget , "|cff1eff00EnragedRegeneration_Aggro" },
 
 	-- DEFENSIVE DAMAGE
-	{"nested", jps.buff(71) and TankBossDebuff and jps.hpSum("player") < 0.80 ,{
-		{ warrior.spells["ShieldBlock"] , jps.SchoolDamage("physical") and not jps.buff(132404) , rangedTarget , "|cff1eff00ShieldBlock_PhysicalDmg_TankBossDebuff" },
-		{ warrior.spells["ShieldBarrier"] , jps.SchoolDamage("magic") and not jps.buff(112048) , rangedTarget , "|cff1eff00ShieldBarrier_MagicDmg_TankBossDebuff" },
+	{"nested", jps.buff(71) and PlayerBossDebuff and jps.hpSum("player") < 0.80 ,{
+		{ warrior.spells["ShieldBlock"] , jps.SchoolDamage("physical") and not jps.buff(132404) , rangedTarget , "|cff1eff00ShieldBlock_PhysicalDmg_BossDebuff" },
+		{ warrior.spells["ShieldBarrier"] , jps.SchoolDamage("magic") and not jps.buff(112048) , rangedTarget , "|cff1eff00ShieldBarrier_MagicDmg_BossDebuff" },
 	}},
 	
 	-- player.hasBuff(spells.shieldWall) or player.hasBuff(spells.lastStand) or player.hasBuff(spells.enragedRegeneration)
@@ -217,11 +221,6 @@ local spellTable = {
 		{ warrior.spells["ShieldBarrier"] , jps.SchoolDamage("magic") and not jps.buff(112048) , rangedTarget , "|cff1eff00ShieldBarrier_Magic" },
 		{ warrior.spells["ShieldBarrier"] , playerIsTanking and not jps.buff(112048) , rangedTarget , "|cff1eff00ShieldBarrier_Threat" },
 	}},
-	
-	-- "Pierre de soins" 5512
-	{ {"macro","/use item:5512"}, playerAggro and jps.hp("player") < 0.80 and jps.itemCooldown(5512) == 0 , "player" , "Item5512" },
-	-- "Stoneform" 20594 "Forme de pierre"
-	{ warrior.spells["Stoneform"] , playerAggro and jps.hp("player") < 0.80 , rangedTarget , "|cff1eff00Stoneform_Health" },
 
 	-- TRINKETS -- jps.useTrinket(0) est "Trinket0Slot" est slotId  13 -- "jps.useTrinket(1) est "Trinket1Slot" est slotId  14
 	{ jps.useTrinket(0), jps.useTrinketBool(0) and not playerWasControl and jps.combatStart > 0 },
@@ -308,7 +307,7 @@ local spellTable = {
 	
 	-- "Shield Barrier" 112048 "Barrière protectrice"
 	{ warrior.spells["ShieldBarrier"], playerAggro and jps.hpInc("player") < 0.80 and not jps.buff(112048) , rangedTarget , "|cff1eff00ShieldBarrier_Aggro" },
-	{ warrior.spells["ShieldBarrier"], TankBossDebuff and jps.hpInc("player") < 0.80 and not jps.buff(112048) , rangedTarget , "|cff1eff00ShieldBarrier_Debuff" },
+	{ warrior.spells["ShieldBarrier"], PlayerBossDebuff and jps.hpInc("player") < 0.80 and not jps.buff(112048) , rangedTarget , "|cff1eff00ShieldBarrier_Debuff" },
 
 	-- "Heroic Strike" 78 "Frappe héroïque" -- Buff "Shield Charge" 169667
 	{ warrior.spells["HeroicStrike"] , jps.buff(169667) and jps.buffStacks(169686) > 3 , rangedTarget , "HeroicStrike_ShieldCharge_Strikes" },

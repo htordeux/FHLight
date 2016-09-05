@@ -58,7 +58,7 @@ jps.SentCast = nil
 jps.LastCast = nil
 jps.LastTarget = nil
 jps.Message = ""
-jps.LastMessage = {}
+jps.LastMessage = ""
 jps.LastTargetGUID = nil
 jps.Latency = 0
 jps.NextSpell = nil
@@ -361,8 +361,8 @@ function jps.Cycle()
 
 	if not jps.Casting and jps.ThisCast ~= nil then
 		if jps.NextSpell ~= nil then
-			if jps.NextSpell ~= jps.SentCast and jps.canCast(jps.NextSpell) then
-				jps.Cast(jps.NextSpell,jps.Target)
+			if jps.NextSpell ~= jps.SentCast and jps.canCast(jps.NextSpell,jps.Target) then
+				jps.Cast(jps.NextSpell)
 				write("|cFFFF0000Next Spell "..jps.NextSpell.. " was casted")
 				jps.NextSpell = nil
 			else
@@ -373,9 +373,6 @@ function jps.Cycle()
 			jps.Cast(jps.ThisCast)
 		end
 	end
-
-	-- Return spellcast.
-	return jps.ThisCast,jps.Target
 end
 
 ----------------------------

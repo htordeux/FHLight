@@ -82,7 +82,7 @@ function jps.holyPower()
 	return UnitPower("player",9)
 end
 
-function jps.shadowOrbs()
+function jps.insanity()
 	return UnitPower("player",13)
 end
 
@@ -96,6 +96,11 @@ end
 
 function jps.demonicFury()
 	return UnitPower("player",15)
+end
+
+-- Fury (Demon Hunter)
+function jps.fury(self)
+    return UnitPower("player", 17)
 end
 
 -- Mana = UnitPower("player",0)

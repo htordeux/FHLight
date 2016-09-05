@@ -137,12 +137,12 @@ jps.registerRotation("PRIEST","HOLY", function()
 
 	-- DISPEL --
 	
-	local DispelFriendPvE = jps.FindMeDispelTarget( {"Magic"} ) -- {"Magic", "Poison", "Disease", "Curse"}
+	local DispelFriendPvE = jps.canDispelUnit( "Magic" ) -- {"Magic", "Poison", "Disease", "Curse"}
 	local DispelFriendPvP = nil
 	local DispelFriendHealth = 100
 	for i=1,#FriendUnit do -- for _,unit in ipairs(FriendUnit) do
 		local unit = FriendUnit[i]
-		if jps.DispelFriendly(unit) then -- jps.DispelFriendly includes UnstableAffliction
+		if jps.DispelLoseControl(unit) then -- jps.DispelLoseControl includes jps.WarningDebuffs
 			local unitHP = jps.hp(unit)
 			if unitHP < DispelFriendHealth then
 				DispelFriendPvP = unit
@@ -151,17 +151,10 @@ jps.registerRotation("PRIEST","HOLY", function()
 		end
 	end
 
-	local DispelFriendLoseControl = nil
-	for i=1,#FriendUnit do -- for _,unit in ipairs(FriendUnit) do
-		local unit = FriendUnit[i]
-		if DispelFriendLoseControl == nil and jps.DispelLoseControl(unit) then DispelFriendLoseControl = unit
-		break end
-	end
-
 	local DispelFriendRole = nil
 	for i=1,#TankUnit do -- for _,unit in ipairs(TankUnit) do
 		local unit = TankUnit[i]
-		if jps.canDispel(unit,{"Magic"}) then -- jps.canDispel includes UnstableAffliction
+		if jps.canDispel(unit,"Magic") then -- jps.canDispel includes jps.WarningDebuffs
 			DispelFriendRole = unit
 		break end
 	end
@@ -232,7 +225,6 @@ jps.registerRotation("PRIEST","HOLY", function()
 		-- "Dispel" "Purifier" 527
 		{ 527, DispelFriendRole ~= nil , DispelFriendRole , "|cff1eff00DispelFriend_Role" },
 		{ 527, DispelFriendPvP ~= nil , DispelFriendPvP , "|cff1eff00DispelFriend_PvP" },
-		{ 527, DispelFriendLoseControl ~= nil , DispelFriendLoseControl , "|cff1eff00DispelFriend_LoseControl" },
 		{ 527, DispelFriendPvE ~= nil , DispelFriendPvE , "|cff1eff00DispelFriend_PvE" },
 	}
 
@@ -241,7 +233,7 @@ jps.registerRotation("PRIEST","HOLY", function()
 ------------------------------------------------------
 
 	local InterruptTable = {
-		{jps.spells.priest.flashHeal, 0.75 , jps.buff(27827) }, -- "Esprit de rédemption" 27827
+		{jps.spells.priest.flashHeal, 0.80 , jps.buff(27827) }, -- "Esprit de rédemption" 27827
 		{jps.spells.priest.heal, 0.90 , jps.buff(27827) },
 		{jps.spells.priest.prayerOfHealing , 0.80, jps.buffId(81206) or jps.buff(27827) }, -- Chakra: Sanctuary 81206
 	}
@@ -252,7 +244,42 @@ jps.registerRotation("PRIEST","HOLY", function()
 ------------------------
 -- SPELL TABLE ---------
 ------------------------
+local spellTable = {
 
+	-- "Guardian Spirit" 47788
+	{ spells.guardianSpirit , jps.hp(LowestImportantUnit) < 0.30 , LowestImportantUnit , "Emergency_Guardian" },
+	{ spells.holyWordSerenity , jps.hp(LowestImportantUnit) < 0.60 , LowestImportantUnit  },
+	-- "Soins rapides" 2061 -- "Vague de Lumière" 109186 "Surge of Light" -- gives buff 114255
+	{ spells.flashHeal , jps.hp(LowestImportantUnit) < 0.60 and jps.buff(spells.surgeOfLight) , LowestImportantUnit  },
+	{ spells.flashHeal , jps.hp(LowestImportantUnit) < 0.80 and jps.buff(114255) , LowestImportantUnit , "FlashHeal_Light" },
+	{ spells.flashHeal , jps.buff(114255) and jps.buffDuration(114255) < 4 , LowestImportantUnit , "FlashHeal_Light" },
+	-- TIMER POM -- "Prière de guérison" 33076 -- Buff POM 41635
+	{ 33076, not jps.Moving and not jps.buffTracker(41635) , LowestImportantUnit , "Tracker_Mending" },
+	{ 33076, type(MendingFriend) == "string" , MendingFriend , "Tracker_Mending_Friend" },
+	-- "Prayer of Healing" 596
+	{ spells.prayerOfHealing, (type(POHTarget) == "string") , POHTarget },
+	{ spells.flashHeal , jps.hp(LowestImportantUnit) < 0.60 , LowestImportantUnit  },
+	{ spells.heal , jps.hp(LowestImportantUnit) < 0.80 , LowestImportantUnit  },
+	-- dispell
+	{spells.purifyDisease, jps.canDispel("player","Disease") , "player" , "Disease" },
+	{ 527, jps.canDispel("player","Magic") , "player" , "Aggro_Dispel" },
+	{ "nested", jps.UseCDs , parseDispel },
+	-- "Renew" 139
+	{ spells.renew, not jps.buff(139,Tank) , Tank , "Timer_Renew_Tank" },
+	{ spells.renew, type(RenewFriend) == "string" , RenewFriend },
+	{ spells.renew , not jps.buff(spells.renew,LowestImportantUnit) , LowestImportantUnit  },
+	
+	{ 14914 , true, rangedTarget  },
+	{ 585 , true, rangedTarget },
+	
+
+}
+	spell,target = parseSpellTable(spellTable)
+	return spell,target
+end , "Holy Priest Default" )
+
+
+--[[
 local spellTable = {
 
 	-- "Esprit de rédemption" 27827
@@ -299,7 +326,7 @@ local spellTable = {
 		-- "Oubli" 586 -- Glyphe d'oubli 55684 -- Votre technique Oubli réduit à présent tous les dégâts subis de 10%.
 		{ 586, jps.glyphInfo(55684) , "player" , "Aggro_Oubli" },
 		-- "Glyph of Purify" 55677 Your Purify spell also heals your target for 5% of maximum health
-		{ 527, jps.canDispel("player",{"Magic"}) , "player" , "Aggro_Dispel" },
+		{ 527, jps.canDispel("player","Magic") , "player" , "Aggro_Dispel" },
 	}},
 
 	-- "Leap of Faith" 73325 -- "Saut de foi"
@@ -404,3 +431,4 @@ local spellTable = {
 	spell,target = parseSpellTable(spellTable)
 	return spell,target
 end , "Holy Priest Default" )
+--]]

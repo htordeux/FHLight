@@ -23,13 +23,15 @@ CtrlKeyIsDown = IsControlKeyDown();
 local function Test()
 
 	write("***************************")
-	print("Stun:|cff0070dd ", jps.checkTimer("PlayerStun"))
-	print("Interrupt:|cff0070dd ", jps.checkTimer("PlayerInterrupt"))
-	print("|cFFFF0000Aggro:|cff0070dd ", jps.FriendAggro("player"))
-	print("|cFFFF0000IncDamage:|cff0070dd ", jps.IncomingDamage("player"))
-	print("IncHeal:|cff0070dd ", jps.IncomingHeal("player"))
-	print("ControlEvents: ",jps.ControlEvents())
-	print("EnemyCastingSpellControl: ",jps.checkTimer("SpellControl") > 0)
+	
+--  print("Haste",UnitSpellHaste("player"),"-",GetCombatRating(20))
+--	print("Stun:|cff0070dd ", jps.checkTimer("PlayerStun"))
+--	print("Interrupt:|cff0070dd ", jps.checkTimer("PlayerInterrupt"))
+--	print("|cFFFF0000Aggro:|cff0070dd ", jps.FriendAggro("player"))
+print("|cFFFF0000IncDamage: ", jps.IncomingDamage("player"))
+print("|cff1eff00IncHeal: ", jps.IncomingHeal("player"))
+--	print("ControlEvents: ",jps.ControlEvents())
+--	print("EnemyCastingSpellControl: ",jps.checkTimer("SpellControl") > 0)
 	--print("GCD: ", jps.GCD)
 	--print("Distance12: ", jps.FriendNearby(12))
 	write("***************************")
@@ -101,20 +103,11 @@ end
 --	for unit,role in pairs(enemyTable) do
 --		print("|cffffffffRole:|cff1eff00",role,"|cffffffffUnit:|cff1eff00",GetUnitName(unit))
 --	end
-	
---	local table = { {"target",UnitClass("target")}, {"playertarget","DEFENSIVE"}, {"raid4target","DAMAGE"} }
---	local table = { ["target"] = UnitClass("target"), ["playertarget"] = "DEFENSIVE", ["raid4target"] = "DAMAGE" }
---	local table = { ["target"] = {UnitClass("target"),"A"}, ["playertarget"] = {"DEFENSIVE","B"}, ["raid4target"] = {"DAMAGE","C"} }
---	for i,j in pairs(table) do
---		print(i,"unit: ",j[1],"role: ",j[2])
---		print("unit: ",i,"role: ",j)
---		print("unit: ",i,"role: ",j[1],j[2])
---	end
 
-	--	TurnLeftStart()
-	--	C_Timer.After(1,function() print("test") TurnLeftStop() end)
-	--	MoveForwardStart()
-	--	C_Timer.After(0.25,function() MoveForwardStop() end)
+--	TurnLeftStart()
+--	C_Timer.After(1,function() print("test") TurnLeftStop() end)
+--	MoveForwardStart()
+--	C_Timer.After(0.25,function() MoveForwardStop() end)
 	
 --	local Tank,TankUnit = jps.findTankInRaid()
 --	if Tank == "focus" then Tank = "player" end
@@ -135,6 +128,27 @@ end
 --	local lowestUnit = jps.HighestIncomingDamage()
 --	local lowestTTD = jps.LowestFriendTimeToDie(5)
 --	print("|cffffffffDamage: |cffff8000",lowestUnit,"|cffffffffTTD: |cffff8000",lowestTTD)
+
+
+--	local table_1 = { {"target","HEALER"}, {"playertarget","DEFENSIVE"}, {"raid4target","DAMAGE"} }
+--	local table_2 = { ["target"] = "HEALER", ["playertarget"] = "DEFENSIVE", ["raid4target"] = "DAMAGE" }
+--	local table_3 = { ["target"] = {"HEALER","A"}, ["playertarget"] = {"DEFENSIVE","B"}, ["raid4target"] = {"DAMAGE","C"} }
+--	
+--	table.insert(table_1,{"player","TEST"})
+--	table_2["player"] = "TEST"
+--	table_3["player"] = {"TEST","D"}
+--	
+--	for i,j in pairs(table_1) do
+--		print(i,"unit: ",j[1],"role: ",j[2])
+--	end
+--	for i,j in pairs(table_2) do
+--		print("unit: ",i,"role: ",j)
+--	end
+--	for i,j in pairs(table_3) do
+--		print("unit: ",i,"role: ",j[1],"-",j[2])
+--	end
+--	
+
 
 end
 

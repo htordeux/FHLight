@@ -137,12 +137,12 @@ jps.registerRotation("PRIEST","DISCIPLINE", function()
 
 	-- DISPEL --
 	
-	local DispelFriendPvE = jps.FindMeDispelTarget( {"Magic"} ) -- {"Magic", "Poison", "Disease", "Curse"}
+	local DispelFriendPvE = jps.canDispelUnit( "Magic" ) -- {"Magic", "Poison", "Disease", "Curse"}
 	local DispelFriendPvP = nil
 	local DispelFriendHealth = 100
 	for i=1,#FriendUnit do -- for _,unit in ipairs(FriendUnit) do
 		local unit = FriendUnit[i]
-		if jps.DispelFriendly(unit) then -- jps.DispelFriendly includes UnstableAffliction
+		if jps.DispelLoseControl(unit) then -- jps.DispelLoseControl includes jps.WarningDebuffs
 			local unitHP = jps.hp(unit)
 			if unitHP < DispelFriendHealth then
 				DispelFriendPvP = unit
@@ -151,17 +151,10 @@ jps.registerRotation("PRIEST","DISCIPLINE", function()
 		end
 	end
 
-	local DispelFriendLoseControl = nil
-	for i=1,#FriendUnit do -- for _,unit in ipairs(FriendUnit) do
-		local unit = FriendUnit[i]
-		if DispelFriendLoseControl == nil and jps.DispelLoseControl(unit) then DispelFriendLoseControl = unit
-		break end
-	end
-
 	local DispelFriendRole = nil
 	for i=1,#TankUnit do -- for _,unit in ipairs(TankUnit) do
 		local unit = TankUnit[i]
-		if jps.canDispel(unit,{"Magic"}) then -- jps.canDispel includes UnstableAffliction
+		if jps.canDispel(unit,"Magic") then -- jps.canDispel includes jps.WarningDebuffs
 			DispelFriendRole = unit
 		break end
 	end
@@ -237,7 +230,6 @@ jps.registerRotation("PRIEST","DISCIPLINE", function()
 		-- "Dispel" "Purifier" 527
 		{ 527, DispelFriendRole ~= nil , DispelFriendRole , "|cff1eff00DispelFriend_Role" },
 		{ 527, DispelFriendPvP ~= nil , DispelFriendPvP , "|cff1eff00DispelFriend_PvP" },
-		{ 527, DispelFriendLoseControl ~= nil , DispelFriendLoseControl , "|cff1eff00DispelFriend_LoseControl" },
 		{ 527, DispelFriendPvE ~= nil , DispelFriendPvE , "|cff1eff00DispelFriend_PvE" },
 	}
 
@@ -265,8 +257,6 @@ local spellTable = {
 	-- "Angelic Feather" 121536 "Plume angélique"
 	{ 121536, IsControlKeyDown() },
 
-	-- SNM RACIAL COUNTERS -- share 30s cd with trinket
-	{"nested", jps.PvP and jps.UseCDs , RacialCounters },
 	-- SNM "Chacun pour soi" 59752 "Every Man for Himself" -- Human
 	{ 59752, playerIsStun , "player" , "Every_Man_for_Himself" },
 	-- TRINKETS -- jps.useTrinket(0) est "Trinket0Slot" est slotId  13 -- "jps.useTrinket(1) est "Trinket1Slot" est slotId  14
@@ -293,7 +283,7 @@ local spellTable = {
 
 	-- DISPEL --
 	-- "Dispel" 527 "Purifier" -- "Glyph of Purify" 55677 Your Purify spell also heals your target for 5% of maximum health
-	{ 527, jps.canDispel("player",{"Magic"}) , "player" , "Aggro_Dispel" },
+	{ 527, jps.canDispel("player","Magic") , "player" , "Aggro_Dispel" },
 	{ 527, jps.canDispel("mouseover") , "mouseover" , "Dispel_Mouseover"},
 	{ "nested", jps.UseCDs , parseDispel },
 
@@ -358,9 +348,6 @@ local spellTable = {
 	}},
 
 	-- TANK THREAT --
-	-- ClarityTank -- "Clarity of Will" 152118 shields with protective ward for 20 sec
-	{ 152118, not jps.Moving and canHeal(TankThreat) and priest.unitForClarity(TankThreat) and jps.hp(LowestImportantUnit) > 0.50 and jps.hp(TankThreat) > 0.80  , TankThreat , "Clarity_TankThreat" },
-	{ 152118, not jps.Moving and canHeal(Tank) and priest.unitForClarity(Tank) and jps.hp(LowestImportantUnit) > 0.50 and jps.hp(Tank) > 0.80  , Tank , "Clarity_Tank" },
 	-- "Power Word: Shield" -- Keep Buff "Borrowed" 59889 always
 	{ 17, canHeal(TankThreat) and not jps.buff(17,TankThreat) and not jps.debuff(6788,TankThreat) , TankThreat , "Shield_TankThreat" },
 	{ 17, canHeal(Tank) and not jps.buff(17,Tank) and not jps.debuff(6788,Tank) , Tank , "Shield_Tank" },
@@ -471,10 +458,6 @@ local spellTable = {
 	}},
 
 	-- GROUP HEAL --
-	-- "Carapace spirituelle" spell & buff "player" 109964 buff target 114908
-	{ "nested", jps.buffId(109964) and not jps.Moving , parseShell },
-	-- "Carapace spirituelle" spell & buff "player" 109964 buff target 114908
-	{ 109964, jps.IsSpellKnown(109964) and POHTarget ~= nil and canHeal(POHTarget) , POHTarget , "Carapace_POH" },
 	-- "Prière de soins" 596 "Prayer of Healing"
 	{ 596, not jps.Moving and POHTarget ~= nil and canHeal(POHTarget) , POHTarget , "POH" },
 

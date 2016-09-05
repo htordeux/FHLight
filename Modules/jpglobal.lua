@@ -246,7 +246,7 @@ function jps.checkTimer( name )
 end
 
 -- returns seconds in combat or if out of combat 0
-function jps.combatTime()
+function jps.timeInCombat()
 	return GetTime() - jps.combatStart
 end
 

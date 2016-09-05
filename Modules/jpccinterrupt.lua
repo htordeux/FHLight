@@ -35,24 +35,6 @@ local GetTime = GetTime
 local toSpellName = jps.toSpellName
 local latencyWorld = select(4,GetNetStats())/1000
 
---------------------------
--- DISPEL TABLE
---------------------------
-
--- Don't Dispel if unit is affected by some debuffs
-local DebuffNotDispel = {
-	toSpellName(31117), 	-- "Unstable Affliction"
-	toSpellName(34914), 	-- "Vampiric Touch"
-	}
-
--- Don't dispel if friend is affected by "Unstable Affliction" or "Vampiric Touch" or "Lifebloom"
-local UnstableAffliction = function(unit)
-	for i=1,#DebuffNotDispel do -- for _,debuff in ipairs(DebuffNotDispel) do
-		local debuff = DebuffNotDispel[i]
-		if jps.debuff(debuff,unit) then return true end
-	end
-	return false
-end
 
 --------------------------------------
 -- LOSS OF CONTROL CHECK
@@ -86,11 +68,10 @@ function jps.EnemyCastingSpellControl()
 end
 
 -- Check if unit loosed control
--- { "CC" , "Snare" , "Root" , "Silence" , "Immune", "ImmuneSpell", "Disarm" }
+-- { "cc" , "root" , "silence" , "immune" }
 -- LoseControl could be FRIEND or ENEMY
-jps.LoseControl = function(unit,controlTable)
+jps.LoseControl = function(unit)
 	local timeControlled = 0
-	if controlTable == nil then controlTable = {"CC" , "Snare" , "Root" , "Silence" } end
 	-- Check debuffs
 	local auraName, debuffType, duration, expTime, spellID
 	local i = 1
@@ -98,11 +79,9 @@ jps.LoseControl = function(unit,controlTable)
 	while auraName do
 		local Priority = jps.SpellControl[spellID]
 		if Priority then
-			for i=1,#controlTable do
-				if Priority == controlTable[i] then
-					if expTime ~= nil then timeControlled = expTime - GetTime() end
-					if timeControlled > 1 then return true end
-				end
+			if Priority == "cc"  then
+				if expTime ~= nil then timeControlled = expTime - GetTime() end
+				if timeControlled > 1 then return true end
 			end
 		end
 		i = i + 1
@@ -111,12 +90,11 @@ jps.LoseControl = function(unit,controlTable)
 	return false
 end
 
--- LoseControl could be FRIEND or ENEMY
-jps.DispelLoseControl = function(unit,controlTable)
+-- Dispel all MAGIC debuff in the debuff TABLE jps.SpellControl EXCEPT if unit is affected by jps.WarningDebuffs
+jps.DispelLoseControl = function(unit)
 	if not canHeal(unit) then return false end
-	if UnstableAffliction(unit) then return false end
+	if jps.WarningDebuffs(unit) then return false end
 	local timeControlled = 0
-	if controlTable == nil then controlTable = {"CC" , "Snare" , "Root" , "Silence" } end
 	-- Check debuffs
 	local auraName, debuffType, duration, expTime, spellID
 	local i = 1
@@ -124,11 +102,9 @@ jps.DispelLoseControl = function(unit,controlTable)
 	while auraName do
 		local Priority = jps.SpellControl[spellID]
 		if Priority and debuffType == "Magic" then -- {"Magic", "Poison", "Disease", "Curse"}
-			for i=1,#controlTable do
-				if Priority == controlTable[i] then
-					if expTime ~= nil then timeControlled = expTime - GetTime() end
-					if timeControlled > 1 then return true end
-				end
+			if Priority == "cc" then
+				if expTime ~= nil then timeControlled = expTime - GetTime() end
+				if timeControlled > 1 then return true end
 			end
 		end
 		i = i + 1
@@ -137,20 +113,22 @@ jps.DispelLoseControl = function(unit,controlTable)
 	return false
 end
 
--- Dispel all MAGIC debuff in the debuff TABLE DebuffToDispel EXCEPT if unit is affected by UnstableAffliction
-jps.DispelFriendly = function(unit,time)
+-- Dispel all MAGIC debuff in the debuff TABLE jps.BigDebuff EXCEPT if unit is affected by jps.WarningDebuffs
+jps.DispelLoseControlPriority = function(unit)
 	if not canHeal(unit) then return false end
-	if UnstableAffliction(unit) then return false end
-	if time == nil then time = 0 end
+	if jps.WarningDebuffs(unit) then return false end
 	local timeControlled = 0
 	-- Check debuffs
 	local auraName, debuffType, duration, expTime, spellID
 	local i = 1
 	auraName, _, _, _, debuffType, duration, expTime, _, _, _, spellID = UnitDebuff(unit, i)
 	while auraName do
-		if jps.BigDebuff[spellID]  == "cc" and debuffType == "Magic" then -- {"Magic", "Poison", "Disease", "Curse"}
-			if expTime ~= nil then timeControlled = expTime - GetTime() end
-			if timeControlled > time then return true end
+		local Priority = jps.BigDebuff[spellID]
+		if Priority and debuffType == "Magic" then -- {"Magic", "Poison", "Disease", "Curse"}
+			if Priority == "cc" then
+				if expTime ~= nil then timeControlled = expTime - GetTime() end
+				if timeControlled > 1 then return true end
+			end
 		end
 		i = i + 1
 		auraName, _, _, _, debuffType, duration, expTime, _, _, _, spellID = UnitDebuff(unit, i)
@@ -181,11 +159,10 @@ local BuffToDispel =
 	toSpellName(12043) -- Presence of Mind Dispel type	Magic
 } 
 
--- "Lifebloom" When Lifebloom expires or is dispelled, the target is instantly healed
-local NotOffensiveDispel = toSpellName(94447) -- "Lifebloom"
+-- "Lifebloom" 94447 When Lifebloom expires or is dispelled, the target is instantly healed
 function jps.DispelOffensive(unit)
 	if not canDPS(unit) then return false end
-	if jps.buff(NotOffensiveDispel,unit) then return false end 
+	if jps.buff(94447,unit) then return false end 
 	for i=1,#BuffToDispel do -- for _,buff in ipairs(BuffToDispel) do
 		local buff = BuffToDispel[i]
 		if jps.buff(buff,unit) then

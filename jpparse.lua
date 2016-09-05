@@ -389,7 +389,7 @@ function jps.Cast(spell) -- "number" "string"
 	jps.LastCast = spellname
 	jps.LastTarget = jps.Target
 	jps.LastTargetGUID = UnitGUID(jps.LastTarget)
-	tinsert(jps.LastMessage,1,jps.Message)
+	jps.LastMessage = jps.Message
 	
 	if (jps.IconSpell ~= spellname) then
 		jps.set_jps_icon(spellname)
@@ -414,15 +414,6 @@ function jps.isRecast(spell,unit)
 	if unit == nil then unit = "target" end
 	if jps.myLastCast(spell) and (UnitGUID(unit) == jps.LastTargetGUID) then return true end
 	return false
-end
-
-local proxy = setmetatable(jps.LastMessage, {__index = function(t, index) return index end})
-function jps.FinderLastMessage(message)
-	if #jps.LastMessage < 3 then return false end
-	for i=1,2 do
-		if strfind(jps.LastMessage[i],message) then return true end
-	end
-return false
 end
 
 --------------------------------------------------------------------------------------------------------------
@@ -475,7 +466,7 @@ local function fnParseMacro(condition,macro)
         -- CASTSEQUENCE WORKS ONLY FOR INSTANT CAST SPELL
 		-- "#showtooltip\n/cast Frappe du colosse\n/cast Sanguinaire"
 		elseif string.find(macro,"stopcasting") then
-			print("macrostopcastig")
+			if jps.Debug then print("macrostopcastig") end
 			jps.Macro("/stopcasting")
 		end
 	end

@@ -13,7 +13,7 @@ local pvpRotations = {}
 local activeRotation = 1
 local ipairs = ipairs
 
-local classNames = { "WARRIOR", "PALADIN", "HUNTER", "ROGUE", "PRIEST", "DEATHKNIGHT", "SHAMAN", "MAGE", "WARLOCK", "MONK", "DRUID" }
+local classNames = { "WARRIOR", "PALADIN", "HUNTER", "ROGUE", "PRIEST", "DEATHKNIGHT", "SHAMAN", "MAGE", "WARLOCK", "MONK", "DRUID", "DEMONHUNTER" }
 
 local specNames = {}
 specNames[1] = {"ARMS","FURY","PROTECTION"}
@@ -27,6 +27,7 @@ specNames[8] = {"ARCANE","FIRE","FROST"}
 specNames[9] = {"AFFLICTION","DEMONOLOGY","DESTRUCTION"}
 specNames[10] = {"BREWMASTER","MISTWEAVER","WINDWALKER"}
 specNames[11] = {"BALANCE","FERAL","GUARDIAN","RESTORATION"}
+specNames[12] = {"HAVOC","VENGEANCE"}
 
 local function classToNumber(class)
     if type(class) == "string" then
@@ -58,9 +59,10 @@ local function toKey(class,spec)
     if not classId then return 0 end
     local specId = specToNumber(classId, spec)
     if not specId then return 0 end
-    if classId < 1 or classId > 11 then return 0 end
+    if classId < 1 or classId > 12 then return 0 end
     if classId < 11 and specId > 3 then return 0 end
     if classId == 11 and specId > 4 then return 0 end
+    if classId == 12 and specId > 2 then return 0 end
     return classId * 10 + specId
 end
 

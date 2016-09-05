@@ -441,7 +441,6 @@ local leaveCombat = function()
 	IncomingDamage = {}
 	IncomingHeal = {}
 	Healtable = {}
-	jps.LastMessage = {}
 	jps.TimeToDieData = {}
 	jps.TimedCasting = {}
 	jps.HealerBlacklist = {} 

@@ -1,8 +1,3 @@
---------------------------
--- LOCALIZATION
---------------------------
-
-local L = MyLocalizationTable
 
 ---------------------------
 -- FUNCTION HARMSPELL For Checking Inrange Enemy

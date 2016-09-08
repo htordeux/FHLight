@@ -1,5 +1,4 @@
 
-local L = MyLocalizationTable
 local spells = jps.spells.priest
 local canDPS = jps.canDPS
 local canHeal = jps.canHeal
@@ -11,24 +10,6 @@ local UnitChannelInfo = UnitChannelInfo
 local GetSpellInfo = GetSpellInfo
 local UnitAffectingCombat = UnitAffectingCombat
 local UnitIsUnit = UnitIsUnit
-
--- Debuff EnemyTarget NOT DPS
-local DebuffUnitCyclone = function (unit)
-	local i = 1
-	local auraName = select(1,UnitDebuff(unit, i))
-	while auraName do
-		if strfind(auraName,L["Polymorph"]) then
-			return true
-		elseif strfind(auraName,L["Cyclone"]) then
-			return true
-		elseif strfind(auraName,L["Hex"]) then
-			return true
-		end
-		i = i + 1
-		auraName = select(1,UnitDebuff(unit, i))
-	end
-	return false
-end
 
 ------------------------------------------------------------------------------------------------------
 ---------------------------------------------- ROTATION ----------------------------------------------
@@ -45,11 +26,10 @@ jps.registerRotation("PRIEST","DISCIPLINE", function()
 
 	local CountInRange, AvgHealthLoss, FriendUnit = jps.CountInRaidStatus()
 	local LowestImportantUnit = jps.LowestImportantUnit()
-	local countFriendNearby = jps.FriendNearby(12)
-	local POHTarget, groupToHeal, groupHealth = jps.FindSubGroupHeal(0.75) -- Target to heal with POH in RAID with AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
+	local POHTarget, groupToHeal, groupHealth = jps.FindSubGroupHeal(0.80) -- Target to heal with POH in RAID with AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
 	--local POHTarget, groupToHeal = jps.FindSubGroupTarget(0.75) -- Target to heal with POH in RAID with AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
-	local CountFriendLowest = jps.CountInRaidLowest(0.80)
-	local CountFriendEmergency = jps.CountInRaidLowest(0.50)
+	local CountFriendLowest = jps.CountInRaidLowest(0.60)
+
 
 	local Tank,TankUnit = jps.findTankInRaid() -- default "focus"
 	local TankTarget = "target"
@@ -61,17 +41,15 @@ jps.registerRotation("PRIEST","DISCIPLINE", function()
 	-- {"STUN_MECHANIC","STUN","FEAR","CHARM","CONFUSE","PACIFY","SILENCE","PACIFYSILENCE"}
 	local playerIsInterrupt = jps.InterruptEvents() -- return true/false ONLY FOR PLAYER
 	local playerWasControl = jps.ControlEvents() -- return true/false Player was interrupt or stun 2 sec ago ONLY FOR PLAYER
-	local playerTTD = jps.TimeToDie("player")
-	local BodyAndSoul = jps.IsSpellKnown(64129) -- "Body and Soul" 64129
 	local isArena, _ = IsActiveBattlefieldArena()
 
----------------------
--- ENEMY TARGET
----------------------
+----------------------
+-- TARGET ENEMY
+----------------------
 
-	local isBoss = UnitLevel("target") == -1 or UnitClassification("target") == "elite"
 	-- rangedTarget returns "target" by default, sometimes could be friend
 	local rangedTarget, EnemyUnit, TargetCount = jps.LowestTarget()
+	local isBoss = (UnitLevel("target") == -1) or (UnitClassification("target") == "elite")
 
 	if canDPS("target") then rangedTarget =  "target"
 	elseif canDPS(TankTarget) then rangedTarget = TankTarget
@@ -80,6 +58,7 @@ jps.registerRotation("PRIEST","DISCIPLINE", function()
 	-- if your target is friendly keep it as target
 	if not canHeal("target") and canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
 	
+	local TargetMoving = select(1,GetUnitSpeed(rangedTarget)) > 0
 	local playerIsTargeted = jps.playerIsTargeted()
 
 ----------------------------
@@ -137,7 +116,7 @@ jps.registerRotation("PRIEST","DISCIPLINE", function()
 
 	-- DISPEL --
 	
-	local DispelFriendPvE = jps.canDispelUnit( "Magic" ) -- {"Magic", "Poison", "Disease", "Curse"}
+	local DispelFriendPvE = jps.DispelMagicTarget() -- {"Magic", "Poison", "Disease", "Curse"}
 	local DispelFriendPvP = nil
 	local DispelFriendHealth = 100
 	for i=1,#FriendUnit do -- for _,unit in ipairs(FriendUnit) do
@@ -157,24 +136,6 @@ jps.registerRotation("PRIEST","DISCIPLINE", function()
 		if jps.canDispel(unit,"Magic") then -- jps.canDispel includes jps.WarningDebuffs
 			DispelFriendRole = unit
 		break end
-	end
-
-	-- FACING ANGLE -- jps.PlayerIsFacing(LowestImportantUnit,45) -- angle value between 10-180
-	local CountFriendIsFacing = 0
-	local FriendIsFacingLowest = nil
-	local FriendIsFacingHeath = 100
-	for i=1,#FriendUnit do -- for _,unit in ipairs(FriendUnit) do
-		local unit = FriendUnit[i]
-		if jps.hp(unit) < 0.90 and canHeal(unit) then
-			if jps.Distance(unit) < 30 and jps.PlayerIsFacing(unit,90) then
-				CountFriendIsFacing = CountFriendIsFacing + 1
-				local unitHP = jps.hp(unit)
-				if unitHP < FriendIsFacingHeath then
-					FriendIsFacingLowest = unit
-					FriendIsFacingHeath = unitHP
-				end
-			end
-		end
 	end
 	
 	-- INCOMING DAMAGE
@@ -238,9 +199,9 @@ jps.registerRotation("PRIEST","DISCIPLINE", function()
 ------------------------------------------------------
 
 	local InterruptTable = {
-		{jps.spells.priest.flashHeal, 0.80, jps.buff(172359) },
+		{jps.spells.priest.flashHeal, 0.80, jps.buff(172359) }, -- -- "Archange surpuissant" 172359
 		{jps.spells.priest.heal, 0.90, jps.PvP },
-		{jps.spells.priest.prayerOfHealing, 0.80, jps.buff(10060) or jps.buff(172359) or jps.PvP },
+		{jps.spells.priest.prayerOfHealing, 0.80, jps.buff(10060) or jps.buff(172359) or jps.PvP }, -- Buff infusion 10060
 	}
 
 	-- AVOID OVERHEALING
@@ -328,13 +289,8 @@ local spellTable = {
 	{ 1706, jps.PvP and jps.debuff(77606,"player") , "player" , "DarkSim_Levitate" },
 	
 	-- TIMER POM -- "Prière de guérison" 33076 -- Buff POM 41635
-	{ "nested", not jps.Moving and CountFriendLowest > 2 and jps.hpSum(LowestImportantUnit) > 0.60 ,{
-		{ 33076, canHeal(TankThreat) , TankThreat , "Tracker_Mending_TankThreat" },
-		{ 33076, canHeal(Tank) , Tank , "Tracker_Mending_Tank" },
-		{ 33076, MendingFriend ~= nil , MendingFriend , "Mending_CountFriendLowest" },
-		{ 33076, not jps.buff(41635,LowestImportantUnit) , LowestImportantUnit , "Mending_CountFriendLowest" },
-	}},
-	
+	{ 33076, MendingFriend ~= nil , MendingFriend , "Mending_CountFriendLowest" },
+
 	-- EMERGENCY HEAL --
 	{ 596, jps.MultiTarget and not jps.Moving and POHTarget ~= nil and canHeal(POHTarget) and jps.buff(59889) and jps.hpSum(LowestImportantUnit) > 0.40 , POHTarget , "Borrowed_POH" },
 	{ "nested", groupHealth > 0.80 and jps.hp(TankThreat) > 0.80 and jps.hp(Tank) > 0.80 and jps.hp(LowestImportantUnit) < 0.60 ,{
@@ -355,7 +311,6 @@ local spellTable = {
 	{ 17, UnitIsPlayer("targettarget") and canHeal("targettarget") and not jps.buff(17,"targettarget") and not jps.debuff(6788,"targettarget") , "targettarget" , "Shield_targettarget" },
 	-- "Power Word: Shield" 17 -- "Body and Soul" 65081 buff -- Glyph of Reflective Shield 33202
 	{ 17, jps.glyphInfo(33202) and not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Defensive_Shield" },
-	{ 17, not jps.buff(65081,"player") and jps.Moving and BodyAndSoul and not jps.debuff(6788,"player") , "player" , "Shield_Moving" },
 	-- "Archange" 81700 -- Buff 81700 -- Buff "Archange surpuissant" 172359  100 % critique POH or FH
 	{ 81700, jps.buffStacks(81661) == 5 and  jps.hp(TankThreat) < 0.70 , "player" , "ARCHANGE_TankThreat" },
 	{ 81700, jps.buffStacks(81661) == 5 and  jps.hp(Tank) < 0.70 , "player" , "ARCHANGE_Tank" },
@@ -373,16 +328,11 @@ local spellTable = {
 	-- "Power Infusion" 10060 "Infusion de puissance"
 	{ 10060, jps.hp(LowestImportantUnit) < 0.50 , "player" , "POWERINFUSION_Lowest" },
 	{ 10060, groupHealth < 0.80 , "player" , "POWERINFUSION_POH" },
-	{ 10060, CountFriendLowest > 3 , "player" , "POWERINFUSION_Count" },
-	-- SNM Troll "Berserker" 26297 -- Haste Buff
-	{ 26297, CountFriendEmergency > 1 , "player" },
 
 	-- "Divine Star" Holy 110744 Shadow 122121
 	{ 110744, FriendIsFacingLowest ~= nil and CountFriendIsFacing > 3 , FriendIsFacingLowest ,  "DivineStar_Count" },
 	{ 110744, FriendIsFacingLowest ~= nil and jps.hp(FriendIsFacingLowest) < 0.80 , FriendIsFacingLowest ,  "DivineStar_Lowest" },
 	-- "Cascade" Holy 121135 Shadow 127632
-	{ 121135, not jps.Moving and CountFriendEmergency > 2 , LowestImportantUnit ,  "Cascade_Emergency" },
-	{ 121135, not jps.Moving and CountFriendLowest > 3 , LowestImportantUnit ,  "Cascade_Count" },
 	{ 121135, not jps.Moving and POHTarget ~= nil and canHeal(POHTarget) , POHTarget ,  "Cascade_POH" },
 
 	-- "Archange" 81700 -- Buff 81700 -- Buff "Archange surpuissant" 172359  100 % critique POH or FH
@@ -494,7 +444,7 @@ jps.registerRotation("PRIEST","DISCIPLINE",function()
 	local POHTarget, _, _ = jps.FindSubGroupHeal(0.50)
 	local Tank,TankUnit = jps.findTankInRaid() -- default "focus"
 	local rangedTarget, _, _ = jps.LowestTarget() -- default "target"
-	local BodyAndSoul = jps.IsSpellKnown(64129) -- "Body and Soul" 64129
+
 
 	if canDPS("target") then rangedTarget =  "target"
 	elseif canDPS("targettarget") then rangedTarget = "targettarget"
@@ -506,20 +456,14 @@ jps.registerRotation("PRIEST","DISCIPLINE",function()
 	if jps.ChannelTimeLeft() > 0 then return nil end
 	if jps.CastTimeLeft() > 0 then return nil end
 	
-	local spellTableOOC = {
+	local spellTable = {
 
 	-- SNM "Levitate" 1706
 	{ 1706, jps.fallingFor() > 1.5 and not jps.buff(111759) , "player" },
 	{ 1706, IsSwimming() and not jps.buff(111759) , "player" },
 
-	-- "Fortitude" 21562 -- "Commanding Shout" 469 -- "Blood Pact" 166928
-	{ 21562, jps.buffMissing(21562) and jps.buffMissing(469) and jps.buffMissing(166928) , "player" },
-	-- "Gardien de peur" 6346
-	{ 6346, not jps.buff(6346,"player") , "player" },
 	-- "Don des naaru" 59544
 	{ 59544, jps.hp("player") < 0.75 , "player" },
-	-- "Shield" 17 "Body and Soul" 64129 -- figure out how to speed buff everyone as they move
-	{ 17, jps.Moving and BodyAndSoul and not jps.debuff(6788,"player") , "player" , "Shield_BodySoul" },
 	-- "Pénitence" 47540
 	{ 47540, jps.hp(LowestImportantUnit) < 0.50  , LowestImportantUnit , "Penance" },
 	-- "Prière de soins" 596 "Prayer of Healing"
@@ -527,20 +471,14 @@ jps.registerRotation("PRIEST","DISCIPLINE",function()
 	-- "Soins" 2060
 	{ 2060, not jps.Moving and jps.hp(LowestImportantUnit) < 0.60 , LowestImportantUnit , "Soins"  },
 	
-	-- "Nova" 132157 -- buff "Words of Mending" 155362 "Mot de guérison"
-	{ 132157, jps.IsSpellKnown(152117) and jps.Defensive and jps.buffDuration(155362) < 9 , "player" , "Nova_WoM" },
-	
 	-- TIMER POM -- "Prière de guérison" 33076 -- Buff POM 41635
 	{ 33076, jps.Defensive and UnitIsPlayer(Tank) and not jps.Moving and not jps.buff(41635,Tank) and canHeal(Tank) , Tank , "Mending_Tank" },
 	-- ClarityTank -- "Clarity of Will" 152118 shields with protective ward for 20 sec
 	{ 152118, not jps.Moving and canHeal(Tank) and not jps.buff(152118,Tank) and not jps.isRecast(152118,Tank) , Tank , "Clarity_Tank" },
-	
-	-- "Oralius' Whispering Crystal" 118922 "Cristal murmurant d’Oralius"
-	{ {"macro","/use item:118922"}, not jps.buff(105691) and not jps.buff(156070) and not jps.buff(156079) and jps.itemCooldown(118922) == 0 and not jps.buff(176151) , "player" , "Item_Oralius"},
 
 }
 
-	local spell,target = parseSpellTable(spellTableOOC)
+	local spell,target = parseSpellTable(spellTable)
 	return spell,target
 
 end,"OOC Disc Priest PvE",false,false,true)

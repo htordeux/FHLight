@@ -22,6 +22,12 @@ CtrlKeyIsDown = IsControlKeyDown();
 
 local function Test()
 
+local RaidStatusDebuff = jps.RaidStatusDebuff()
+
+for unit,debuff in pairs(RaidStatusDebuff) do
+	print("unit:",unit,"debuff:",debuff)
+end
+
 	write("***************************")
 	
 --  print("Haste",UnitSpellHaste("player"),"-",GetCombatRating(20))
@@ -32,14 +38,11 @@ print("|cFFFF0000IncDamage: ", jps.IncomingDamage("player"))
 print("|cff1eff00IncHeal: ", jps.IncomingHeal("player"))
 --	print("ControlEvents: ",jps.ControlEvents())
 --	print("EnemyCastingSpellControl: ",jps.checkTimer("SpellControl") > 0)
-	--print("GCD: ", jps.GCD)
-	--print("Distance12: ", jps.FriendNearby(12))
+--print("GCD: ", jps.GCD)
 	write("***************************")
 	
-	--local POHTarget, groupToHeal, groupHealth = jps.FindSubGroupHeal(1)
-	--print("|cff1eff00POHTarget: |cffffffff",POHTarget,"|cff1eff00Group: |cffffffff",groupToHeal,"|cff1eff00Health: |cffffffff",groupHealth)
-	--print("CountInRaid50: ",jps.CountInRaidLowest(0.50))
-	--print("CountInRange80: ",jps.CountInRaidLowest(0.80))
+--local POHTarget, groupToHeal, groupHealth = jps.FindSubGroupHeal(1)
+--print("|cff1eff00POHTarget: |cffffffff",POHTarget,"|cff1eff00Group: |cffffffff",groupToHeal,"|cff1eff00Health: |cffffffff",groupHealth)
 
 --	local Tank,Tanks = jps.findTankInRaid()
 --	for i=1,#Tanks do
@@ -68,7 +71,7 @@ end
 
 local function DkTest()
 
-	local Dr, Fr, Ur = dk.updateRune()
+	local Dr, Fr, Ur = jps.updateRune()
 	local DeathRuneCount = dk.updateDeathRune()
 	print("Dr:", Dr ,"Fr:", Fr ,"Ur:", Ur )
 	print("DeathRune:",DeathRuneCount)

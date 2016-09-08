@@ -2,7 +2,6 @@
 -- LOCALIZATION
 --------------------------
 
-local L = MyLocalizationTable
 local GetTalentInfo = GetTalentInfo
 local GetGlyphSocketInfo = GetGlyphSocketInfo
 local GetGlyphLink = GetGlyphLink

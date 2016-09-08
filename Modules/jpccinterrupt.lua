@@ -24,7 +24,6 @@
 --6.0:
 -- name, rank, icon, castTime, minRange, maxRange, spellID = GetSpellInfo(spellID or spellName)
 
-local L = MyLocalizationTable
 local UnitDebuff = UnitDebuff
 local UnitCastingInfo = UnitCastingInfo
 local UnitChannelInfo = UnitChannelInfo
@@ -173,14 +172,13 @@ end
 
 -- name, nameSubtext, text, texture, startTime, endTime, isTradeSkill, castID, notInterruptible = UnitCastingInfo("unit")
 -- name, nameSubtext, text, texture, startTime, endTime, isTradeSkill, notInterruptible = UnitCastingInfo("unit")
-
+local ReleaseAberrations = jps.toSpellName(92703)
 function jps.ShouldKick(unit)
 	if not canDPS(unit) then return false end
 	local casting = select(1,UnitCastingInfo(unit))
 	local notinterruptible = select(9,UnitCastingInfo(unit)) --  if true, indicates that this cast cannot be interrupted 
 	local channelling = select(1,UnitChannelInfo(unit))
 	local not_interruptible = select(8,UnitChannelInfo(unit)) -- if true, indicates that this cast cannot be interrupted
-	if casting == L["Release Aberrations"] then return false end
 	if casting == nil and channelling == nil then return false end
 	if casting and not notinterruptible then
 		return true
@@ -195,8 +193,6 @@ function jps.ShouldKickDelay(unit)
 	if unit == nil then unit = "target" end
 	local casting = UnitCastingInfo(unit)
 	local channelling = UnitChannelInfo(unit)
-	if casting == L["Release Aberrations"] then return false end
-
 	if casting and jps.CastTimeLeft(unit) < 2 then
 		return true
 	elseif channelling and jps.ChannelTimeLeft(unit) < 2 then

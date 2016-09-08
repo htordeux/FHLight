@@ -9,8 +9,6 @@ This module also contains profiling support for the events. If enabled you will 
 - [i]Attention:[/i] This has a serious impact on FPS!
 ]]--
 
--- Localization
-local L = MyLocalizationTable
 -- Logger
 local LOG = jps.Logger(jps.LogLevel.ERROR)
 -- Update Table
@@ -792,7 +790,8 @@ jps.listener.registerEvent("COMBAT_LOG_EVENT_UNFILTERED", function(...)
 			local suffix = event:match(".+(_.-)$")
 			local spellID = select(12, ...)
 			if jps.SpellControl[spellID] ~= nil then
-				if jps.checkTimer("SpellControl") < 2 then jps.createTimer("SpellControl",2) end
+				if jps.SpellControl[spellID] == "cc" and jps.checkTimer("SpellControl") < 2 then jps.createTimer("SpellControl",2)
+				elseif jps.SpellControl[spellID] == "silence" and jps.checkTimer("SpellControl") < 2 then jps.createTimer("SpellControl",2) end
 			end
 		end
 

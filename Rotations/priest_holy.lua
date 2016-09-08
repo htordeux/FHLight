@@ -1,5 +1,4 @@
 
-local L = MyLocalizationTable
 local spells = jps.spells.priest
 local canDPS = jps.canDPS
 local canHeal = jps.canHeal
@@ -11,24 +10,6 @@ local UnitChannelInfo = UnitChannelInfo
 local GetSpellInfo = GetSpellInfo
 local UnitAffectingCombat = UnitAffectingCombat
 local UnitIsUnit = UnitIsUnit
-
--- Debuff EnemyTarget NOT DPS
-local DebuffUnitCyclone = function (unit)
-	local i = 1
-	local auraName = select(1,UnitDebuff(unit, i))
-	while auraName do
-		if strfind(auraName,L["Polymorph"]) then
-			return true
-		elseif strfind(auraName,L["Cyclone"]) then
-			return true
-		elseif strfind(auraName,L["Hex"]) then
-			return true
-		end
-		i = i + 1
-		auraName = select(1,UnitDebuff(unit, i))
-	end
-	return false
-end
 
 ------------------------------------------------------------------------------------------------------
 ---------------------------------------------- ROTATION ----------------------------------------------
@@ -45,11 +26,10 @@ jps.registerRotation("PRIEST","HOLY", function()
 
 	local CountInRange, AvgHealthLoss, FriendUnit = jps.CountInRaidStatus()
 	local LowestImportantUnit = jps.LowestImportantUnit()
-	local countFriendNearby = jps.FriendNearby(12)
-	local POHTarget, groupToHeal, groupHealth = jps.FindSubGroupHeal(0.75) -- Target to heal with POH in RAID with AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
+	local POHTarget, groupToHeal, groupHealth = jps.FindSubGroupHeal(0.80) -- Target to heal with POH in RAID with AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
 	--local POHTarget, groupToHeal = jps.FindSubGroupTarget(0.75) -- Target to heal with POH in RAID with AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
-	local CountFriendLowest = jps.CountInRaidLowest(0.80)
-	local CountFriendEmergency = jps.CountInRaidLowest(0.50)
+	local CountFriendLowest = jps.CountInRaidLowest(0.60)
+
 
 	local Tank,TankUnit = jps.findTankInRaid() -- default "focus"
 	local TankTarget = "target"
@@ -61,17 +41,15 @@ jps.registerRotation("PRIEST","HOLY", function()
 	-- {"STUN_MECHANIC","STUN","FEAR","CHARM","CONFUSE","PACIFY","SILENCE","PACIFYSILENCE"}
 	local playerIsInterrupt = jps.InterruptEvents() -- return true/false ONLY FOR PLAYER
 	local playerWasControl = jps.ControlEvents() -- return true/false Player was interrupt or stun 2 sec ago ONLY FOR PLAYER
-	local playerTTD = jps.TimeToDie("player")
-	local BodyAndSoul = jps.IsSpellKnown(64129) -- "Body and Soul" 64129
 	local isArena, _ = IsActiveBattlefieldArena()
 
----------------------
--- ENEMY TARGET
----------------------
+----------------------
+-- TARGET ENEMY
+----------------------
 
-	local isBoss = UnitLevel("target") == -1 or UnitClassification("target") == "elite"
 	-- rangedTarget returns "target" by default, sometimes could be friend
 	local rangedTarget, EnemyUnit, TargetCount = jps.LowestTarget()
+	local isBoss = (UnitLevel("target") == -1) or (UnitClassification("target") == "elite")
 
 	if canDPS("target") then rangedTarget =  "target"
 	elseif canDPS(TankTarget) then rangedTarget = TankTarget
@@ -80,6 +58,7 @@ jps.registerRotation("PRIEST","HOLY", function()
 	-- if your target is friendly keep it as target
 	if not canHeal("target") and canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
 	
+	local TargetMoving = select(1,GetUnitSpeed(rangedTarget)) > 0
 	local playerIsTargeted = jps.playerIsTargeted()
 
 ----------------------------
@@ -137,7 +116,7 @@ jps.registerRotation("PRIEST","HOLY", function()
 
 	-- DISPEL --
 	
-	local DispelFriendPvE = jps.canDispelUnit( "Magic" ) -- {"Magic", "Poison", "Disease", "Curse"}
+	local DispelFriendPvE = jps.DispelMagicTarget() -- {"Magic", "Poison", "Disease", "Curse"}
 	local DispelFriendPvP = nil
 	local DispelFriendHealth = 100
 	for i=1,#FriendUnit do -- for _,unit in ipairs(FriendUnit) do
@@ -235,7 +214,7 @@ jps.registerRotation("PRIEST","HOLY", function()
 	local InterruptTable = {
 		{jps.spells.priest.flashHeal, 0.80 , jps.buff(27827) }, -- "Esprit de rédemption" 27827
 		{jps.spells.priest.heal, 0.90 , jps.buff(27827) },
-		{jps.spells.priest.prayerOfHealing , 0.80, jps.buffId(81206) or jps.buff(27827) }, -- Chakra: Sanctuary 81206
+		{jps.spells.priest.prayerOfHealing , 0.85, jps.buffId(81206) or jps.buff(27827) or jps.PvP }, -- Chakra: Sanctuary 81206
 	}
 
 	-- AVOID OVERHEALING
@@ -246,37 +225,75 @@ jps.registerRotation("PRIEST","HOLY", function()
 ------------------------
 local spellTable = {
 
+	{ "nested", jps.Defensive , {
+		{ spells.smite , true, rangedTarget },
+		{ spells.holyFire , true, rangedTarget  },
+	}},
+
+	-- "Oubli" 586
+	{ 586, jps.FriendAggro("player") and jps.playerIsTargeted() , "player" , "Aggro_Oubli" },
+	{ spells.giftNaaru, jps.hp("player") < 0.80 , "player" , "giftNaaru"},
 	-- "Guardian Spirit" 47788
 	{ spells.guardianSpirit , jps.hp(LowestImportantUnit) < 0.30 , LowestImportantUnit , "Emergency_Guardian" },
+	-- Light of T'uure it buffs the target to increase your healing done to them by 25% for 10 seconds
+	{ spells.lightOfTuure , jps.hp(LowestImportantUnit) < 0.60 , LowestImportantUnit  },
+	{ spells.apotheosis , jps.hp(LowestImportantUnit) < 0.60 , LowestImportantUnit  },
+	
+
 	{ spells.holyWordSerenity , jps.hp(LowestImportantUnit) < 0.60 , LowestImportantUnit  },
 	-- "Soins rapides" 2061 -- "Vague de Lumière" 109186 "Surge of Light" -- gives buff 114255
 	{ spells.flashHeal , jps.hp(LowestImportantUnit) < 0.60 and jps.buff(spells.surgeOfLight) , LowestImportantUnit  },
 	{ spells.flashHeal , jps.hp(LowestImportantUnit) < 0.80 and jps.buff(114255) , LowestImportantUnit , "FlashHeal_Light" },
 	{ spells.flashHeal , jps.buff(114255) and jps.buffDuration(114255) < 4 , LowestImportantUnit , "FlashHeal_Light" },
+	{ spells.flashHeal , jps.hp(LowestImportantUnit) < 0.60 , LowestImportantUnit  },
+
 	-- TIMER POM -- "Prière de guérison" 33076 -- Buff POM 41635
 	{ 33076, not jps.Moving and not jps.buffTracker(41635) , LowestImportantUnit , "Tracker_Mending" },
 	{ 33076, type(MendingFriend) == "string" , MendingFriend , "Tracker_Mending_Friend" },
+	
+	--AOE
+	-- Holy Word: Sanctify using before casting Prayer of Healing
+	{ spells.holyWordSanctify },
 	-- "Prayer of Healing" 596
-	{ spells.prayerOfHealing, (type(POHTarget) == "string") , POHTarget },
-	{ spells.flashHeal , jps.hp(LowestImportantUnit) < 0.60 , LowestImportantUnit  },
+	{ spells.prayerOfHealing, type(POHTarget) == "string" , POHTarget },
+	-- Power of the Naaru, an artifact trait, buffs Prayer of Healing for 15 seconds after using
+
+	-- Divine Hymn should be used during periods of very intense raid damage.
+	-- Symbol of Hope you should you use expensive spells such as Prayer of Healing Icon Prayer of Healing and Holy Word: Sanctify Icon Holy Word: Sanctify.
+
 	{ spells.heal , jps.hp(LowestImportantUnit) < 0.80 , LowestImportantUnit  },
 	-- dispell
-	{spells.purifyDisease, jps.canDispel("player","Disease") , "player" , "Disease" },
-	{ 527, jps.canDispel("player","Magic") , "player" , "Aggro_Dispel" },
+	{ spells.purifyDisease, jps.UseCDs and jps.canDispel("player","Disease") , "player" , "Disease" },
+	{ 527, jps.UseCDs and jps.canDispel("player","Magic") , "player" , "Aggro_Dispel" },
 	{ "nested", jps.UseCDs , parseDispel },
+
 	-- "Renew" 139
 	{ spells.renew, not jps.buff(139,Tank) , Tank , "Timer_Renew_Tank" },
 	{ spells.renew, type(RenewFriend) == "string" , RenewFriend },
 	{ spells.renew , not jps.buff(spells.renew,LowestImportantUnit) , LowestImportantUnit  },
 	
-	{ 14914 , true, rangedTarget  },
-	{ 585 , true, rangedTarget },
+
+
 	
 
 }
 	spell,target = parseSpellTable(spellTable)
 	return spell,target
 end , "Holy Priest Default" )
+
+--[[
+Below, we use the Heal Icon Heal spell to provide you with an example of a mouse-over macro:
+
+    #showtooltip Heal
+    /cast [@mouseover,exists,nodead,help,][exists,nodead,help][@player] Heal
+
+this macro changes your Heal spell in such a way that:
+
+    If you are mousing over a target which exists, is not dead and is friendly, it will cast Heal on them.
+    Otherwise, if your currently selected target exists, is not dead and is friendly, Heal will be cast on them instead.
+    Lastly, if neither of the above two conditions are met, it will cast Heal on yourself.
+
+--]]
 
 
 --[[
@@ -300,8 +317,6 @@ local spellTable = {
 		},
 	},
 
-	-- SNM "Chacun pour soi" 59752 "Every Man for Himself" -- Human
-	{ 59752, playerIsStun , "player" , "Every_Man_for_Himself" },
 	-- TRINKETS -- jps.useTrinket(0) est "Trinket0Slot" est slotId  13 -- "jps.useTrinket(1) est "Trinket1Slot" est slotId  14
 	{ jps.useTrinket(0), jps.useTrinketBool(0) and not playerWasControl and jps.combatStart > 0 , "player" , "Trinket0"},
 	{ jps.useTrinket(1), jps.useTrinketBool(1) and not playerWasControl and jps.combatStart > 0 , "player" , "Trinket1"},
@@ -317,10 +332,6 @@ local spellTable = {
 
 	-- PLAYER AGGRO
 	{ "nested", playerAggro or playerIsTargeted ,{
-		-- "Power Word: Shield" 17
-		{ 17, jps.IsSpellKnown(64129) and not jps.buff(17,"player") and not jps.debuff(6788,"player") , "player" , "Aggro_Shield" },
-		-- "Spectral Guise" 112833 "Semblance spectrale"
-		{ 112833, jps.Interrupts and jps.IsSpellKnown(112833) , "player" , "Aggro_Spectral" },
 		-- "Oubli" 586 -- Fantasme 108942 -- vous dissipez tous les effets affectant le déplacement sur vous-même
 		{ 586, jps.IsSpellKnown(108942) , "player" , "Aggro_Oubli" },
 		-- "Oubli" 586 -- Glyphe d'oubli 55684 -- Votre technique Oubli réduit à présent tous les dégâts subis de 10%.
@@ -329,8 +340,6 @@ local spellTable = {
 		{ 527, jps.canDispel("player","Magic") , "player" , "Aggro_Dispel" },
 	}},
 
-	-- "Leap of Faith" 73325 -- "Saut de foi"
-	--{ 73325, type(LeapFriend) == "string" , LeapFriend , "|cff1eff00Leap_MultiUnit_" },
 	-- "Soins rapides" 2061 -- "Vague de Lumière" 114255 "Surge of Light"
 	{ 2061, jps.buff(114255) and jps.hp(LowestImportantUnit) < 0.75 , LowestImportantUnit , "FlashHeal_Light_" },
 	{ 2061, jps.buff(114255) and jps.buffDuration(114255) < 4 , LowestImportantUnit , "FlashHeal_Light_" },
@@ -423,8 +432,6 @@ local spellTable = {
 
 	-- "Renew" 139 -- Haste breakpoints are 12.5 and 16.7%(Holy)
 	{ 139, type(RenewFriend) == "string" , RenewFriend , "Tracker_Renew_Friend" },
-	-- "Gardien de peur" 6346 -- FARMING OR PVP -- NOT PVE
-	--{ 6346, not jps.buff(6346,"player") , "player" },
 
 }
 

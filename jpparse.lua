@@ -2,7 +2,6 @@
 -- LOCALIZATION
 --------------------------
 
-local L = MyLocalizationTable
 local LOG = jps.Logger(jps.LogLevel.ERROR)
 local IsSpellInRange = IsSpellInRange
 local SpellHasRange = SpellHasRange

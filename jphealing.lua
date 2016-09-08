@@ -15,9 +15,6 @@ local UnitGUID = UnitGUID
 local GetTime = GetTime
 local UnitInRaid = UnitInRaid
 local UnitAffectingCombat = UnitAffectingCombat
-
--- Localization
-local L = MyLocalizationTable
 local UnitGroupRolesAssigned = UnitGroupRolesAssigned
 local UnitClass = UnitClass
 local GetUnitName = GetUnitName
@@ -414,7 +411,7 @@ end
 ------------------------------------
 -- GROUP FUNCTION IN RAID
 ------------------------------------
-
+-- Patch 7.1.0 (TBD): RETURNS NIL WHILE INSIDE A RESTRICTED AREA (INSTANCE/BATTLEGROUND/ARENA).
 -- jps.Distance(unit) Works with "player", "partyN" or "raidN" as unit type.
 jps.FriendNearby = function(distance)
 	if distance == nil then distance = 8 end

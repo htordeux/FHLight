@@ -307,14 +307,18 @@ hooksecurefunc("UseAction", function(...)
 	if jps.Enabled and (select(3, ...) ~= nil) and InCombatLockdown() == true then
 		local stype,id,_ = GetActionInfo(select(1, ...))
 		if stype == "spell" then
-			local name, _, icon, _, _, _, _ = GetSpellInfo(id)
-			if string.find(string.lower(icon),"spell") ~= nil then
-				if jps.NextSpell ~= name and not jps.shouldSpellBeIgnored(name) then
-					jps.NextSpell = name
-					write("Set",name,"for next cast.")
-				end
+			local spell = GetSpellInfo(id)
+			if jps.NextSpell ~= spell then
+				jps.NextSpell = spell
+				write("Set",spell,"for next cast.")
 			end
 		end
+--		if stype == "macro" then
+--            local macroText = select(3, GetMacroInfo(id))
+--            if string.find(macroText,"jps") == nil then
+--                jps.NextMacro = macroText
+--            end
+--        end
 	end
 end)
 

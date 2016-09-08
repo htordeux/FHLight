@@ -2,7 +2,6 @@
 -- LOCALIZATION
 --------------------------
 
-local L = MyLocalizationTable
 local GetTime = GetTime
 local ipairs = ipairs
 

@@ -8,7 +8,6 @@ Functions which handle casting & channeling stuff.
 -- LOCALIZATION
 --------------------------
 
-local L = MyLocalizationTable
 local UnitCastingInfo = UnitCastingInfo
 local UnitChannelInfo = UnitChannelInfo
 local GetSpellCooldown = GetSpellCooldown
@@ -90,6 +89,11 @@ end
 ----------------------
 -- PLAYER FACING FRIEND UNIT
 ----------------------
+-- posX, posY = GetPlayerMapPosition("unit");
+-- posY, posX, posZ, instanceID = UnitPosition("unit");
+-- Patch 7.1.0 (TBD): RETURNS NIL WHILE INSIDE A RESTRICTED AREA (INSTANCE/BATTLEGROUND/ARENA).
+
+
 -- GetPlayerMapPosition Works with "player", "partyN" or "raidN" as unit type
 -- Angle by default is 30° front of Player
 

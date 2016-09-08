@@ -2,7 +2,6 @@
 -- LOCALIZATION
 --------------------------
 
-local L = MyLocalizationTable
 local GetItemCooldown = GetItemCooldown
 local GetInventoryItemID = GetInventoryItemID
 local GetItemSpell = GetItemSpell
@@ -100,56 +99,6 @@ function parseTrinketText(trinket,str)
 		end 
 	end
 	return found
-end
-
-function jps.trinketUse(trinket)
-	return parseTrinketText(trinket, L["Use"])
-end
-
-local validTrinketStringsMana = {
-	{L["Use"], "Spirit"},
-	{L["Use"], "Mana"},
-}
-function jps.isManaRegTrinket(trinket)
-	for k,valTable in pairs(validTrinketStringsMana) do 
-		if parseTrinketText(trinket, valTable) == true then
-			return true
-		end
-	end
-	return false
-end
-
-function jps.trinketIncreasesHealth(trinket)
-	return parseTrinketText(trinket, {L["Use"], "health"})
-end
-
-function jps.trinketAbsorbDmg(trinket)
-	return parseTrinketText(trinket, {L["Use"], "absorb"})
-end
-
-jps.itemStringTablePVPTrinket = {L["Use"], "Removes all movement impairing"}
-function jps.isPVPInsignia(trinket)
-	return parseTrinketText(trinket, jps.itemStringTablePVPTrinket)
-end
-
-local validStrings = {
-	{L["Use"], "Increases", "spell power"},
-	{L["Use"], "Increases", "strength"},
-	{L["Use"], "Increases", "agility"},
-	{L["Use"], "Increases", "intellect"},
-	{L["Use"], "charges your weapon"},
-	{L["Use"], "Increases", "haste"},
-	{L["Use"], "Increases", "critical strike"},
-	{L["Use"], "Increases", "mastery"},
-}
-
-function jps.isDPSHPSTrinket(trinket)
-	for k,valTable in pairs(validStrings) do 
-		if parseTrinketText(trinket, valTable) == true then
-			return true
-		end
-	end
-	return false
 end
 
 local useSlotMacros = {}

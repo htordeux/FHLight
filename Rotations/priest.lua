@@ -180,7 +180,7 @@ jps.spells.priest.darkestShadows = jps.toSpellName(216212)
 jps.spells.priest.glyphOfGhostlyFade = jps.toSpellName(219669)
 jps.spells.priest.followerOfTheLight = jps.toSpellName(222646)
 jps.spells.priest.voidEruption = jps.toSpellName(228260)
-jps.spells.priest.voidBolt = jps.toSpellName(228266) -- 205448
+jps.spells.priest.voidBolt = jps.toSpellName(205448) -- 228266
 jps.spells.priest.searingInsanity = jps.toSpellName(179337)
 jps.spells.priest.giftNaaru = jps.toSpellName(59544)
 
@@ -223,12 +223,12 @@ function jps.canCastshadowWordDeath()
    local Channeling = UnitChannelInfo("player") -- "Mind Flay" is a channeling spell
    local MindFlay = tostring(jps.spells.priest.mindFlay)
    local MindSear = tostring(jps.spells.priest.mindSear)
-   local hp = UnitHealth("target")/UnitHealthMax("target")
+   local hp = jps.hp("target")
    local charges = jps.spellCharges(32379) -- "Shadow Word: Death"
    local insanity = jps.insanity()
    if Channeling ~= nil then
       if tostring(Channeling) == MindFlay and hp < 0.35 and charges == 2 then return true end
-      if tostring(Channeling) == MindSear and hp < 0.35 and charges > 0 and insanity < 35 then return true end
+      if tostring(Channeling) == MindSear and hp < 0.35 and charges == 1 and insanity < 70 then return true end
    end
    return false
 end
@@ -239,8 +239,8 @@ function jps.canCastvoidEruption()
    local MindFlay = tostring(jps.spells.priest.mindFlay)
    local MindSear = tostring(jps.spells.priest.mindSear)
    if Channeling ~= nil then
-      if tostring(Channeling) == MindFlay and jps.isUsableSpell(jps.spells.priest.voidEruption) then return true end
-      if tostring(Channeling) == MindSear and jps.isUsableSpell(jps.spells.priest.voidEruption) then return true end
+      if tostring(Channeling) == MindFlay and jps.cooldown(jps.spells.priest.voidEruption) == 0 then return true end
+      if tostring(Channeling) == MindSear and jps.cooldown(jps.spells.priest.voidEruption) == 0 then return true end
    end
    return false
 end

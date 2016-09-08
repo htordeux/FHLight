@@ -464,7 +464,7 @@ local function fnParseMacro(condition,macro)
     	if not jps.Casting then jps.Macro(macro) -- Avoid interrupt Channeling with Macro
         -- CASTSEQUENCE WORKS ONLY FOR INSTANT CAST SPELL
 		-- "#showtooltip\n/cast Frappe du colosse\n/cast Sanguinaire"
-		elseif string.find(macro,"stopcasting") then
+		elseif jps.Casting and string.find(macro,"/stopcasting") then
 			if jps.Debug then print("macrostopcastig") end
 			jps.Macro("/stopcasting")
 		end

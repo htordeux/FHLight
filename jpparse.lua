@@ -321,36 +321,6 @@ function jps.shouldSpellBeIgnored(spell)
 	return false
 end
 
-----------------------
--- DEBUG MODE
-----------------------`
-
-function jps_canHeal_debug(unit)
-	if not jps.UnitExists(unit) then write("not Unit") return false end
-	if GetUnitName("player") == GetUnitName(unit) then write("Player") return true end
-	if not UnitCanAssist("player",unit) then write("not Friend") return false end
-	if UnitInVehicle(unit) then write("in Vehicle") return false end
-	if jps.PlayerIsBlacklisted(unit) then write("Blacklist") return false end
-	if not select(1,UnitInRange(unit)) then write("not inRange") return false end
-	write("Passed all tests canHeal".."|cffa335ee"..unit)
-	return true
-end
-
-function jps_canCast_debug(spell,unit) -- NEED A SPELLNAME
-	LOG.info("Can Cast Debug for %s @ $s ", spell, unit)
-	if spell == nil then LOG.info("spell is nil  %s @ $s", spell, unit) return false end
-	if not jps.UnitExists(unit) then LOG.info("invalid unit  %s @ $s", spell, unit) return false end
-
-	local usable, nomana = IsUsableSpell(spell) -- IsUsableSpell("spellName" or spellID)
-	if not usable then LOG.info("spell is not usable  %s @ $s", spell, unit) return false end
-	if nomana then LOG.info("failed mana test  %s @ $s", spell, unit) return false end
-	if jps.cooldown(spell) > 0 then LOG.info("cooldown not finished  %s @ $s", spell, unit) return false end
-
-	if not jps.IsSpellInRange(spell,unit) then LOG.info("not in range  %s @ $s", spell, unit) return false end
-	LOG.info("Passed all tests  %s @ $s", spell, unit)
-	return true
-end
-
 ------------------------------
 -- PLUA PROTECTED
 ------------------------------

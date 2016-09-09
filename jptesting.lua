@@ -44,21 +44,14 @@ print("|cff1eff00IncHeal: ", jps.IncomingHeal("player"))
 --local POHTarget, groupToHeal, groupHealth = jps.FindSubGroupHeal(1)
 --print("|cff1eff00POHTarget: |cffffffff",POHTarget,"|cff1eff00Group: |cffffffff",groupToHeal,"|cff1eff00Health: |cffffffff",groupHealth)
 
---	local Tank,Tanks = jps.findTankInRaid()
---	for i=1,#Tanks do
---		print("|cff0070ddTank: ",GetUnitName(Tanks[i]))
---	end
---	local aggroTank = jps.findThreatInRaid()
---	print("|cFFFF0000AggroTank: ",GetUnitName(aggroTank))
---	local lowestUnit = jps.LowestImportantUnit()
---	print("|cff1eff00Lowest: ",GetUnitName(lowestUnit))
-
---	local mastery = GetMasteryEffect()
---	local masteryValue = math.ceil(mastery)/100
---	local bonusHealing = math.ceil(GetSpellBonusHealing())
---	local minCrit = math.ceil(GetSpellCritChance(2))/100 -- 2 - Holy
---	print("priestFlash",priest.AvgAmountFlashHeal,"/",(1+masteryValue)*(1+minCrit)*(14664+(1.314*bonusHealing)))
---	print("priestGreat",priest.AvgAmountGreatHeal,"/",(1+masteryValue)*(1+minCrit)*(24430+(2.219*bonusHealing)))
+	local Tank,Tanks = jps.findTankInRaid()
+	for i=1,#Tanks do
+		print("|cff0070ddTank: ",GetUnitName(Tanks[i]))
+	end
+	local aggroTank = jps.findThreatInRaid()
+	print("|cFFFF0000AggroTank: ",GetUnitName(aggroTank))
+	local lowestUnit = jps.LowestImportantUnit()
+	print("|cff1eff00Lowest: ",GetUnitName(lowestUnit))
 
 --	local friendtableaggro = jps.FriendAggroTable()
 --	print("friendtableaggro: ",friendtableaggro)

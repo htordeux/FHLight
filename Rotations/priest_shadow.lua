@@ -76,7 +76,6 @@ end
 if canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
 
 local TargetMoving = select(1,GetUnitSpeed(rangedTarget)) > 0
-local playerIsTargeted = jps.playerIsTargeted()
 
 ------------------------
 -- LOCAL FUNCTIONS ENEMY
@@ -221,11 +220,12 @@ local spellTable = {
 	-- "Shield" 17 "Body and Soul" 64129 -- figure out how to speed buff everyone as they move
 	{spells.dispersion, jps.hp("player") < 0.25 , "player"},
 	{spells.fade, jps.hp("player") < 0.50 and jps.FriendAggro("player") , "player"},
-	{spells.giftNaaru, jps.hp("player") < 0.80 , "player" , "giftNaaru"},
-	{spells.vampiricEmbrace, jps.hp("player") < 0.60 },
+	{spells.fade, jps.hp("player") < 0.50 and jps.playerIsTargeted() , "player"},
 	{spells.powerWordShield, jps.IncomingDamage("player") > 0 , "player"},
-	{spells.shadowMend, jps.hp("player") < 0.60 and jps.cooldown(spells.vampiricEmbrace) > 0 },
-	
+	{spells.giftNaaru, jps.hp("player") < 0.80 , "player" },
+	{spells.vampiricEmbrace, jps.hp("player") < 0.60 },
+	{spells.shadowMend, jps.hp("player") < 0.60 and jps.cooldown(spells.vampiricEmbrace) > 0 , "player" },
+
 	{spells.purifyDisease, jps.UseCDs and jps.canDispel("player","Disease") , "player" , "Disease" },
 
 	-- interrupts -- 

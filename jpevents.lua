@@ -471,31 +471,35 @@ local classNames = { "WARRIOR", "PALADIN", "HUNTER", "ROGUE", "PRIEST", "DEATHKN
 local _,classPlayer,_ = UnitClass("player")
 
 -- UI_ERROR_MESSAGE
-jps.listener.registerEvent("UI_ERROR_MESSAGE", function(event_error)
-	-- "UI_ERROR_MESSAGE" returns ONLY one arg1
-	-- http://www.wowwiki.com/WoW_Constants/Errors
-	-- http://www.wowwiki.com/WoW_Constants/Spells
-		if (event_error == SPELL_FAILED_NOT_BEHIND) then -- "You must be behind your target."
-			--print("SPELL_FAILED_NOT_BEHIND - %s", event_error)
-			jps.isNotBehind = true
-			jps.isBehind = false
-		elseif jps.FaceTarget and not jps.Moving and ((event_error == SPELL_FAILED_UNIT_NOT_INFRONT) or (event_error == ERR_BADATTACKFACING)) then
-			--print("ERR_BADATTACKFACING - %s", event_error)			
-			if jps.checkTimer("Facing") == 0 then jps.createTimer("Facing",1) end
+--arg1 message_string Legion This section concerns content exclusive to Legion.
+--arg1 message_type, see GetGameMessageInfo
+--arg2 message_string
+--252 Another action is in progress
+--50 Can't do that while moving
+--50 Interrupted
+--51 Item is not ready yet.
+--220 You have no target.
+
+jps.listener.registerEvent("UI_ERROR_MESSAGE", function(number_error,event_error)
+	--if jps.FaceTarget then print("event_error:",number_error,"-",event_error) end
+	if (event_error == SPELL_FAILED_NOT_BEHIND) then
+		jps.isNotBehind = true
+		jps.isBehind = false
+	--elseif jps.FaceTarget and not jps.Moving and event_error == ERR_BADATTACKFACING then
+	elseif jps.FaceTarget and not jps.Moving and event_error == SPELL_FAILED_UNIT_NOT_INFRONT then
+		if jps.checkTimer("Facing") == 0 then
+			jps.createTimer("Facing",1)
 			TurnLeftStart()
 			C_Timer.After(1,function() TurnLeftStop() end)
-		elseif (event_error == SPELL_FAILED_LINE_OF_SIGHT) or (event_error == SPELL_FAILED_VISION_OBSCURED) then
-			jps.BlacklistPlayer(jps.LastTarget)
-		elseif event_error == ERR_ABILITY_COOLDOWN or event_error == ERR_SPELL_COOLDOWN then
-			-- print("ERR_ABILITY_COOLDOWN - %s", event_error)
-			-- La technique n'est pas encore disponible
-		elseif jps.FaceTarget and not jps.Moving and event_error == ERR_BADATTACKPOS then
-			if classPlayer == "WARRIOR" and jps.canDPS("target") then
-				--print("ERR_BADATTACKPOS - %s", event_error) -- Vous êtes trop loin ! -- Hors de portée
-				MoveForwardStart()
-				C_Timer.After(0.6,function() MoveForwardStop() end)
-			end
 		end
+	elseif (event_error == SPELL_FAILED_LINE_OF_SIGHT) or (event_error == SPELL_FAILED_VISION_OBSCURED) then
+		jps.BlacklistPlayer(jps.LastTarget)
+	elseif jps.FaceTarget and not jps.Moving and event_error == ERR_BADATTACKPOS then
+		if classPlayer == "WARRIOR" and jps.canDPS("target") then
+			MoveForwardStart()
+			C_Timer.After(0.6,function() MoveForwardStop() end)
+		end
+	end
 end)
 
 -- UNIT_SPELLCAST_SUCCEEDED
@@ -1031,21 +1035,10 @@ end
 ----------------------------------------------------------------------------------------------------------------
 
 
--- classDisplayName, class, classID = UnitClass("unit")
--- classDisplayName: String - Localized class name, suitable for use in user interfaces; e.g. "Mage", "Warrior", "Guerrier".
--- class: String - Localization-independent class name, used as some table keys; e.g. "MAGE", "WARRIOR", "DEATHKNIGHT".
--- classID: Number (classId)
-
-local buffclassNames = {
-	["WARRIOR"] = jps.toSpellName(6673), -- "Battle Shout" 6673 "Cri de guerre"
-	["PRIEST"] = jps.toSpellName(21562), -- "Fortitude" 21562
-}
-
 local function antiAFK()
-	local _,class,_ = UnitClass("player")
-	local buffname = buffclassNames[class]
 	if not jps.Combat then
-		CancelUnitBuff("player", buffname)
+		TurnLeftStart()
+		C_Timer.After(1,function() TurnLeftStop() end)
 	end
 end
 
@@ -1053,86 +1046,3 @@ jps.registerOnUpdate(function()
 	local value = math.random(600,900)
 	jps.cachedValue(antiAFK,value)
 end)
-
-
-------------------------------
--- TIMETODIE Based on incoming DMG
-------------------------------
-
--- 	RaidTimeToDie = {}
---	if RaidTimeToDie[destGUID] == nil then RaidTimeToDie[destGUID] = {} end
---	local dataset = RaidTimeToDie[destGUID]
---	local data = table.getn(dataset)
---	if data >= maxTDDLifetime then table.remove(dataset, maxTDDLifetime) end
---	table.insert(dataset, 1, {GetTime(), dmg})
---	RaidTimeToDie[destGUID] = dataset
---	[[ RaidTimeToDie[destGuid] = { [1] = {GetTime(), thisEvent[15] },[2] = {GetTime(), thisEvent[15] },[3] = {GetTime(), thisEvent[15] } } ]]
-
--- jps.RaidTimeToDie[unitGuid] = { [1] = {GetTime(), eventtable[15] },[2] = {GetTime(), eventtable[15] },[3] = {GetTime(), eventtable[15] } }
--- table.getn Returns the size of a table, If the table has an n field with a numeric value, this value is the size of the table.
--- Otherwise, the size is the largest numerical index with a non-nil value in the table
-
---jps.DmgTimeToDie = function(unit)
---	if unit == nil then return 60 end
---	local guid = UnitGUID(unit)
---	local health_unit = UnitHealth(unit)
---	local timetodie = 60 -- 60 seconds
---	local totalDmg = 0 -- warning
---	local incomingDps = 0
---	if jps.RaidTimeToDie[guid] ~= nil then
---		local dataset = jps.RaidTimeToDie[guid]
---		local data = table.getn(dataset)
---		if #dataset > 1 then
---			local timeDelta = dataset[1][1] - dataset[data][1] -- (lasttime - firsttime)
---			local totalTime = math.max(timeDelta, 1)
---			for i,j in ipairs(dataset) do
---				totalDmg = totalDmg + j[2]
---			end
---			incomingDps = math.ceil(totalDmg / totalTime)
---		end
---		timetodie = math.ceil(health_unit / incomingDps)
---	end
---	return timetodie
---end
-
--- jps.RaidTimeToDie[unitGuid] = { [1] = {GetTime(), eventtable[15] },[2] = {GetTime(), eventtable[15] },[3] = {GetTime(), eventtable[15] } }
---	for unit,index in pairs(jps.RaidTimeToDie) do 
---		local dataset = jps.RaidTimeToDie[unit]
---		for i,j in ipairs(dataset) do
---			print("|cffa335ee","Guid_",unit,"/",i,"|cff1eff00","Time_",j[1],"|cff1eff00","Dmg_",j[2] )
---		end
---	end
-
---------------------------
--- COMBAT_LOG_EVENT_UNFILTERED FUNCTIONS
--- SPELL_FAILED
---------------------------
-
--- table.insert(table, [ position, ] valeur) -- table.insert(t, 1, "element") insert an element at the start
--- table.insert called without a position, it inserts the element in the last position of the array (and, therefore, moves no elements)
--- table.remove called without a position, it removes the last element of the array.
-
---jps.listener.registerCombatLogEventUnfiltered("SPELL_CAST_FAILED", function(...)
---	local sourceGUID = select(4,...)
---	local spellID =  select(12,...)
---	local failedType = select(15,...)
---	local spellname = select(13, ...)
---	if sourceGUID == UnitGUID("player") and type(failedType) == "string" then
---		--print("SPELL_CAST_FAILED "..spellID.."_"..spellname.."_"..failedType)
---		tinsert(SpellFailedTable,1,{spellname,failedType})
---	end
---end)
---
---jps.IsSpellFailed = function(spellname)
---	if jps.tableLength(SpellFailedTable) == 0 then return false end
---	for i,j in ipairs(SpellFailedTable) do
---		if j[1] == spellname and j[2] == "Insensible" then return true end
---	end
---	return false
---end
---
---jps.printIsSpellFailed = function()
---	for i,j in ipairs(SpellFailedTable) do
---		print(i,"-",j[1],"-",j[2])
---	end
---end

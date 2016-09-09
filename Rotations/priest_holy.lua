@@ -225,21 +225,29 @@ jps.registerRotation("PRIEST","HOLY", function()
 ------------------------
 local spellTable = {
 
-	{ "nested", jps.Defensive , {
-		{ spells.smite , true, rangedTarget },
-		{ spells.holyFire , true, rangedTarget  },
-	}},
+	{ spells.renew, type(RenewFriend) == "string" and jps.hp(LowestImportantUnit) > 0.60 , RenewFriend },
+	{ spells.renew, jps.buffDuration(spells.renew,TankThreat) < 3 and jps.hp(LowestImportantUnit) > 0.60 , TankThreat , "Timer_Renew_Tank" },
+	{ spells.bodyAndMind, jps.hp(LowestImportantUnit) > 0.60 , TankThreat},
 
-	-- "Oubli" 586
-	{ 586, jps.FriendAggro("player") and jps.playerIsTargeted() , "player" , "Aggro_Oubli" },
-	{ spells.giftNaaru, jps.hp("player") < 0.80 , "player" , "giftNaaru"},
+	{ "nested", jps.Defensive , {
+		{ spells.holyWordChastise , true, rangedTarget },
+		{ spells.holyFire , true, rangedTarget  },
+		{ spells.smite , true, rangedTarget },
+	}},
+	
 	-- "Guardian Spirit" 47788
 	{ spells.guardianSpirit , jps.hp(LowestImportantUnit) < 0.30 , LowestImportantUnit , "Emergency_Guardian" },
+	{ spells.prayerOfHealing, jps.buff(spells.symbolOfHope) and type(POHTarget) == "string" , POHTarget },
+
+	-- "Oubli" 586
+	{ spells.fade, jps.FriendAggro("player") and jps.hp("player") < 0.60, "player" , "Aggro_Oubli" },
+	{ spells.giftNaaru, jps.hp("player") < 0.80 , "player" },
+
+
+
 	-- Light of T'uure it buffs the target to increase your healing done to them by 25% for 10 seconds
 	{ spells.lightOfTuure , jps.hp(LowestImportantUnit) < 0.60 , LowestImportantUnit  },
 	{ spells.apotheosis , jps.hp(LowestImportantUnit) < 0.60 , LowestImportantUnit  },
-	
-
 	{ spells.holyWordSerenity , jps.hp(LowestImportantUnit) < 0.60 , LowestImportantUnit  },
 	-- "Soins rapides" 2061 -- "Vague de Lumière" 109186 "Surge of Light" -- gives buff 114255
 	{ spells.flashHeal , jps.hp(LowestImportantUnit) < 0.60 and jps.buff(spells.surgeOfLight) , LowestImportantUnit  },
@@ -248,33 +256,25 @@ local spellTable = {
 	{ spells.flashHeal , jps.hp(LowestImportantUnit) < 0.60 , LowestImportantUnit  },
 
 	-- TIMER POM -- "Prière de guérison" 33076 -- Buff POM 41635
-	{ 33076, not jps.Moving and not jps.buffTracker(41635) , LowestImportantUnit , "Tracker_Mending" },
-	{ 33076, type(MendingFriend) == "string" , MendingFriend , "Tracker_Mending_Friend" },
+	{ spells.prayerOfMending, not jps.Moving and not jps.buffTracker(41635) , LowestImportantUnit , "Tracker_Mending" },
+	{ spells.prayerOfMending, type(MendingFriend) == "string" , MendingFriend , "Tracker_Mending_Friend" },
 	
 	--AOE
 	-- Holy Word: Sanctify using before casting Prayer of Healing
-	{ spells.holyWordSanctify },
-	-- "Prayer of Healing" 596
+	{ spells.holyWordSanctify , type(POHTarget) == "string" , LowestImportantUnit },
+	-- Symbol of Hope you should you use expensive spells such as Prayer of Healing and Holy Word: Sanctify
+	{ spells.symbolOfHope , type(POHTarget) == "string" and groupToHeal < 0.50 },
 	{ spells.prayerOfHealing, type(POHTarget) == "string" , POHTarget },
 	-- Power of the Naaru, an artifact trait, buffs Prayer of Healing for 15 seconds after using
-
 	-- Divine Hymn should be used during periods of very intense raid damage.
-	-- Symbol of Hope you should you use expensive spells such as Prayer of Healing Icon Prayer of Healing and Holy Word: Sanctify Icon Holy Word: Sanctify.
-
-	{ spells.heal , jps.hp(LowestImportantUnit) < 0.80 , LowestImportantUnit  },
+	
 	-- dispell
-	{ spells.purifyDisease, jps.UseCDs and jps.canDispel("player","Disease") , "player" , "Disease" },
-	{ 527, jps.UseCDs and jps.canDispel("player","Magic") , "player" , "Aggro_Dispel" },
+	{ spells.dispelMagic, jps.UseCDs and jps.canDispel("player","Magic") , "player" , "Aggro_Dispel" },
 	{ "nested", jps.UseCDs , parseDispel },
-
-	-- "Renew" 139
-	{ spells.renew, not jps.buff(139,Tank) , Tank , "Timer_Renew_Tank" },
-	{ spells.renew, type(RenewFriend) == "string" , RenewFriend },
+	
+	{ spells.heal , jps.hp(LowestImportantUnit) < 0.90 and jps.buff(spells.renew,LowestImportantUnit), LowestImportantUnit  },
 	{ spells.renew , not jps.buff(spells.renew,LowestImportantUnit) , LowestImportantUnit  },
-	
 
-
-	
 
 }
 	spell,target = parseSpellTable(spellTable)

@@ -184,13 +184,6 @@ jps.spells.priest.voidBolt = jps.toSpellName(205448) -- 228266
 jps.spells.priest.searingInsanity = jps.toSpellName(179337)
 jps.spells.priest.giftNaaru = jps.toSpellName(59544)
 
-
---local InterruptTable = {
---	{priest.Spell.FlashHeal, 0.75, jps.buffId(priest.Spell.SpiritShellBuild) },
---	{priest.Spell.Heal, 0.95, jps.buffId(priest.Spell.SpiritShellBuild) },
---	{priest.Spell.PrayerOfHealing, 0.95, jps.buffId(priest.Spell.SpiritShellBuild) or jps.MultiTarget}
---}
-
 jps.ShouldInterruptCasting = function ( InterruptTable, AvgHealthLoss, CountInRaid )
 	if jps.LastTarget == nil then return end
 	local spellCasting, _, _, _, _, endTime, _ = UnitCastingInfo("player")
@@ -246,10 +239,10 @@ function jps.canCastvoidEruption()
 end
 
 function jps.canCastMindBlast()
+	if jps.cooldown(jps.spells.priest.mindBlast) > 0 then return false end
 	local Channeling = UnitChannelInfo("player") -- "Mind Flay" is a channeling spell
 	local MindFlay = GetSpellInfo(15407)
 	local MindSear = GetSpellInfo(48045)
-	if jps.cooldown(jps.spells.priest.mindBlast) > 0 then return false end
 	if Channeling ~= nil then
 		if Channeling == MindFlay then return true end
 		if Channeling == MindSear then return true end
@@ -259,9 +252,9 @@ end
 
 jps.canFear = function(rangedTarget)
 	if not jps.canDPS(rangedTarget) then return false end
-	local canFear = false
 	local BerserkerRage = GetSpellInfo(18499)
 	if jps.buff(BerserkerRage,rangedTarget) then return false end
+	local canFear = false
 	if jps.canDPS(rangedTarget) then
 		if (CheckInteractDistance(rangedTarget,3) == true) then canFear = true end
 	end
@@ -292,14 +285,6 @@ jps.unitForShield = function(unit)
 	if not jps.FriendAggro(unit) then return false end
 	if jps.buff(17,unit) then return false end
 	if jps.debuff(6788,unit) then return false end
-	return true
-end
-
-jps.unitForMending = function(unit)
-	if not jps.UnitExists(unit) then return false end
-	if not jps.FriendAggro(unit) then return false end
-	if jps.cooldown(33076) > 0 then return false end -- jps.spells.priest.prayerOfMending
-	if jps.buff(41635,unit) then return false end -- buff prayerOfMending
 	return true
 end
 

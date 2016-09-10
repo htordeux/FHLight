@@ -240,7 +240,8 @@ local spellTable = {
 	{ spells.shadowWordDeath, jps.hp("focus") < 0.35 and not jps.isUsableSpell(jps.spells.priest.voidEruption) , "focus", "Death_Focus" },
 	{ spells.shadowWordDeath, jps.hp("mouseover") < 0.35 and not jps.isUsableSpell(jps.spells.priest.voidEruption) , "mouseover", "Death_Mouseover" },
 
-	{ spells.mindSear, not jps.Moving and jps.MultiTarget and not jps.buff(spells.voidform) and jps.insanity() < 70 },
+	{ spells.mindSear, not jps.Moving and jps.MultiTarget and not jps.buff(spells.voidform) and jps.insanity() < 70 and jps.hasTalent(7,1) },
+	{ spells.mindSear, not jps.Moving and jps.MultiTarget and not jps.buff(spells.voidform) and jps.insanity() < 100 and not jps.hasTalent(7,1) },
 
 	{"nested", jps.buff(spells.voidform), {
 	-- Void Bolt
@@ -261,42 +262,43 @@ local spellTable = {
 		{spells.shadowWordDeath, DeathEnemyTarget ~= nil , DeathEnemyTarget , "Death_Buff" },
 		{spells.shadowWordDeath, jps.hp("mouseover") < 0.35 , "mouseover" , "Death_Buff" },
 	}},
-	{spells.shadowWordDeath, DeathEnemyTarget ~= nil and jps.spellCharges(spells.shadowWordDeath) == 1 and jps.cooldown(spells.mindBlast) > 0 and jps.insanity() < 70 , DeathEnemyTarget ~= nil , "Death_MultiUnit_Buff" },
+	{spells.shadowWordDeath, DeathEnemyTarget ~= nil and jps.spellCharges(spells.shadowWordDeath) == 1 and jps.cooldown(spells.mindBlast) > 0 and jps.insanity() < 70 , DeathEnemyTarget , "Death_MultiUnit_Buff" },
 
 	{"macro", jps.canCastMindBlast , "/stopcasting" },
 	{spells.mindBlast , not jps.Moving , rangedTarget , "mindBlast_Buff"},
-	
-	{spells.shadowWordPain, fnPainEnemyTarget(rangedTarget) , rangedTarget , "Pain_Target_Buff" },
-	{spells.vampiricTouch, not jps.Moving and fnVampEnemyTarget(rangedTarget) , rangedTarget , "VT_Target_Buff" },
 
-	{spells.shadowWordPain, fnPainEnemyTarget("focus") and not UnitIsUnit("target","focus") , "focus" , "Pain_focus_Buff" },
+	{spells.vampiricTouch, not jps.Moving and fnVampEnemyTarget(rangedTarget) , rangedTarget , "VT_Target_Buff" },	
+	{spells.shadowWordPain, fnPainEnemyTarget(rangedTarget) , rangedTarget , "Pain_Target_Buff" },
+
 	{spells.vampiricTouch, not jps.Moving and fnVampEnemyTarget("focus") and not UnitIsUnit("target","focus") , "focus" , "VT_focus_Buff" },
+	{spells.shadowWordPain, fnPainEnemyTarget("focus") and not UnitIsUnit("target","focus") , "focus" , "Pain_focus_Buff" },
+	
+	{spells.mindbender,  jps.buffStacks(spells.voidform) > 0 and jps.insanity() < 50 , rangedTarget , "low_mindbender_Buff" },
 
 	--  low Insanity generation coming up (i.e., Shadow Word: Death , Void Bolt , Mind Blast , AND Void Torrent are all on cooldown and you are in danger of reaching 0 Insanity).
 	{spells.dispersion, isBoss and jps.insanity() < 50 and jps.cooldown(spells.mindBlast) > 0 and jps.cooldown(spells.voidEruption) > 0 and not jps.isUsableSpell(jps.spells.priest.shadowWordDeath) , "player" , "DISPERSION_insanity" },
 	
 	{spells.mindSear, not jps.Moving and jps.MultiTarget },
 
-	{spells.shadowWordPain, PainEnemyTarget ~= nil and not UnitIsUnit("target",PainEnemyTarget) , PainEnemyTarget , "Pain_MultiUnit_Buff" },
 	{spells.vampiricTouch, not jps.Moving and VampEnemyTarget ~= nil and not UnitIsUnit("target",VampEnemyTarget) , VampEnemyTarget , "VT_MultiUnit_Buff" },
-
-	{spells.shadowWordPain, fnPainEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "Pain_Mouseover_Buff" },
+	{spells.shadowWordPain, PainEnemyTarget ~= nil and not UnitIsUnit("target",PainEnemyTarget) , PainEnemyTarget , "Pain_MultiUnit_Buff" },
 	
-	{spells.mindbender,  jps.buffStacks(spells.voidform) > 0 , rangedTarget , "low_mindbender_Buff" },
-
+	{spells.shadowWordPain, fnPainEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "Pain_Mouseover_Buff" },
+	{spells.vampiricTouch, not jps.Moving and fnVampEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "VT_Mouseover" },
+	
 	{spells.mindFlay , not jps.Moving , "target" , "mindFlay_Buff" },
 	}},
 
 --DPS
-	{spells.voidEruption, jps.hasTalent(7,1) and jps.insanity() > 70 and jps.myDebuffDuration(spells.shadowWordPain) > 4 and jps.myDebuffDuration(spells.vampiricTouch) > 5 , rangedTarget , "voidEruption" },
+	{spells.voidEruption, jps.hasTalent(7,1) and jps.insanity() > 70 and jps.myDebuffDuration(spells.shadowWordPain) > 4 and jps.myDebuffDuration(spells.vampiricTouch) > 4 , rangedTarget , "voidEruption" },
+	{spells.voidEruption, jps.insanity() == 100 and jps.myDebuffDuration(spells.vampiricTouch) > 4 , rangedTarget , "voidEruption" },
 	{spells.voidEruption, jps.insanity() == 100 and jps.myDebuffDuration(spells.shadowWordPain) > 4 , rangedTarget , "voidEruption" },
-	{spells.voidEruption, jps.insanity() == 100 and jps.myDebuffDuration(spells.vampiricTouch) > 5 , rangedTarget , "voidEruption" },
 	{spells.mindBlast , not jps.Moving , rangedTarget , "mindBlast" },
 	
 -- Refresh
-	{spells.vampiricTouch, not jps.Moving and jps.myDebuffDuration(spells.vampiricTouch,rangedTarget) < 5 and not jps.isRecast(spells.vampiricTouch,rangedTarget) , rangedTarget , "Refresh_VT_Target" },
+	{spells.vampiricTouch, not jps.Moving and jps.myDebuffDuration(spells.vampiricTouch,rangedTarget) < 4 and not jps.isRecast(spells.vampiricTouch,rangedTarget) , rangedTarget , "Refresh_VT_Target" },
 	{spells.shadowWordPain, jps.myDebuffDuration(spells.shadowWordPain,rangedTarget) < 4 and not jps.isRecast(spells.shadowWordPain,rangedTarget) , rangedTarget , "Refresh_Pain_Target" },
-	{spells.vampiricTouch, not jps.Moving and jps.myDebuffDuration(spells.vampiricTouch,"focus") < 5 and not jps.isRecast(spells.vampiricTouch,"focus") ,"focus" , "Refresh_VT_Focus" },
+	{spells.vampiricTouch, not jps.Moving and jps.myDebuffDuration(spells.vampiricTouch,"focus") < 4 and not jps.isRecast(spells.vampiricTouch,"focus") ,"focus" , "Refresh_VT_Focus" },
 	{spells.shadowWordPain, jps.myDebuffDuration(spells.shadowWordPain,"focus") < 4 and not jps.isRecast(spells.shadowWordPain,"focus") , "focus" , "Refresh_Pain_Focus" },
 	
 	{spells.vampiricTouch, not jps.Moving and fnVampEnemyTarget(rangedTarget) , rangedTarget , "VT_Target" },

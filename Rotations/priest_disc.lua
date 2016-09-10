@@ -283,10 +283,6 @@ local spellTable = {
 	{ "nested", jps.PvP and not jps.LoseControl(rangedTarget) and canDPS(rangedTarget) , parseControl },
 	-- "Leap of Faith" 73325 -- "Saut de foi"
 	{ 73325, jps.PvP and LeapFriend ~= nil , LeapFriend , "|cff1eff00Leap_MultiUnit" },
-	-- "Gardien de peur" 6346
-	{ 6346, jps.PvP and not jps.buff(6346,"player") and jps.hp() > 0.80 , "player" },
-	-- SNM "Levitate" 1706 -- "Dark Simulacrum" debuff 77606
-	{ 1706, jps.PvP and jps.debuff(77606,"player") , "player" , "DarkSim_Levitate" },
 	
 	-- TIMER POM -- "Prière de guérison" 33076 -- Buff POM 41635
 	{ 33076, MendingFriend ~= nil , MendingFriend , "Mending_CountFriendLowest" },
@@ -329,9 +325,6 @@ local spellTable = {
 	{ 10060, jps.hp(LowestImportantUnit) < 0.50 , "player" , "POWERINFUSION_Lowest" },
 	{ 10060, groupHealth < 0.80 , "player" , "POWERINFUSION_POH" },
 
-	-- "Divine Star" Holy 110744 Shadow 122121
-	{ 110744, FriendIsFacingLowest ~= nil and CountFriendIsFacing > 3 , FriendIsFacingLowest ,  "DivineStar_Count" },
-	{ 110744, FriendIsFacingLowest ~= nil and jps.hp(FriendIsFacingLowest) < 0.80 , FriendIsFacingLowest ,  "DivineStar_Lowest" },
 	-- "Cascade" Holy 121135 Shadow 127632
 	{ 121135, not jps.Moving and POHTarget ~= nil and canHeal(POHTarget) , POHTarget ,  "Cascade_POH" },
 
@@ -348,6 +341,8 @@ local spellTable = {
 		-- "POH" 596 -- Buff "Borrowed" 59889
 		{ 596, jps.buff(59889) and jps.hpSum(LowestImportantUnit) > 0.40 , POHTarget , "Borrowed_POH" },
 	}},
+	-- "Prière de soins" 596 "Prayer of Healing"
+	{ 596, not jps.Moving and POHTarget ~= nil and canHeal(POHTarget) , POHTarget , "POH" },
 	
 	-- EMERGENCY HEAL --
 	{ "nested", jps.hp(LowestImportantUnit) < 0.50 ,{
@@ -359,7 +354,7 @@ local spellTable = {
 		{ 2061, not jps.Moving , LowestImportantUnit , "Emergency_FlashHeal" },
 	}},
 
-	-- LOWEST TTD -- LowestFriendTTD friend unit in raid with TTD < 6 sec 
+	-- LOWEST TTD -- LowestFriendTTD friend unit in raid with TTD < 5 sec 
 	{ "nested", LowestFriendTTD ~= nil and jps.hpInc(LowestFriendTTD) < 0.80 ,{
 		-- "Power Word: Shield" -- "Egide divine" 47515 "Divine Aegis"
 		{ 17, jps.hpSum(LowestFriendTTD) < 0.80 and not jps.buff(17,LowestFriendTTD) and not jps.debuff(6788,LowestFriendTTD) , LowestFriendTTD , "Bubble_Lowest_TTD" },
@@ -407,10 +402,6 @@ local spellTable = {
 		{ 47540, not IsInGroup() , rangedTarget ,"|cFFFF0000Penance_Solo" },
 	}},
 
-	-- GROUP HEAL --
-	-- "Prière de soins" 596 "Prayer of Healing"
-	{ 596, not jps.Moving and POHTarget ~= nil and canHeal(POHTarget) , POHTarget , "POH" },
-
 	-- HEAL --
 	-- "Pénitence" 47540
 	{ 47540, jps.hp(LowestImportantUnit) < 0.80 , LowestImportantUnit , "Top_Penance" },
@@ -419,8 +410,6 @@ local spellTable = {
 	-- "Soins" 2060
 	{ 2060, not jps.Moving and jps.hp(LowestImportantUnit) < 0.80 , LowestImportantUnit , "Top_Soins"  },
 
-	-- "Nova" 132157 -- "Words of Mending" 155362 "Mot de guérison"
-	{ 132157, jps.Moving and countFriendNearby > 2 , "player" , "Nova_Count" },
 	-- "Torve-esprit" 123040 -- "Ombrefiel" 34433 "Shadowfiend"
 	{ 34433, priest.canShadowfiend("target") , "target" },
 	{ 123040, priest.canShadowfiend("target") , "target" },
@@ -472,7 +461,7 @@ jps.registerRotation("PRIEST","DISCIPLINE",function()
 	{ 2060, not jps.Moving and jps.hp(LowestImportantUnit) < 0.60 , LowestImportantUnit , "Soins"  },
 	
 	-- TIMER POM -- "Prière de guérison" 33076 -- Buff POM 41635
-	{ 33076, jps.Defensive and UnitIsPlayer(Tank) and not jps.Moving and not jps.buff(41635,Tank) and canHeal(Tank) , Tank , "Mending_Tank" },
+	{ 33076, UnitIsPlayer(Tank) and not jps.Moving and not jps.buff(41635,Tank) and canHeal(Tank) , Tank , "Mending_Tank" },
 	-- ClarityTank -- "Clarity of Will" 152118 shields with protective ward for 20 sec
 	{ 152118, not jps.Moving and canHeal(Tank) and not jps.buff(152118,Tank) and not jps.isRecast(152118,Tank) , Tank , "Clarity_Tank" },
 
@@ -483,132 +472,3 @@ jps.registerRotation("PRIEST","DISCIPLINE",function()
 
 end,"OOC Disc Priest PvE",false,false,true)
 
--- REMOVED -- http://fr.wowhead.com/guide=2298/warlords-of-draenor-priest-changes#specializations-removed
--- Borrowed Time has been redesigned. It now increases the Priest's stat gains to Haste from all sources by 40% for 6 seconds.
--- Void Shift
--- Inner Focus has been removed.
--- Inner Will has been removed.
--- Rapture has been removed.( Removes the cooldown on Power Word: Shield)
--- Hymn of Hope has been removed.
--- Heal has been removed.
-
--- CHANGED --
--- Greater has been renamed to Heal.
--- Renew Holy -- HOLY
--- Binding Heal -- HOLY
--- Mot de l'ombre : Mort 32379 -- SHADOW
--- Divine Insight -- HOLY
-
--------------------
--- TO DO --
--------------------
--- jpevents.lua: jps.whoIsCapping.
-   -- Look for flag capture event and honorable defender buff 68652 on player?
-      -- Buff 68652 only for AB, EotS and IoC
-      -- Maybe use subzone location for others?
-   -- if both == true target flag capper and attack
-   -- if both == true and attack cast on cd cast HN
-     
--- jpevents.lua: look for long lasting and channeled ccs being cast(cyclone).
-   -- if caster targeting player, target caster
-      -- silence 3/4 of way through cast
-     
--- OOC ACTIONS ON ENTERING INSTANCE, TALENT/GLYPH SWAP ACCORDING TO ENEMY COMP --
--- http://www.wowinterface.com/downloads/info22148-GlyphKeeper-TalentGlyphMgmt.html#info
--- http://www.wowinterface.com/downloads/info23452-AutoConfirmTalents.html
--- Should be universal function to use with all classes.
--- Announce
-   -- "Swapping talent to TalentName."
-   -- "Swapping glyph to GlyphName."
-
--- Enemy Team Comps: 1 or 2 of same in 2s, 2 or 3 in 3s, 3 or > in 5s.
-   -- MeleeTeam = melee classes: Warrior, FDK, BDK, enshaman, rpally.
-   -- DOTTeam = dot classes: Lock, spriest, boomkin, UDK. Maybe arcane and fire mage?
-   -- StealthTeam = stealth classes: Rogue, fdruid.
-   -- RangeTeam = ranged classes: Hunter, boomkin, mage, spriest, lock, elshaman.
-   -- RootTeam = root/slow/snare classes: Hunter, frmage. May not need.
-
--- Talents --
--- http://wow.gamepedia.com/World_of_Warcraft_API#Talent_Functions
--- http://wow.gamepedia.com/API_LearnTalent -- Is now LearnTalents
--- http://wowprogramming.com/docs/api/LearnTalent -- Is now LearnTalents
--- LearnTalents( tabIndex, talentIndex )
--- Tab top = 1(primary spec), bottom = 2(secondary spec).
--- TalentIndex counts from top left, left to right, top to bottom, 1-21.
--- If tab top, Desperate Prayer = LearnTalents(1, 2), Saving Grace = LearnTalents(1, 21).
--- Only do if have Tome of the Clear Mind in bags. Give count on use.
-   -- "You have TomeCount of Tome of the Clear Mind remaining."
--- Alert if <= 1 Tome of the Clear Mind when accept queue or leave instance.
-
--- PvP Arena/BG Talent Swaps --
--- T1 --
--- Desperate Prayer, default.
--- Spectral Guise vs RangeTeam. Mage + hunter + boomkin, etc.
--- Angelic Bulwark vs teams likely to focus player. MeleeTeam or warrior + dk + hunter, etc.
-
--- T2 --
--- Body and Soul, default.
--- Phantasm vs root/slow teams or in capture the flag maps.
-   -- WSG, TP.
-
--- T3 --
--- Surge of Light vs StealthTeam.
-   -- Spam Holy Nova and/or PW:S to get proc.
-      -- Random spam timer for HN when OOC to keep enemy off rhythm?
-         -- Do not spam if stealthed
--- Power Word: Solace, default.
-
--- T4 --
--- Void Tendrils vs MeleeTeam & on capture the flag maps (WSG, SotA).
--- Psychic Scream, default & resource defense maps.
-   -- AB, AV, EotS, BfG, DG, SM, ToK, IoC, Ashran
-
--- T5 --
--- Power Infusion, default.
--- Spirit Shell vs MeleeTeam.
-   -- Pop @ beginning of arena. Stack 2x with quick or insta heals.
-   -- Teammate(s) in trouble/dying & enemy pops offensive cds.
-   -- When teammate(s) @ full health and on offensive.
-
--- T6 --
--- Cascade if > 5 in raid or if in bg.
--- Divine Star if < 6 in raid or if in arena.
-
--- T7 --
--- Clarity of Will vs dps teams likely to focus player.
-   -- PW:S to get borrowed time then stack CoW x 2 + PoM if getting trained.
-   -- Watch enemy offensive cds. Reapply CoW when timer(s) is/are about to be up.
-      -- New jpevents.lua function, jps.enemyCooldownWatch.
-         -- Need table of major offensive cds and cd durations.
-            -- Celestial Alignment 112071, 360s
-            -- Druid Berserk
--- Words of Mending vs DOTTeams.
--- Saving Grace, default.
-   -- When enemy pops offensive cds.
-   
--- Glyphs --
--- http://wow.gamepedia.com/MACRO_castglyph
-   -- /castglyph glyph slot
-      -- /castglyph Glyph of the Inquisitor major3 or maybe /castglyph Inquisitor major3
--- Glyph of the Inquisitor if enemy arena team has mage and/or shaman.
-   -- Wait just before poly cast is finished, attack with PW:Sol(LowestTarget).
--- Glyph of Purify vs DOT cleave teams? Lock + spriest, boomkin + DK, etc.
--- Glyph of Reflective Shield vs MeleeTeam and 2s.? -- Caution, will break poly/cc.
--- Glyph of Shadow Magic vs interrupt teams.
-   -- Bait interrupt with fake cast, stop 1/2 way, fade, cast spell.
-   
--- Double melee that will more than likely sit on you: penance, shadow magic, weakened soul
--- Double caster with Mage: shadow magic, inquisitor, penance
--- Mage + pally of any kind: shadow magic, inquisitor, mass dispell
--- Any sort of other pally team: shadow magic, mass dispell, penance
--- 1 range 1 melee: shadow magic, penance, weakened soul.
--- Mending with WoM.
-
--- TRICKS & STRATEGIES --
--- Fear ward right before player is feared. Don't fear ward on cd. Easily dispelled.
-   -- Look for fear cast event of EnemyCaster, wait for 3/4 cast time, cast Fear Ward.
--- Levitate when ooc for extra debuff to dispel.
--- Levitate when dark sim debuff is on player.
-
--- Best Comps for Disc
--- Feral + Hunter + Disc, Pala + Hunter + Disc, Feral + Mage + Disc

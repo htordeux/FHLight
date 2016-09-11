@@ -242,6 +242,18 @@ local spellTable = {
 			{ spells.renew, true , LowestImportantUnit },
 		},
 	},
+	
+--	{ "castsequence", jps.UseCDs , 
+--		{
+--
+--			--spells.guardianSpirit  ,
+--			spells.prayerOfMending ,
+--			spells.smite,
+--			spells.prayerOfHealing ,
+--			spells.flashHeal ,
+--			spells.renew ,
+--		},
+--	},
 
 	-- Dispell
 	{ spells.dispelMagic, jps.UseCDs and jps.canDispel("player","Magic") , "player" , "Dispel" },
@@ -267,12 +279,17 @@ local spellTable = {
 	{ spells.guardianSpirit , jps.hp(TankThreat) < 0.30 , TankThreat , "Emergency_Guardian_Tank" },
 	{ spells.guardianSpirit , jps.hp(LowestImportantUnit) < 0.30 , LowestImportantUnit , "Emergency_Guardian" },
 	-- Symbol of Hope you should you use expensive spells such as Prayer of Healing and Holy Word: Sanctify
-	{ spells.symbolOfHope , POHTarget ~= nil and groupHealth < 0.50 }, -- ?? buff 64901
-	{ spells.apotheosis , POHTarget ~= nil and groupHealth < 0.70 }, -- ?? buff 200183
+	{ spells.symbolOfHope , POHTarget ~= nil and groupHealth < 0.50 }, -- buff 64901
+	{ spells.apotheosis , POHTarget ~= nil and groupHealth < 0.70 }, -- buff 200183
 	{ spells.prayerOfHealing, not jps.Moving and jps.buff(64901) and POHTarget ~= nil and canHeal(POHTarget) , POHTarget },
 	{ spells.prayerOfHealing, not jps.Moving and jps.buff(200183) and POHTarget ~= nil and canHeal(POHTarget) , POHTarget },
+	{ spells.prayerOfHealing, not jps.Moving and jps.buff(197030) and POHTarget ~= nil and canHeal(POHTarget) , POHTarget },
 
-
+	-- Holy Word: Sanctify using before casting Prayer of Healing
+	-- gives buff "Divinity" 197030 When you heal with a Holy Word spell, your healing is increased by 15% for 8 sec.
+	{ spells.holyWordSanctify , POHTarget ~= nil },
+	{ spells.holyWordSanctify , CountInRange > 3 and AvgHealthLoss < 0.80 },
+	{ spells.holyWordSanctify , CountInRange > 3 and jps.hp(LowestImportantUnit) < 0.60 },
 
 	-- "Light of T'uure" 208065 it buffs the target to increase your healing done to them by 25% for 10 seconds
 	{ spells.lightOfTuure , jps.hp(LowestImportantUnit) < 0.60 , LowestImportantUnit  },
@@ -311,9 +328,7 @@ local spellTable = {
 	
 	-- GROUP HEAL
 	-- jps.buff(spells.blessingOfTuure)
-	-- Holy Word: Sanctify using before casting Prayer of Healing gives buff "Divinity" 197030 When you heal with a Holy Word spell, your healing is increased by 15% for 8 sec.
-	{ spells.holyWordSanctify , POHTarget ~= nil },
-	{ spells.holyWordSanctify , CountInRange > 3 and AvgHealthLoss < 0.80 },
+
 	-- "Circle of Healing" 204883
 	{ spells.circleOfHealing , CountInRange > 3 and AvgHealthLoss < 0.80 , LowestImportantUnit },
 	{ spells.circleOfHealing , POHTarget ~= nil and canHeal(POHTarget) , POHTarget },

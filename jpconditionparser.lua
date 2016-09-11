@@ -45,29 +45,15 @@ local function fnConditionEval(conditions)
     end
 end
 
--- { {"macro","/cast Sanguinaire"} , conditions , "target" }
--- fnParseMacro(spellTable[1][2], fnConditionEval(spellTable[2]), fnTargetEval(spellTable[3]))
-local function fnParseMacro(macro, conditions, target)
-    if conditions then
-    	if target == nil then target = "target" end 
-        -- Workaround for TargetUnit is still PROTECTED despite goblin active
-        local changeTargets = UnitIsUnit(target,"target")~=1 and jps.UnitExists(target)
-        if changeTargets then jps.Macro("/target "..target) end
-        local macroSpell = ""
-        if type(macro) == "string" then
-            if string.find(macro,"%s") == nil then -- {"macro","/startattack"}
-                macroSpell = macro
-            else
-                macroSpell = select(3,string.find(macro,"%s(.*)")) -- {"macro","/cast Sanguinaire"}
-            end
-            if not jps.Casting then jps.Macro(macro) end -- Avoid interrupt Channeling with Macro
+local function fnMacroEval(condition,macro)
+    if condition then
+    	if not jps.Casting then jps.Macro(macro) -- Avoid interrupt Channeling with Macro
         -- CASTSEQUENCE WORKS ONLY FOR INSTANT CAST SPELL
 		-- "#showtooltip\n/cast Frappe du colosse\n/cast Sanguinaire"
-		elseif type(macro) == "number" then
-			macroSpell = GetSpellInfo(macro)
-			jps.Macro("/cast "..tostring(macroSpell))
+		elseif jps.Casting and string.find(macro,"/stopcasting") then
+			if jps.Debug then print("macrostopcastig") end
+			jps.Macro("/stopcasting")
 		end
-		if changeTargets and not jps.Casting then jps.Macro("/targetlasttarget") end
 	end
 end
 
@@ -439,32 +425,31 @@ parseStaticSpellTable = function(hydraTable)
         compileSpellTable(hydraTable)
         parser.compiledTables[tostring(hydraTable)] = true
     end
+    
+	local spell = nil
+	local conditions = nil
+	local target = nil
+	local message = ""
 
     for _,spellTable in ipairs(hydraTable) do
 
         if type(spellTable) == "function" then spellTable = spellTable() end
-        local spell = nil
-		local conditions = nil
-		local target = nil
-		local message = ""
 
 		-- MACRO -- BE SURE THAT CONDITION TAKES CARE OF CANCAST -- TRUE or FALSE NOT NIL
-		if type(spellTable[1]) == "table" and spellTable[1][1] == "macro" then
-			fnParseMacro(spellTable[1][2], fnConditionEval(spellTable[2]), fnTargetEval(spellTable[3]))
-			
-		-- NESTED TABLE
+		-- {"macro", condition, "MACRO_TEXT" }
+		if spellTable[1] == "macro" then
+			fnMacroEval(fnConditionEval(spellTable[2]), fnTargetEval(spellTable[3]))
+		-- NESTED TABLE { {"nested"}, condition, { nested spell table } }
 		elseif spellTable[1] == "nested" and type(spellTable[3]) == "table" then
 			if fnConditionEval(spellTable[2]) then
 				spell,target = parseStaticSpellTable(spellTable[3])
 			end
-
 		-- DEFAULT {spell[[, condition[, target]]}
 		else 
 		    spell = spellTable[1]
             conditions = fnConditionEval(spellTable[2])
             target = fnTargetEval(spellTable[3])
         end
-
         -- Return spell if conditions are true and spell is castable.
         if spell ~= nil and conditions and jps.canCast(spell,target) then
             return spell,target

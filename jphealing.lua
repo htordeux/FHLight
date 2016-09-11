@@ -631,7 +631,7 @@ jps.RaidStatusDebuff = function() -- returns table
 		local i = 1
 		auraName, _, _, _, debuffType, _, expirationTime, castBy, _, _, spellId = UnitDebuff(unit, i) 
 		while auraName do
-			if debuffType == dispeltype and expirationTime - GetTime() > 1 then
+			if debuffType ~= nil and expirationTime - GetTime() > 1 then
 			RaidStatusDebuff[unit] = debuffType
 			end
 			i = i + 1
@@ -649,7 +649,8 @@ jps.canDispel = function(unit,dispelType) -- "Magic", "Poison", "Disease", "Curs
 	local i = 1
 	auraName, _, _, _, debuffType, _, expirationTime, castBy, _, _, spellId = UnitDebuff(unit, i) 
 	while auraName do
-		if debuffType == dispeltype and expirationTime - GetTime() > 1 then
+		if debuffType ~= nil and debuffType == dispeltype and expirationTime - GetTime() > 1 then
+		if jps.Debug then write("debuffType:",debuffType) end
 		return true end
 		i = i + 1
 		auraName, _, _, _, debuffType, _, expirationTime, castBy, _, _, spellId = UnitDebuff(unit, i)

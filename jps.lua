@@ -329,6 +329,11 @@ local GetTime = GetTime
 local GetUnitSpeed = GetUnitSpeed
 local GetSpellCooldown = GetSpellCooldown
 
+jps.castSequence = nil
+local castSequenceIndex = 1
+local castSequenceTarget = nil
+local castSequenceStartTime = 0
+
 function jps.Cycle()
 	-- Check for the Rotation
 	if not jps.Class then return end
@@ -350,31 +355,42 @@ function jps.Cycle()
 	
 	-- GCD -- if too small value we can't get spellstopcasting
 	-- To check the Global Cooldown, you can use the spell ID 61304. This is a dummy spell specifically for the GCD
-	local cdStart,duration,_ = GetSpellCooldown(61304)
-	local timeLeft = 0
-	if cdStart > 0 then timeLeft = duration - (GetTime() - cdStart ) end
-	if jps.getConfigVal("gcd activation") and timeLeft > 0.5 then return end
-	
+
 	-- Movement
 	jps.Moving = select(1,GetUnitSpeed("player")) > 0
 	if IsFalling() and jps.startedFalling == 0 then jps.startedFalling = GetTime() end
 	if not IsFalling() and jps.startedFalling > 0 then jps.startedFalling = 0 end
 
-	-- Check spell usability -- ALLOW SPELLSTOPCASTING() IN JPS.ROTATION() TABLE
-	jps.ThisCast,jps.Target = jps.activeRotation().getSpell()
-
-	if not jps.Casting and jps.ThisCast ~= nil then
-		if jps.NextSpell ~= nil then
-			if jps.NextSpell ~= jps.SentCast and jps.canCast(jps.NextSpell,jps.Target) then
-				jps.Cast(jps.NextSpell)
-				write("|cFFFF0000Next Spell "..jps.NextSpell.. " was casted")
-				jps.NextSpell = nil
+    if jps.castSequence ~= nil then
+        if jps.castSequence[castSequenceIndex] ~= nil then
+        	local spell = jps.castSequence[castSequenceIndex]
+            if jps.canCast(spell,castSequenceTarget) and not jps.Casting then
+                jps.Cast(spell)
+                write("|cFFFF0000Sequence Spell "..spell.. " was casted")
+                castSequenceIndex = castSequenceIndex + 1
+            end
+        else
+            jps.castSequence = nil
+        end
+	else
+		local activeRotation = jps.activeRotation()
+		jps.ThisCast,jps.Target = activeRotation.getSpell()
+		if jps.ThisCast ~= nil and not jps.Casting then
+			if jps.NextSpell ~= nil then
+				if jps.NextSpell ~= jps.SentCast and jps.canCast(jps.NextSpell,jps.Target) then
+					jps.Cast(jps.NextSpell)
+					write("|cFFFF0000Next Spell "..jps.NextSpell.. " was casted")
+					jps.NextSpell = nil
+				else
+					jps.Cast(jps.ThisCast)
+				end
+				if jps.cooldown(jps.NextSpell) > 3 then jps.NextSpell = nil end
 			else
 				jps.Cast(jps.ThisCast)
 			end
-			if jps.cooldown(jps.NextSpell) > 3 then jps.NextSpell = nil end
-		else
-			jps.Cast(jps.ThisCast)
+			castSequenceIndex = 1
+			castSequenceStartTime = GetTime()
+			castSequenceTarget = jps.LastTarget
 		end
 	end
 end

@@ -397,24 +397,6 @@ local function fnSpellEval(spell)
     end
 end
 
-local function fnMessageEval(message)
-    if message == nil then
-        return ""
-    elseif type(message) == "string" then
-        return message
-    end
-end
-
-local function fnTargetEval(target)
-    if target == nil then
-        return "target"
-    elseif type(target) == "function" then
-        return target()
-    else
-        return target
-    end
-end
-
 local function fnConditionEval(condition)
     if condition == nil then
         return true
@@ -429,7 +411,25 @@ local function fnConditionEval(condition)
     end
 end
 
-local function fnParseMacro(condition,macro)
+local function fnTargetEval(target)
+    if target == nil then
+        return "target"
+    elseif type(target) == "function" then
+        return target()
+    else
+        return target
+    end
+end
+
+local function fnMessageEval(message)
+    if message == nil then
+        return ""
+    elseif type(message) == "string" then
+        return message
+    end
+end
+
+local function fnMacroEval(condition,macro)
     if condition then
     	if not jps.Casting then jps.Macro(macro) -- Avoid interrupt Channeling with Macro
         -- CASTSEQUENCE WORKS ONLY FOR INSTANT CAST SPELL
@@ -439,6 +439,16 @@ local function fnParseMacro(condition,macro)
 			jps.Macro("/stopcasting")
 		end
 	end
+end
+
+local function fnCastSequenceEval(condition,spellList)
+    local parsedSpellList = {}
+    if condition then
+        for _, spell in pairs(spellList) do
+        	table.insert(parsedSpellList, fnSpellEval(spell))
+    	end
+    end
+    return parsedSpellList
 end
 
 -------------------------
@@ -483,14 +493,14 @@ end
 --    return setmetatable(t, mt)
 --end
 
-parseSpellTable = function(hydraTable)
-	
 --	proxy = setmetatable(hydraTable, {__index = function(t, index) return index end})
 --	proxy = setmetatable(hydraTable, proxy) -- sets proxy to be spellTable's metatable
 
 --	myListOfObjects = {}  
 --	setmetatable(myListOfObjects, { __mode = 'v' }) -- myListOfObjects is now weak  
 --	myListOfObjects = setmetatable({}, {__mode = 'v' }) -- creation of a weak table
+
+parseSpellTable = function(hydraTable)
 
 	local spell = nil
 	local condition = nil
@@ -500,6 +510,7 @@ parseSpellTable = function(hydraTable)
 	for i=1,#hydraTable do -- for i, spellTable in ipairs(hydraTable) do
 		local spellTable = hydraTable[i]
         if type(spellTable) == "function" then spellTable = spellTable() end
+
 		spell = fnSpellEval(spellTable[1])
 		condition = fnConditionEval(spellTable[2])
 		target = fnTargetEval(spellTable[3])
@@ -509,12 +520,15 @@ parseSpellTable = function(hydraTable)
 		-- MACRO -- BE SURE THAT CONDITION TAKES CARE OF CANCAST -- TRUE or FALSE NOT NIL
 		-- {"macro", condition, "MACRO_TEXT" }
 		if spell == "macro" and type(target) == "string"then
-			fnParseMacro(condition, target)
+			fnMacroEval(condition, target)
 		-- NESTED TABLE { {"nested"}, condition, { nested spell table } }
 		elseif spell == "nested" and type(target) == "table" then
 			if condition then
 				spell,target = parseSpellTable(target)
 			end
+		-- CAST SEQUENCE { {"nested"}, condition, { nested spell table } }
+		elseif spell == "castsequence" and type(target) == "table" then
+			jps.castSequence = fnCastSequenceEval(condition,target)
 		end
 		-- DEFAULT {spell[[, condition[, target]]}
 		-- Return spell if condition are true and spell is castable.

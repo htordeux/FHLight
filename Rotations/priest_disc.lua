@@ -421,7 +421,7 @@ local spellTable = {
 
 	spell,target = parseSpellTable(spellTable)
 	return spell,target
-end , "Disc Priest PvE", true, false)
+end , "Disc Priest PvE", true,false)
 
 ----------------------------------------------------------------------------------------------------------------
 -------------------------------------------------- ROTATION OOC ------------------------------------------------
@@ -470,5 +470,5 @@ jps.registerRotation("PRIEST","DISCIPLINE",function()
 	local spell,target = parseSpellTable(spellTable)
 	return spell,target
 
-end,"OOC Disc Priest PvE",false,false,true)
+end,"OOC Disc Priest PvE",false,true)
 

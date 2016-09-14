@@ -13,7 +13,7 @@ jprotations.lua
 jplexer.lua
 jpconditionparser.lua
 jphealing.lua
-jptesting.lua
+jpgarbage.lua
 
 Modules\jpglobal.lua
 Modules\jpauras.lua
@@ -23,17 +23,11 @@ Modules\jpccinterrupt.lua
 Modules\jpitems.lua
 Modules\jpspellbook.lua
 Modules\jptimetodie.lua
-Modules\jpdots.lua
 
 Lib\jpgui.lua
 Lib\jpconfig.lua
-Lib\bindings.xml
-Lib\jpminimap.lua
 
 jpevents.lua
-
-JPHistory\ringbuffer.lua
-JPHistory\jphistory.lua
 
 Rotations\dk.lua
 Rotations\druid.lua

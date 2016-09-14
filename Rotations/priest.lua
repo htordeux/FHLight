@@ -308,7 +308,7 @@ end
 -- EVENT FUNCTIONS
 -------------------
 
-jps.listener.registerCombatLogEventUnfiltered("SPELL_CAST_SUCCESS", function(...)
+jps.events.registerCombatLogEventUnfiltered("SPELL_CAST_SUCCESS", function(...)
 	local sourceGUID = select(4,...)
 	local spellID =  select(12,...)
 	if sourceGUID == UnitGUID("player") then
@@ -316,12 +316,5 @@ jps.listener.registerCombatLogEventUnfiltered("SPELL_CAST_SUCCESS", function(...
 			if jps.checkTimer("ShieldTimer") == 0 then jps.createTimer("ShieldTimer", 12 ) end
 		end
 		if spellID == 88625 then jps.createTimer("Chastise",30) end
-	end
-end)
-
--- UNIT_SPELLCAST_SUCCEEDED for Holy Word: Chastise 88625 Cooldown
-jps.listener.registerEvent("UNIT_SPELLCAST_SUCCEEDED", function(unitID,spellname,_,_,spellID)
-	if (unitID == "player") and spellID == 88625 then
-		jps.createTimer("Chastise",30)
 	end
 end)

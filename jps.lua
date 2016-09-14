@@ -27,21 +27,19 @@ jps = {}
 
 jps.spells = {}
 jps.Version = "1.5"
-jps.Rotation = nil
 jps.UpdateInterval = 0.1
 jps.Enabled = false
 jps.Combat = false
 jps.Debug = false
 jps.DebugLevel = 1
-jps.MoveToTarget = false
-jps.FaceTarget = true
 
-jps.Fishing = false
+jps.FaceTarget = true
 jps.MultiTarget = false
 jps.Interrupts = false
 jps.UseCDs = false
 jps.PvP = false
 jps.Defensive = false
+jps.ExtraButtons = true
 
 -- Combat
 jps.combatStart = 0
@@ -70,34 +68,23 @@ jps.Class = nil
 jps.Spec = nil
 jps.Race = nil
 jps.Level = 1
-jps.isNotBehind = false
-jps.isBehind = true
 jps.isHealer = false
 
 -- Tables
 jps.Timers = {}
 jps.TimedCasting = {}
 jps.HealerBlacklist = {} 
-jps.settings = {}
-jps.settingsQueue = {}
-jps.functionQueues = {}
-jps.Minimap = {}
 
 -- Config.
 jps.initializedRotation = false
-jps.Configged = false
 jps_variablesLoaded = false
 jpsName = select(1,UnitName("player"))
 jpsRealm = GetRealmName()
-jps.ExtraButtons = true
+
 jps.ResetDB = false
 
 -- Rotation
-jps.Opening = true
-jps.Count = 1
 jps.Tooltip = ""
-jps.ToggleRotationName = {"No Rotations"}
-rotationDropdownHolder = nil
 
 -- Local
 local tinsert = table.insert
@@ -109,30 +96,12 @@ SLASH_jps1 = '/jps'
 function write(...)
    DEFAULT_CHAT_FRAME:AddMessage("|cffff8000JPS: " .. strjoin(" ", tostringall(...))); -- color orange
 end
-function macrowrite(...)
-   DEFAULT_CHAT_FRAME:AddMessage("|cffff8000MACRO: " .. strjoin(" ", tostringall(...))); -- color orange
-end
 
 ------------------------
 -- DETECT CLASS SPEC
 ------------------------
 
-local setClassCooldowns = function()
-	local options = {}
-	-- Add spells
-	for i,spell in pairs(options) do
-		if jpsDB[jpsRealm][jpsName][spell] == nil then
-			jpsDB[jpsRealm][jpsName][spell] = true
-			jps[spell] = true
-		end
-	end
-end
-
 function jps.detectSpec()
-	jps.Count = 1
-	jps.Tooltip = ""
-	jps.ToggleRotationName = {"No Rotations"}
-	rotationDropdownHolder:Hide()
 	jps.initializedRotation = false
 	jps.Race = UnitRace("player")
 	jps.Class = UnitClass("player")
@@ -148,7 +117,6 @@ function jps.detectSpec()
 				write("jps couldn't find your talent tree... One second please.")
 			end
 		else
-			-- local id, name, description, icon, background, role = GetSpecializationInfo(specIndex [, isInspect [, isPet]])
 			local _,name,_,_,_,_ = GetSpecializationInfo(id)
 			if name then
 				jps.Spec = name
@@ -158,11 +126,7 @@ function jps.detectSpec()
 			end
 		end
 	end
-	setClassCooldowns()
 	jps_VARIABLES_LOADED()
-	if jps.initializedRotation == false then
-		jps.Cycle()
-	end
 end
 
 jps.GetHarmfulSpell = function ()
@@ -219,7 +183,7 @@ function SlashCmdList.jps(cmd, editbox)
 		jps.Enabled = true
 		jps.gui_toggleEnabled(true)
 		write("jps Enabled.")
-	elseif msg == "respec" then
+	elseif msg == "spec" then
 		jps.detectSpec()
 	elseif msg == "multi" or msg == "aoe" then
 		jps.gui_toggleMulti()
@@ -236,20 +200,9 @@ function SlashCmdList.jps(cmd, editbox)
 	elseif msg == "heal" then
 		jps.isHealer = not jps.isHealer
 		write("Healing set to", tostring(jps.isHealer))
-	elseif msg == "opening" then
-		jps.Opening = not jps.Opening
-		write("Opening flag set to",tostring(jps.Opening))
 	elseif msg == "fishing" or msg == "fish" then
 		jps.Fishing = not jps.Fishing
 		write("Murglesnout & Grey Deletion now", tostring(jps.Fishing))
-	elseif msg == "debug" and rest ~="" then
-		if tonumber(rest) then
-			jps.DebugLevel = rest
-			write("Debug level set to",tostring(rest))
-		else
-			jps.DebugLevel = 1
-			write("Debug level set to 1")
-		end
 	elseif msg == "debug" then
 		jps.Debug = not jps.Debug
 		write("Debug mode set to",tostring(jps.Debug))
@@ -265,8 +218,6 @@ function SlashCmdList.jps(cmd, editbox)
 		write("You have JPS version: "..jps.Version)
 	elseif msg == "size" then
 		jps.resize( rest )
-	elseif msg == "reset" then
-		jps.resetView()
 	elseif msg == "help" then
 		write("Slash Commands:")
 		write("/jps - Show enabled status.")
@@ -275,7 +226,6 @@ function SlashCmdList.jps(cmd, editbox)
 		write("/jps cds - Toggle use of cooldowns.")
 		write("/jps pew - Spammable macro to do your best moves, if for some reason you don't want it fully automated")
 		write("/jps interrupts - Toggle interrupting")
-		write("/jps reset - reset position of jps icons and UI")
 		write("/jps db - cleares your local jps DB")
 		write("/jps help - Show this help text.")
 	elseif msg == "pew" then
@@ -337,7 +287,7 @@ local castSequenceStartTime = 0
 function jps.Cycle()
 	-- Check for the Rotation
 	if not jps.Class then return end
-	if not jps.activeRotation() then
+	if not jps.getActiveRotation() then
 		write("JPS does not have a rotation for your",jps.Spec,jps.Class)
 		jps.Enabled = false
 		return
@@ -349,7 +299,7 @@ function jps.Cycle()
 	else jps.Casting = false end
 
 	-- STOP Combat
-	if (IsMounted() and jps.getConfigVal("dismount in combat") == false) then return end
+	if IsMounted() then return end
 	if jps.buff(L["Drink"],"player") then return end
 	if UnitIsDeadOrGhost("player") then return end
 	
@@ -373,7 +323,7 @@ function jps.Cycle()
             jps.castSequence = nil
         end
 	else
-		local activeRotation = jps.activeRotation()
+		local activeRotation = jps.getActiveRotation()
 		jps.ThisCast,jps.Target = activeRotation.getSpell()
 		if jps.ThisCast ~= nil and not jps.Casting then
 			if jps.NextSpell ~= nil then
@@ -410,44 +360,4 @@ jps.toSpellName = function(spell)
 	if type(spell) == "string" then spellname = spell
 	elseif type(spell) == "number" then spellname = GetSpellInfo(spell) end
 	return spellname
-end
-
------------------------
--- FUNCTIONQUEUE
------------------------
-
-function jps.addTofunctionQueue(fn,queueName) 
-	if not jps.functionQueues[queueName] then
-		jps.functionQueues[queueName] = {}
-	end
-	if not jps.functionQueues[queueName][fn] then
-		jps.functionQueues[queueName][fn] = fn
-	end
-end
-
-function jps.deleteFunctionFromQueue(fn, queueName)
-	if jps.functionQueues[queueName] ~= nil then
-		if jps.functionQueues[queueName][fn] ~= nil then
-			jps.functionQueues[queueName][fn] = nil
-		end
-	end
-end
-
-function jps.runFunctionQueue(queueName)
-	local noErrors = true
-	if jps.functionQueues[queueName] then
-		for _,fn in pairs(jps.functionQueues[queueName]) do
-			local status, error = pcall(fn)
-			if not status then
-				noError = false
-
-			end
-			jps.functionQueues[queueName][fn] = nil
-		end
-		if noErrors then
-			jps.functionQueues[queueName] = nil
-			return true
-		end
-	end	
-	return false
 end

@@ -573,8 +573,7 @@ function jps.togglePvP( value )
 	else jps.PvP = value end
 
 	-- Reset Rotation
-	jps.ToggleRotationName = {"No Rotations"}
-	jps.resetRotationTable()
+	jps.resetRotation()
 
 	if jps.PvP then jpsIcon.texture:SetTexture(jps.GUIpvp)
 	else jpsIcon.texture:SetTexture(jps.GUInormal) end
@@ -588,23 +587,4 @@ function jps.set_jps_icon( spell )
 	local icon = GetSpellTexture(spell)
 	jpsIcon.texture:SetTexture(icon)
 	jps.IconSpell = spell
-end
-
----------------------------
--- RESET
----------------------------
-
-function jps.resetView() 
-	if jpsIcon ~= nil then
-		jpsIcon:ClearAllPoints()
-		jpsIcon:SetPoint("CENTER", UIParent)
-	end
-	if rotationDropdownHolder ~= nil then
-		rotationDropdownHolder:ClearAllPoints()
-		rotationDropdownHolder:SetPoint("CENTER", UIParent)
-	end
-	if JPSEXTInfoFrame ~= nil then
-		JPSEXTInfoFrame:ClearAllPoints()
-		JPSEXTInfoFrame:SetPoint("CENTER", UIParent)
-	end
 end

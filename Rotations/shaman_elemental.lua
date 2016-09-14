@@ -35,11 +35,10 @@ if not jps.UnitExists("focus") and canDPS("mouseover") and UnitAffectingCombat("
 	end
 end
 
--- CONFIG jps.getConfigVal("keep focus") if you want to keep focus
 if jps.UnitExists("focus") and UnitIsUnit("target","focus") then
 	jps.Macro("/clearfocus")
 elseif jps.UnitExists("focus") and not canDPS("focus") then
-	if jps.getConfigVal("keep focus") == false then jps.Macro("/clearfocus") end
+	jps.Macro("/clearfocus")
 end
 
 if canDPS("target") and jps.CanAttack("target") then rangedTarget =  "target"

@@ -9,6 +9,12 @@ This module also contains profiling support for the events. If enabled you will 
 - [i]Attention:[/i] This has a serious impact on FPS!
 ]]--
 
+
+jps.events = {}
+local eventLoop = {}
+--jps.listener = {}
+--local listener = jps.listener
+
 -- Logger
 local LOG = jps.Logger(jps.LogLevel.ERROR)
 -- Update Table
@@ -20,11 +26,7 @@ local combatLogEventTable = {}
 -- JPS Frame
 local jpsFrame = CreateFrame("Frame", "JPSFrame")
 
---jps.listener = {}
---local listener = jps.listener
 
-local listener = {}
-jps.listener = listener
 
 -- TABLE ENEMIES IN COMBAT
 local EnemyDamager = {}
@@ -56,19 +58,6 @@ local toSpellName = jps.toSpellName
 -- (UN)REGISTER FUNCTIONS 
 --------------------------
 
---[[[
-@function jps.registerOnUpdate
-@description 
-Register OnUpdate Function[br]
-Adds the given function to the update table if it wasn't already registered.[br]
-[br][i]Usage:[/i][br]
-[code]
-jps.registerOnUpdate(function()[br]
-print("Update")[br]
-end)[br]
-[/code]
-@param fn function to be executed on update
-]]--
 function jps.registerOnUpdate(fn)
 	if not updateTable[fn] then
 		updateTable[fn] = fn
@@ -76,21 +65,6 @@ function jps.registerOnUpdate(fn)
 	end
 end
 
---[[[
-@function jps.unregisterOnUpdate
-@description 
-Unregister OnUpdate Function[br]
-Removes the given event function from the update table if it was registered earlier. Has no effect if the function wasn't registered.[br]
-[br][i]Usage:[/i][br]
-[code]
-function myOnUpdate() ... end[br]
-...[br]
-jps.registerOnUpdate(myOnUpdate)[br]
-...[br]
-jps.unregisterOnUpdate(myOnUpdate)[br]
-[/code]
-@param fn function to unregister
-]]--
 function jps.unregisterOnUpdate(fn)
 	if updateTable[fn] then
 		updateTable[fn] = nil
@@ -98,20 +72,7 @@ function jps.unregisterOnUpdate(fn)
 	end
 end
 
---[[[
-@function jps.listener.registerEvent
-@description 
-Adds the given event function to the event table if it wasn't already registered.[br]
-[br][i]Usage:[/i][br]
-[code]
-jps.listener.registerEvent("LOOT_OPENED", function()[br]
-print("You opened Loot!")[br]
-end)[br]
-[/code]
-@param event event name
-@param fn function to be executed on update
-]]--
-function listener.registerEvent(event, fn)
+function jps.events.registerEvent(event, fn)
 	if not eventTable[event] then
 		eventTable[event] = {}
 		jpsFrame:RegisterEvent(event)
@@ -122,22 +83,8 @@ function listener.registerEvent(event, fn)
 	end
 end
 
---[[[
-@function jps.unregisterEvent
-@description 
-Removes the given event function from the event table if it was registered earlier. Has no effect if the function wasn't registered.[br]
-[br][i]Usage:[/i][br]
-[code]
-function myLootOpened() ... end[br]
-...[br]
-jps.listener.registerEvent("LOOT_OPENED", myLootOpened)[br]
-...[br]
-jps.unregisterEvent("LOOT_OPENED", myLootOpened)[br]
-[/code]
-@param event event name
-@param fn function to unregister
-]]--
-function listener.unregisterEvent(event, fn)
+
+function jps.events.unregisterEvent(event, fn)
 	if eventTable[event] and eventTable[event][fn] then
 		eventTable[event][fn] = nil
 		local count = 0
@@ -149,20 +96,7 @@ function listener.unregisterEvent(event, fn)
 	end
 end
 
---[[[
-@function jps.registerCombatLogEventUnfiltered
-@description 
-Register event subtype for COMBAT_LOG_EVENT_UNFILTERED - Adds the given event function to the COMBAT_LOG_EVENT_UNFILTERED table if it wasn't already registered.[br]
-[br][i]Usage:[/i][br]
-[code]
-jps.registerCombatLogEventUnfiltered("SWING_DAMAGE", function()[br]
-print("Swing Damage - yay!")[br]
-end)[br]
-[/code]
-@param event name of the combat sub-event
-@param fn function which should be executed on event
-]]--
-function listener.registerCombatLogEventUnfiltered(event, fn)
+function jps.events.registerCombatLogEventUnfiltered(event, fn)
 	if not combatLogEventTable[event] then
 		combatLogEventTable[event] = {}
 		jpsFrame:RegisterEvent(event)
@@ -174,22 +108,7 @@ function listener.registerCombatLogEventUnfiltered(event, fn)
 end
 
 
---[[[
-@function jps.unregisterCombatLogEventUnfiltered
-@description 
-Removes the given event function from the COMBAT_LOG_EVENT_UNFILTERED table if it was registered earlier. Has no effect if the function wasn't registered.[br]
-[br][i]Usage:[/i][br]
-[code]
-function mySwingDamage() ... end[br]
-...[br]
-jps.registerCombatLogEventUnfiltered("SWING_DAMAGE", mySwingDamage)[br]
-...[br]
-jps.unregisterCombatLogEventUnfiltered("SWING_DAMAGE", mySwingDamage)[br]
-[/code]
-@param event event name
-@param fn function to unregister
-]]--
-function listener.unregisterCombatLogEventUnfiltered(event, fn)
+function jps.events.unregisterCombatLogEventUnfiltered(event, fn)
 	 if combatLogEventTable[event] and combatLogEventTable[event][fn] then
 		combatLogEventTable[event][fn] = nil
 		local count = 0
@@ -247,13 +166,6 @@ function jps.reportMemoryUsage(elapsed)
 	end
 end
 
---[[[
-@function jps.enableProfiling
-@description 
-Enables profiling for one minute. Every 15 seconds you will get the memory consumption from all events summarized 
-- [i]Attention:[/i] This has a serious impact on FPS!
-@param unfiltered [code]True[/code] if COMBAT_LOG_UNFILTERED events should be split up ([i]BIG PERFORMANCE DECREASE[/i]) - defaults to [code]False[/code]
-]]--
 function jps.enableProfiling(unfiltered)
 	totalProfileDuration = 0
 	lastReportUpdate = 0
@@ -298,7 +210,7 @@ jpsFrame:SetScript("OnEvent", function(self, event, ...)
 end)
 
 --- COMBAT_LOG_EVENT_UNFILTERED Handler
-listener.registerEvent("COMBAT_LOG_EVENT_UNFILTERED", function(timeStamp, event, ...)
+jps.events.registerEvent("COMBAT_LOG_EVENT_UNFILTERED", function(timeStamp, event, ...)
 	if jps.Enabled and UnitAffectingCombat("player") and combatLogEventTable[event] then
 		--LOG.debug("CombatLogEventUntfiltered: %s", event)
 		if enableUnfilteredProfiling and enableProfiling then startProfileMemory("COMBAT_LOG_EVENT_UNFILTERED::"..event) end
@@ -368,44 +280,41 @@ end)
 --------------------------
 
 -- PLAYER_LOGIN
-jps.listener.registerEvent("PLAYER_LOGIN", function()
+jps.events.registerEvent("PLAYER_LOGIN", function()
 	NotifyInspect("player")
 end)
 
 -- PLAYER_ENTERING_WORLD
 -- Fired when the player enters the world, reloads the UI, enters/leaves an instance or battleground, or respawns at a graveyard.
 -- Also fires any other time the player sees a loading screen
-jps.listener.registerEvent("PLAYER_ENTERING_WORLD", function()
+jps.events.registerEvent("PLAYER_ENTERING_WORLD", function()
 	jps.detectSpec()
 	jps.UpdateRaidStatus()
 	jps.UpdateRaidRole()
-	EnemyHealer = {} -- keep healer enemy table during all RBG time?
+	updateDropdownMenu()
 end)
 
 -- INSPECT_READY
-jps.listener.registerEvent("INSPECT_READY", function()
+jps.events.registerEvent("INSPECT_READY", function()
 	if not jps.Spec then jps.detectSpec() end
-	if jps_variablesLoaded and not jps.Configged then 
-		jps.createConfigFrame()
-		jps.createMinimap()
-	end
 end)
 
 -- VARIABLES_LOADED
-jps.listener.registerEvent("VARIABLES_LOADED", jps_VARIABLES_LOADED)
+jps.events.registerEvent("VARIABLES_LOADED", jps_VARIABLES_LOADED)
 
 -- Dual Spec Respec -- only fire when spec change no other event before
-jps.listener.registerEvent("ACTIVE_TALENT_GROUP_CHANGED", function()
-	jps.resetRotationTable()
+jps.events.registerEvent("ACTIVE_TALENT_GROUP_CHANGED", function()
 	jps.detectSpec()
+	jps.resetRotation()
+	updateDropdownMenu()
 end)
 
-jps.listener.registerEvent("SPELLS_CHANGED", function()
+jps.events.registerEvent("SPELLS_CHANGED", function()
 	jps.GetHarmfulSpell()
 end)
 
 -- Save on Logout
-jps.listener.registerEvent("PLAYER_LEAVING_WORLD", jps_SAVE_PROFILE)
+jps.events.registerEvent("PLAYER_LEAVING_WORLD", jps_SAVE_PROFILE)
 
 -- Hide Static Popup - thx here to Phelps & ProbablyEngine
 local hideStaticPopup = function(addon, eventBlocked) 
@@ -414,11 +323,11 @@ local hideStaticPopup = function(addon, eventBlocked)
 		LOG.debug("Addon Action Blocked: %s", eventBlocked)
 	end
 end
-jps.listener.registerEvent("ADDON_ACTION_FORBIDDEN", hideStaticPopup)
-jps.listener.registerEvent("ADDON_ACTION_BLOCKED", hideStaticPopup)
+jps.events.registerEvent("ADDON_ACTION_FORBIDDEN", hideStaticPopup)
+jps.events.registerEvent("ADDON_ACTION_BLOCKED", hideStaticPopup)
 
 -- Enter Combat
-jps.listener.registerEvent("PLAYER_REGEN_DISABLED", function()
+jps.events.registerEvent("PLAYER_REGEN_DISABLED", function()
 	jps.Combat = true
 	jps.gui_toggleCombat(true)
 	jps.combatStart = GetTime()
@@ -448,8 +357,8 @@ local leaveCombat = function()
 	collectGarbage()
 end
 
-jps.listener.registerEvent("PLAYER_REGEN_ENABLED", leaveCombat)
-jps.listener.registerEvent("PLAYER_UNGHOST", leaveCombat)
+jps.events.registerEvent("PLAYER_REGEN_ENABLED", leaveCombat)
+jps.events.registerEvent("PLAYER_UNGHOST", leaveCombat)
 
 --------------------------
 -- GLOBAL COOLDOWN
@@ -480,7 +389,7 @@ local _,classPlayer,_ = UnitClass("player")
 --51 Item is not ready yet.
 --220 You have no target.
 
-jps.listener.registerEvent("UI_ERROR_MESSAGE", function(number_error,event_error)
+jps.events.registerEvent("UI_ERROR_MESSAGE", function(number_error,event_error)
 	--if jps.FaceTarget then print("event_error:",number_error,"-",event_error) end
 	if (event_error == SPELL_FAILED_NOT_BEHIND) then
 		jps.isNotBehind = true
@@ -503,20 +412,10 @@ jps.listener.registerEvent("UI_ERROR_MESSAGE", function(number_error,event_error
 end)
 
 -- UNIT_SPELLCAST_SUCCEEDED
-jps.listener.registerEvent("UNIT_SPELLCAST_SUCCEEDED", function(unitID,spellname,_,_,spellID)
+jps.events.registerEvent("UNIT_SPELLCAST_SUCCEEDED", function(unitID,spellname,_,_,spellID)
 	if (unitID == "player") and spellID then
 		jps.CurrentCastInterrupt = nil
 		if jps.FaceTarget and jps.checkTimer("Facing") > 0 then TurnLeftStop() end
-		if ((jps.Class == "Druid" and jps.Spec == "Feral") or jps.Class == "Rogue") then
-			-- "Druid" -- 5221 -- "Shred" -- "Ambush" 8676
-			if (unitID == "player") and spellID == 5221 then 
-				jps.isNotBehind = false
-				jps.isBehind = true
-			elseif (unitID == "player") and spellID == 8676 then
-				jps.isNotBehind = false
-				jps.isBehind = true
-			end
-		end
 	end
 end)
 
@@ -529,7 +428,7 @@ end)
 local sendTime = 0
 local GetTime = GetTime
 local Shield = toSpellName(17)
-jps.listener.registerEvent("UNIT_SPELLCAST_SENT", function(unitID,spellname,_,spelltarget,_)
+jps.events.registerEvent("UNIT_SPELLCAST_SENT", function(unitID,spellname,_,spelltarget,_)
 	if unitID == "player" then
 		jps.SentCast = spellname
 		sendTime = GetTime()
@@ -539,7 +438,7 @@ jps.listener.registerEvent("UNIT_SPELLCAST_SENT", function(unitID,spellname,_,sp
 	end
 end)
 
-jps.listener.registerEvent("UNIT_SPELLCAST_START", function(unitID,spellname,_,_,spellID)
+jps.events.registerEvent("UNIT_SPELLCAST_START", function(unitID,spellname,_,_,spellID)
 		if unitID == "player" then
 			jps.CurrentCast = spellname
 			jps.Latency = GetTime() - sendTime
@@ -548,7 +447,7 @@ jps.listener.registerEvent("UNIT_SPELLCAST_START", function(unitID,spellname,_,_
 		end
 end)
 
-jps.listener.registerEvent("UNIT_SPELLCAST_CHANNEL_START", function(unitID,spellname,_,_,spellID)
+jps.events.registerEvent("UNIT_SPELLCAST_CHANNEL_START", function(unitID,spellname,_,_,spellID)
 		if unitID == "player" and type(spellname) == "string" then
 			jps.CurrentCast = spellname
 			jps.Latency = GetTime() - sendTime
@@ -556,21 +455,21 @@ jps.listener.registerEvent("UNIT_SPELLCAST_CHANNEL_START", function(unitID,spell
 		end
 end)
 
-jps.listener.registerEvent("UNIT_SPELLCAST_INTERRUPTED", function(unitID,spellname,_,_,spellID)
+jps.events.registerEvent("UNIT_SPELLCAST_INTERRUPTED", function(unitID,spellname,_,_,spellID)
 	if unitID == "player" and type(spellname) == "string" then
 		jps.CurrentCastInterrupt = spellname
 		--print("INTERRUPTED: ",unitID,"spellname:",spellname,": ",spellID)
 	end
 end)
 
---jps.listener.registerEvent("UNIT_SPELLCAST_CHANNEL_STOP", function(unitID,spellname,_,_,spellID)
+--jps.events.registerEvent("UNIT_SPELLCAST_CHANNEL_STOP", function(unitID,spellname,_,_,spellID)
 --	if unitID == "player" and spellID ~= nil then
 --		jps.Casting = false
 --		print("CHANNEL_STOP: ",unitID,"spellname:",spellname,"spellID: ",spellID)
 --	end
 --end)
 
---jps.listener.registerEvent("UNIT_SPELLCAST_STOP", function(unitID,spellname,_,_,spellID)
+--jps.events.registerEvent("UNIT_SPELLCAST_STOP", function(unitID,spellname,_,_,spellID)
 --	if unitID == "player" and spellID ~= nil then
 --		jps.Casting = false
 --		print("SPELLCAST_STOP: ",unitID,"spellname:",spellname,"spellID: ",spellID)
@@ -591,7 +490,7 @@ end)
 -- if spell has cd then duration is the global cooldown
 
 local stunTypeTable = {"STUN_MECHANIC","STUN","FEAR","CHARM","CONFUSE","PACIFY","SILENCE","PACIFYSILENCE"}
-jps.listener.registerEvent("LOSS_OF_CONTROL_ADDED", function ()
+jps.events.registerEvent("LOSS_OF_CONTROL_ADDED", function ()
 	local i = C_LossOfControl.GetNumEvents()
     local locType, spellID, text, _, _, _, duration = C_LossOfControl.GetEventInfo(i)
     --print("CONTROL:", locType,"/",text,"/",duration)
@@ -616,7 +515,7 @@ end)
 -- text: String - Name of the effect, e.g. "Interrupted".
 -- startTime: Number - Time at which this effect began, as per GetTime()
 
-jps.listener.registerEvent("LOSS_OF_CONTROL_UPDATE", function()
+jps.events.registerEvent("LOSS_OF_CONTROL_UPDATE", function()
 	local i = C_LossOfControl.GetNumEvents()
 	local locType, spellID, text, _, startTime, _, duration = C_LossOfControl.GetEventInfo(i)
 	if spellID and duration then
@@ -642,19 +541,19 @@ end)
 -- "UNIT_HEALTH_FREQUENT" Same event as UNIT_HEALTH, but not throttled as aggressively by the client
 -- "UNIT_HEALTH_PREDICTION" arg1 unitId receiving the incoming heal
 
-jps.listener.registerEvent("UNIT_HEALTH_FREQUENT", function(unitID)
+jps.events.registerEvent("UNIT_HEALTH_FREQUENT", function(unitID)
 	if jps.isHealer then jps.UpdateRaidUnit(unitID) end
 end)
 
 -- Group/Raid Update
 -- RAID_ROSTER_UPDATE's pre-MoP functionality was moved to the new event GROUP_ROSTER_UPDATE
 -- PARTY_MEMBER_DISABLE -- Fired when a specific party member is offline or dead 
-jps.listener.registerEvent("GROUP_ROSTER_UPDATE", function()
+jps.events.registerEvent("GROUP_ROSTER_UPDATE", function()
 	jps.UpdateRaidStatus()
 	jps.UpdateRaidRole()
 end)
 
-jps.listener.registerEvent("PARTY_MEMBER_DISABLE", function()
+jps.events.registerEvent("PARTY_MEMBER_DISABLE", function()
 	jps.UpdateRaidStatus()
 	jps.UpdateRaidRole()
 end)
@@ -664,7 +563,7 @@ end)
 -----------------------
 -- "UNIT_TARGET" Fired when the target of yourself, raid, and party members change: 'target', 'party1target', 'raid1target', etc.. 
 -- Should also work for 'pet' and 'focus'. This event only fires when the triggering unit is within the player's visual range
-jps.listener.registerEvent("UNIT_TARGET", jps.LowestTarget)
+jps.events.registerEvent("UNIT_TARGET", jps.LowestTarget)
 
 -- EnemyDamager[sourceGuid] = { ["friendguid"] = friendGuid , ["friendaggro"] = GetTime() }
 local updateEnemyDamager = function()
@@ -741,7 +640,7 @@ local healEvents = {
 }
 
 -- UNIT_DIED destGUID and destName refer to the unit that died.
-jps.listener.registerCombatLogEventUnfiltered("UNIT_DIED", function(...)
+jps.events.registerCombatLogEventUnfiltered("UNIT_DIED", function(...)
 	local destGUID = select(8,...)
 	if EnemyDamager[destGUID] then EnemyDamager[destGUID] = nil end
 	if EnemyHealer[destGUID] then EnemyHealer[destGUID] = nil end
@@ -761,7 +660,7 @@ local bitband = bit.band
 -- TABLE ENEMIES IN COMBAT
 -- http://wow.gamepedia.com/COMBAT_LOG_EVENT
 
-jps.listener.registerEvent("COMBAT_LOG_EVENT_UNFILTERED", function(...)
+jps.events.registerEvent("COMBAT_LOG_EVENT_UNFILTERED", function(...)
 	local event = select(2,...)
 	local sourceGUID = select(4,...)
 	local sourceFlags = select(6,...)

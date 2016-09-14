@@ -528,7 +528,8 @@ parseSpellTable = function(hydraTable)
 			end
 		-- CAST SEQUENCE { {"nested"}, condition, { nested spell table } }
 		elseif spell == "castsequence" and type(target) == "table" then
-			jps.castSequence = fnCastSequenceEval(condition,target)
+			--jps.castSequence = fnCastSequenceEval(condition,target)
+			if jps.castSequence == nil then jps.castSequence = fnCastSequenceEval(condition,target) end
 		end
 		-- DEFAULT {spell[[, condition[, target]]}
 		-- Return spell if condition are true and spell is castable.

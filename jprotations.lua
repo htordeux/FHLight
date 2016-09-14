@@ -1,17 +1,17 @@
 --[[[
 @module Rotation Registry
-@description 
+@description
 Rotations are stored in a central registry - each class/spec combination can have multiple Rotations.
 Most of the rotations are registered on load, but you can also (un)register Rotations during runtime.
 You could even outsource your rotations to a separate addon if you want to.
 ]]--
 
 local tinsert = table.insert
-local pveRotations = {}
-local oocRotations = {}
-local pvpRotations = {}
-local activeRotation = 1
 local ipairs = ipairs
+local combatRotations = {}
+local oocRotations = {}
+local activeRotation = 1
+local rotations = {}
 
 local classNames = { "WARRIOR", "PALADIN", "HUNTER", "ROGUE", "PRIEST", "DEATHKNIGHT", "SHAMAN", "MAGE", "WARLOCK", "MONK", "DRUID", "DEMONHUNTER" }
 
@@ -19,7 +19,7 @@ local specNames = {}
 specNames[1] = {"ARMS","FURY","PROTECTION"}
 specNames[2] = {"HOLY","PROTECTION","RETRIBUTION"}
 specNames[3] = {"BEASTMASTERY","MARKSMANSHIP","SURVIVAL"}
-specNames[4] = {"ASSASSINATION","COMBAT","SUBTLETY"}
+specNames[4] = {"ASSASSINATION","OUTLAW","SUBTLETY"}
 specNames[5] = {"DISCIPLINE","HOLY","SHADOW"}
 specNames[6] = {"BLOOD","FROST","UNHOLY"}
 specNames[7] = {"ELEMENTAL","ENHANCEMENT","RESTORATION"}
@@ -72,6 +72,27 @@ local function getCurrentKey()
     return classId * 10 + specId
 end
 
+function jps.className()
+    local _,_,classId = UnitClass("player")
+    return classNames[classId]
+end
+
+function jps.specName()
+    local _,_,classId = UnitClass("player")
+    local specId = GetSpecialization()
+    if specId then
+        return specNames[classId][specId]
+    else
+        return "NONE"
+    end
+end
+
+function jps.isPlayerClass(class)
+    local _,_,classId = UnitClass("player")
+    return classToNumber(class) == classId
+end
+
+
 local function addRotationToTable(rotations,rotation)
     for k,v in pairs(rotations) do
         if v.tooltip == rotation.tooltip then
@@ -89,51 +110,49 @@ end
 
 --[[[ Internal function: Allows the DropDown to change the active rotation ]]--
 function jps.setActiveRotation(idx)
-    local maxCount = 0
-    if jps.PvP then
-        maxCount = tableCount(pvpRotations, getCurrentKey())
-    else
-        maxCount = tableCount(pveRotations, getCurrentKey())
-    end
+	local maxCount = 0
+	local oocCount = tableCount(oocRotations, getCurrentKey())
+	local combatCount = tableCount(combatRotations, getCurrentKey())
+	if not jps.Combat and oocCount > 0 then maxCount = oocCount
+	else maxCount = combatCount end
+
     if idx < 1 or idx > maxCount then idx = 1 end
     activeRotation = idx
 end
 
---[[[
-@function jps.registerRotation
-@description 
-Registers the given Rotation. If you register more than one Rotation per Class/Spec you will get a Drop-Down Menu where you can
-choose your Rotation.
-@param class Uppercase english classname or <a href="http://www.wowpedia.org/ClassId">Class ID</a>
-@param spec Uppercase english spec name (no abbreviations!) or spec id
-@param fn Rotation function
-@param tooltip Unique Name for this Rotation
-@param pve [i]Optional:[/i] [code]True[/code] if this should be registered as PvE rotation else [code]False[/code] - defaults to  [code]True[/code]
-@param pvp [i]Optional:[/i] [code]True[/code] if this should be registered as PvP rotation else [code]False[/code] - defaults to  [code]True[/code]
-@param config [i]Optional:[/i] Key/Value Pair Table which contains Config which can be used in your rotation #see:jps.getRotationValue - defaults to [code]{}[/code]
-@param ooc [i]Optional:[/i] [code]True[/code] if this should be registered as a out of combat rotation else [code]False[/code] - defaults to  [code]false[/code]
-]]--
+--[[[ Internal function: Allows the DropDown to change the active rotation ]]--
+function jps.getRotations()
+    local key = getCurrentKey()
+    if not rotations[key] then rotations[key] = {} end
+    return rotations[key]
+end
 
-function jps.registerRotation(class,spec,fn,tooltip,pve,pvp,ooc)
+function jps.getRotationCount()
+    return tableCount(rotations, getCurrentKey())
+end
+
+--function jps.getActiveRotation()
+--    if not rotations[getCurrentKey()] or not rotations[getCurrentKey()][activeRotation] then return nil end
+--    return rotations[getCurrentKey()][activeRotation]
+--end
+
+function jps.registerRotation(class,spec,fn,tooltip,combat,ooc)
     local key = toKey(class, spec)
-    if pve==nil then pve = true end
-    if pvp==nil then pvp = true end
-    if ooc==nil then ooc = false end
-    if pvp and not pvpRotations[key] then pvpRotations[key] = {} end
-    if pve and not pveRotations[key] then pveRotations[key] = {} end
+    if combat == nil then combat = true end
+    if ooc == nil then ooc = false end
+    if combat and not combatRotations[key] then combatRotations[key] = {} end
     if ooc and not oocRotations[key] then oocRotations[key] = {} end
     local rotation = {tooltip = tooltip, getSpell = fn}
-    if pvp then addRotationToTable(pvpRotations[key], rotation) end
-    if pve then addRotationToTable(pveRotations[key], rotation) end
+    if combat then addRotationToTable(combatRotations[key], rotation) end
     if ooc then addRotationToTable(oocRotations[key], rotation) end
-    jps.resetRotationTable()
+    jps.resetRotation()
 end
 
 --[[[ Internal function: Resets the active Rotation, e.g. if the drop down was changed ]]--
-function jps.resetRotationTable()
-    jps.initializedRotation = false
+function jps.resetRotation()
+	jps.initializedRotation = false
     jps.setActiveRotation(activeRotation)
-    jps.activeRotation()
+    jps.getActiveRotation(rotationTable)
 end
 
 --[[[ Debug Function - prints all Rotations sorted by class and spec ]]--
@@ -142,43 +161,11 @@ function jps.printRotations()
         local msg = class .. ": "
         for si,spec in ipairs(specNames[ci]) do
             local key = toKey(class, spec)
-            local pveCount = tableCount(pveRotations,key)
-            local pvpCount = tableCount(pvpRotations,key)
+            local combatCount = tableCount(combatRotations,key)
             local oocCount = tableCount(oocRotations,key)
-            msg = msg .. spec .. "(PvE " .. pveCount .. " / PvP " .. pvpCount .. " / OOC " ..oocCount..") "
+            msg = msg .. spec .. "(COMBAT " .. combatCount .. " / OOC " ..oocCount..") "
         end
         print(msg)
-    end
-end
-
---[[[
-@function jps.unregisterRotation
-@description 
-Unregister the Rotation with the given tooltip. You can choose to only unregister the rotation for PvE or PvP.
-@param class Uppercase english classname or <a href="http://www.wowpedia.org/ClassId">Class ID</a>
-@param spec Uppercase english spec name (no abbreviations!) or spec id
-@param tooltip Name of the Rotation to unregister
-@param pve [i]Optional:[/i] [code]True[/code] if this should only be unregistered from the PvE rotations else [code]False[/code] - defaults to  [code]True[/code]
-@param pvp [i]Optional:[/i] [code]True[/code] if this should only be unregistered from the PvP rotations else [code]False[/code] - defaults to  [code]True[/code]
-]]--
-
-function jps.unregisterRotation(class,specId,tooltip,pve,pvp,ooc)
-    local key = toKey(class, specId)
-    if pve==nil then pve = true end
-    if pvp==nil then pvp = true end
-    if pve and pveRotations[key] then 
-    	for k,v in pairs(pveRotations[key]) do
-        	if v.tooltip == tooltip then
-            	table.remove(pveRotations[key], k)
-            break end
-    	end
-    end
-    if pvp and pvpRotations[key] then
-    	for k,v in pairs(pvpRotations[key]) do
-        	if v.tooltip == tooltip then
-            	table.remove(pvpRotations[key], k)
-            break end
-    	end
     end
 end
 
@@ -192,61 +179,95 @@ For mor info look at #see:jps.registerRotation.
 @param spellTabel static spell table
 @param tooltip Unique Name for this Rotation
 @param pve [i]Optional:[/i] [code]True[/code] if this should be registered as PvE rotation else [code]False[/code] - defaults to  [code]True[/code]
-@param pvp [i]Optional:[/i] [code]True[/code] if this should be registered as PvP rotation else [code]False[/code] - defaults to  [code]True[/code]
-@param config [i]Optional:[/i] Key/Value Pair Table which contains Config which can be used in your rotation #see:jps.getRotationValue - defaults to [code]{}[/code]
 @param ooc [i]Optional:[/i] [code]True[/code] if this should be registered as a out of combat rotation else [code]False[/code] - defaults to  [code]false[/code]
 ]]--
 
-function jps.registerStaticTable(class,spec,spellTable,tooltip,pve,pvp,ooc)
-    jps.registerRotation(class,spec,function() return parseStaticSpellTable(spellTable) end,tooltip,pve,pvp,ooc)
+function jps.registerStaticTable(class,spec,spellTable,tooltip,combat,ooc)
+    jps.registerRotation(class,spec,function() return parseStaticSpellTable(spellTable) end,tooltip,combat,ooc)
 end
 
 function jps.hasOOCRotation()
 	return tableCount(oocRotations, getCurrentKey())
 end
 
+function jps.hasCombatRotation()
+	return tableCount(pveRotations, getCurrentKey())
+end
+
+
 --[[[ Internal function: Returns the active Rotation for use in the Combat Loop ]]--
-function jps.activeRotation(rotationTable)
+local ToggleRotationName = {}
+function jps.getActiveRotation(rotationTable)
     if rotationTable == nil then
-	    local oocCount = tableCount(oocRotations, getCurrentKey())
-	    if not jps.Combat and oocCount > 0 and jps.RaidEnemyCount() == 0 then return jps.activeRotation(oocRotations) end
-        if jps.PvP then return jps.activeRotation(pvpRotations) else return jps.activeRotation(pveRotations) end
+	    if not jps.Combat and jps.hasOOCRotation() > 0 then return jps.getActiveRotation(oocRotations)
+        else return jps.getActiveRotation(combatRotations) end
     end
-
     if not rotationTable[getCurrentKey()] then return nil end
-    local countRotations = 0
-
-    for k,v in pairs(rotationTable[getCurrentKey()]) do
-        countRotations = countRotations+1 
-        jps.ToggleRotationName[k] = v.tooltip
-    end
     
-    if jps.initializedRotation == false then
-        if countRotations > 1 then
-			UIDropDownMenu_SetText(DropDownRotationGUI, jps.ToggleRotationName[activeRotation])
-            rotationDropdownHolder:Show()
-        else  
-            rotationDropdownHolder:Hide()
-        end
+    table.wipe(ToggleRotationName)
+    for k,v in pairs(rotationTable[getCurrentKey()]) do
+        ToggleRotationName[k] = v.tooltip
     end
-
+    if jps.initializedRotation == false then
+		UIDropDownMenu_SetText(DropDownRotationGUI, ToggleRotationName[activeRotation])
+        rotationDropdownHolder:Show()
+    end
     jps.initializedRotation = true
 
     if not rotationTable[getCurrentKey()][activeRotation] then return nil end
-    jps.Count = activeRotation
     jps.Tooltip = rotationTable[getCurrentKey()][activeRotation].tooltip
     return rotationTable[getCurrentKey()][activeRotation]
 end
 
---[[[
-@function jps.getRotationValue
-@description
-If you supplied your rotation with a config table, you can access it's values with this function.
-@param key Key for the config table
-@returns Config value for the given key
-]]--
+---------------------------------
+-- DROPDOWN ROTATIONS
+---------------------------------
 
-function jps.getRotationValue(key)
-    if not rotationTable[getCurrentKey()][activeRotation] or rotationTable[getCurrentKey()][activeRotation].config then return nil end
-    return rotationTable[getCurrentKey()][activeRotation].config[key]
+local rotationDropdownHolder = CreateFrame("frame","rotationDropdownHolder")
+rotationDropdownHolder:SetWidth(150)
+rotationDropdownHolder:SetHeight(60)
+rotationDropdownHolder:SetPoint("CENTER",UIParent)
+rotationDropdownHolder:EnableMouse(true)
+rotationDropdownHolder:SetMovable(true)
+rotationDropdownHolder:RegisterForDrag("LeftButton")
+rotationDropdownHolder:SetScript("OnDragStart", function(self) self:StartMoving() end)
+rotationDropdownHolder:SetScript("OnDragStop", function(self) self:StopMovingOrSizing() end)
+
+DropDownRotationGUI = CreateFrame("FRAME", "JPS Rotation GUI", rotationDropdownHolder, "UIDropDownMenuTemplate")
+DropDownRotationGUI:ClearAllPoints()
+DropDownRotationGUI:SetPoint("CENTER",10,10)
+local title = DropDownRotationGUI:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
+title:SetPoint("TOPLEFT", 20, 10) 
+title:SetText("JPS ROTATIONS")	
+
+local function GUIRotation_OnClick(self)
+   UIDropDownMenu_SetSelectedID(DropDownRotationGUI, self:GetID())
+   local activerotation = self:GetID() -- HERE we get the activerotation in the DropDownRotation
+   jps.setActiveRotation(self:GetID())
+   write("Changed your active Rotation to: "..ToggleRotationName[activerotation])
 end
+
+local function GUIDropDown_Initialize(self, level)
+	local infoGUI = UIDropDownMenu_CreateInfo()
+	for _,rotation in pairs(ToggleRotationName) do
+		infoGUI = UIDropDownMenu_CreateInfo()
+		infoGUI.text = rotation
+		infoGUI.value = rotation
+		infoGUI.func = GUIRotation_OnClick
+		UIDropDownMenu_AddButton(infoGUI, level)
+	end
+end
+
+function updateDropdownMenu()
+		
+	UIDropDownMenu_Initialize(DropDownRotationGUI, GUIDropDown_Initialize)
+	UIDropDownMenu_SetSelectedID(DropDownRotationGUI, 1)
+	UIDropDownMenu_SetWidth(DropDownRotationGUI, 100);
+	UIDropDownMenu_SetButtonWidth(DropDownRotationGUI, 100)
+	UIDropDownMenu_JustifyText(DropDownRotationGUI, "LEFT")
+	
+	rotationDropdownHolder:Show()
+
+end
+
+updateDropdownMenu()

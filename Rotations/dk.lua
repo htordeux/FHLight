@@ -436,4 +436,4 @@ function jps.logDotDmg(...)
 		end
 	end
 end
-jps.listener.registerEvent("COMBAT_LOG_EVENT_UNFILTERED", jps.logDotDmg)
+jps.events.registerEvent("COMBAT_LOG_EVENT_UNFILTERED", jps.logDotDmg)

@@ -62,11 +62,10 @@ if not jps.UnitExists("focus") and canDPS("mouseover") and UnitAffectingCombat("
 	end
 end
 
--- CONFIG jps.getConfigVal("keep focus") if you want to keep focus
 if jps.UnitExists("focus") and UnitIsUnit("target","focus") then
 	jps.Macro("/clearfocus")
 elseif jps.UnitExists("focus") and not canDPS("focus") then
-	if jps.getConfigVal("keep focus") == false then jps.Macro("/clearfocus") end
+	jps.Macro("/clearfocus")
 end
 
 if canDPS("target") and jps.CanAttack("target") then rangedTarget =  "target"
@@ -224,7 +223,7 @@ local spellTable = {
 	{spells.powerWordShield, jps.IncomingDamage("player") > 0 , "player"},
 	{spells.giftNaaru, jps.hp("player") < 0.80 , "player" },
 	{spells.vampiricEmbrace, jps.hp("player") < 0.60 },
-	{spells.shadowMend, jps.hp("player") < 0.60 and jps.cooldown(spells.vampiricEmbrace) > 0 , "player" },
+	{spells.shadowMend, jps.hp("player") < 0.60 and jps.cooldown(spells.vampiricEmbrace) > 0 and jps.castEverySeconds(spells.shadowMend, 10), "player" },
 
 	{spells.purifyDisease, jps.UseCDs and jps.canDispel("player","Disease") , "player" , "Disease" },
 
@@ -390,4 +389,4 @@ jps.registerRotation("PRIEST","SHADOW",function()
 	local spell,target = parseSpellTable(spellTable)
 	return spell,target
 
-end,"OOC Shadow Priest",false,false,true)
+end,"OOC Shadow Priest",false,true)

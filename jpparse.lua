@@ -422,26 +422,26 @@ local function fnTargetEval(target)
 end
 
 local function fnMessageEval(message)
-    if message == nil then
-        return ""
-    elseif type(message) == "string" then
+    if type(message) == "string" then
         return message
+    else
+    	return ""
     end
 end
 
-local function fnMacroEval(condition,macro)
+local function fnMacroEval(macroText,condition)
     if condition then
-    	if not jps.Casting then jps.Macro(macro) -- Avoid interrupt Channeling with Macro
+    	if not jps.Casting then jps.Macro(macroText) -- Avoid interrupt Channeling with Macro
         -- CASTSEQUENCE WORKS ONLY FOR INSTANT CAST SPELL
 		-- "#showtooltip\n/cast Frappe du colosse\n/cast Sanguinaire"
-		elseif jps.Casting and string.find(macro,"/stopcasting") then
-			if jps.Debug then print("macrostopcastig") end
+		elseif jps.Casting and string.find(macroText,"/stopcasting") then
+			if jps.Debug then print("macrostopcasting") end
 			jps.Macro("/stopcasting")
 		end
 	end
 end
 
-local function fnCastSequenceEval(condition,spellList)
+local function fnCastSequenceEval(spellList,condition)
     local parsedSpellList = {}
     if condition then
         for _, spell in pairs(spellList) do
@@ -520,16 +520,15 @@ parseSpellTable = function(hydraTable)
 		-- MACRO -- BE SURE THAT CONDITION TAKES CARE OF CANCAST -- TRUE or FALSE NOT NIL
 		-- {"macro", condition, "MACRO_TEXT" }
 		if spell == "macro" and type(target) == "string"then
-			fnMacroEval(condition, target)
-		-- NESTED TABLE { {"nested"}, condition, { nested spell table } }
+			fnMacroEval(target,condition)
+		-- NESTED TABLE { "nested" , condition , { nested spell table } }
 		elseif spell == "nested" and type(target) == "table" then
 			if condition then
 				spell,target = parseSpellTable(target)
 			end
-		-- CAST SEQUENCE { {"nested"}, condition, { nested spell table } }
+		-- CAST SEQUENCE { "castsequence" , condition , {spell_1, spell_2, ...} }
 		elseif spell == "castsequence" and type(target) == "table" then
-			--jps.castSequence = fnCastSequenceEval(condition,target)
-			if jps.castSequence == nil then jps.castSequence = fnCastSequenceEval(condition,target) end
+			jps.castSequence = fnCastSequenceEval(target,condition)
 		end
 		-- DEFAULT {spell[[, condition[, target]]}
 		-- Return spell if condition are true and spell is castable.

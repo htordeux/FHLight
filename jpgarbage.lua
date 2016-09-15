@@ -23,7 +23,6 @@ CtrlKeyIsDown = IsControlKeyDown();
 local function Test()
 
 local RaidStatusDebuff = jps.RaidStatusDebuff()
-
 for unit,debuff in pairs(RaidStatusDebuff) do
 	print("unit:",unit,"debuff:",debuff)
 end

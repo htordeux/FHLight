@@ -182,10 +182,6 @@ For mor info look at #see:jps.registerRotation.
 @param ooc [i]Optional:[/i] [code]True[/code] if this should be registered as a out of combat rotation else [code]False[/code] - defaults to  [code]false[/code]
 ]]--
 
-function jps.registerStaticTable(class,spec,spellTable,tooltip,combat,ooc)
-    jps.registerRotation(class,spec,function() return parseStaticSpellTable(spellTable) end,tooltip,combat,ooc)
-end
-
 function jps.hasOOCRotation()
 	return tableCount(oocRotations, getCurrentKey())
 end

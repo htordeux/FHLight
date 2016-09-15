@@ -10,8 +10,6 @@ jplogging.lua
 jputils.lua
 jpparse.lua
 jprotations.lua
-jplexer.lua
-jpconditionparser.lua
 jphealing.lua
 jpgarbage.lua
 

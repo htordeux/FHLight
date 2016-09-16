@@ -223,7 +223,7 @@ local spellTable = {
 	{spells.powerWordShield, jps.IncomingDamage("player") > 0 , "player"},
 	{spells.giftNaaru, jps.hp("player") < 0.80 , "player" },
 	{spells.vampiricEmbrace, jps.hp("player") < 0.60 },
-	{spells.shadowMend, jps.hp("player") < 0.60 and jps.cooldown(spells.vampiricEmbrace) > 0 and jps.castEverySeconds(spells.shadowMend, 10), "player" },
+	{spells.shadowMend, jps.hp("player") < 0.60 and jps.cooldown(spells.vampiricEmbrace) > 0 and jps.castEverySeconds(spells.shadowMend, 4), "player" },
 
 	{spells.purifyDisease, jps.UseCDs and jps.canDispel("player","Disease") , "player" , "Disease" },
 

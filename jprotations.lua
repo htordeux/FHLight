@@ -29,6 +29,8 @@ specNames[10] = {"BREWMASTER","MISTWEAVER","WINDWALKER"}
 specNames[11] = {"BALANCE","FERAL","GUARDIAN","RESTORATION"}
 specNames[12] = {"HAVOC","VENGEANCE"}
 
+local specHEAL = {"HOLY", "DISCIPLINE" , "RESTORATION" , "MISTWEAVER" }
+
 local function classToNumber(class)
     if type(class) == "string" then
         className = string.upper(class)

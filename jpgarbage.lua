@@ -27,6 +27,13 @@ for unit,debuff in pairs(RaidStatusDebuff) do
 	print("unit:",unit,"debuff:",debuff)
 end
 
+--local _,_,classId = UnitClass("player")
+--local specId = GetSpecialization()
+--local id, name, description, icon, background, role, primaryStat = GetSpecializationInfo(specId)
+--print("classId:",classId,"specId",specId)
+--print("specName:",jps.specName(),"Spec",jps.Spec)
+write("isHEALER:",jps.isHealer)
+
 	write("***************************")
 	
 --  print("Haste",UnitSpellHaste("player"),"-",GetCombatRating(20))

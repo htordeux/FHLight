@@ -400,6 +400,7 @@ jps.events.registerEvent("UI_ERROR_MESSAGE", function(number_error,event_error)
 			jps.createTimer("Facing",1)
 			TurnLeftStart()
 			C_Timer.After(1,function() TurnLeftStop() end)
+			CameraOrSelectOrMoveStart()
 		end
 	elseif (event_error == SPELL_FAILED_LINE_OF_SIGHT) or (event_error == SPELL_FAILED_VISION_OBSCURED) then
 		jps.BlacklistPlayer(jps.LastTarget)
@@ -415,7 +416,10 @@ end)
 jps.events.registerEvent("UNIT_SPELLCAST_SUCCEEDED", function(unitID,spellname,_,_,spellID)
 	if (unitID == "player") and spellID then
 		jps.CurrentCastInterrupt = nil
-		if jps.FaceTarget and jps.checkTimer("Facing") > 0 then TurnLeftStop() end
+		if jps.FaceTarget and jps.checkTimer("Facing") > 0 then
+			TurnLeftStop()
+			CameraOrSelectOrMoveStop()
+		end
 	end
 end)
 

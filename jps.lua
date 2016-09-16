@@ -108,8 +108,8 @@ function jps.detectSpec()
 	jps.Level = Ternary(jps.Level > 1, jps.Level, UnitLevel("player"))
 
 	if jps.Class then
-		local id = GetSpecialization() -- remplace GetPrimaryTalentTree() patch 5.0.4
-		if not id then
+		local specIndex = GetSpecialization() -- remplace GetPrimaryTalentTree() patch 5.0.4
+		if not specIndex then
 			if jps.Level < 10 then
 				write("You need to be at least at level 10 and have a specialization to use JPS")
 				jps.Enabled = false
@@ -117,11 +117,16 @@ function jps.detectSpec()
 				write("jps couldn't find your talent tree... One second please.")
 			end
 		else
-			local _,name,_,_,_,_ = GetSpecializationInfo(id)
+			local id, name, description, icon, background, role, primaryStat = GetSpecializationInfo(specIndex)
 			if name then
 				jps.Spec = name
 				if jps.Spec then
 					write("Online for your",jps.Class,"-",jps.Spec)
+				end
+				if role == "HEALER" then -- "DAMAGER", "TANK", "HEALER"
+					jps.isHealer = true
+				else
+					jps.isHealer = false
 				end
 			end
 		end

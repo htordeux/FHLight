@@ -300,7 +300,6 @@ local spellTable = {
 
 	-- EMERGENCY HEAL -- "Serendipity" 63733
 	-- "Soins rapides" 2061 -- "Vague de Lumière" 109186 "Surge of Light" -- gives buff 114255
-	{ spells.flashHeal , jps.hp(LowestImportantUnit) < 0.80 and jps.buff(spells.surgeOfLight) , LowestImportantUnit ,  "FlashHeal_surgeOfLight" },
 	{ spells.flashHeal , jps.hp(LowestImportantUnit) < 0.80 and jps.buff(114255) , LowestImportantUnit , "FlashHeal_114255" },
 	{ spells.flashHeal , jps.buff(114255) and jps.buffDuration(114255) < 4 , LowestImportantUnit , "FlashHeal_114255" },
 

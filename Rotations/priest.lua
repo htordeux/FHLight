@@ -216,12 +216,11 @@ function jps.canCastshadowWordDeath()
    local Channeling = UnitChannelInfo("player") -- "Mind Flay" is a channeling spell
    local MindFlay = tostring(jps.spells.priest.mindFlay)
    local MindSear = tostring(jps.spells.priest.mindSear)
-   local hp = jps.hp("target")
-   local charges = jps.spellCharges(32379) -- "Shadow Word: Death"
+   local charges = jps.spellCharges(jps.spells.priest.shadowWordDeath) -- "Shadow Word: Death"
    local insanity = jps.insanity()
    if Channeling ~= nil then
-      if tostring(Channeling) == MindFlay and hp < 0.35 and charges == 2 then return true end
-      if tostring(Channeling) == MindSear and hp < 0.35 and charges == 1 and insanity < 70 then return true end
+      if tostring(Channeling) == MindFlay and jps.hp("target") < 0.35 and charges == 2 then return true end
+      if tostring(Channeling) == MindSear and jps.hp("target") < 0.35 and charges == 1 and insanity < 70 then return true end
    end
    return false
 end

@@ -217,9 +217,9 @@ local parseHeal = {
 local spellTable = {
 
 	-- "Shield" 17 "Body and Soul" 64129 -- figure out how to speed buff everyone as they move
-	{spells.dispersion, jps.hp("player") < 0.25 , "player"},
-	{spells.fade, jps.hp("player") < 0.50 and jps.FriendAggro("player") , "player"},
-	{spells.fade, jps.hp("player") < 0.50 and jps.playerIsTargeted() , "player"},
+	{spells.dispersion, jps.hp("player") < 0.30 },
+	{spells.fade, jps.hp("player") < 0.50 and jps.FriendAggro("player") },
+	{spells.fade, jps.hp("player") < 0.50 and jps.playerIsTargeted() },
 	{spells.powerWordShield, jps.IncomingDamage("player") > 0 , "player"},
 	{spells.giftNaaru, jps.hp("player") < 0.80 , "player" },
 	{spells.vampiricEmbrace, jps.hp("player") < 0.60 },

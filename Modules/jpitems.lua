@@ -32,8 +32,6 @@ function jps.itemCooldown(item)
 	return cd
 end
 
-
-
 function jps.glovesCooldown()
 	local start, duration, enabled = GetInventoryItemCooldown("player", 10)
 	if enabled==0 then return 999 end
@@ -58,14 +56,76 @@ function jps.useBagItem(itemName)
 				local cdDone = Ternary((start + dur ) > GetTime(), false, true)
 				local hasNoCD = Ternary(dur == 0, true, false)
 				if (cdDone or hasNoCD) and enable == 1 then -- cd is done and item is not blocked (like potions infight even if CD is finished)
-					if not useBagItemMacros[itemName] then useBagItemMacros[itemName] = { "macro", "/use "..itemName } end
+					if not useBagItemMacros[itemName] then useBagItemMacros[itemName] = {"/use "..itemName } end
 					return useBagItemMacros[itemName]
 				end
 			end
 		end
 	end
-	return nil
+	return false
 end 
+
+local useSlotMacros = {}
+function jps.useSlot(num)
+	-- get the Trinket ID
+	local trinketId = GetInventoryItemID("player", num)
+	if not trinketId then return "" end
+
+	-- Check if it's on cooldown
+	local trinketCd = jps.itemCooldown(trinketId)
+	if trinketCd > 0 then return "" end
+
+	 -- Check if it's usable
+	local trinketUsable = GetItemSpell(trinketId)
+	if not trinketUsable then return "" end
+
+	-- Abort Disenchant (or any Spell Targeting) if active
+	if SpellIsTargeting() then
+		SpellStopTargeting()
+	end
+
+	-- Use it
+	if not useSlotMacros[num] then useSlotMacros[num] = {"/use "..num} end
+	return useSlotMacros[num]
+end
+
+-- For trinket's. Pass 0 or 1 for the number.
+function jps.useTrinket(trinketNum)
+	-- The index actually starts at 0
+	local slotName = "Trinket"..(trinketNum).."Slot" -- "Trinket0Slot" "Trinket1Slot"
+	-- Get the slot ID
+	local slotId = select(1,GetInventorySlotInfo(slotName)) -- "Trinket0Slot" est 13 "Trinket1Slot" est 14
+
+	return jps.useSlot(slotId)
+end
+
+-- For trinket's. Pass 0 or 1 for the number.
+function jps.useTrinketBool(trinketNum)
+	-- The index actually starts at 0
+	local slotName = "Trinket"..(trinketNum).."Slot" -- "Trinket0Slot" "Trinket1Slot"
+	-- Get the slot ID
+	local slotId = select(1,GetInventorySlotInfo(slotName)) -- "Trinket0Slot" est 13 "Trinket1Slot" est 14
+	-- get the Trinket ID
+	local trinketId = GetInventoryItemID("player", slotId)
+	if not trinketId then return false end
+	-- Check if it's on cooldown
+	local trinketCd = jps.itemCooldown(trinketId)
+	if trinketCd > 0 then return false end
+	-- Check if it's usable
+	local trinketUsable = GetItemSpell(trinketId)
+	if not trinketUsable then return false end
+
+	return true
+end
+
+-- Engineers will use synapse springs buff on their gloves
+function jps.useSynapseSprings()
+	-- Get the slot number
+	local slotNum = GetInventorySlotInfo("HandsSlot")
+	return jps.useSlot(slotNum)
+end
+
+
 
 CreateFrame("GameTooltip", "ScanningTooltip", nil, "GameTooltipTemplate") -- Tooltip name cannot be nil
 ScanningTooltip:SetOwner( WorldFrame, "ANCHOR_NONE" )
@@ -99,67 +159,4 @@ function parseTrinketText(trinket,str)
 		end 
 	end
 	return found
-end
-
-local useSlotMacros = {}
-function jps.useSlot(num)
-	-- get the Trinket ID
-	local trinketId = GetInventoryItemID("player", num)
-	if not trinketId then return "" end
-
-	-- Check if it's on cooldown
-	local trinketCd = jps.itemCooldown(trinketId)
-	if trinketCd > 0 then return "" end
-
-	 -- Check if it's usable
-	local trinketUsable = GetItemSpell(trinketId)
-	if not trinketUsable then return "" end
-
-	-- Abort Disenchant (or any Spell Targeting) if active
-	if SpellIsTargeting() then
-		SpellStopTargeting()
-	end
-
-	-- Use it
-	if not useSlotMacros[num] then useSlotMacros[num] = {"macro","/use "..num} end
-	return useSlotMacros[num]
-end
-
--- For trinket's. Pass 0 or 1 for the number.
-function jps.useTrinket(trinketNum)
-	-- The index actually starts at 0
-	local slotName = "Trinket"..(trinketNum).."Slot" -- "Trinket0Slot" "Trinket1Slot"
-	
-	-- Get the slot ID
-	local slotId = select(1,GetInventorySlotInfo(slotName)) -- "Trinket0Slot" est 13 "Trinket1Slot" est 14
-
-	return jps.useSlot(slotId)
-end
-
--- For trinket's. Pass 0 or 1 for the number.
-function jps.useTrinketBool(trinketNum)
-	-- The index actually starts at 0
-	local slotName = "Trinket"..(trinketNum).."Slot" -- "Trinket0Slot" "Trinket1Slot"
-	
-	-- Get the slot ID
-	local slotId = select(1,GetInventorySlotInfo(slotName)) -- "Trinket0Slot" est 13 "Trinket1Slot" est 14
-	-- get the Trinket ID
-	local trinketId = GetInventoryItemID("player", slotId)
-	if not trinketId then return false end
-	-- Check if it's on cooldown
-	local trinketCd = jps.itemCooldown(trinketId)
-	if trinketCd > 0 then return false end
-	-- Check if it's usable
-	local trinketUsable = GetItemSpell(trinketId)
-	if not trinketUsable then return false end
-
-	return true
-end
-
-
--- Engineers will use synapse springs buff on their gloves
-function jps.useSynapseSprings()
-	-- Get the slot number
-	local slotNum = GetInventorySlotInfo("HandsSlot")
-	return jps.useSlot(slotNum)
 end

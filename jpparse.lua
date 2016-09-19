@@ -537,3 +537,80 @@ parseSpellTable = function(hydraTable)
 		end
 	end
 end
+
+--------------------------------------------------------------------------------------------------------------
+-------------------------------------------- PARSE -----------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------
+
+jps.parser = {}
+
+local function fnParseSpell(spell)
+	return function()
+		return fnSpellEval(spell)
+	end
+end
+
+local function fnParseCondition(condition)
+	return function()
+		return fnConditionEval(condition)
+	end
+end
+
+local function fnParseTarget(target)
+	return function()
+		return fnTargetEval(target)
+	end
+end
+
+local function fnParseMessage(message)
+	return function()
+		return fnMessageEval(message)
+	end
+end
+
+local function fnParseDefault(spellFn, conditionFn, targetFn)
+    return function ()
+        local spell = spellFn()
+        local target = targetFn()
+        local condition = conditionFn()
+        if spell ~= nil and condition then
+            if jps.canCast(spell,target) then
+                return spell, target
+            end
+        end
+        return nil, nil
+    end
+end
+
+function compileSpellTable(hydraTable)
+
+	local compiledTable = {}
+
+	for i=1,#hydraTable do -- for i, spellTable in ipairs(hydraTable) do
+		local spellTable = hydraTable[i]
+        if type(spellTable) == "function" then spellTable = spellTable() end
+
+		local spellFn = fnParseSpell(spellTable[1])
+		local conditionFn = fnParseCondition(spellTable[2])
+		local targetFn = fnParseTarget(spellTable[3])
+
+		-- DEFAULT {spell[[, condition[, target]]}
+		-- Return spell if condition are true and spell is castable.
+		table.insert(compiledTable, fnParseDefault(spellFn, conditionFn, targetFn))
+
+	end
+	return compiledTable
+end
+
+function jps.parser.parseSpellTable(hydraTable)
+    local compiledTable = compileSpellTable(hydraTable)
+    return function ()
+        for _, spellFn in pairs(compiledTable) do
+            local spell, target = spellFn()
+            if spell ~= nil and target ~= nil then
+                return spell, target
+            end
+        end
+        return nil, nil
+    end
+end

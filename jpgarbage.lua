@@ -32,7 +32,10 @@ end
 --local id, name, description, icon, background, role, primaryStat = GetSpecializationInfo(specId)
 --print("classId:",classId,"specId",specId)
 --print("specName:",jps.specName(),"Spec",jps.Spec)
-write("isHEALER:",jps.isHealer)
+--print("jps.buff(jps.spells.priest.voidform):",jps.buff(jps.spells.priest.voidform))
+--print("jps.spells.priest.lingeringInsanity):",jps.buff(jps.spells.priest.lingeringInsanity))
+--print("jps.isUsableSpell(jps.spells.priest.voidEruption):",jps.isUsableSpell(jps.spells.priest.voidEruption))
+print("isHealer: ", jps.isHealer)
 
 	write("***************************")
 	

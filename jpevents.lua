@@ -96,7 +96,7 @@ function jps.events.unregisterEvent(event, fn)
 	end
 end
 
-function jps.events.registerCombatLogEventUnfiltered(event, fn)
+function jps.events.registerCombatLog(event, fn)
 	if not combatLogEventTable[event] then
 		combatLogEventTable[event] = {}
 		jpsFrame:RegisterEvent(event)
@@ -108,7 +108,7 @@ function jps.events.registerCombatLogEventUnfiltered(event, fn)
 end
 
 
-function jps.events.unregisterCombatLogEventUnfiltered(event, fn)
+function jps.events.unregisterCombatLog(event, fn)
 	 if combatLogEventTable[event] and combatLogEventTable[event][fn] then
 		combatLogEventTable[event][fn] = nil
 		local count = 0
@@ -400,7 +400,6 @@ jps.events.registerEvent("UI_ERROR_MESSAGE", function(number_error,event_error)
 			jps.createTimer("Facing",1)
 			TurnLeftStart()
 			C_Timer.After(1,function() TurnLeftStop() end)
-			CameraOrSelectOrMoveStart()
 		end
 	elseif (event_error == SPELL_FAILED_LINE_OF_SIGHT) or (event_error == SPELL_FAILED_VISION_OBSCURED) then
 		jps.BlacklistPlayer(jps.LastTarget)
@@ -644,7 +643,7 @@ local healEvents = {
 }
 
 -- UNIT_DIED destGUID and destName refer to the unit that died.
-jps.events.registerCombatLogEventUnfiltered("UNIT_DIED", function(...)
+jps.events.registerCombatLog("UNIT_DIED", function(...)
 	local destGUID = select(8,...)
 	if EnemyDamager[destGUID] then EnemyDamager[destGUID] = nil end
 	if EnemyHealer[destGUID] then EnemyHealer[destGUID] = nil end

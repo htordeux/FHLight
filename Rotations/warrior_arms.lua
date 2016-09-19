@@ -64,9 +64,7 @@ elseif canDPS("targettarget") then rangedTarget = "targettarget"
 elseif canAttack("mouseover") then rangedTarget = "mouseover"
 end
 if canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
-
 local TargetMoving = select(1,GetUnitSpeed(rangedTarget)) > 0
-local playerIsTargeted = jps.playerIsTargeted()
 
 if jps.hp("player") < 0.25 then CreateMessage("LOW HEALTH!") end
 

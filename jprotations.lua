@@ -150,6 +150,23 @@ function jps.registerRotation(class,spec,fn,tooltip,combat,ooc)
     jps.resetRotation()
 end
 
+
+function jps.registerParseRotation(class,spec,table,tooltip,combat,ooc)
+    local key = toKey(class, spec)
+    if combat == nil then combat = true end
+    if ooc == nil then ooc = false end
+    if combat and not combatRotations[key] then combatRotations[key] = {} end
+    if ooc and not oocRotations[key] then oocRotations[key] = {} end
+    local rotation = {tooltip = tooltip}
+    rotation["getSpell"] = function ()
+        rotation.getSpell = jps.parser.parseSpellTable(table)
+        return rotation.getSpell()
+    end
+    if combat then addRotationToTable(combatRotations[key], rotation) end
+    if ooc then addRotationToTable(oocRotations[key], rotation) end
+    jps.resetRotation()
+end
+
 --[[[ Internal function: Resets the active Rotation, e.g. if the drop down was changed ]]--
 function jps.resetRotation()
 	jps.initializedRotation = false

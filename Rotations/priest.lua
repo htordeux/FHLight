@@ -183,6 +183,9 @@ jps.spells.priest.voidEruption = jps.toSpellName(228260)
 jps.spells.priest.voidBolt = jps.toSpellName(205448) -- 228266
 jps.spells.priest.searingInsanity = jps.toSpellName(179337)
 jps.spells.priest.giftNaaru = jps.toSpellName(59544)
+jps.spells.priest.lingeringInsanity = jps.toSpellName(197937)
+
+
 
 jps.ShouldInterruptCasting = function ( InterruptTable, AvgHealthLoss, CountInRaid )
 	if jps.LastTarget == nil then return end
@@ -227,12 +230,13 @@ end
 
 function jps.canCastvoidEruption()
    if jps.cooldown(jps.spells.priest.voidEruption) > 0 then return false end
+   if not jps.buff(jps.spells.priest.voidform) then return false end
    local Channeling = UnitChannelInfo("player") -- "Mind Flay" is a channeling spell
    local MindFlay = tostring(jps.spells.priest.mindFlay)
    local MindSear = tostring(jps.spells.priest.mindSear)
    if Channeling ~= nil then
-      if tostring(Channeling) == MindFlay and jps.cooldown(jps.spells.priest.voidEruption) == 0 then return true end
-      if tostring(Channeling) == MindSear and jps.cooldown(jps.spells.priest.voidEruption) == 0 then return true end
+      if tostring(Channeling) == MindFlay then return true end
+      if tostring(Channeling) == MindSear then return true end
    end
    return false
 end
@@ -302,18 +306,3 @@ jps.unitForLeap = function(unit)
 	if not jps.LoseControl(unit) then return false end
 	return true
 end
-
--------------------
--- EVENT FUNCTIONS
--------------------
-
-jps.events.registerCombatLogEventUnfiltered("SPELL_CAST_SUCCESS", function(...)
-	local sourceGUID = select(4,...)
-	local spellID =  select(12,...)
-	if sourceGUID == UnitGUID("player") then
-		if spellID == 123258 or spellID == 17 then
-			if jps.checkTimer("ShieldTimer") == 0 then jps.createTimer("ShieldTimer", 12 ) end
-		end
-		if spellID == 88625 then jps.createTimer("Chastise",30) end
-	end
-end)

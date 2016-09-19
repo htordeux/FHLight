@@ -98,6 +98,86 @@ function write(...)
 end
 
 ------------------------
+-- SLASHCMDLIST
+------------------------
+
+function SlashCmdList.jps(cmd, editbox)
+	local msg, rest = cmd:match("^(%S*)%s*(.-)$");
+	if msg == "toggle" or msg == "t" then
+		if jps.Enabled == false then msg = "e"
+		else msg = "d" end
+	end
+	if msg == "show" then
+		jpsIcon:Show()
+		write("Icon set to show")
+	elseif msg == "hide" then
+		jpsIcon:Hide()
+		write("Icon set to hide")
+	elseif msg== "disable" or msg == "d" then
+		jps.Enabled = false
+		jps.gui_toggleEnabled(false)
+		write("jps Disabled.")
+	elseif msg== "enable" or msg == "e" then
+		jps.Enabled = true
+		jps.gui_toggleEnabled(true)
+		write("jps Enabled.")
+	elseif msg == "spec" then
+		jps.detectSpec()
+	elseif msg == "multi" or msg == "aoe" then
+		jps.gui_toggleMulti()
+	elseif msg == "cds" then
+		jps.gui_toggleCDs()
+	elseif msg == "int" then
+		jps.gui_toggleInt()
+	elseif msg == "pvp" then
+		jps.togglePvP()
+		write("PvP mode is now set to",tostring(jps.PvP))
+	elseif msg == "def" then
+		jps.gui_toggleDef()
+		write("Defensive set to",tostring(jps.Defensive))
+	elseif msg == "heal" then
+		jps.isHealer = not jps.isHealer
+		write("Healing set to", tostring(jps.isHealer))
+	elseif msg == "debug" then
+		jps.Debug = not jps.Debug
+		write("Debug mode set to",tostring(jps.Debug))
+	elseif msg == "face" then
+		jps.gui_toggleRot()
+		write("jps.FaceTarget set to",tostring(jps.FaceTarget))
+	elseif msg == "db" then
+		jps.ResetDB = not jps.ResetDB
+		jps_VARIABLES_LOADED()
+		write("jps.ResetDB set to",tostring(jps.ResetDB))
+		jps.Macro("/reload")
+	elseif msg == "ver" or msg == "v" then
+		write("You have JPS version: "..jps.Version)
+	elseif msg == "size" then
+		jps.resize( rest )
+	elseif msg == "help" then
+		write("Slash Commands:")
+		write("/jps - Show enabled status.")
+		write("/jps enable/disable - Enable/Disable the addon.")
+		write("/jps spam - Toggle spamming of a given macro.")
+		write("/jps cds - Toggle use of cooldowns.")
+		write("/jps pew - Spammable macro to do your best moves, if for some reason you don't want it fully automated")
+		write("/jps interrupts - Toggle interrupting")
+		write("/jps db - cleares your local jps DB")
+		write("/jps help - Show this help text.")
+	elseif msg == "pew" then
+	  	jps.Cycle()
+	elseif msg == "harm" then
+	  	write("|cFFFF0000HarmfulSpell "..jps.HarmSpell)
+	  	write("|cff1eff00HelpfulSpell "..jps.HelpSpell)
+	else
+		if jps.Enabled then
+			print("jps Enabled - Ready and Waiting.")
+		else
+			print "jps Disabled - Waiting on Standby."
+		end
+	end
+end
+
+------------------------
 -- DETECT CLASS SPEC
 ------------------------
 
@@ -114,10 +194,10 @@ function jps.detectSpec()
 				write("You need to be at least at level 10 and have a specialization to use JPS")
 				jps.Enabled = false
 			else
-				write("jps couldn't find your talent tree... One second please.")
+				write("JPS couldn't find your talent tree")
 			end
 		else
-			local id, name, description, icon, background, role, primaryStat = GetSpecializationInfo(specIndex)
+			local id, name, _, _, _, role, _ = GetSpecializationInfo(specIndex)
 			if name then
 				jps.Spec = name
 				if jps.Spec then
@@ -160,91 +240,6 @@ jps.GetHarmfulSpell = function ()
 			end
 		end
 	end 
-end
-
-------------------------
--- SLASHCMDLIST
-------------------------
-
-function SlashCmdList.jps(cmd, editbox)
-	local msg, rest = cmd:match("^(%S*)%s*(.-)$");
-	if msg == "toggle" or msg == "t" then
-		if jps.Enabled == false then msg = "e"
-		else msg = "d" end
-	end
-	if msg == "config" then
-		InterfaceOptionsFrame_OpenToCategory(jpsConfigFrame)
-	elseif msg == "show" then
-		jpsIcon:Show()
-		write("Icon set to show")
-	elseif msg == "hide" then
-		jpsIcon:Hide()
-		write("Icon set to hide")
-	elseif msg== "disable" or msg == "d" then
-		jps.Enabled = false
-		jps.gui_toggleEnabled(false)
-		write("jps Disabled.")
-	elseif msg== "enable" or msg == "e" then
-		jps.Enabled = true
-		jps.gui_toggleEnabled(true)
-		write("jps Enabled.")
-	elseif msg == "spec" then
-		jps.detectSpec()
-	elseif msg == "multi" or msg == "aoe" then
-		jps.gui_toggleMulti()
-	elseif msg == "cds" then
-		jps.gui_toggleCDs()
-	elseif msg == "int" then
-		jps.gui_toggleInt()
-	elseif msg == "pvp" then
-		jps.togglePvP()
-		write("PvP mode is now set to",tostring(jps.PvP))
-	elseif msg == "def" then
-		jps.gui_toggleDef()
-		write("Defensive set to",tostring(jps.Defensive))
-	elseif msg == "heal" then
-		jps.isHealer = not jps.isHealer
-		write("Healing set to", tostring(jps.isHealer))
-	elseif msg == "fishing" or msg == "fish" then
-		jps.Fishing = not jps.Fishing
-		write("Murglesnout & Grey Deletion now", tostring(jps.Fishing))
-	elseif msg == "debug" then
-		jps.Debug = not jps.Debug
-		write("Debug mode set to",tostring(jps.Debug))
-	elseif msg == "face" then
-		jps.gui_toggleRot()
-		write("jps.FaceTarget set to",tostring(jps.FaceTarget))
-	elseif msg == "db" then
-		jps.ResetDB = not jps.ResetDB
-		jps_VARIABLES_LOADED()
-		write("jps.ResetDB set to",tostring(jps.ResetDB))
-		jps.Macro("/reload")
-	elseif msg == "ver" or msg == "v" then
-		write("You have JPS version: "..jps.Version)
-	elseif msg == "size" then
-		jps.resize( rest )
-	elseif msg == "help" then
-		write("Slash Commands:")
-		write("/jps - Show enabled status.")
-		write("/jps enable/disable - Enable/Disable the addon.")
-		write("/jps spam - Toggle spamming of a given macro.")
-		write("/jps cds - Toggle use of cooldowns.")
-		write("/jps pew - Spammable macro to do your best moves, if for some reason you don't want it fully automated")
-		write("/jps interrupts - Toggle interrupting")
-		write("/jps db - cleares your local jps DB")
-		write("/jps help - Show this help text.")
-	elseif msg == "pew" then
-	  	jps.Cycle()
-	elseif msg == "harm" then
-	  	write("|cFFFF0000HarmfulSpell "..jps.HarmSpell)
-	  	write("|cff1eff00HelpfulSpell "..jps.HelpSpell)
-	else
-		if jps.Enabled then
-			print("jps Enabled - Ready and Waiting.")
-		else
-			print "jps Disabled - Waiting on Standby."
-		end
-	end
 end
 
 ----------------------

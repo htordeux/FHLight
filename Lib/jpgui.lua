@@ -67,14 +67,14 @@ jpsIcon:SetScript("OnEnter", function(self)
 	local text = ""
 	local pvptext = ""
 	if jps.Enabled then text = "JPS enabled" else text = "JPS disabled" end
-	if jps.PvP then pvptext = "PVP" else pvptext = "PVE" end
+	if jps.isHealer then healertext = "|cff1eff00isHealer : |cffffffffTRUE" else healertext = "|cff1eff00isHealer : |cffffffffFALSE" end
 	if jps.Spec then
-		GameTooltip:SetText(text.." for your|cffa335ee "..jps.Class.." "..jps.Spec.." |cffffffff "..pvptext)
+		GameTooltip:SetText(text.." for your|cffa335ee "..jps.Class.." "..jps.Spec.." |cffffffff "..healertext)
 	else
 		GameTooltip:SetText(text.." No specialization found ")
 	end
 	GameTooltip:AddLine("Rotation: "..jps.Tooltip , 1, 1, 1)
-	GameTooltip:AddLine("ShiftRight to rotate, CtrlRight for extra buttons" , 1, 1, 1)
+	GameTooltip:AddLine("RightButton for extra buttons - ShiftRight to rotate" , 1, 1, 1)
 	GameTooltip:Show()
 end)
 jpsIcon:SetScript("OnLeave", function(self) GameTooltip:Hide() end)
@@ -274,7 +274,7 @@ ToggleRot:SetScript("OnEnter", function(self)
 	if jps.FaceTarget then text = "currently enabled" else text = "currently disabled" end
 	GameTooltip:SetText("jps FaceTarget")
 	GameTooltip:AddLine( text , 1, 1, 1)
-	GameTooltip:AddLine( "rotates your toon until you face your target" , 1, 1, 1)
+	GameTooltip:AddLine( "rotates until you face your target" , 1, 1, 1)
 	GameTooltip:Show()
 end)
 ToggleRot:SetScript("OnLeave", function(self) GameTooltip:Hide() end)

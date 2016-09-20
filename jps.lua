@@ -275,6 +275,14 @@ end)
 ----------------------
 -- COMBAT
 ----------------------
+--inLockdown = InCombatLockdown()
+--Returns true if lockdown restrictions are currently in effect, false otherwise.
+--Combat lockdown begins after the PLAYER_REGEN_DISABLED event fires, and ends before the PLAYER_REGEN_ENABLED event fires.
+--affectingCombat = UnitAffectingCombat("unit");
+--The UnitId of the unit to check ("player", "pet", "party1", hostile "target")
+--Returns true if the unit is in combat or has aggro, false otherwise.
+
+
 local GetTime = GetTime
 local GetUnitSpeed = GetUnitSpeed
 local GetSpellCooldown = GetSpellCooldown

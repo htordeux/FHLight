@@ -411,7 +411,7 @@ end
 ------------------------------------
 -- GROUP FUNCTION IN RAID
 ------------------------------------
--- Patch 7.1.0 (TBD): RETURNS NIL WHILE INSIDE A RESTRICTED AREA (INSTANCE/BATTLEGROUND/ARENA).
+-- Patch 7.1.0 : RETURNS NIL WHILE INSIDE A RESTRICTED AREA (INSTANCE/BATTLEGROUND/ARENA).
 -- jps.Distance(unit) Works with "player", "partyN" or "raidN" as unit type.
 jps.FriendNearby = function(distance)
 	if distance == nil then distance = 8 end

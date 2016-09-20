@@ -333,7 +333,7 @@ jps.events.registerEvent("PLAYER_REGEN_DISABLED", function()
 	jps.combatStart = GetTime()
 	jps.UpdateRaidStatus()
 	jps.UpdateRaidRole()
-	jps.Timers = {} -- keep Holy Word: Chastise 88625 Cooldown?
+	jps.Timers = {}
 end)
 
 -- Leave Combat
@@ -353,6 +353,7 @@ local leaveCombat = function()
 	jps.HealerBlacklist = {} 
 	jps.UpdateRaidStatus()
 	jps.UpdateRaidRole()
+	
 	-- Garbage
 	collectGarbage()
 end
@@ -545,7 +546,15 @@ end)
 -- "UNIT_HEALTH_PREDICTION" arg1 unitId receiving the incoming heal
 
 jps.events.registerEvent("UNIT_HEALTH_FREQUENT", function(unitID)
-	if jps.isHealer then jps.UpdateRaidUnit(unitID) end
+	if jps.isHealer and canHeal(unitID) then
+		jps.UpdateRaidStatus()
+	else
+		jps.UpdateRaidUnit(unitID)
+	end
+	-- for healing purpose update jps.combat
+	if not jps.Combat and IsInGroup() then
+		if UnitAffectingCombat(unitID) and canHeal(unitID) then jps.Combat = true end
+	end
 end)
 
 -- Group/Raid Update
@@ -937,14 +946,14 @@ end
 ----------------------------------------------------------------------------------------------------------------
 
 
-local function antiAFK()
-	if not jps.Combat then
-		TurnLeftStart()
-		C_Timer.After(1,function() TurnLeftStop() end)
-	end
-end
-
-jps.registerOnUpdate(function()
-	local value = math.random(600,900)
-	jps.cachedValue(antiAFK,value)
-end)
+--local function antiAFK()
+--	if not jps.Combat then
+--		TurnLeftStart()
+--		C_Timer.After(1,function() TurnLeftStop() end)
+--	end
+--end
+--
+--jps.registerOnUpdate(function()
+--	local value = math.random(600,900)
+--	jps.cachedValue(antiAFK,value)
+--end)

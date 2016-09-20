@@ -395,7 +395,6 @@ function jps.gui_toggleEnabled( value )
 		jpsIcon.border:SetTexture(jps.GUIborder)
 		write("Disabled.")
 	else
-		--jpsIcon.border:SetTexture(jps.GUIborder_active)
 		if jps.Combat then 
 			jpsIcon.border:SetTexture(jps.GUIborder_combat)
 		else

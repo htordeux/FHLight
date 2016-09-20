@@ -36,6 +36,7 @@ end
 --print("jps.spells.priest.lingeringInsanity):",jps.buff(jps.spells.priest.lingeringInsanity))
 --print("jps.isUsableSpell(jps.spells.priest.voidEruption):",jps.isUsableSpell(jps.spells.priest.voidEruption))
 print("isHealer: ", jps.isHealer)
+print(jps.Combat,"inCombat: ",InCombatLockdown(),"-",UnitAffectingCombat("player"))
 
 	write("***************************")
 	
@@ -52,15 +53,17 @@ print("|cff1eff00IncHeal: ", jps.IncomingHeal("player"))
 	
 --local POHTarget, groupToHeal, groupHealth = jps.FindSubGroupHeal(1)
 --print("|cff1eff00POHTarget: |cffffffff",POHTarget,"|cff1eff00Group: |cffffffff",groupToHeal,"|cff1eff00Health: |cffffffff",groupHealth)
+local CountInRange, AvgHealthLoss, FriendUnit = jps.CountInRaidStatus()
+print("|cff1eff00CountInRange: |cffffffff",CountInRange,"|cff1eff00AvgHealthLoss: |cffffffff",AvgHealthLoss,"|cff1eff00FriendUnit: |cffffffff",#FriendUnit)
 
-	local Tank,Tanks = jps.findTankInRaid()
-	for i=1,#Tanks do
-		print("|cff0070ddTank: ",GetUnitName(Tanks[i]))
-	end
-	local aggroTank = jps.findThreatInRaid()
-	print("|cFFFF0000AggroTank: ",GetUnitName(aggroTank))
-	local lowestUnit = jps.LowestImportantUnit()
-	print("|cff1eff00Lowest: ",GetUnitName(lowestUnit))
+--	local Tank,Tanks = jps.findTankInRaid()
+--	for i=1,#Tanks do
+--		print("|cff0070ddTank: ",GetUnitName(Tanks[i]))
+--	end
+--	local aggroTank = jps.findThreatInRaid()
+--	print("|cFFFF0000AggroTank: ",GetUnitName(aggroTank))
+--	local lowestUnit = jps.LowestImportantUnit()
+--	print("|cff1eff00Lowest: ",GetUnitName(lowestUnit))
 
 --	local friendtableaggro = jps.FriendAggroTable()
 --	print("friendtableaggro: ",friendtableaggro)

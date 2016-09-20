@@ -91,7 +91,7 @@ end
 ----------------------
 -- posX, posY = GetPlayerMapPosition("unit");
 -- posY, posX, posZ, instanceID = UnitPosition("unit");
--- Patch 7.1.0 (TBD): RETURNS NIL WHILE INSIDE A RESTRICTED AREA (INSTANCE/BATTLEGROUND/ARENA).
+-- Patch 7.1.0 : RETURNS NIL WHILE INSIDE A RESTRICTED AREA (INSTANCE/BATTLEGROUND/ARENA).
 
 
 -- GetPlayerMapPosition Works with "player", "partyN" or "raidN" as unit type

@@ -251,8 +251,8 @@ local spellTable = {
 
 	-- PLAYER AGGRO --
 	{ 208683, playerIsStun , "player" , "playerCC" },
-	{ spells.bodyAndMind, jps.Moving , "player" },
 	{ spells.guardianSpirit , jps.hp() < 0.30 , "player" , "Emergency_Guardian_Player" },
+	{ spells.bodyAndMind, jps.Moving , "player" },
 	{ spells.fade, jps.playerIsTargeted() , "player" ,"Fade"},
 	-- "Pierre de soins" 5512
 	{ "macro", jps.hp() < 0.60 and jps.itemCooldown(5512) == 0 ,"/use item:5512" , "Aggro_Item5512" },

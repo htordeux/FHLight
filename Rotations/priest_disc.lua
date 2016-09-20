@@ -259,7 +259,7 @@ local spellTable = {
 		-- "Prière du désespoir" 19236
 		{ 19236, jps.hp() < 0.60 and jps.IsSpellKnown(19236) , "player" , "Aggro_DESESPERATE" },
 		-- "Pierre de soins" 5512
-		{ {"macro","/use item:5512"}, jps.hp() < 0.60 and jps.itemCooldown(5512) == 0 , "player" , "Aggro_Item5512" },
+		{ "macro", jps.hp() < 0.60 and jps.itemCooldown(5512) == 0 ,"/use item:5512" , "Aggro_Item5512" },
 		-- "Pénitence" 47540
 		{ 47540, jps.hp() < 0.80 , "player" , "Aggro_Penance" },
 		-- "Don des naaru" 59544

@@ -48,7 +48,6 @@ jps.registerRotation("PRIEST","HOLY", function()
 
 	-- rangedTarget returns "target" by default, sometimes could be friend
 	local rangedTarget, EnemyUnit, TargetCount = jps.LowestTarget()
-	local isBoss = (UnitLevel("target") == -1) or (UnitClassification("target") == "elite")
 
 	if canDPS("target") then rangedTarget =  "target"
 	elseif canDPS(TankTarget) then rangedTarget = TankTarget
@@ -227,27 +226,22 @@ local spellTable = {
 		{
 			-- "Holy Word: Serenity" 2050
 			{ spells.holyWordSerenity , jps.hp(LowestImportantUnit) < 0.60 , LowestImportantUnit  },
+			-- "Prière de guérison" 33076
 			{ spells.prayerOfMending, not jps.Moving and not jps.buffTracker(41635) , LowestImportantUnit },
 			-- "Divine Hymn" 64843
 			{ spells.divineHymn, CountInRange > 3 and AvgHealthLoss < 0.80 },
 			-- "Prayer of Healing" 596
 			{ spells.prayerOfHealing, POHTarget ~= nil , POHTarget },
 			-- "Soins rapides" 2061
-			{ spells.flashHeal, jps.hp(LowestImportantUnit) < 0.90 , LowestImportantUnit },
+			{ spells.flashHeal, jps.hp(LowestImportantUnit) < 0.80 , LowestImportantUnit },
 			-- "Renew" 139
 			{ spells.renew, true , LowestImportantUnit },
 		},
 	},
 	
---	{ "castsequence", jps.UseCDs , 
---		{
---
---			spells.prayerOfMending ,
---			spells.prayerOfHealing ,
---			spells.flashHeal ,
---			spells.renew ,
---		},
---	},
+	{ "castsequence", jps.cooldown(spells.holyWordSanctify) == 0 and POHTarget ~= nil ,
+		{ spells.holyWordSanctify , spells.prayerOfHealing , spells.renew }
+	},
 
 	-- PLAYER AGGRO --
 	{ 208683, playerIsStun , "player" , "playerCC" },
@@ -279,8 +273,10 @@ local spellTable = {
 	{ spells.giftNaaru, jps.hp() < 0.90 , "player" , "Naaru" },
 	{ spells.renew, jps.buffDuration(spells.renew,TankThreat) < 3 and jps.hp(LowestImportantUnit) > 0.80 , TankThreat , "Timer_Renew_Tank" },
 	{ spells.renew, jps.buffDuration(spells.renew,Tank) < 3 and jps.hp(LowestImportantUnit) > 0.80 , Tank , "Timer_Renew_Tank" },
-	{ spells.renew, jps.buffDuration(spells.renew,LowestImportantUnit) < 3 and jps.hp(LowestImportantUnit) > 0.80 , LowestImportantUnit  },
-	{ spells.renew, jps.buffDuration(spells.renew,"player") < 3 and jps.hp(LowestImportantUnit) > 0.80 , "player"  },
+	{ spells.renew, jps.buffDuration(spells.renew,LowestImportantUnit) < 3 and jps.hp(LowestImportantUnit) > 0.80 , LowestImportantUnit , "Timer_Renew_Lowest" },
+	{ spells.renew, jps.buffDuration(spells.renew,"player") < 3 and jps.hp(LowestImportantUnit) > 0.80 , "player" , "Timer_Renew_Player" },
+	{ spells.renew, jps.buffDuration(spells.renew,LowestImportantUnit) < 3 and jps.LastMessage == "Emergency_FlashHeal" , LowestImportantUnit  , "Timer_Renew_Emergency_Lowest" },
+	
 
 	{ "nested", jps.Defensive , {
 		{ spells.holyWordChastise , canDPS(rangedTarget) , rangedTarget },
@@ -303,6 +299,7 @@ local spellTable = {
 	-- "Prière de guérison" 33076 -- Buff POM 41635
 	{ spells.prayerOfMending, not jps.Moving and not jps.buffTracker(41635) and CountInRange > 3 and AvgHealthLoss < 0.80 , LowestImportantUnit },
 	{ spells.prayerOfMending, not jps.Moving and not jps.buffTracker(41635) and  POHTarget ~= nil and canHeal(POHTarget) , POHTarget },
+	{ spells.prayerOfMending, not jps.Moving and not jps.buffTracker(41635) and  jps.hp(LowestImportantUnit) > 0.60 , LowestImportantUnit , "Tracker_Mending_Emergency_Lowest" },
 	-- "Circle of Healing" 204883
 	{ spells.circleOfHealing , CountInRange > 3 and AvgHealthLoss < 0.80 , LowestImportantUnit },
 	{ spells.circleOfHealing , POHTarget ~= nil and canHeal(POHTarget) , POHTarget },
@@ -355,7 +352,7 @@ local spellTable = {
 		{ spells.prayerOfMending, jps.buff(41635,LowestImportantUnit) , LowestImportantUnit , "Tracker_Mending_Lowest" },
 	}},
 	-- "Prayer of Healing" 596
-	{ spells.prayerOfHealing, not jps.Moving and POHTarget ~= nil and canHeal(POHTarget) , POHTarget },
+	{ spells.prayerOfHealing, not jps.Moving and POHTarget ~= nil and canHeal(POHTarget) , POHTarget , "POHTarget" },
 
 	{ "nested", jps.hp(LowestImportantUnit) < 1 ,{
 		-- "Renew" 139
@@ -364,7 +361,7 @@ local spellTable = {
 		{ spells.heal,  not jps.Moving and jps.hp(LowestImportantUnit) < 0.90 , LowestImportantUnit , "Heal"  },
 	}},
 
-	{ spells.renew, RenewFriend ~= nil , RenewFriend },
+	{ spells.renew, RenewFriend ~= nil , RenewFriend , "RenewFriend" },
 	
 	{ spells.holyWordChastise , canDPS(rangedTarget) , rangedTarget },
 	{ spells.holyFire , canDPS(rangedTarget) , rangedTarget  },
@@ -435,13 +432,14 @@ jps.registerRotation("PRIEST","HOLY",function()
 		{
 			-- "Holy Word: Serenity" 2050
 			{ spells.holyWordSerenity , jps.hp(LowestImportantUnit) < 0.60 , LowestImportantUnit  },
+			-- "Prière de guérison" 33076
 			{ spells.prayerOfMending, not jps.Moving and not jps.buffTracker(41635) , LowestImportantUnit },
 			-- "Divine Hymn" 64843
 			{ spells.divineHymn, CountInRange > 3 and AvgHealthLoss < 0.80 },
 			-- "Prayer of Healing" 596
 			{ spells.prayerOfHealing, POHTarget ~= nil , POHTarget },
 			-- "Soins rapides" 2061
-			{ spells.flashHeal, jps.hp(LowestImportantUnit) < 0.90 , LowestImportantUnit },
+			{ spells.flashHeal, jps.hp(LowestImportantUnit) < 0.80 , LowestImportantUnit },
 			-- "Renew" 139
 			{ spells.renew, true , LowestImportantUnit },
 		},
@@ -457,7 +455,7 @@ jps.registerRotation("PRIEST","HOLY",function()
 	{ spells.bodyAndMind, jps.Moving , "player" },
 
 	-- "Oralius' Whispering Crystal" 118922 "Cristal murmurant d’Oralius" -- buff 176151
-	{ "macro", jps.itemCooldown(118922) == 0 , "/use item:118922" , "Item_Oralius"},
+	--{ "macro", jps.itemCooldown(118922) == 0 , "/use item:118922" , "Item_Oralius"},
 
 }
 

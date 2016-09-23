@@ -165,11 +165,13 @@ jps.CanAttack = function(unit)
 	return true
 end
 
-function jps.targetIsRaidBoss(target)
-	if target == nil then target = "target" end
-	if not jps.UnitExists(target) then return false end
-	if UnitLevel(target) == -1 and not UnitPlayerControlled(target) then
-		return true
+function targetIsBoss(unit)
+	if unit == nil then unit = "target" end
+	if not jps.UnitExists(unit) then return false end
+	if UnitLevel(unit) == -1 then return true end
+	local classUnit = UnitClassification(unit)
+	if string.find(classUnit,"elite") then return true
+	elseif string.find(classUnit,"boss") then return true
 	end
 	return false
 end

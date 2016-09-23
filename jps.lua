@@ -246,7 +246,7 @@ end
 -- USE ACTION
 ----------------------
 
--- cache for WoW API functions that return always the same results for the given params
+-- cache for WoW API functions that return the same results for the given params
 local spellcache = setmetatable({}, {__index=function(t,v) local a = {GetSpellInfo(v)} if GetSpellInfo(v) then t[v] = a end return a end})
 local function GetSpellInfo(a)
 	return unpack(spellcache[a])
@@ -289,7 +289,6 @@ local GetSpellCooldown = GetSpellCooldown
 
 jps.castSequence = nil
 local castSequenceIndex = 1
-local castSequenceTarget = nil
 local castSequenceStartTime = 0
 
 function jps.Cycle()
@@ -322,10 +321,14 @@ function jps.Cycle()
     if jps.castSequence ~= nil then
         if jps.castSequence[castSequenceIndex] ~= nil then
         	local spell = jps.castSequence[castSequenceIndex]
-            if jps.canCast(spell,castSequenceTarget) and not jps.Casting then
+            if not jps.Casting and jps.canCast(spell,jps.LastTarget) then
                 jps.Cast(spell)
                 write("|cFFFF0000Sequence Spell "..spell.. " was casted")
                 castSequenceIndex = castSequenceIndex + 1
+            else
+            	if not jps.Casting and jps.cooldown(spell) > 3 then
+            		castSequenceIndex = castSequenceIndex + 1
+            	end
             end
         else
             jps.castSequence = nil
@@ -348,7 +351,6 @@ function jps.Cycle()
 			end
 			castSequenceIndex = 1
 			castSequenceStartTime = GetTime()
-			castSequenceTarget = jps.LastTarget
 		end
 	end
 end

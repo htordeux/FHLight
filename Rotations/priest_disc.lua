@@ -49,7 +49,6 @@ jps.registerRotation("PRIEST","DISCIPLINE", function()
 
 	-- rangedTarget returns "target" by default, sometimes could be friend
 	local rangedTarget, EnemyUnit, TargetCount = jps.LowestTarget()
-	local isBoss = (UnitLevel("target") == -1) or (UnitClassification("target") == "elite")
 
 	if canDPS("target") then rangedTarget =  "target"
 	elseif canDPS(TankTarget) then rangedTarget = TankTarget
@@ -288,7 +287,7 @@ local spellTable = {
 	-- EMERGENCY HEAL --
 	{ 596, jps.MultiTarget and not jps.Moving and POHTarget ~= nil and canHeal(POHTarget) and jps.buff(59889) and jps.hp(LowestImportantUnit) > 0.40 , POHTarget , "Borrowed_POH" },
 	{ "nested", groupHealth > 0.80 and jps.hp(TankThreat) > 0.80 and jps.hp(Tank) > 0.80 and jps.hp(LowestImportantUnit) < 0.60 ,{
-		-- "Power Word: Shield" 17 -- Keep Buff "Borrowed" 59889 always
+		-- "Power Word: Shield" 17 -- Keep Buff "Borrowed" 59889
 		{ 17, not jps.buff(17,LowestImportantUnit) and not jps.debuff(6788,LowestImportantUnit) , LowestImportantUnit , "Emergency_Shield" },
 		-- "Pénitence" 47540
 		{ 47540, true , LowestImportantUnit , "Emergency_Penance" },
@@ -298,7 +297,7 @@ local spellTable = {
 	}},
 
 	-- TANK THREAT --
-	-- "Power Word: Shield" -- Keep Buff "Borrowed" 59889 always
+	-- "Power Word: Shield" -- Keep Buff "Borrowed" 59889
 	{ 17, canHeal(TankThreat) and not jps.buff(17,TankThreat) and not jps.debuff(6788,TankThreat) , TankThreat , "Shield_TankThreat" },
 	{ 17, canHeal(Tank) and not jps.buff(17,Tank) and not jps.debuff(6788,Tank) , Tank , "Shield_Tank" },
 	{ 17, ShieldFriend ~= nil and not jps.buff(59889) , ShieldFriend , "ShieldFriend" },
@@ -344,7 +343,7 @@ local spellTable = {
 	
 	-- EMERGENCY HEAL --
 	{ "nested", jps.hp(LowestImportantUnit) < 0.50 ,{
-		-- "Power Word: Shield" 17 -- Keep Buff "Borrowed" 59889 always
+		-- "Power Word: Shield" 17 -- Keep Buff "Borrowed" 59889
 		{ 17, not jps.buff(17,LowestImportantUnit) and not jps.debuff(6788,LowestImportantUnit) , LowestImportantUnit , "Emergency_Shield" },
 		-- "Pénitence" 47540
 		{ 47540, true , LowestImportantUnit , "Emergency_Penance" },

@@ -38,7 +38,6 @@ local inMelee = jps.IsSpellInRange(49998,"target") -- "Death Strike" 49998 "Frap
 
 -- rangedTarget returns "target" by default, sometimes could be friend
 local rangedTarget, EnemyUnit, TargetCount = jps.LowestTarget()
-local isBoss = (UnitLevel("target") == -1) or (UnitClassification("target") == "elite")
 
 -- Config FOCUS with MOUSEOVER
 if not jps.UnitExists("focus") and canDPS("mouseover") and UnitAffectingCombat("mouseover") then

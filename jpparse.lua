@@ -367,7 +367,6 @@ function jps.Cast(spell) -- "number" "string"
 
 	jps.Target = nil
 	jps.ThisCast = nil
-	jps.Message = ""
 end
 
 function jps.myLastCast(spell)
@@ -391,42 +390,30 @@ end
 --------------------------------------------------------------------------------------------------------------
 
 local function fnSpellEval(spell)
-    if type(spell) == "function" then
-        return spell()
-    else
-        return spell
+    if type(spell) == "function" then return spell()
+    else return spell
     end
 end
 
 local function fnConditionEval(condition)
-    if condition == nil then
-        return true
-    elseif type(condition) == "boolean" then
-        return condition
-    elseif type(condition) == "number" then
-        return condition ~= 0
-    elseif type(condition) == "function" then
-        return condition()
-    else
-        return false
+    if condition == nil then return true
+    elseif type(condition) == "boolean" then return condition
+    elseif type(condition) == "number" then return condition ~= 0
+    elseif type(condition) == "function" then return condition()
+    else return false
     end
 end
 
 local function fnTargetEval(target)
-    if target == nil then
-        return "target"
-    elseif type(target) == "function" then
-        return target()
-    else
-        return target
+    if target == nil then return "target"
+    elseif type(target) == "function" then return target()
+    else return target
     end
 end
 
 local function fnMessageEval(message)
-    if type(message) == "string" then
-        return message
-    else
-    	return ""
+    if type(message) == "string" then return message
+    else return ""
     end
 end
 
@@ -442,8 +429,8 @@ local function fnMacroEval(macroText,condition)
 	end
 end
 
-local function fnCastSequenceEval(spellList,condition)
-    local parsedSpellList = {}
+local function fnCastSequenceEval(condition,spellList)
+    local parsedSpellList = {} -- {spell, condition, target}
     if condition then
         for _, spell in pairs(spellList) do
         	table.insert(parsedSpellList, fnSpellEval(spell))
@@ -529,7 +516,7 @@ parseSpellTable = function(hydraTable)
 			end
 		-- CAST SEQUENCE { "castsequence" , condition , {spell_1, spell_2, ...} }
 		elseif spell == "castsequence" and type(target) == "table" then
-			jps.castSequence = fnCastSequenceEval(target,condition)
+			if condition then jps.castSequence = target end
 		end
 		-- DEFAULT {spell[[, condition[, target]]}
 		-- Return spell if condition are true and spell is castable.
@@ -546,34 +533,37 @@ end
 jps.parser = {}
 
 local function fnParseSpell(spell)
-	return function()
-		return fnSpellEval(spell)
-	end
+    if type(spell) == "function" then return spell
+    else return function () return spell end
+    end
 end
 
-local function fnParseCondition(condition)
-	return function()
-		return fnConditionEval(condition)
-	end
+local function alwaysTrue() return true end
+local function alwaysFalse() return false end
+local function fnParseCondition(conditions)
+    if conditions == nil then return alwaysTrue
+    elseif type(conditions) == "function" then return conditions
+    elseif type(conditions) == "boolean" then return function() return conditions end
+    elseif type(conditions) == "number" then return function() return conditions ~= 0 end
+    else return alwaysFalse
+    end
 end
 
 local function fnParseTarget(target)
-	return function()
-		return fnTargetEval(target)
-	end
+	if target == nil then return function () return "target" end
+    elseif type(target) == "function" then return target
+    else return function () return target end
+    end
 end
 
-local function fnParseMessage(message)
-	return function()
-		return fnMessageEval(message)
-	end
-end
-
-local function fnParseDefault(spellFn, conditionFn, targetFn)
+local function fnParseDefault(spell, condition, target)
+    local spellFn = fnParseSpell(spell)
+    local conditionFn = fnParseCondition(condition)
+    local targetFn = fnParseTarget(target)
     return function ()
         local spell = spellFn()
-        local target = targetFn()
         local condition = conditionFn()
+        local target = targetFn()
         if spell ~= nil and condition then
             if jps.canCast(spell,target) then
                 return spell, target
@@ -591,14 +581,13 @@ function compileSpellTable(hydraTable)
 		local spellTable = hydraTable[i]
         if type(spellTable) == "function" then spellTable = spellTable() end
 
-		local spellFn = fnParseSpell(spellTable[1])
-		local conditionFn = fnParseCondition(spellTable[2])
-		local targetFn = fnParseTarget(spellTable[3])
-
-		-- DEFAULT {spell[[, condition[, target]]}
-		-- Return spell if condition are true and spell is castable.
-		table.insert(compiledTable, fnParseDefault(spellFn, conditionFn, targetFn))
-
+		if type(spellTable) == "function" then
+            table.insert(compiledTable, spellTable)
+		else
+			-- DEFAULT {spell[[, condition[, target]]}
+			-- Return spell if condition are true and spell is castable.
+			table.insert(compiledTable, fnParseDefault(spellTable[1], spellTable[2], spellTable[3]))
+		end
 	end
 	return compiledTable
 end

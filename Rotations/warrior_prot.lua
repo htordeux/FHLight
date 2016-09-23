@@ -39,7 +39,6 @@ local inRanged = jps.IsSpellInRange(57755,"target") -- "Heroic Throw" 57755 "Lan
 
 -- rangedTarget returns "target" by default, sometimes could be friend
 local rangedTarget, EnemyUnit, TargetCount = jps.LowestTarget()
-local isBoss = (UnitLevel("target") == -1) or (UnitClassification("target") == "elite")
 
 -- Config FOCUS with MOUSEOVER
 if not jps.UnitExists("focus") and canDPS("mouseover") and UnitAffectingCombat("mouseover") then

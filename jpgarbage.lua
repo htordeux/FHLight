@@ -35,26 +35,27 @@ end
 --print("jps.buff(jps.spells.priest.voidform):",jps.buff(jps.spells.priest.voidform))
 --print("jps.spells.priest.lingeringInsanity):",jps.buff(jps.spells.priest.lingeringInsanity))
 --print("jps.isUsableSpell(jps.spells.priest.voidEruption):",jps.isUsableSpell(jps.spells.priest.voidEruption))
-print("isHealer: ", jps.isHealer)
-print(jps.Combat,"inCombat: ",InCombatLockdown(),"-",UnitAffectingCombat("player"))
+--print("isHealer: ", jps.isHealer)
+--print(jps.Combat,"inCombat: ",InCombatLockdown(),"-",UnitAffectingCombat("player"))
 
-	write("***************************")
-	
+--local strtest = string.find(UnitClassification("target"),"elite") -- return nil ou 1
+--print("strfind:",strtest,UnitClassification("target"))
+--print("targetIsBoss:", targetIsBoss("target"))
+
+write("***************************")
 --  print("Haste",UnitSpellHaste("player"),"-",GetCombatRating(20))
 --	print("Stun:|cff0070dd ", jps.checkTimer("PlayerStun"))
 --	print("Interrupt:|cff0070dd ", jps.checkTimer("PlayerInterrupt"))
 --	print("|cFFFF0000Aggro:|cff0070dd ", jps.FriendAggro("player"))
-print("|cFFFF0000IncDamage: ", jps.IncomingDamage("player"))
-print("|cff1eff00IncHeal: ", jps.IncomingHeal("player"))
+--	print("|cFFFF0000IncDamage: ", jps.IncomingDamage("player"))
+--	print("|cff1eff00IncHeal: ", jps.IncomingHeal("player"))
 --	print("ControlEvents: ",jps.ControlEvents())
 --	print("EnemyCastingSpellControl: ",jps.checkTimer("SpellControl") > 0)
---print("GCD: ", jps.GCD)
-	write("***************************")
-	
---local POHTarget, groupToHeal, groupHealth = jps.FindSubGroupHeal(1)
---print("|cff1eff00POHTarget: |cffffffff",POHTarget,"|cff1eff00Group: |cffffffff",groupToHeal,"|cff1eff00Health: |cffffffff",groupHealth)
+local POHTarget, groupToHeal, groupHealth = jps.FindSubGroupHeal(1)
+print("|cff1eff00POHTarget: |cffffffff",POHTarget,"|cff1eff00Group: |cffffffff",groupToHeal,"|cff1eff00Health: |cffffffff",groupHealth)
 local CountInRange, AvgHealthLoss, FriendUnit = jps.CountInRaidStatus()
 print("|cff1eff00CountInRange: |cffffffff",CountInRange,"|cff1eff00AvgHealthLoss: |cffffffff",AvgHealthLoss,"|cff1eff00FriendUnit: |cffffffff",#FriendUnit)
+write("***************************")
 
 --	local Tank,Tanks = jps.findTankInRaid()
 --	for i=1,#Tanks do
@@ -68,9 +69,7 @@ print("|cff1eff00CountInRange: |cffffffff",CountInRange,"|cff1eff00AvgHealthLoss
 --	local friendtableaggro = jps.FriendAggroTable()
 --	print("friendtableaggro: ",friendtableaggro)
 
---	local Lowest = jps.LowestImportantUnit() 
---	local face,angle = jps.PlayerIsFacing(Lowest)
---	write("Facing: ",face," Radians: ",angle," Name: ",GetUnitName(Lowest))
+
 
 end
 
@@ -96,10 +95,10 @@ end
  
  function jps_Test()
 
-	Test()
-	--DkTest()
-	--jps.LookupIncomingDamage()
-	--jps.LookupEnemyDamager()
+Test()
+
+--	jps.LookupIncomingDamage()
+--	jps.LookupEnemyDamager()
 --	jps.LookupEnemyHealer()
 --	local healerTarget = jps.LowestTargetHealer()
 --	if healerTarget ~= nil then print("|cffffffffhealerTarget:|cff1eff00",healerTarget,"|cffffffffUnit:|cff1eff00",GetUnitName(healerTarget)) end
@@ -155,13 +154,10 @@ end
 --	for i,j in pairs(table_3) do
 --		print("unit: ",i,"role: ",j[1],"-",j[2])
 --	end
---	
-
 
 end
 
 --[[
-
 local hostile = {
   ["_DAMAGE"] = true, 
   ["_LEECH"] = true,
@@ -171,46 +167,46 @@ local hostile = {
   ["_INTERRUPT"] = true,
   ["_MISSED"] = true
 }
-local function GetEnemy(time, event, sguid, sname, sflags, dguid, dname, dflags)
-  local suffix = event:match(".+(_.-)$")
-  if hostile[suffix] then
-    if bit.band(sflags, COMBATLOG_OBJECT_AFFILIATION_MASK) < 8 then
-      return dguid, dname, dflags
-    elseif bit.band(dflags, COMBATLOG_OBJECT_AFFILIATION_MASK) < 8 then
-      return sguid, sname, sflags
-    end
-  end
-end
 
+local function GetEnemy(time, event, sguid, sname, sflags, dguid, dname, dflags)
+	local suffix = event:match(".+(_.-)$")
+	if hostile[suffix] then
+		if bit.band(sflags, COMBATLOG_OBJECT_AFFILIATION_MASK) < 8 then
+			return dguid, dname, dflags
+		elseif bit.band(dflags, COMBATLOG_OBJECT_AFFILIATION_MASK) < 8 then
+			return sguid, sname, sflags
+		end
+	end
+end
 ]]
 
 --[[
-	local tsort = table.sort
-	local table = {9,5,12,1,2,4}
-	for i=1,#table do
-		print("|cffe5cc80",table[i])
-	end
-	tsort(table, function(a,b) return a >= b end)
-	for i=1,#table do
-		print("sort>",table[i]) -- 12,9,5,4,1,2
-	end
-	tsort(table, function(a,b) return a <= b end)
-	for i=1,#table do
-		write("sort<",table[i]) -- 1,2,4,5,9,12
-	end
+local tsort = table.sort
+local table = {9,5,12,1,2,4}
+for i=1,#table do
+	print("|cffe5cc80",table[i])
+end
+tsort(table, function(a,b) return a >= b end)
+for i=1,#table do
+	print("sort>",table[i]) -- 12,9,5,4,1,2
+end
+tsort(table, function(a,b) return a <= b end)
+for i=1,#table do
+	write("sort<",table[i]) -- 1,2,4,5,9,12
+end
 
 
-	local myTanks = { "player","focus","target" }
-	myTanks[1] = "prout";
-	write("1",unpack(myTanks)) -- "prout,focus,target"
-	
-	local myTanks = { "player","focus","target" }
-	myTanks[#myTanks] = "prout";  
-	write("2",unpack(myTanks)) -- player,focus,prout"
-	
-	local myTanks = { "player","focus","target" }
-	myTanks[#myTanks+1] = "prout";  
-	write("3",unpack(myTanks)) -- "player,focus,target,prout"
+local myTanks = { "player","focus","target" }
+myTanks[1] = "prout";
+write("1",unpack(myTanks)) -- "prout,focus,target"
+
+local myTanks = { "player","focus","target" }
+myTanks[#myTanks] = "prout";  
+write("2",unpack(myTanks)) -- player,focus,prout"
+
+local myTanks = { "player","focus","target" }
+myTanks[#myTanks+1] = "prout";  
+write("3",unpack(myTanks)) -- "player,focus,target,prout"
 ]]
 
 -----------------------

@@ -367,6 +367,7 @@ function jps.Cast(spell) -- "number" "string"
 
 	jps.Target = nil
 	jps.ThisCast = nil
+	jps.Message = ""
 end
 
 function jps.myLastCast(spell)
@@ -493,7 +494,6 @@ parseSpellTable = function(hydraTable)
 	local spell = nil
 	local condition = nil
 	local target = nil
-	local message = ""
 
 	for i=1,#hydraTable do -- for i, spellTable in ipairs(hydraTable) do
 		local spellTable = hydraTable[i]
@@ -502,8 +502,7 @@ parseSpellTable = function(hydraTable)
 		spell = fnSpellEval(spellTable[1])
 		condition = fnConditionEval(spellTable[2])
 		target = fnTargetEval(spellTable[3])
-        message = fnMessageEval(spellTable[4])
-        if jps.Message ~= message then jps.Message = message end
+        jps.Message = fnMessageEval(spellTable[4])
 
 		-- MACRO -- BE SURE THAT CONDITION TAKES CARE OF CANCAST -- TRUE or FALSE NOT NIL
 		-- {"macro", condition, "MACRO_TEXT" }

@@ -27,30 +27,15 @@ for unit,debuff in pairs(RaidStatusDebuff) do
 	print("unit:",unit,"debuff:",debuff)
 end
 
---local _,_,classId = UnitClass("player")
---local specId = GetSpecialization()
---local id, name, description, icon, background, role, primaryStat = GetSpecializationInfo(specId)
---print("classId:",classId,"specId",specId)
---print("specName:",jps.specName(),"Spec",jps.Spec)
---print("jps.buff(jps.spells.priest.voidform):",jps.buff(jps.spells.priest.voidform))
---print("jps.spells.priest.lingeringInsanity):",jps.buff(jps.spells.priest.lingeringInsanity))
---print("jps.isUsableSpell(jps.spells.priest.voidEruption):",jps.isUsableSpell(jps.spells.priest.voidEruption))
---print("isHealer: ", jps.isHealer)
---print(jps.Combat,"inCombat: ",InCombatLockdown(),"-",UnitAffectingCombat("player"))
-
---local strtest = string.find(UnitClassification("target"),"elite") -- return nil ou 1
---print("strfind:",strtest,UnitClassification("target"))
---print("targetIsBoss:", targetIsBoss("target"))
-
 write("***************************")
 --  print("Haste",UnitSpellHaste("player"),"-",GetCombatRating(20))
 --	print("Stun:|cff0070dd ", jps.checkTimer("PlayerStun"))
 --	print("Interrupt:|cff0070dd ", jps.checkTimer("PlayerInterrupt"))
 --	print("|cFFFF0000Aggro:|cff0070dd ", jps.FriendAggro("player"))
---	print("|cFFFF0000IncDamage: ", jps.IncomingDamage("player"))
---	print("|cff1eff00IncHeal: ", jps.IncomingHeal("player"))
 --	print("ControlEvents: ",jps.ControlEvents())
 --	print("EnemyCastingSpellControl: ",jps.checkTimer("SpellControl") > 0)
+print("|cFFFF0000IncDamage: ", jps.IncomingDamage("player"))
+print("|cff1eff00IncHeal: ", jps.IncomingHeal("player"))
 local POHTarget, groupToHeal, groupHealth = jps.FindSubGroupHeal(1)
 print("|cff1eff00POHTarget: |cffffffff",POHTarget,"|cff1eff00Group: |cffffffff",groupToHeal,"|cff1eff00Health: |cffffffff",groupHealth)
 local CountInRange, AvgHealthLoss, FriendUnit = jps.CountInRaidStatus()
@@ -68,8 +53,6 @@ write("***************************")
 
 --	local friendtableaggro = jps.FriendAggroTable()
 --	print("friendtableaggro: ",friendtableaggro)
-
-
 
 end
 
@@ -97,6 +80,16 @@ end
 
 Test()
 
+--local _,_,classId = UnitClass("player")
+--local specId = GetSpecialization()
+--local id, name, description, icon, background, role, primaryStat = GetSpecializationInfo(specId)
+--print("classId:",classId,"specId",specId)
+--print("specName:",jps.specName(),"Spec",jps.Spec)
+--print("jps.buff(jps.spells.priest.voidform):",jps.buff(jps.spells.priest.voidform))
+--print("jps.spells.priest.lingeringInsanity):",jps.buff(jps.spells.priest.lingeringInsanity))
+--print("jps.isUsableSpell(jps.spells.priest.voidEruption):",jps.isUsableSpell(jps.spells.priest.voidEruption))
+--print("isHealer: ", jps.isHealer)
+
 --	jps.LookupIncomingDamage()
 --	jps.LookupEnemyDamager()
 --	jps.LookupEnemyHealer()
@@ -115,26 +108,10 @@ Test()
 --	C_Timer.After(1,function() print("test") TurnLeftStop() end)
 --	MoveForwardStart()
 --	C_Timer.After(0.25,function() MoveForwardStop() end)
-	
---	local Tank,TankUnit = jps.findTankInRaid()
---	if Tank == "focus" then Tank = "player" end
---	local i = 1
---	local auraName,debuffType,expirationTime,unitCaster,spellId,isBossDebuff
---	auraName, _, _, _, debuffType, _, expirationTime, unitCaster, _, _, spellId, _, isBossDebuff = UnitDebuff(Tank, i)
---	while auraName do
---		print(Tank,
---		"|cff1eff00auraName: ","|cffffffff",auraName,
---		"|cff1eff00unitCaster: ","|cffffffff",unitCaster,"|cff1eff00Classification ","|cffffffff",UnitClassification(unitCaster),
---		"|cff1eff00spellId: ","|cffffffff",spellId,
---		"|cff1eff00isBossDebuff: ","|cffffffff",isBossDebuff
---		)
---		i = i + 1
---		auraName, _, _, _, debuffType, _, expirationTime, unitCaster, _, _, spellId, _, isBossDebuff = UnitDebuff(Tank, i)
---	end
 
---	local lowestUnit = jps.HighestIncomingDamage()
---	local lowestTTD = jps.LowestFriendTimeToDie(5)
---	print("|cffffffffDamage: |cffff8000",lowestUnit,"|cffffffffTTD: |cffff8000",lowestTTD)
+	local lowestUnit = jps.LowestFriendIncomingDamage()
+	local lowestTTD = jps.LowestFriendTimeToDie(5)
+	print("|cffffffffDamage: |cffff8000",lowestUnit,"|cffffffffTTD: |cffff8000",lowestTTD)
 
 
 --	local table_1 = { {"target","HEALER"}, {"playertarget","DEFENSIVE"}, {"raid4target","DAMAGE"} }

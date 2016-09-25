@@ -584,7 +584,7 @@ local updateEnemyDamager = function()
 		local dataset = index.friendaggro
 		if dataset then 
 			local timeDelta = GetTime() - dataset
-			if timeDelta > 4 then EnemyDamager[unit] = nil end
+			if timeDelta > 5 then EnemyDamager[unit] = nil end
 		end
 	end
 end
@@ -594,7 +594,7 @@ local updateIncomingDamage = function()
 	for unit,index in pairs(IncomingDamage) do
 		local data = #index
 		local delta = GetTime() - index[1][1]
-		if delta > 4 then IncomingDamage[unit] = nil end
+		if delta > 5 then IncomingDamage[unit] = nil end
 	end
 end
 
@@ -603,7 +603,7 @@ local updateIncomingHeal = function()
 	for unit,index in pairs(IncomingHeal) do
 		local data = #index
 		local delta = GetTime() - index[1][1]
-		if delta > 4 then IncomingHeal[unit] = nil end
+		if delta > 5 then IncomingHeal[unit] = nil end
 	end
 end
 
@@ -640,7 +640,6 @@ jps.registerOnUpdate(UpdateIntervalRaidStatus)
 -- eventtable[15] -- amount if suffix is SPELL_DAMAGE or SPELL_HEAL
 -- eventtable[12] -- amount if suffix is SWING_DAMAGE
 
-local SpellSchoolDamage = 0
 local damageEvents = {
         ["SWING_DAMAGE"] = true,
         ["SPELL_DAMAGE"] = true,
@@ -761,12 +760,8 @@ jps.events.registerEvent("COMBAT_LOG_EVENT_UNFILTERED", function(...)
 --				"|cFFFF0000sourceName: |cffffffff",sourceName,"F:",isSourceFriend,"E:",isSourceEnemy)
 			if isDestFriend and UnitCanAssist("player",destName) then
 				-- SPELLSCHOOL -- 1 Physical, 2 Holy, 4 Fire, 8 Nature, 16 Frost, 32 Shadow, 64 Arcane
-				if jps.IncomingDamage("player") == 0 then SpellSchoolDamage = 0 end
 				local spellSchool = select(14,...)
-				if destGUID == UnitGUID("player") and spellSchool then
-					SpellSchoolDamage = spellSchool
-				end
-
+				-- for the SWING prefix, _DAMAGE starts at the 12th parameter. For ENVIRONMENTAL, it starts at the 13th.
 				local dmg = 0
 				if event == "SWING_DAMAGE" then
 					local damage = select(12, ...)
@@ -797,18 +792,9 @@ end)
 -- table.insert called without a position, it inserts the element in the last position of the array (and, therefore, moves no elements)
 -- table.remove called without a position, it removes the last element of the array.
 
-function jps.SchoolDamage(string) -- "physical" or "magic"
-	if string == nil then return false end
-	if SpellSchoolDamage > 0 then
-		if SpellSchoolDamage == 1 and string == "physical" then return true end
-		if SpellSchoolDamage > 1 and string == "magic" then return true end
-	end
-	return false
-end
-
 function jps.IncomingDamage(unit)
 	if unit == nil then unit = "player" end
-	local time = 3
+	local time = 5
 	local unitguid = UnitGUID(unit)
 	local totalDmg = 0
 	if IncomingDamage[unitguid] ~= nil then
@@ -829,7 +815,7 @@ end
 
 function jps.IncomingHeal(unit)
 	if unit == nil then unit = "player" end
-	local time = 3
+	local time = 5
 	local unitguid = UnitGUID(unit)
 	local totalHeal = 0
 	if IncomingHeal[unitguid] ~= nil then

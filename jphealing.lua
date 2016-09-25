@@ -137,8 +137,8 @@ jps.LowestTarget = function()
 end
 
 --local locClass, enClass, classID = UnitClass(unit)
-jps.LowestTargetRole = function(spec)
-	if spec == nil then spec = "HEALER" end
+jps.LowestTargetRole = function()
+	local spec = "HEALER"
 	local _,EnemyUnit,_ = jps.LowestTarget()
 	local EnemyRole = {}
 	for i=1,#EnemyUnit do
@@ -366,41 +366,34 @@ end
 -- LOWEST TIME TO DIE
 jps.LowestFriendTimeToDie = function(timetodie)
 	if timetodie == nil then timetodie = 5 end
-	local myFriends = {}
 	local lowestFriendTTD = nil
 	local lowestTTD = 60 -- Second
 	for unit,_ in pairs(RaidStatus) do
 		if canHeal(unit) then
 			local TTD = jps.TimeToDie(unit)
 			if TTD < timetodie then
-				myFriends[#myFriends+1] = unit -- tinsert(myFriends, unit)
 				lowestFriendTTD = unit
 				lowestTTD = TTD
 			end
 		end
 	end
-	tsort(myFriends, function(a,b) return jps.hpInc(a) < jps.hpInc(b) end)
-	return myFriends[1] or lowestFriendTTD
+	return lowestFriendTTD
 end
 
 -- INCOMING DAMAGE
-jps.HighestIncomingDamage = function()
+jps.LowestFriendIncomingDamage = function()
 	if lowHealth == nil then lowHealth = 1 end
 	local lowestUnit = nil
 	local lowestHealth = 1
+	local lowestDelta = 60
 	for unit,_ in pairs(RaidStatus) do
 		if canHeal(unit) then
-			local incomingDamageFriend = jps.IncomingDamage(unit)
-			local incomingHealFriend = jps.IncomingHeal(unit)
-			local delta = incomingHealFriend - incomingDamageFriend
-			if delta < 0 then -- dmg > heal
-				local dmghealth = (UnitHealth(unit) + delta) / UnitHealthMax(unit)
-				local inchealth = UnitGetIncomingHeals(unit)
-				local abshealth = UnitGetTotalAbsorbs(unit)
-				local health = dmghealth + inchealth + abshealth
-				if health < lowestHealth then
+			local delta = jps.IncomingDamage(unit) - jps.IncomingHeal(unit)
+			if delta > 0 then -- dmg > heal
+				local lowest = (UnitHealth(unit) / delta) * (UnitHealth(unit) / UnitHealthMax(unit))
+				if lowest < lowestDelta then
 					lowestUnit = unit
-					lowestHealth = health 
+					lowestDelta = lowest
 				end
 			end
 		end
@@ -736,12 +729,9 @@ function jps.LookupRaid ()
 	
 -- RaidStatus
 	for unit,index in pairs(RaidStatus) do 
-		print("|cffa335ee",unit,"Hpct: ",index.hpct,"Range: ",index.inrange) -- color violet 
+		print("|cffa335ee",unit,"Hpct: ",index.hpct,"/",HealthPct(unit),"Range: ",index.inrange,"/",canHeal(unit)) -- color violet 
 	end
 
-	for _,unit in ipairs(RaidRoster) do
-		write(unit,"Hpct: ",HealthPct(unit),"Range: ",canHeal(unit))
-	end
 end
 
 

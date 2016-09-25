@@ -165,7 +165,7 @@ jps.CanAttack = function(unit)
 	return true
 end
 
-function targetIsBoss(unit)
+function jps.targetIsBoss(unit)
 	if unit == nil then unit = "target" end
 	if not jps.UnitExists(unit) then return false end
 	if UnitLevel(unit) == -1 then return true end

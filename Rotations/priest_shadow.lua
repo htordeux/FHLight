@@ -75,7 +75,7 @@ if canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
 
 local TargetMoving = select(1,GetUnitSpeed(rangedTarget)) > 0
 local isTargetElite = false
-if targetIsBoss("target") then isTargetElite = true
+if jps.targetIsBoss("target") then isTargetElite = true
 elseif jps.hp("target") > 0.15 then isTargetElite = true
 end
 

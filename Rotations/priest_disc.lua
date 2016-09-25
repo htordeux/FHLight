@@ -42,6 +42,11 @@ jps.registerRotation("PRIEST","DISCIPLINE", function()
 	local playerIsInterrupt = jps.InterruptEvents() -- return true/false ONLY FOR PLAYER
 	local playerWasControl = jps.ControlEvents() -- return true/false Player was interrupt or stun 2 sec ago ONLY FOR PLAYER
 	local isArena, _ = IsActiveBattlefieldArena()
+	
+	-- INCOMING DAMAGE
+	local LowestFriendIncomingDamage = jps.LowestFriendIncomingDamage()
+	-- LOWEST TTD
+	local LowestFriendTTD = jps.LowestFriendTimeToDie(5)
 
 ----------------------
 -- TARGET ENEMY
@@ -134,12 +139,6 @@ jps.registerRotation("PRIEST","DISCIPLINE", function()
 			DispelFriendRole = unit
 		break end
 	end
-	
-	-- INCOMING DAMAGE
-	local IncomingDamageFriend = jps.HighestIncomingDamage()
-	
-	-- LOWEST TTD
-	local LowestFriendTTD = jps.LowestFriendTimeToDie(5)
 
 ------------------------
 -- LOCAL FUNCTIONS ENEMY
@@ -359,16 +358,6 @@ local spellTable = {
 		{ 47540, jps.hp(LowestFriendTTD) < 0.60 , LowestFriendTTD , "Penance_Lowest_TTD" },
 		-- "Soins rapides" 2061
 		{ 2061, not jps.Moving and groupHealth > 0.80 and jps.hp(LowestFriendTTD) < 0.50 , LowestFriendTTD , "FlashHeal_Lowest_TTD" },
-	}},
-	
-	-- HIGHEST DAMAGE -- Highest Damage Friend with Lowest Health
-	{ "nested", IncomingDamageFriend ~= nil and jps.hpInc(IncomingDamageFriend) < 0.80 ,{
-		-- "Power Word: Shield" -- "Egide divine" 47515 "Divine Aegis"
-		{ 17, jps.hp(IncomingDamageFriend) < 0.80 and not jps.buff(17,IncomingDamageFriend) and not jps.debuff(6788,IncomingDamageFriend) , IncomingDamageFriend , "Bubble_Lowest_DAMAGE" },
-		-- "Pénitence" 47540
-		{ 47540, jps.hp(IncomingDamageFriend) < 0.60 , IncomingDamageFriend , "Penance_Lowest_DAMAGE" },
-		-- "Soins rapides" 2061
-		{ 2061, not jps.Moving and groupHealth > 0.80 and jps.hp(IncomingDamageFriend) < 0.50 , IncomingDamageFriend , "FlashHeal_Lowest_DAMAGE" },
 	}},
 
 	-- TIMER POM -- "Prière de guérison" 33076 -- Buff POM 41635

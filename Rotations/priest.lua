@@ -228,13 +228,27 @@ function jps.canCastshadowWordDeath()
    return false
 end
 
-function jps.canCastvoidEruption()
-   if jps.cooldown(jps.spells.priest.voidEruption) > 0 then return false end
+function jps.canCastvoidBolt()
    if not jps.buff(jps.spells.priest.voidform) then return false end
+   if jps.cooldown(jps.spells.priest.voidEruption) > 0 then return false end
    local Channeling = UnitChannelInfo("player") -- "Mind Flay" is a channeling spell
    local MindFlay = tostring(jps.spells.priest.mindFlay)
    local MindSear = tostring(jps.spells.priest.mindSear)
    if Channeling ~= nil then
+      if tostring(Channeling) == MindFlay then return true end
+      if tostring(Channeling) == MindSear then return true end
+   end
+   return false
+end
+
+function jps.canCastvoidEruption()
+   if jps.buff(jps.spells.priest.voidform) then return false end
+   if not jps.isUsableSpell(jps.spells.priest.voidEruption) then return false end
+   local Channeling = UnitChannelInfo("player") -- "Mind Flay" is a channeling spell
+   local MindFlay = tostring(jps.spells.priest.mindFlay)
+   local MindSear = tostring(jps.spells.priest.mindSear)
+   local insanity = jps.insanity()
+   if Channeling ~= nil and insanity == 100 then
       if tostring(Channeling) == MindFlay then return true end
       if tostring(Channeling) == MindSear then return true end
    end

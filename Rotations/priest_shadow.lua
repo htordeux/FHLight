@@ -76,7 +76,7 @@ if canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
 local TargetMoving = select(1,GetUnitSpeed(rangedTarget)) > 0
 local isTargetElite = false
 if jps.targetIsBoss("target") then isTargetElite = true
-elseif jps.hp("target") > 0.15 then isTargetElite = true
+elseif jps.hp("target") > 0.20 then isTargetElite = true
 end
 
 ------------------------
@@ -219,7 +219,6 @@ local parseHeal = {
 
 local spellTable = {
 
-	-- "Shield" 17 "Body and Soul" 64129 -- figure out how to speed buff everyone as they move
 	{spells.dispersion, jps.hp("player") < 0.30 },
 
 	{"macro", jps.canCastvoidEruption , "/stopcasting" },
@@ -259,7 +258,7 @@ local spellTable = {
 		{spells.voidEruption, true , rangedTarget , "voidBold_Buff"},
 		{spells.voidTorrent , not jps.Moving , rangedTarget , "voidTorrent_Buff"},
 		-- spells.mindbender jps.buffStacks(spells.voidform)
-		{spells.mindbender,  jps.buffStacks(spells.voidform) > 10 , rangedTarget , "high_mindbender_Buff" },
+		{spells.mindbender,  jps.buffStacks(spells.voidform) > 15 , rangedTarget , "high_mindbender_Buff" },
 		-- spells.shadowWordDeath 
 		{"macro", jps.canCastshadowWordDeath , "/stopcasting" },
 		{"nested", jps.spellCharges(spells.shadowWordDeath) == 2 , {
@@ -279,16 +278,15 @@ local spellTable = {
 		{spells.vampiricTouch, not jps.Moving and fnVampEnemyTarget("focus") and not UnitIsUnit("target","focus") , "focus" , "VT_focus_Buff" },
 		{spells.shadowWordPain, fnPainEnemyTarget("focus") and not UnitIsUnit("target","focus") , "focus" , "Pain_focus_Buff" },
 		
-		{spells.mindbender,  jps.buffStacks(spells.voidform) > 0 and jps.insanity() < 50 , rangedTarget , "low_mindbender_Buff" },
-	
-		--  low Insanity generation coming up (i.e., Shadow Word: Death , Void Bolt , Mind Blast , AND Void Torrent are all on cooldown and you are in danger of reaching 0 Insanity).
-		{spells.dispersion, jps.insanity() < 50 and jps.cooldown(spells.mindBlast) > 0 and jps.buff(jps.spells.priest.voidform) and not jps.isUsableSpell(jps.spells.priest.shadowWordDeath) , "player" , "DISPERSION_insanity" },
-		
-		{spells.mindSear, not jps.Moving and jps.MultiTarget },
-	
 		{spells.vampiricTouch, not jps.Moving and VampEnemyTarget ~= nil and not UnitIsUnit("target",VampEnemyTarget) , VampEnemyTarget , "VT_MultiUnit_Buff" },
 		{spells.shadowWordPain, PainEnemyTarget ~= nil and not UnitIsUnit("target",PainEnemyTarget) , PainEnemyTarget , "Pain_MultiUnit_Buff" },
+
+		{spells.mindbender,  jps.buffStacks(spells.voidform) > 0 and jps.insanity() < 50 , rangedTarget , "low_mindbender_Buff" },
+		{spells.mindSear, not jps.Moving and jps.MultiTarget },
 		
+		--  low Insanity generation coming up (i.e., Shadow Word: Death , Void Bolt , Mind Blast , AND Void Torrent are all on cooldown and you are in danger of reaching 0 Insanity).
+		{spells.dispersion, jps.insanity() < 50 and jps.cooldown(spells.mindBlast) > 0 and jps.buff(jps.spells.priest.voidform) and not jps.isUsableSpell(jps.spells.priest.shadowWordDeath) , "player" , "DISPERSION_insanity" },
+
 		{spells.shadowWordPain, fnPainEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "Pain_Mouseover_Buff" },
 		{spells.vampiricTouch, not jps.Moving and fnVampEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "VT_Mouseover" },
 		

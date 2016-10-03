@@ -13,29 +13,6 @@ local GetSpellInfo = GetSpellInfo
 local toSpellName = jps.toSpellName
 
 ------------------------------
--- GLYPHS
-------------------------------
-
--- Patch 6.0.2  GetNumTalents REMOVED
--- talentID, name, iconTexture, selected, available = GetTalentInfo(tier, column, talentGroup [, isInspect, inspectedUnit])
--- talentID, name, texture, selected, available = GetTalentInfoByID(talentID, talentGroup[, isInspect, inspectedUnit])
-
--- numGlyphs = GetNumGlyphs() numGlyphs the number of glyphs THAT THE CHARACTER CAN LEARN
--- name, glyphType, isKnown, icon, glyphId, glyphLink, spec = GetGlyphInfo(index)
--- enabled, glyphType, glyphTooltipIndex, glyphSpellID, icon = GetGlyphSocketInfo(socketID[[, talentGroup], isInspect, inspectUnit])
-
-function jps.glyphInfo(glyphID)
-	for i = 1, NUM_GLYPH_SLOTS do
-		local enabled, glyphType, glyphTooltipIndex, glyphSpellID, icon = GetGlyphSocketInfo(i)
-		if enabled then
-			local link = GetGlyphLink(i) -- Retrieves the Glyph's link ("" if no glyph in Socket)
-			if (link ~= "") and glyphSpellID == glyphID then return true end
-		end
-	end
-	return false
-end
-
-------------------------------
 -- SPELLS
 ------------------------------
 

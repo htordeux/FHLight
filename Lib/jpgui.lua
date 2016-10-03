@@ -65,15 +65,17 @@ end)
 jpsIcon:SetScript("OnEnter", function(self)
 	GameTooltip:SetOwner(self, "ANCHOR_TOP")
 	local text = ""
-	local pvptext = ""
+	local pvp = ""
+	local healer = ""
+	if jps.PvP then pvp = "PVP" else pvp = "PVE" end
 	if jps.Enabled then text = "JPS enabled" else text = "JPS disabled" end
-	if jps.isHealer then healertext = "|cff1eff00isHealer : |cffffffffTRUE" else healertext = "|cff1eff00isHealer : |cffffffffFALSE" end
+	if jps.isHealer then healer = "|cff1eff00isHealer : |cffffffffTRUE" else healer = "|cff1eff00isHealer : |cffffffffFALSE" end
 	if jps.Spec then
-		GameTooltip:SetText(text.." for your|cffa335ee "..jps.Class.." "..jps.Spec.." |cffffffff "..healertext)
+		GameTooltip:SetText(text.." for your|cffa335ee "..jps.Class.." "..jps.Spec.." |cffffffff "..healer)
 	else
 		GameTooltip:SetText(text.." No specialization found ")
 	end
-	GameTooltip:AddLine("Rotation: "..jps.Tooltip , 1, 1, 1)
+	GameTooltip:AddLine("Rotation: "..jps.Tooltip.."Mode: "..pvp , 1, 1, 1)
 	GameTooltip:AddLine("RightButton for extra buttons - ShiftRight to rotate" , 1, 1, 1)
 	GameTooltip:Show()
 end)

@@ -18,9 +18,9 @@ local target = nil
 -- TARGET ENEMY
 ----------------------
 
-if canDPS("target") and jps.CanAttack("target") then rangedTarget =  "target"
-elseif canDPS(TankTarget) and jps.CanAttack(TankTarget) then rangedTarget = TankTarget
-elseif canDPS("targettarget") and jps.CanAttack("targettarget") then rangedTarget = "targettarget"
+if canDPS("target") and jps.canAttack("target") then rangedTarget =  "target"
+elseif canDPS(TankTarget) and jps.canAttack(TankTarget) then rangedTarget = TankTarget
+elseif canDPS("targettarget") and jps.canAttack("targettarget") then rangedTarget = "targettarget"
 end
 if canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
 

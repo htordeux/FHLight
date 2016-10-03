@@ -1,7 +1,7 @@
 
 local canDPS = jps.canDPS
 local canHeal = jps.canHeal
-local canAttack = jps.CanAttack
+local canAttack = jps.canAttack
 local strfind = string.find
 local UnitClass = UnitClass
 local UnitAffectingCombat = UnitAffectingCombat

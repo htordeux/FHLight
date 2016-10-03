@@ -2,7 +2,7 @@
 local spells = jps.spells.priest
 local canDPS = jps.canDPS
 local canHeal = jps.canHeal
-local canAttack = jps.CanAttack
+local canAttack = jps.canAttack
 local UnitGetTotalAbsorbs = UnitGetTotalAbsorbs
 local strfind = string.find
 local UnitClass = UnitClass
@@ -38,9 +38,9 @@ elseif jps.UnitExists("focus") and not canDPS("focus") then
 	jps.Macro("/clearfocus")
 end
 
-if canDPS("target") and jps.CanAttack("target") then rangedTarget =  "target"
-elseif canDPS(TankTarget) and jps.CanAttack(TankTarget) then rangedTarget = TankTarget
-elseif canDPS("targettarget") and jps.CanAttack("targettarget") then rangedTarget = "targettarget"
+if canDPS("target") and jps.canAttack("target") then rangedTarget =  "target"
+elseif canDPS(TankTarget) and jps.canAttack(TankTarget) then rangedTarget = TankTarget
+elseif canDPS("targettarget") and jps.canAttack("targettarget") then rangedTarget = "targettarget"
 end
 if canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
 

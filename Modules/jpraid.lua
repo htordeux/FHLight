@@ -136,32 +136,9 @@ end
 -- ENEMY TARGET
 ----------------------
 
--- Debuff EnemyTarget DO NOT DPS
-local DebuffUnitControl = function (unit)
-	local i = 1
-	local auraName = select(1,UnitDebuff(unit, i))
-	while auraName do
-		if strfind(auraName,L["Polymorph"]) then
-			return true
-		elseif strfind(auraName,L["Cyclone"]) then
-			return true
-		elseif strfind(auraName,L["Hex"]) then
-			return true
-		elseif strfind(auraName,L["Deterrence"]) then
-		 	return true
-		elseif strfind(auraName,L["Ice Block"]) then
-		 	return true
-		end
-		i = i + 1
-		auraName = select(1,UnitDebuff(unit, i))
-	end
-	return false
-end
-
-jps.CanAttack = function(unit)
+jps.canAttack = function(unit)
 	if not canDPS(unit) then return false end
 	if not UnitAffectingCombat(unit) then return false end
-	if DebuffUnitControl(unit) then return false end
 	return true
 end
 

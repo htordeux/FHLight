@@ -2,7 +2,7 @@
 local spells = jps.spells.priest
 local canDPS = jps.canDPS
 local canHeal = jps.canHeal
-local canAttack = jps.CanAttack
+local canAttack = jps.canAttack
 local UnitGetTotalAbsorbs = UnitGetTotalAbsorbs
 local strfind = string.find
 local UnitClass = UnitClass
@@ -30,7 +30,7 @@ jps.registerRotation("PRIEST","HOLY", function()
 	local CountFriendLowest = jps.CountInRaidLowest(0.60)
 
 
-	local Tank,TankUnit = jps.findTankInRaid() -- ddefault "focus" "player"
+	local Tank,TankUnit = jps.findTankInRaid() -- default "focus" "player"
 	local TankTarget = "target"
 	if canHeal(Tank) then TankTarget = Tank.."target" end
 	local TankThreat = jps.findThreatInRaid() -- default "focus" "player"
@@ -217,6 +217,7 @@ jps.registerRotation("PRIEST","HOLY", function()
 ------------------------
 -- SPELL TABLE ---------
 ------------------------
+
 local spellTable = {
 
 	-- "Esprit de rédemption" buff 27827 "Spirit of Redemption"

@@ -111,12 +111,12 @@ function jps.arcaneCharges()
     return UnitPower("player", 16)
 end
 
--- SPELL_POWER_FURY 17 Legion Vengeance Demon Hunter.
+-- SPELL_POWER_FURY 17 Legion Havoc Demon Hunter.
 function jps.powerFury()
     return UnitPower("player", 17)
 end
 
--- SPELL_POWER_PAIN 	18 	Legion Havoc Demon Hunter.
+-- SPELL_POWER_PAIN 18 	Legion Vengeance Demon Hunter.
 function jps.powerPain()
     return UnitPower("player", 18)
 end

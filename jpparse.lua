@@ -329,8 +329,8 @@ end
 function jps.groundClick(spellname)
 	SetCVar("deselectOnClick", "0") --	jps.Macro("/console deselectOnClick 0")
 	CastSpellByName(spellname)
-	CameraOrSelectOrMoveStart(1)
-    CameraOrSelectOrMoveStop(1)
+	CameraOrSelectOrMoveStart(2)
+    CameraOrSelectOrMoveStop(2)
 	SetCVar("deselectOnClick", "1") --	jps.Macro("/console deselectOnClick 1")
 end
 

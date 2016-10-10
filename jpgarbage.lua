@@ -95,9 +95,11 @@ Test()
 --	jps.LookupEnemyHealer()
 --	local healerTarget = jps.LowestTargetHealer()
 --	if healerTarget ~= nil then print("|cffffffffhealerTarget:|cff1eff00",healerTarget,"|cffffffffUnit:|cff1eff00",GetUnitName(healerTarget)) end
---
+
 --	local rangedTarget, EnemyUnit, TargetCount = jps.LowestTarget()
+--	if jps.canDPS("focus") then EnemyUnit[#EnemyUnit+1] = "focus" end
 --	print("|cffffffffRangedTarget:|cff1eff00",rangedTarget,"|cffffffffTargetCount:|cff1eff00",TargetCount)
+--	print("|cffffffffEnemyUnit:|cff1eff00",unpack(EnemyUnit))
 
 --	local enemyTable = jps.LowestTargetRole()
 --	for unit,role in pairs(enemyTable) do
@@ -109,9 +111,9 @@ Test()
 --	MoveForwardStart()
 --	C_Timer.After(0.25,function() MoveForwardStop() end)
 
-	local lowestUnit = jps.LowestFriendIncomingDamage()
-	local lowestTTD = jps.LowestFriendTimeToDie(5)
-	print("|cffffffffDamage: |cffff8000",lowestUnit,"|cffffffffTTD: |cffff8000",lowestTTD)
+--	local lowestUnit = jps.LowestFriendIncomingDamage()
+--	local lowestTTD = jps.LowestFriendTimeToDie(5)
+--	print("|cffffffffDamage: |cffff8000",lowestUnit,"|cffffffffTTD: |cffff8000",lowestTTD)
 
 
 --	local table_1 = { {"target","HEALER"}, {"playertarget","DEFENSIVE"}, {"raid4target","DAMAGE"} }

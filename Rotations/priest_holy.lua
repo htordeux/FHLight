@@ -196,9 +196,10 @@ jps.registerRotation("PRIEST","HOLY", function()
 	
 	local parseDispel = {
 		-- "Dispel" "Purifier" 527
-		{ 527, DispelFriendRole ~= nil , DispelFriendRole , "|cff1eff00DispelFriend_Role" },
-		{ 527, DispelFriendPvP ~= nil , DispelFriendPvP , "|cff1eff00DispelFriend_PvP" },
-		{ 527, DispelFriendPvE ~= nil , DispelFriendPvE , "|cff1eff00DispelFriend_PvE" },
+		{ spells.purify, jps.canDispel("player","Magic") , "player" , "Dispel" },
+		{ spells.purify, DispelFriendRole ~= nil , DispelFriendRole , "|cff1eff00DispelFriend_Role" },
+		{ spells.purify, DispelFriendPvP ~= nil , DispelFriendPvP , "|cff1eff00DispelFriend_PvP" },
+		{ spells.purify, DispelFriendPvE ~= nil , DispelFriendPvE , "|cff1eff00DispelFriend_PvE" },
 	}
 
 ------------------------------------------------------
@@ -222,22 +223,20 @@ local spellTable = {
 
 	-- "Esprit de rédemption" buff 27827 "Spirit of Redemption"
 	{ "macro", jps.buff(27827) and CountInRange < 2 , "/cancelaura Esprit de rédemption"  },
-	{ "nested", jps.buff(27827) and not UnitIsUnit("player",LowestImportantUnit) , 
-		{
-			-- "Holy Word: Serenity" 2050
-			{ spells.holyWordSerenity , jps.hp(LowestImportantUnit) < 0.60 , LowestImportantUnit  },
-			-- "Prière de guérison" 33076
-			{ spells.prayerOfMending, not jps.Moving and not jps.buffTracker(41635) , LowestImportantUnit },
-			-- "Divine Hymn" 64843
-			{ spells.divineHymn, CountInRange > 3 and AvgHealthLoss < 0.80 },
-			-- "Prayer of Healing" 596
-			{ spells.prayerOfHealing, POHTarget ~= nil , POHTarget },
-			-- "Soins rapides" 2061
-			{ spells.flashHeal, jps.hp(LowestImportantUnit) < 0.80 , LowestImportantUnit },
-			-- "Renew" 139
-			{ spells.renew, not jps.buff(spells.renew,LowestImportantUnit) , LowestImportantUnit },
-		},
-	},
+	{ "nested", jps.buff(27827) and not UnitIsUnit("player",LowestImportantUnit) , {
+		-- "Holy Word: Serenity" 2050
+		{ spells.holyWordSerenity , jps.hp(LowestImportantUnit) < 0.60 , LowestImportantUnit  },
+		-- "Prière de guérison" 33076
+		{ spells.prayerOfMending, not jps.Moving and not jps.buffTracker(41635) , LowestImportantUnit },
+		-- "Divine Hymn" 64843
+		{ spells.divineHymn, CountInRange > 3 and AvgHealthLoss < 0.80 },
+		-- "Prayer of Healing" 596
+		{ spells.prayerOfHealing, POHTarget ~= nil , POHTarget },
+		-- "Soins rapides" 2061
+		{ spells.flashHeal, jps.hp(LowestImportantUnit) < 0.80 , LowestImportantUnit },
+		-- "Renew" 139
+		{ spells.renew, not jps.buff(spells.renew,LowestImportantUnit) , LowestImportantUnit },
+	},},
 
 	-- PLAYER AGGRO --
 	{ 208683, playerIsStun , "player" , "playerCC" },
@@ -258,8 +257,7 @@ local spellTable = {
 	{ spells.flashHeal , jps.hp(LowestImportantUnit) < 0.80 and jps.buff(114255) , LowestImportantUnit , "FlashHeal_114255" },
 	{ spells.flashHeal , jps.buff(114255) and jps.buffDuration(114255) < 4 , LowestImportantUnit , "FlashHeal_114255" },
 
-	-- Dispell
-	{ spells.dispelMagic, jps.UseCDs and jps.canDispel("player","Magic") , "player" , "Dispel" },
+	-- "Dispel" "Purifier" 527
 	{ "nested", jps.UseCDs , parseDispel },
 	-- OFFENSIVE Dispel -- "Dissipation de la magie" 528
 	{ "nested", jps.PvP and jps.hp(LowestImportantUnit) > 0.60 , {
@@ -431,23 +429,20 @@ jps.registerRotation("PRIEST","HOLY",function()
 	
 	-- "Esprit de rédemption" buff 27827
 	{ "macro", jps.buff(27827) and CountInRange < 2 , "/cancelaura Esprit de rédemption"  },
-	{ "nested", jps.buff(27827) and not UnitIsUnit("player",LowestImportantUnit), 
-		{
-			-- "Holy Word: Serenity" 2050
-			{ spells.holyWordSerenity , jps.hp(LowestImportantUnit) < 0.60 , LowestImportantUnit  },
-			-- "Prière de guérison" 33076
-			{ spells.prayerOfMending, not jps.Moving and not jps.buffTracker(41635) , LowestImportantUnit },
-			-- "Divine Hymn" 64843
-			{ spells.divineHymn, CountInRange > 3 and AvgHealthLoss < 0.80 },
-			-- "Prayer of Healing" 596
-			{ spells.prayerOfHealing, POHTarget ~= nil , POHTarget },
-			-- "Soins rapides" 2061
-			{ spells.flashHeal, jps.hp(LowestImportantUnit) < 0.80 , LowestImportantUnit },
-			-- "Renew" 139
-			{ spells.renew, not jps.buff(spells.renew,LowestImportantUnit) , LowestImportantUnit },
-		},
-	},
-	
+	{ "nested", jps.buff(27827) and not UnitIsUnit("player",LowestImportantUnit), {
+		-- "Holy Word: Serenity" 2050
+		{ spells.holyWordSerenity , jps.hp(LowestImportantUnit) < 0.60 , LowestImportantUnit  },
+		-- "Prière de guérison" 33076
+		{ spells.prayerOfMending, not jps.Moving and not jps.buffTracker(41635) , LowestImportantUnit },
+		-- "Divine Hymn" 64843
+		{ spells.divineHymn, CountInRange > 3 and AvgHealthLoss < 0.80 },
+		-- "Prayer of Healing" 596
+		{ spells.prayerOfHealing, POHTarget ~= nil , POHTarget },
+		-- "Soins rapides" 2061
+		{ spells.flashHeal, jps.hp(LowestImportantUnit) < 0.80 , LowestImportantUnit },
+		-- "Renew" 139
+		{ spells.renew, not jps.buff(spells.renew,LowestImportantUnit) , LowestImportantUnit },
+	},},
 
 	-- SNM "Levitate" 1706	
 	{ 1706, jps.fallingFor() > 1.5 and not jps.buff(111759) , "player" },

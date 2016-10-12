@@ -77,6 +77,9 @@ local DamageIncoming = jps.IncomingDamage() - jps.IncomingHeal()
 
 local spellTable = {
 
+-- "Interception" 198304
+{spells.intercept, CheckInteractDistance("target",2) == false },
+
 -- interrupts --
 {spells.pummel, jps.Interrupts and jps.ShouldKick("target") },
 -- Heroic Leap resets the cooldown of Taunt.
@@ -91,28 +94,28 @@ local spellTable = {
 {spells.lastStand , jps.hp() < 0.40 and not jps.buff(871) , "target" , "lastStand" }, -- cd 3 min
 
 -- "Demoralizing Shout" 1160
-{spells.demoralizingShout,  },
--- "Neltharion's Fury" cd 45 sec
+{spells.demoralizingShout },
+-- "Neltharion's Fury" cd 45 sec -- "Shield Block" buff 132404
 {spells.neltharionsFury, jps.cooldown(spells.shieldBlock) > 0 and not jps.buff(132404) , "target" , "neltharionsFury" },
 
--- "Focused Rage"  204488 "Rage concentrée"
--- Increasing Shield Slam damage by 50%, stacking up to 3 times.
--- Vengeance talent buff  202573 reduces the Rage cost of your next Focused Rage by 35%
-{spells.focusedRage, jps.buff(202573), "target" , "focusedRage_Vengeance" },
+-- "Focused Rage" 204488 "Rage concentrée" -- Increasing Shield Slam damage by 50%, stacking up to 3 times -- gives buff 204488
 -- "Ultimatum" buff 122510 Your next Focused Rage costs no Rage
-{spells.focusedRage, jps.buff(122510) , "target" , "focusedRage_Ultimatum" },
+{spells.focusedRage, jps.buff(122510) and not jps.buff(204488) , "target" , "focusedRage_Ultimatum" },
+-- Vengeance talent buff 202573 reduces the Rage cost of your next Focused Rage by 35%
+{spells.focusedRage, jps.buff(202573) and not jps.buff(204488) , "target" , "focusedRage_Vengeance" },
+{spells.focusedRage, jps.rage() == 100 and not jps.buff(204488) , "target" , "focusedRage_unBuff" },
+
 -- "Shield Block" 2565 -- cd 13 sec, duration 6 sec, Increases Shield Slam damage by 30% while active 
 {spells.shieldBlock },
--- "Battle Cry" 1719 -- cd 60 sec, duration 5 sec, 100% increased critical strike chance for 5 sec.
--- "Shield Block" buff 132404
+-- "Battle Cry" 1719 -- cd 60 sec, duration 5 sec, 100% increased critical strike chance for 5 sec -- "Shield Block" buff 132404
 {spells.battleCry, jps.buff(132404) , "target" , "battleCry" },
 -- "Shield Slam" 23922
 {spells.shieldSlam },
 
--- "Dur au mal" 190456 -- "Vengeance: Ignore Pain" 202574 "Vengeance : Dur au mal"
+-- "Dur au mal" 190456 -- gives buff 190456
+-- "Vengeance: Ignore Pain" 202574 "Vengeance : Dur au mal"
 -- Vengeance talent buff 202574 reduces the Rage cost of your next Ignore Pain by 35%
-{spells.ignorePain, jps.buff(202574) and jps.buffDuration(190456) < 3 , "target" , "ignorePain_Vengeance" },
-{spells.ignorePain, jps.Defensive and jps.buffDuration(190456) < 3 , "target" , "ignorePain_Duration" },
+{spells.ignorePain, jps.buff(202574) and not jps.buff(190456) , "target" , "ignorePain_Vengeance" },
 
 --MultiTarget -- including Renewed, Into the Fray, and Ravager, 
 { "nested" , jps.MultiTarget, {
@@ -127,6 +130,8 @@ local spellTable = {
 {spells.revenge },
 -- "Devastate" 20243 -- you have a 30% chance to reset the remaining cooldown of Shield Slam Icon Shield Slam.
 {spells.devastate },
+{spells.shockwave, jps.UnitExists("focus") and jps.UnitExists("target") , "target", "shockwave"  },
+
 
 
 }

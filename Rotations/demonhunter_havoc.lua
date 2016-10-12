@@ -63,7 +63,7 @@ if canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
 local spellTable = {
 
 	-- 195072
-    {spells.felRush , CheckInteractDistance(rangedTarget,3) == false },
+    {spells.felRush , CheckInteractDistance(rangedTarget,2) == false },
 	-- "Planer"
 	{ 131347, jps.fallingFor() > 1.5 , "player" },
 	-- "Torrent arcanique" 202719

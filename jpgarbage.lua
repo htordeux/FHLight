@@ -134,6 +134,17 @@ Test()
 --		print("unit: ",i,"role: ",j[1],"-",j[2])
 --	end
 
+
+--for distIndex =1,6 do
+--	local inRange = CheckInteractDistance("target", distIndex)
+--	print("distIndex:",distIndex,"inRange:",inRange)
+--end
+--
+--1 et 4 false to true à 28 yards
+--2 false to true à 8 yards
+--3 et 5 false to true à 7 yards
+
+
 end
 
 --[[

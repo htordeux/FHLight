@@ -275,7 +275,7 @@ jps.canFear = function(rangedTarget)
 	if jps.buff(BerserkerRage,rangedTarget) then return false end
 	local canFear = false
 	if jps.canDPS(rangedTarget) then
-		if (CheckInteractDistance(rangedTarget,3) == true) then canFear = true end
+		if (CheckInteractDistance(rangedTarget,2) == true) then canFear = true end
 	end
 	return canFear
 end

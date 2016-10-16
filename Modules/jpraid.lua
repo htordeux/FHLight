@@ -147,8 +147,8 @@ function jps.targetIsBoss(unit)
 	if not jps.UnitExists(unit) then return false end
 	if UnitLevel(unit) == -1 then return true end
 	local classUnit = UnitClassification(unit)
-	if string.find(classUnit,"elite") then return true
-	elseif string.find(classUnit,"boss") then return true
+	if string.find(classUnit,"elite") ~= nil then return true
+	elseif string.find(classUnit,"boss") ~= nil then return true
 	end
 	return false
 end

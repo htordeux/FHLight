@@ -146,13 +146,13 @@ function parseTrinketText(trinket,str)
 				local matchesRequired = table.getn(str)
 				local matchesFound = 0
 				for key, val in pairs(str) do 
-					if string.find(text:lower(),val:lower()) then 
-						matchesFound = matchesFound +1 
+					if string.find(text:lower(),val:lower()) ~= nil then 
+						matchesFound = matchesFound + 1 
 					end
 				end
 				if matchesFound == matchesRequired then found = true end
 			else 
-				if string.find(text, str) then 
+				if string.find(text,str) ~= nil then 
 					found = true 
 				end
 			end

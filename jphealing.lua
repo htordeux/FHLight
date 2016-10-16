@@ -248,10 +248,10 @@ function jps.findThreatInRaid()
 	if #AggroUnit == 0 then return TankUnit end
 	for i=1,#AggroUnit do
 		local unit = AggroUnit[i]
-		local unitThreat = UnitThreatSituation(unit,"target")
-		if unitThreat and canHeal(unit) then
-			if unitThreat > maxThreat then
-				maxThreat = unitThreat
+		local _,_,threatpct,_,_ = UnitThreatSituation(unit,"target")
+		if threatpct and canHeal(unit) then
+			if threatpct > maxThreat then
+				maxThreat = threatpct
 				TankUnit = unit
 			end
 		end

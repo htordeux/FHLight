@@ -263,12 +263,6 @@ hooksecurefunc("UseAction", function(...)
 				write("Set",spell,"for next cast.")
 			end
 		end
---		if stype == "macro" then
---            local macroText = select(3, GetMacroInfo(id))
---            if string.find(macroText,"jps") == nil then
---                jps.NextMacro = macroText
---            end
---        end
 	end
 end)
 

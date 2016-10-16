@@ -81,7 +81,7 @@ jps.spells.priest.glyphOfTheSha = jps.toSpellName(147776)
 jps.spells.priest.clarityOfWill = jps.toSpellName(152118)
 jps.spells.priest.auspiciousSpirits = jps.toSpellName(155271)
 jps.spells.priest.shadowyInsight = jps.toSpellName(162452)
-jps.spells.priest.voidform = jps.toSpellName(185916)
+jps.spells.priest.voidForm = jps.toSpellName(185916)
 jps.spells.priest.shadowMend = jps.toSpellName(186263)
 jps.spells.priest.masochism = jps.toSpellName(193063)
 jps.spells.priest.castigation = jps.toSpellName(193134)
@@ -231,7 +231,7 @@ function jps.canCastshadowWordDeath()
 end
 
 function jps.canCastvoidBolt()
-   if not jps.buff(jps.spells.priest.voidform) then return false end
+   if not jps.buff(jps.spells.priest.voidForm) then return false end
    if jps.cooldown(jps.spells.priest.voidEruption) > 0 then return false end
    local Channeling = UnitChannelInfo("player") -- "Mind Flay" is a channeling spell
    local MindFlay = tostring(jps.spells.priest.mindFlay)
@@ -244,13 +244,13 @@ function jps.canCastvoidBolt()
 end
 
 function jps.canCastvoidEruption()
-   if jps.buff(jps.spells.priest.voidform) then return false end
+   if jps.buff(jps.spells.priest.voidForm) then return false end
    if not jps.isUsableSpell(jps.spells.priest.voidEruption) then return false end
+   if jps.hasTalent(7,1) and jps.insanity() < 85 then return false end
    local Channeling = UnitChannelInfo("player") -- "Mind Flay" is a channeling spell
    local MindFlay = tostring(jps.spells.priest.mindFlay)
    local MindSear = tostring(jps.spells.priest.mindSear)
-   local insanity = jps.insanity()
-   if Channeling ~= nil and insanity == 100 then
+   if Channeling ~= nil then
       if tostring(Channeling) == MindFlay then return true end
       if tostring(Channeling) == MindSear then return true end
    end

@@ -42,17 +42,17 @@ local CountInRange, AvgHealthLoss, FriendUnit = jps.CountInRaidStatus()
 print("|cff1eff00CountInRange: |cffffffff",CountInRange,"|cff1eff00AvgHealthLoss: |cffffffff",AvgHealthLoss,"|cff1eff00FriendUnit: |cffffffff",#FriendUnit)
 write("***************************")
 
---	local Tank,Tanks = jps.findTankInRaid()
---	for i=1,#Tanks do
---		print("|cff0070ddTank: ",GetUnitName(Tanks[i]))
---	end
---	local aggroTank = jps.findThreatInRaid()
---	print("|cFFFF0000AggroTank: ",GetUnitName(aggroTank))
---	local lowestUnit = jps.LowestImportantUnit()
---	print("|cff1eff00Lowest: ",GetUnitName(lowestUnit))
+local Tank,Tanks = jps.findTankInRaid()
+for i=1,#Tanks do
+	print("|cff0070ddTank: ",GetUnitName(Tanks[i]))
+end
+local aggroTank = jps.findThreatInRaid()
+print("|cFFFF0000AggroTank: ",GetUnitName(aggroTank))
 
---	local friendtableaggro = jps.FriendAggroTable()
---	print("friendtableaggro: ",friendtableaggro)
+--local lowestUnit = jps.LowestImportantUnit()
+--print("|cff1eff00Lowest: ",GetUnitName(lowestUnit))
+--local friendtableaggro = jps.FriendAggroTable()
+--print("friendtableaggro: ",friendtableaggro)
 
 end
 
@@ -80,14 +80,22 @@ end
 
 Test()
 
+--local target = GetUnitName("target")
+--print("find",string.find(target,"Mannequin") ~= nil )
+--print("match",string.match(target,"Mannequin") ~= nil )
+--
+--local voidFormBuff = jps.buff(jps.spells.priest.voidForm)
+--local voidEruptionUsable = jps.isUsableSpell(jps.spells.priest.voidEruption)
+--local voidEruptionCooldown =  jps.cooldown(jps.spells.priest.voidEruption)
+--print("voidFormBuff:",voidFormBuff)
+--print("voidEruptionUsable: ",voidEruptionUsable)
+--print("voidEruptionCooldown: ",voidEruptionCooldown)
+
 --local _,_,classId = UnitClass("player")
 --local specId = GetSpecialization()
 --local id, name, description, icon, background, role, primaryStat = GetSpecializationInfo(specId)
 --print("classId:",classId,"specId",specId)
 --print("specName:",jps.specName(),"Spec",jps.Spec)
---print("jps.buff(jps.spells.priest.voidform):",jps.buff(jps.spells.priest.voidform))
---print("jps.spells.priest.lingeringInsanity):",jps.buff(jps.spells.priest.lingeringInsanity))
---print("jps.isUsableSpell(jps.spells.priest.voidEruption):",jps.isUsableSpell(jps.spells.priest.voidEruption))
 --print("isHealer: ", jps.isHealer)
 
 --	jps.LookupIncomingDamage()

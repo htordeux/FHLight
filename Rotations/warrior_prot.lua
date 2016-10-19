@@ -41,7 +41,7 @@ local inRanged = jps.IsSpellInRange(57755,"target") -- "Heroic Throw" 57755 "Lan
 local rangedTarget, EnemyUnit, TargetCount = jps.LowestTarget()
 
 -- Config FOCUS with MOUSEOVER
-if not jps.UnitExists("focus") and canDPS("mouseover") and UnitAffectingCombat("mouseover") then
+if not jps.UnitExists("focus") and canAttack("mouseover") then
 	-- set focus an enemy targeting you
 	if UnitIsUnit("mouseovertarget","player") and not UnitIsUnit("target","mouseover") then
 		jps.Macro("/focus mouseover") --print("Enemy DAMAGER|cff1eff00 "..name.." |cffffffffset as FOCUS")

@@ -219,9 +219,11 @@ local parseHeal = {
 -- SPELLTABLE
 -----------------------------
 
+if not UnitCanAttack("player", "target") then return end
+
 local spellTable = {
 
-	{spells.dispersion, jps.hp("player") < 0.30 },
+	{spells.dispersion, jps.hp("player") < 0.40 },
 	{spells.vampiricEmbrace, jps.hp("player") < 0.60 },
 	{spells.giftNaaru, jps.hp("player") < 0.80 , "player" },
 
@@ -243,8 +245,8 @@ local spellTable = {
 		{spells.voidEruption, jps.myDebuff(spells.shadowWordPain,rangedTarget) and jps.myDebuffDuration(spells.shadowWordPain,rangedTarget) < 3 , rangedTarget , "voidBold_Target"},
 		{spells.voidEruption, jps.myDebuff(spells.vampiricTouch,rangedTarget) and jps.myDebuffDuration(spells.vampiricTouch,rangedTarget) < 3 , rangedTarget , "voidBold_Target"},
 		{spells.voidEruption, VoidBoltTarget ~= nil , VoidBoltTarget , "voidBold_MultiUnit"},
-    	{spells.voidEruption, jps.myDebuff(spells.shadowWordPain,"mouseover") and jps.myDebuffDuration(spells.shadowWordPain,"mouseover") < 3 , "mouseover" , "voidBold_mouseover"},
-    	{spells.voidEruption, jps.myDebuff(spells.vampiricTouch,"mouseover") and jps.myDebuffDuration(spells.vampiricTouch,"mouseover") < 3 , "mouseover" , "voidBold_mouseover"},
+    	{spells.voidEruption, jps.myDebuff(spells.shadowWordPain,"mouseover") and jps.myDebuffDuration(spells.shadowWordPain,"mouseover") < 3 , "mouseover" , "voidBold_Mouseover"},
+    	{spells.voidEruption, jps.myDebuff(spells.vampiricTouch,"mouseover") and jps.myDebuffDuration(spells.vampiricTouch,"mouseover") < 3 , "mouseover" , "voidBold_Mouseover"},
     	{spells.voidEruption, true , rangedTarget , "voidBold_Buff"},
     	-- spells.voidTorrent
     	{spells.voidTorrent , not jps.Moving and jps.insanity() < 70 and jps.cooldown(spells.mindBlast) > 0 and not jps.isUsableSpell(spells.shadowWordDeath) , rangedTarget , "voidTorrent_Buff"},
@@ -274,7 +276,7 @@ local spellTable = {
 	}},
 
 	-- interrupts --
-	{spells.fade, jps.hp("player") < 1 and jps.playerIsTargeted() },
+	{spells.fade, jps.hp("player") < 1 and jps.FriendAggro("player") },
 	{spells.silence, jps.Interrupts and SilenceEnemyTarget ~= nil , SilenceEnemyTarget , "Silence_MultiUnit_Target" },
 	-- "Psychic Scream" 8122 "Cri psychique"  -- FARMING OR PVP -- NOT PVE -- debuff same ID 8122
 	{spells.psychicScream, jps.Defensive and jps.IsCasting(rangedTarget) and jps.canFear(rangedTarget) and jps.cooldown(spells.silence) > 0 , rangedTarget },
@@ -287,7 +289,9 @@ local spellTable = {
 	-- "Purify Disease" 213634
 	{spells.purifyDisease, jps.UseCDs and jps.canDispel("player","Disease") , "player" , "Disease" },
 	{spells.purifyDisease, jps.UseCDs and jps.canDispel("player",Tank) , Tank },
-	
+	-- "Guérison de l’ombre" 186263
+	{spells.shadowMend, not jps.Moving and jps.hp("player") < 0.80 and jps.castEverySeconds(186263, 4), "player" , "shadowMendPlayer" },
+
 	{spells.shadowWordPain, canAttack("mouseover") and fnPainEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "Pain_Mouseover" },
 	{spells.shadowWordPain, jps.PvP and fnPainEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "Pain_Mouseover" },
 	
@@ -298,13 +302,11 @@ local spellTable = {
 	{spells.vampiricTouch, not jps.Moving and VampEnemyTarget ~= nil and not UnitIsUnit("target",VampEnemyTarget) , VampEnemyTarget , "VT_MultiUnit" },
 	{spells.shadowWordPain, PainEnemyTarget ~= nil and not UnitIsUnit("target",PainEnemyTarget) , PainEnemyTarget , "Pain_MultiUnit" },
 	
-	{spells.shadowMend, not jps.Moving and jps.hp("player") < 0.80 and jps.cooldown(spells.vampiricEmbrace) > 0 and jps.castEverySeconds(spells.shadowMend, 4), "player" , "shadowMendPlayer" },
+	{spells.powerWordShield, jps.IncomingDamage(TankThreat) > 0 and jps.hp(TankThreat) < 0.80 and not jps.buff(spells.powerWordShield,TankThreat) , TankThreat },
+	{spells.shadowMend, not jps.Moving and jps.hp(TankThreat) < 0.40 and jps.cooldown(spells.vampiricEmbrace) > 0 and jps.castEverySeconds(spells.shadowMend, 4), TankThreat , "shadowMendTank" },
 	
 	{spells.vampiricTouch, canAttack("mouseover") and not jps.Moving and fnVampEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "VT_Mouseover" },
 	{spells.vampiricTouch, jps.PvP and not jps.Moving and fnVampEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "VT_Mouseover" },
-
-	{spells.powerWordShield, jps.IncomingDamage(TankThreat) > 0 and jps.hp(TankThreat) < 0.80 and not jps.buff(spells.powerWordShield,TankThreat) , TankThreat },
-	{spells.shadowMend, not jps.Moving and jps.hp(TankThreat) < 0.40 and jps.cooldown(spells.vampiricEmbrace) > 0 and jps.castEverySeconds(spells.shadowMend, 4), TankThreat , "shadowMendTank" },
 
 	{spells.mindSpike, not jps.Moving },
 	{spells.mindFlay, not jps.Moving },
@@ -320,14 +322,6 @@ end, "Default Shadow Priest" )
 ------------------------------------------------------------------------------------------------------
 
 jps.registerRotation("PRIEST","SHADOW",function()
-
-local spell = nil
-local target = nil
-
-if canDPS("target") then rangedTarget =  "target"
-elseif canDPS("targettarget") then rangedTarget = "targettarget"
-elseif canDPS("focustarget") then rangedTarget = "focustarget"
-end
 
 local spellTable = {
 
@@ -349,11 +343,6 @@ end,"Test Shadow Priest")
 
 jps.registerParseRotation("PRIEST","SHADOW", {
 
---if canDPS("target") then rangedTarget =  "target"
---elseif canDPS("targettarget") then rangedTarget = "targettarget"
---elseif canDPS("focustarget") then rangedTarget = "focustarget"
---end
-
 	{"macro", jps.canCastMindBlast , "/stopcasting" },
 	{spells.mindBlast, not jps.Moving },
 	{spells.mindSear, not jps.Moving and jps.MultiTarget },
@@ -368,23 +357,15 @@ jps.registerParseRotation("PRIEST","SHADOW", {
 
 jps.registerRotation("PRIEST","SHADOW",function()
 
-	-- rangedTarget returns "target" by default
-	local rangedTarget, _, _ = jps.LowestTarget()
+	local spell = nil
+	local target = nil
 	local Shield = jps.spells.priest.powerWordShield
-
-	if canDPS("target") then rangedTarget =  "target"
-	elseif canDPS("targettarget") then rangedTarget = "targettarget"
-	elseif canDPS("focustarget") then rangedTarget = "focustarget"
-	end
-	-- if your target is friendly keep it as target
-	if not canHeal("target") and canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
-	
-	if jps.ChannelTimeLeft() > 0 then return nil end
-	if jps.CastTimeLeft() > 0 then return nil end
 	
 	local spellTable = {
 	
-	{ "macro", jps.buff(17) , "/cancelaura "..Shield  },
+	-- "Shield" 17 "Body and Soul" 64129 "Corps et âme" -- Vitesse de déplacement augmentée de 40% -- buff 65081
+	{ 17, jps.Moving and not jps.buff(17,"player") and jps.hasTalent(2,2) , "player" , "Shield_BodySoul" },
+	{ "macro", not jps.buff(65081) and jps.Moving and jps.buff(17) and jps.hasTalent(2,2) , "/cancelaura "..Shield },
 
 	-- SNM "Levitate" 1706	
 	{ 1706, jps.fallingFor() > 1.5 and not jps.buff(111759) , "player" },
@@ -392,8 +373,6 @@ jps.registerRotation("PRIEST","SHADOW",function()
 	
 	-- "Don des naaru" 59544
 	{ 59544, jps.hp("player") < 0.75 , "player" },
-	-- "Shield" 17 "Body and Soul" 64129 -- figure out how to speed buff everyone as they move
-	{ 17, jps.Moving and jps.hasTalent(2,2) and not jps.buff(17,"player") , "player" , "Shield_BodySoul" },
 
 	-- "Oralius' Whispering Crystal" 118922 "Cristal murmurant d’Oralius" -- buff 176151
 	--{ "macro", jps.itemCooldown(118922) == 0 , "/use item:118922" , "Item_Oralius"},

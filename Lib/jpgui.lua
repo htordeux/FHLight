@@ -519,9 +519,11 @@ function jps.gui_toggleRot( value )
 		return
 	end
 	if jps.FaceTarget then
+		rotationDropdownHolder:Show()
 		ToggleRot.border:SetTexture(jps.GUIborder)
 		write ("FaceTarget Disabled.")
 	else
+		rotationDropdownHolder:Hide()
 		ToggleRot.border:SetTexture(jps.GUIborder_active)
 		write ("FaceTarget Enabled.")
 	end

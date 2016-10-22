@@ -14,7 +14,7 @@ local UnitIsUnit = UnitIsUnit
 ------------------------------------------------------------------------------------------------------
 ---------------------------------------------- ROTATION ----------------------------------------------
 ------------------------------------------------------------------------------------------------------
---jps.PvP for mouseover which are not UnitAffectingCombat
+--jps.PvP for mouseover which are not UnitAffectingCombat and for Power Infusion
 --jps.Defensive for "Psychic Scream"
 --jps.Interrupts for "Silence"
 --jps.UseCDs for "Purify Disease"
@@ -180,6 +180,7 @@ end
 ----------------------------------------------------------
 
 if jps.buff(47585,"player") then return end -- "Dispersion" 47585
+local canCastShadowWordDeath = isUsableShadowWordDeath()
 
 -- "Mind Flay" 15407 -- "Mind Blast" 8092 -- buff 81292 "Glyph of Mind Spike"
 -- "Insanity" 129197 -- buff "Shadow Word: Insanity" 132573
@@ -226,20 +227,23 @@ local spellTable = {
 	{spells.dispersion, jps.hp("player") < 0.40 },
 	{spells.vampiricEmbrace, jps.hp("player") < 0.60 },
 	{spells.giftNaaru, jps.hp("player") < 0.80 , "player" },
+	
+	-- interrupts --
+	{spells.fade, jps.FriendAggro("player") },
+	{spells.silence, jps.Interrupts and SilenceEnemyTarget ~= nil , SilenceEnemyTarget , "Silence_MultiUnit_Target" },
+	-- "Psychic Scream" 8122 "Cri psychique"  -- FARMING OR PVP -- NOT PVE -- debuff same ID 8122
+	{spells.psychicScream, jps.Defensive and jps.IsCasting(rangedTarget) and jps.canFear(rangedTarget) , rangedTarget },
+	-- "Mind Bomb" 205369 -- 30 yd range
+	{spells.mindBomb, jps.IsCasting(rangedTarget) , rangedTarget },
 
 	-- Opening
-	{spells.mindbender, jps.insanity() == 0 and not jps.buff(spells.lingeringInsanity) , rangedTarget , "opening_mindbender" },
+	{spells.mindbender, not jps.buff(spells.voidform) and not jps.buff(spells.lingeringInsanity) , rangedTarget , "opening_mindbender" },
+	{spells.shadowfiend },
+	-- "Power Infusion" 10060
+	{spells.powerInfusion, jps.insanity() < 100 and jps.buffStacks(spells.voidForm) > 9 },
+	{spells.powerInfusion, jps.insanity() == 0 and not jps.buff(spells.lingeringInsanity) },
+	{spells.powerInfusion, jps.PvP },
 
-	{"macro", jps.canCastvoidEruption , "/stopcasting" },
-	-- "Lingering Insanity" 197937 "Délire persistant"
-	{"nested", not jps.Moving and isTargetElite and jps.insanity() > 85 and not jps.buff(spells.voidform) , {
-		{spells.voidEruption, jps.insanity() == 100 and jps.myDebuffDuration(spells.vampiricTouch) > 4 , rangedTarget , "voidEruption" },
-		{spells.voidEruption, jps.insanity() == 100 and jps.myDebuffDuration(spells.shadowWordPain) > 4 , rangedTarget , "voidEruption" },
-		{spells.voidEruption, jps.insanity() == 100 and jps.buff(spells.lingeringInsanity) and jps.buffDuration(197937) < 6 , rangedTarget , "voidEruption" },
-		{spells.voidEruption, jps.hasTalent(7,1) and jps.myDebuffDuration(spells.shadowWordPain) > 4 and jps.myDebuffDuration(spells.vampiricTouch) > 4 , rangedTarget , "voidEruption" },
-		{spells.voidEruption, jps.hasTalent(7,1) and jps.buff(spells.lingeringInsanity) and jps.buffDuration(197937) < 6 , rangedTarget , "voidEruption" },
-	}},
-	
 	{"nested", jps.buff(spells.voidForm) , {
 		{"macro", jps.canCastvoidBolt , "/stopcasting" },
 		{spells.voidEruption, jps.myDebuff(spells.shadowWordPain,rangedTarget) and jps.myDebuffDuration(spells.shadowWordPain,rangedTarget) < 3 , rangedTarget , "voidBold_Target"},
@@ -249,12 +253,26 @@ local spellTable = {
     	{spells.voidEruption, jps.myDebuff(spells.vampiricTouch,"mouseover") and jps.myDebuffDuration(spells.vampiricTouch,"mouseover") < 3 , "mouseover" , "voidBold_Mouseover"},
     	{spells.voidEruption, true , rangedTarget , "voidBold_Buff"},
     	-- spells.voidTorrent
-    	{spells.voidTorrent , not jps.Moving and jps.insanity() < 70 and jps.cooldown(spells.mindBlast) > 0 and not jps.isUsableSpell(spells.shadowWordDeath) , rangedTarget , "voidTorrent_Buff"},
+    	{spells.voidTorrent , not jps.Moving and jps.insanity() < 70 and jps.cooldown(spells.mindBlast) > 0 and not canCastShadowWordDeath , rangedTarget , "voidTorrent_Buff"},
    		-- spells.mindbender
-		{spells.mindbender,  jps.buffStacks(spells.voidForm) > 10 , rangedTarget , "high_mindbender_Buff" },
+		{spells.mindbender,  jps.buffStacks(spells.voidForm) > 9 , rangedTarget , "high_mindbender_Buff" },
 		{spells.mindbender, jps.insanity() < 50 , rangedTarget , "low_mindbender_Buff" },
-		-- Low Insanity coming up (Shadow Word: Death , Void Bolt , Mind Blast , AND Void Torrent are all on cooldown and you are in danger of reaching 0 Insanity).
-		{spells.dispersion, jps.insanity() < 50 and jps.cooldown(spells.mindbender) > 50 and jps.cooldown(spells.voidTorrent) > 0 and jps.cooldown(spells.mindBlast) > 0 and not jps.isUsableSpell(spells.shadowWordDeath) , "player" , "DISPERSION_insanity" },
+	}},
+	
+	-- Low Insanity coming up (Shadow Word: Death , Void Bolt , Mind Blast , AND Void Torrent are all on cooldown and you are in danger of reaching 0 Insanity).
+	{"nested", jps.buff(spells.voidForm) and jps.cooldown(spells.voidTorrent) > 0 and jps.cooldown(spells.mindBlast) > 0 and not canCastShadowWordDeath , {
+		{spells.dispersion, jps.hasTalent(6,3) and jps.insanity() < 50 and jps.cooldown(spells.mindbender) > 50 , "player" , "DISPERSION_insanity" },
+		{spells.dispersion, jps.hasTalent(6,1) and jps.insanity() < 50 and jps.cooldown(spells.powerInfusion) < 6 , "player" , "DISPERSION_insanity" },
+	}},
+	
+	{"macro", jps.canCastvoidEruption , "/stopcasting" },
+	-- "Lingering Insanity" 197937 "Délire persistant"
+	{"nested", not jps.Moving and isTargetElite and jps.insanity() > 85 and not jps.buff(spells.voidform) , {
+		{spells.voidEruption, jps.insanity() == 100 and jps.myDebuffDuration(spells.vampiricTouch) > 4 , rangedTarget , "voidEruption" },
+		{spells.voidEruption, jps.insanity() == 100 and jps.myDebuffDuration(spells.shadowWordPain) > 4 , rangedTarget , "voidEruption" },
+		{spells.voidEruption, jps.insanity() == 100 and jps.buff(spells.lingeringInsanity) and jps.buffDuration(197937) < 4 , rangedTarget , "voidEruption" },
+		{spells.voidEruption, jps.hasTalent(7,1) and jps.myDebuffDuration(spells.shadowWordPain) > 4 and jps.myDebuffDuration(spells.vampiricTouch) > 4 , rangedTarget , "voidEruption" },
+		{spells.voidEruption, jps.hasTalent(7,1) and jps.buff(spells.lingeringInsanity) and jps.buffDuration(197937) < 6 , rangedTarget , "voidEruption" },
 	}},
 
     -- spells.shadowWordDeath
@@ -274,12 +292,6 @@ local spellTable = {
 		{spells.shadowWordDeath, DeathEnemyTarget ~= nil , DeathEnemyTarget , "Death1_Buff" },
 		{spells.shadowWordDeath, jps.hp("mouseover") < 0.35 , "mouseover" , "Death1_Buff" },
 	}},
-
-	-- interrupts --
-	{spells.fade, jps.hp("player") < 1 and jps.FriendAggro("player") },
-	{spells.silence, jps.Interrupts and SilenceEnemyTarget ~= nil , SilenceEnemyTarget , "Silence_MultiUnit_Target" },
-	-- "Psychic Scream" 8122 "Cri psychique"  -- FARMING OR PVP -- NOT PVE -- debuff same ID 8122
-	{spells.psychicScream, jps.Defensive and jps.IsCasting(rangedTarget) and jps.canFear(rangedTarget) and jps.cooldown(spells.silence) > 0 , rangedTarget },
 
 	{"macro", jps.canCastMindBlast , "/stopcasting" },
 	{spells.mindBlast , not jps.Moving , rangedTarget , "mindBlast"},

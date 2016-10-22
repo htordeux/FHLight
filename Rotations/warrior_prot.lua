@@ -106,6 +106,18 @@ local spellTable = {
 -- "Demoralizing Shout" 1160
 {spells.demoralizingShout, damageIncoming > 9000 and not jps.buff(190456) },
 
+-- "Shield Slam" 23922
+{spells.shieldSlam, inMelee },
+
+-- "Dur au mal" 190456 -- gives buff 190456
+-- "Vengeance: Ignore Pain" 202574 "Vengeance : Dur au mal"
+-- Vengeance talent buff 202574 reduces the Rage cost of your next Ignore Pain by 35%
+{ "nested" , playerIsTargeted or damageIncoming > 9000 , {
+	{spells.ignorePain, jps.buff(202574) and not jps.buff(190456) , "target" , "ignorePain_Vengeance" },
+	{spells.ignorePain, jps.buff(202574) and jps.buff(190456) and jps.buffDuration(190456) < 2 , "target" , "ignorePain_Duration" },
+	{spells.ignorePain, jps.rage() > 32 and not jps.buff(190456) , "target" , "ignorePain__unBuff" },
+}},
+
 -- "Focused Rage" 204488 "Rage concentrée" -- Increasing Shield Slam damage by 50%, stacking up to 3 times -- gives buff 204488
 -- "Ultimatum" buff 122510 Your next Focused Rage costs no Rage -- Ultimatum lasts 10 sec
 {spells.focusedRage, jps.buff(122510) and not jps.buff(204488) , "target" , "focusedRage_Ultimatum" },
@@ -122,17 +134,7 @@ local spellTable = {
 -- "Battle Cry" 1719 -- cd 60 sec, duration 5 sec, 100% increased critical strike chance for 5 sec -- "Shield Block" buff 132404
 {spells.battleCry, jps.buff(132404) and jps.cooldown(spells.shieldSlam) == 0 , "target" , "battleCry" },
 {spells.battleCry, jps.buff(spells.avatar) and jps.cooldown(spells.shieldSlam) == 0 , "target" , "battleCry" },
--- "Shield Slam" 23922
-{spells.shieldSlam, inMelee },
 
--- "Dur au mal" 190456 -- gives buff 190456
--- "Vengeance: Ignore Pain" 202574 "Vengeance : Dur au mal"
--- Vengeance talent buff 202574 reduces the Rage cost of your next Ignore Pain by 35%
-{ "nested" , playerIsTargeted or damageIncoming > 9000 , {
-	{spells.ignorePain, jps.buff(202574) and not jps.buff(190456) , "target" , "ignorePain_Vengeance" },
-	{spells.ignorePain, jps.buff(202574) and jps.buff(190456) and jps.buffDuration(190456) < 2 , "target" , "ignorePain_Duration" },
-	{spells.ignorePain, jps.rage() > 32 and not jps.buff(190456) , "target" , "ignorePain__unBuff" },
-}},
 
 --MultiTarget -- including Renewed, Into the Fray, and Ravager
 { "nested" , jps.MultiTarget , {

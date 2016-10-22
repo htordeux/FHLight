@@ -80,6 +80,10 @@ end
 
 Test()
 
+--print(jps.isUsableSpell(jps.spells.priest.shadowWordDeath))
+--print(jps.spellCharges(jps.spells.priest.shadowWordDeath))
+--print(jps.cooldown(jps.spells.priest.shadowWordDeath))
+
 --local target = GetUnitName("target")
 --print("find",string.find(target,"Mannequin") ~= nil )
 --print("match",string.match(target,"Mannequin") ~= nil )

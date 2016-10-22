@@ -213,21 +213,27 @@ end
 -- FUNCTIONS ENEMY UNIT
 ------------------------------------
 
+function isUsableShadowWordDeath()
+	if jps.isUsableSpell(jps.spells.priest.shadowWordDeath) and jps.spellCharges(jps.spells.priest.shadowWordDeath) > 0 and jps.cooldown(jps.spells.priest.shadowWordDeath) < 1 then return true end
+	return false
+end
+
 --not fully tested
 function jps.canCastshadowWordDeath()
-   if jps.cooldown(jps.spells.priest.shadowWordDeath) > 0 then return false end
-   local Channeling = UnitChannelInfo("player") -- "Mind Flay" is a channeling spell
-   local MindFlay = tostring(jps.spells.priest.mindFlay)
-   local MindSear = tostring(jps.spells.priest.mindSear)
-   local charges = jps.spellCharges(jps.spells.priest.shadowWordDeath) -- "Shadow Word: Death"
-   local insanity = jps.insanity()
-   if Channeling ~= nil then
-      if tostring(Channeling) == MindFlay and jps.hp("target") < 0.35 and charges == 2 then return true end
-      if tostring(Channeling) == MindFlay and jps.hp("target") < 0.35 and charges == 1 and insanity < 70 then return true end
-      if tostring(Channeling) == MindSear and jps.hp("target") < 0.35 and charges == 2 then return true end
-      if tostring(Channeling) == MindSear and jps.hp("target") < 0.35 and charges == 1 and insanity < 70 then return true end
-   end
-   return false
+	local canCastShadowWordDeath = isUsableShadowWordDeath()
+	if not canCastShadowWordDeath then return false end
+	local Channeling = UnitChannelInfo("player") -- "Mind Flay" is a channeling spell
+	local MindFlay = tostring(jps.spells.priest.mindFlay)
+	local MindSear = tostring(jps.spells.priest.mindSear)
+	local charges = jps.spellCharges(jps.spells.priest.shadowWordDeath) -- "Shadow Word: Death"
+	local insanity = jps.insanity()
+	if Channeling ~= nil then
+	  if tostring(Channeling) == MindFlay and jps.hp("target") < 0.35 and charges == 2 then return true end
+	  if tostring(Channeling) == MindFlay and jps.hp("target") < 0.35 and charges == 1 and insanity < 70 then return true end
+	  if tostring(Channeling) == MindSear and jps.hp("target") < 0.35 and charges == 2 then return true end
+	  if tostring(Channeling) == MindSear and jps.hp("target") < 0.35 and charges == 1 and insanity < 70 then return true end
+	end
+	return false
 end
 
 function jps.canCastvoidBolt()

@@ -76,7 +76,7 @@ function jps_RaidTest()
 	jps.LookupRaid()
 end
  
- function jps_Test()
+function jps_Test()
 
 Test()
 

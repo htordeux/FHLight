@@ -1,4 +1,5 @@
 
+local spells = jps.spells.warrior
 local canDPS = jps.canDPS
 local canHeal = jps.canHeal
 local canAttack = jps.canAttack
@@ -7,7 +8,6 @@ local UnitClass = UnitClass
 local UnitAffectingCombat = UnitAffectingCombat
 local GetSpellInfo = GetSpellInfo
 local UnitIsUnit = UnitIsUnit
-local spells = jps.spells.warrior
 
 ----------------------------------------------------------------------------------------------------------------
 -------------------------------------------------- ROTATION ----------------------------------------------------
@@ -46,7 +46,7 @@ if not jps.UnitExists("focus") and canAttack("mouseover") then
 	if UnitIsUnit("mouseovertarget","player") and not UnitIsUnit("target","mouseover") then
 		jps.Macro("/focus mouseover") --print("Enemy DAMAGER|cff1eff00 "..name.." |cffffffffset as FOCUS")
 	-- set focus an enemy in combat
-	elseif canDPS("mouseover") and not UnitIsUnit("target","mouseover") then
+	elseif canAttack("mouseover") and not UnitIsUnit("target","mouseover") then
 		jps.Macro("/focus mouseover") --print("Enemy COMBAT|cff1eff00 "..name.." |cffffffffset as FOCUS")
 	end
 end

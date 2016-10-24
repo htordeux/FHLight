@@ -214,7 +214,9 @@ end
 ------------------------------------
 
 function isUsableShadowWordDeath()
-	if jps.isUsableSpell(jps.spells.priest.shadowWordDeath) and jps.spellCharges(jps.spells.priest.shadowWordDeath) > 0 and jps.cooldown(jps.spells.priest.shadowWordDeath) < 1 then return true end
+	if jps.isUsableSpell(jps.spells.priest.shadowWordDeath)
+	and jps.spellCharges(jps.spells.priest.shadowWordDeath) > 0
+	and jps.cooldown(jps.spells.priest.shadowWordDeath) < 1 then return true end
 	return false
 end
 

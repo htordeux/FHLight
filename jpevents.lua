@@ -932,6 +932,17 @@ end
 -------------------------------------------------- ANTI AFK ----------------------------------------------------
 ----------------------------------------------------------------------------------------------------------------
 
+function deleteItem()
+	for bag = 0,4,1 do
+		for slot = 1, 32, 1 do
+			local name = GetContainerItemLink(bag,slot)
+			if name and string.find(name,"Maquereau") then
+				PickupContainerItem(bag,slot)
+				DeleteCursorItem()
+			end
+		end
+	end
+end
 
 --local function antiAFK()
 --	if not jps.Combat then
@@ -939,8 +950,8 @@ end
 --		C_Timer.After(1,function() TurnLeftStop() end)
 --	end
 --end
---
---jps.registerOnUpdate(function()
---	local value = math.random(600,900)
---	jps.cachedValue(antiAFK,value)
---end)
+
+jps.registerOnUpdate(function()
+	local value = math.random(10,30)
+	jps.cachedValue(deleteItem,value)
+end)

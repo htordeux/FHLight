@@ -951,7 +951,7 @@ end
 --	end
 --end
 
-jps.registerOnUpdate(function()
-	local value = math.random(10,30)
-	jps.cachedValue(deleteItem,value)
-end)
+--jps.registerOnUpdate(function()
+--	local value = math.random(10,30)
+--	jps.cachedValue(deleteItem,value)
+--end)

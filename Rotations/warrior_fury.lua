@@ -89,35 +89,42 @@ local spellTable = {
 {spells.pummel, jps.Interrupts and jps.ShouldKick("target") },
 -- "Charge" -- distance 8-25 m
 {spells.charge , CheckInteractDistance("target",2) == false and CheckInteractDistance("target", 1) == true  },
+
+-- Battle Cry is only 5 seconds. Wait for full rage before you pop the macro for the CDS.
+-- Dragon roar is on the Global Cooldown and will cause downtime
+-- Cooldown usage should always be Charge > Dragon roar > Wait for GCD to clear > Battle cry / Avatar / Trinkets. 
+
+{spells.battleCry, jps.buff(spells.dragonRoar) }, -- should be used ideally when Enrage is inactive -- duration 5 s cd 60 s
+{spells.avatar, jps.buff(spells.dragonRoar) }, -- jps.hasTalent(3,3) -- duration 20 s -- cd 90 s
+{spells.dragonRoar }, -- jps.hasTalent(7,3) -- duration 6 s cd 25 s
+{spells.odynsFury, jps.buff(spells.dragonRoar) and jps.buff(spells.enrage) , "target", "odynsFury"  }, -- duration 4 s cd 45 s
+
  -- "Saccager" 184367 -- Enrages you
-{spells.rampage, jps.rage() == 100 ,"target", "rampage_Enrage100"  },
-{spells.rampage, not jps.buff(spells.enrage) ,"target", "rampage_NotEnrage"  },
+{spells.rampage, not jps.buff(1719) and not jps.buff(spells.enrage) ,"target", "rampage_NotEnrage"  },
+{spells.rampage, jps.rage() == 100 ,"target", "rampage_Rage100"  },
 -- "Sanguinaire" 23881 
 -- "Taste for Blood" 206333 "Goût du sang" -- buff Chances de coup critique de Sanguinaire augmentées de 15%
--- "Battle Cry" 1719 -- Critical strike chance increased by 100%. last 5 sec
-{spells.bloodthirst, jps.buff(206333) and not jps.buff(spells.enrage) , "target", "bloodthirst_Blood"  },
+-- "Battle Cry" 1719 -- Critical strike chance increased by 100%. duration 5 sec
 {spells.bloodthirst, jps.buff(1719) and not jps.buff(spells.enrage) , "target", "bloodthirst_BattleCry"  },
+{spells.bloodthirst, jps.buff(206333) and not jps.buff(spells.enrage) , "target", "bloodthirst_Blood"  },
 {spells.bloodthirst, not jps.buff(spells.enrage) ,"target", "bloodthirst_NotEnrage"  },
--- "Fureur d’Odyn" 205545 
-{spells.odynsFury , jps.buff(spells.dragonRoar) , "target", "odynsFury"  },
-{spells.odynsFury , jps.buff(spells.battleCry) , "target", "odynsFury"  },
+-- "Raging Blow" 85288
+{spells.ragingBlow, jps.buff(spells.enrage) ,"target", "ragingBlow_Enrage"  },
 -- "Execute"
 {spells.execute, jps.buff(spells.enrage) },
 
-{spells.dragonRoar }, -- jps.hasTalent(7,3)
-{spells.battleCry, jps.buff(spells.dragonRoar) },
-{spells.avatar }, -- jps.hasTalent(3,3)
-{spells.bloodbath }, -- jps.hasTalent(6,1)
 -- "Fenzy" 202539 "Entaille furieuse" increases your Haste by 5% for 10 sec, stacking up to 3 times.
 {spells.furiousSlash, jps.hasTalent(6,2) and jps.buffDuration(202539) < 3 }, -- talent "Fenzy" 202539
 {spells.berserkerRage, jps.hasTalent(3,2) and not jps.buff(spells.enrage) }, -- talent "Outburst" 206320
+
+-- "Massacre" 
 
 --MultiTarget
 -- "Meat Cleaver" 85739 your Bloodthirst or Rampage to strike up to 4 additional targets for 50% damage.
 -- Dealing damage with Whirlwind increases the number of targets that your Bloodthirst or Rampage hits by 4.
 { "nested" , jps.MultiTarget, {
-	{spells.whirlwind, inMelee and not jps.buff(spells.meatCleaver) ,"target", "whirlwind_NotMeatCleaver"  },
 	{spells.bladestorm , jps.hasTalent(7,1) },
+	{spells.whirlwind, inMelee and not jps.buff(spells.meatCleaver) ,"target", "whirlwind_NotMeatCleaver"  },
 	{spells.rampage, not jps.buff(spells.enrage) ,"target", "rampage_NotEnrage"  },
 	{spells.rampage, jps.rage() == 100 and jps.buff(spells.meatCleaver) ,"target", "rampage_MeatCleaver"  },
 	{spells.bloodthirst, not jps.buff(spells.enrage) and jps.buff(spells.meatCleaver) ,"target", "bloodthirst_MeatCleaver"  },
@@ -129,9 +136,10 @@ local spellTable = {
 -- "Tourbillon" 190411 "Whirlwind"
 -- "Boulet de démolition" 215569 "Wrecking Ball" -- Your attacks have a chance to make your next Whirlwind deal 200% increased damage
 {spells.whirlwind, inMelee and jps.buff(spells.wreckingBall) }, -- talent "Boulet de démolition" jps.hasTalent(3,1)
+{spells.whirlwind, inMelee and jps.UnitExists("focus") and jps.UnitExists("target")  },
 -- "Raging Blow" 85288
 {spells.ragingBlow },
--- Single
+-- "Sanguinaire" 23881
 {spells.bloodthirst },
  -- "Furious Slash" 100130 "Entaille furieuse" 
  -- Increases your Bloodthirst critical strike chance by 15% until it next deals a critical strike, stacking up to 6 times.

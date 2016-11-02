@@ -89,7 +89,7 @@ local spellTable = {
 
 -- interrupts --
 {spells.pummel, jps.Interrupts and jps.ShouldKick("target") },
-{spells.spellReflection, jps.IsCasting(rangedTarget) and jps.cooldown(spells.pummel) > 0 , rangedTarget },
+{spells.spellReflection, jps.IsCasting(rangedTarget) and jps.cooldown(spells.pummel) > 1 , rangedTarget },
 {spells.shockwave, jps.PvP and not jps.LoseControl("target"), "target", "PvP_shockwave"  },
 
 -- Heroic Leap resets the cooldown of Taunt.
@@ -103,38 +103,33 @@ local spellTable = {
 {spells.shieldWall, jps.hp() < 0.40 and not jps.buff(12975) , "target" , "shieldWall" }, -- cd 4 min
 -- "Dernier rempart" 12975 buff same id
 {spells.lastStand , jps.hp() < 0.40 and not jps.buff(871) , "target" , "lastStand" }, -- cd 3 min
--- "Demoralizing Shout" 1160
-{spells.demoralizingShout, damageIncoming > 9000 and not jps.buff(190456) },
+-- "Demoralizing Shout" 1160 -- "Shield Block" buff 132404 -- "Dur au mal" 190456
+{spells.demoralizingShout, not jps.buff(190456) },
+{spells.demoralizingShout, not jps.buff(132404) },
+-- "Neltharion's Fury" cd 45 sec -- "Shield Block" buff 132404 -- "Dur au mal" 190456
+{spells.neltharionsFury, not jps.Moving and not jps.buff(190456) and jps.cooldown(23922) > 2 , "target" , "neltharionsFury" },
+{spells.neltharionsFury, not jps.Moving and not jps.buff(132404) and jps.cooldown(23922) > 2 , "target" , "neltharionsFury" },
 
 -- "Shield Slam" 23922
 {spells.shieldSlam, inMelee },
 
--- "Dur au mal" 190456 -- gives buff 190456
--- "Vengeance: Ignore Pain" 202574 "Vengeance : Dur au mal"
--- Vengeance talent buff 202574 reduces the Rage cost of your next Ignore Pain by 35%
-{ "nested" , playerIsTargeted or damageIncoming > 9000 , {
-	{spells.ignorePain, jps.buff(202574) and not jps.buff(190456) , "target" , "ignorePain_Vengeance" },
-	{spells.ignorePain, jps.buff(202574) and jps.buff(190456) and jps.buffDuration(190456) < 2 , "target" , "ignorePain_Duration" },
-	{spells.ignorePain, jps.rage() > 32 and not jps.buff(190456) , "target" , "ignorePain__unBuff" },
-}},
+-- "Battle Cry" 1719 -- cd 60 sec, duration 5 sec, 100% increased critical strike chance for 5 sec -- "Shield Block" buff 132404
+{spells.battleCry, jps.buff(132404) and jps.cooldown(spells.shieldSlam) < 1 , "target" , "battleCry" },
+
+-- "Dur au mal" 190456 -- gives buff 190456 -- duration 15 sec
+-- "Vengeance: Ignore Pain" 202574 "Vengeance : Dur au mal" -- duration 15 sec
+-- "Vengeance" talent buff 202574 reduces the Rage cost of your next Ignore Pain by 35% -- cost 13-39 (20-60)
+{spells.ignorePain, jps.buff(202574) and jps.buffDuration(190456) < 3 , "target" , "ignorePain_Vengeance" },
+{spells.ignorePain, not jps.buff(190456) , "target" , "ignorePain__unBuff" },
 
 -- "Focused Rage" 204488 "Rage concentrée" -- Increasing Shield Slam damage by 50%, stacking up to 3 times -- gives buff 204488
--- "Ultimatum" buff 122510 Your next Focused Rage costs no Rage -- Ultimatum lasts 10 sec
-{spells.focusedRage, jps.buff(122510) and not jps.buff(204488) , "target" , "focusedRage_Ultimatum" },
--- Vengeance talent buff 202573 reduces the Rage cost of your next Focused Rage by 35%
-{spells.focusedRage, jps.buff(202573) and not jps.buff(204488) , "target" , "focusedRage_Vengeance" },
-{spells.focusedRage, jps.rage() > 32 and jps.buff(204488) and jps.buffStacks(204488) < 3 , "target" , "focusedRage_Stacks" },
-{spells.focusedRage, jps.rage() > 62 and not jps.buff(204488) , "target" , "focusedRage_unBuff" },
+-- "Ultimatum" buff 122510 Your next Focused Rage costs no Rage -- Duration 10 sec
+{spells.focusedRage, jps.buff(122510) , "target" , "focusedRage_Ultimatum" },
+-- "Vengeance" talent buff 202573 reduces the Rage cost of your next Focused Rage by 35% -- cost 19,5 (30)
+{spells.focusedRage, jps.buff(202573) and jps.buffStacks(204488) < 3 , "target" , "focusedRage_Vengeance" },
 
--- "Neltharion's Fury" cd 45 sec -- "Shield Block" buff 132404
-{spells.neltharionsFury, not jps.Moving and not jps.buff(202574) and jps.cooldown(23922) > 2 , "target" , "neltharionsFury" },
-{spells.neltharionsFury, not jps.Moving and not jps.buff(132404) and jps.cooldown(23922) > 2 , "target" , "neltharionsFury" },
 -- "Shield Block" 2565 -- cd 13 sec, duration 6 sec, Increases Shield Slam damage by 30% while active - buff 
 {spells.shieldBlock, not jps.buff(132404) }, -- "Shield Block" buff 132404
--- "Battle Cry" 1719 -- cd 60 sec, duration 5 sec, 100% increased critical strike chance for 5 sec -- "Shield Block" buff 132404
-{spells.battleCry, jps.buff(132404) and jps.cooldown(spells.shieldSlam) == 0 , "target" , "battleCry" },
-{spells.battleCry, jps.buff(spells.avatar) and jps.cooldown(spells.shieldSlam) == 0 , "target" , "battleCry" },
-
 
 --MultiTarget -- including Renewed, Into the Fray, and Ravager
 { "nested" , jps.MultiTarget , {
@@ -164,7 +159,7 @@ end, "Warrior Protection")
 -- Intercept Icon Intercept generates 10 Rage.
 -- Demoralizing Shout Icon Demoralizing Shout generates 50 Rage if you have the Booming Voice Icon Booming Voice talent
 
---  you want to be able to fit in 4 global cooldowns during each Battle Cry; this requires 27-28% Haste, depending on your input lag and your latency.
+-- you want to be able to fit in 4 global cooldowns during each Battle Cry; this requires 27-28% Haste, depending on your input lag and your latency.
 
 -- With the Might of the Vrykul artifact trait, Shield Slam and Revenge generate 50% more Rage while Demoralizing Shout is active.
 

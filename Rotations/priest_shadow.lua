@@ -214,7 +214,7 @@ local parseHeal = {
 	-- "Power Word: Shield" 17	
 	{spells.powerWordShield, not jps.buff(spells.powerWordShield) , "player" },
 	-- "Don des naaru" 59544
-	{ spells.giftNaaru, true , "player" },
+	{spells.giftNaaru, true , "player" },
 	-- "Guérison de l’ombre" 186263
 	{spells.shadowMend, not jps.Moving and jps.castEverySeconds(186263, 4) , "player" , "shadowMendPlayer" },
 	-- "Pierre de soins" 5512
@@ -230,9 +230,15 @@ if not UnitCanAttack("player", "target") then return end
 local spellTable = {
 
 	{spells.dispersion, jps.hp("player") < 0.40 },
-	{spells.vampiricEmbrace, jps.hp("player") < 0.60 },
+	{spells.vampiricEmbrace, jps.hp("player") < 0.60 }, -- buff 15286
 	{spells.vampiricEmbrace, CountInRange > 2 and AvgHealthLoss < 0.80 },
-	{"nested", jps.hp("player") < 0.80 and jps.cooldown(spells.vampiricEmbrace) > 0 , parseHeal },
+	{"nested", jps.hp("player") < 0.80 and not jps.buff(15286) , parseHeal },
+	
+	{spells.powerWordShield, jps.hp(Tank) < 0.50 and not jps.buff(spells.powerWordShield,Tank) , Tank , "shield_Tank" },
+	{spells.powerWordShield, not jps.Moving and canHeal("mouseover") and jps.hp("mouseover") < 0.50 , "mouseover" , "shield_Mouseover" },
+	-- "Guérison de l’ombre" 186263
+	{spells.shadowMend, not jps.Moving and jps.hp(Tank) < 0.50 and jps.castEverySeconds(186263, 4) , Tank , "shadowMend_Tank" },
+	{spells.shadowMend, not jps.Moving and canHeal("mouseover") and jps.hp("mouseover") < 0.50 and jps.castEverySeconds(186263, 4) , "mouseover" , "shadowMend_Mouseover" },
 	
 	-- interrupts --
 	{spells.fade, jps.FriendAggro("player") },
@@ -252,6 +258,22 @@ local spellTable = {
 	{spells.purifyDisease, jps.UseCDs and jps.canDispel("player","Disease") , "player" },
 	{spells.purifyDisease, jps.UseCDs and jps.canDispel(Tank,"Disease") , Tank },
 	{spells.purifyDisease, jps.UseCDs and jps.canDispel("mouseover","Disease") , "mouseover" },
+	
+	-- spells.shadowWordDeath
+	{"macro", jps.canCastshadowWordDeath , "/stopcasting" },
+	{"nested", jps.spellCharges(spells.shadowWordDeath) == 2 , {
+		{spells.shadowWordDeath, jps.hp("target") < 0.35 , "target" , "Death2_Buff" },
+		{spells.shadowWordDeath, DeathEnemyTarget ~= nil , DeathEnemyTarget , "Death2_Buff" },
+		{spells.shadowWordDeath, jps.hp("mouseover") < 0.35 , "mouseover" , "Death2_Buff" },
+	}},
+	{"nested", jps.spellCharges(spells.shadowWordDeath) < 2 and jps.buff(spells.voidForm) and jps.insanity() < 70  , {
+		{spells.shadowWordDeath, jps.hp("target") < 0.35 , "target" , "Death1_Buff" },
+		{spells.shadowWordDeath, DeathEnemyTarget ~= nil , DeathEnemyTarget , "Death1_Buff" },
+		{spells.shadowWordDeath, jps.hp("mouseover") < 0.35 , "mouseover" , "Death1_Buff" },
+	}},
+	
+	{spells.vampiricTouch, canAttack("mouseover") and not jps.Moving and fnVampEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "VT_Mouseover" },
+	{spells.shadowWordPain, canAttack("mouseover") and fnPainEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "Pain_Mouseover" },
 
 	{"nested", jps.buff(spells.voidForm) , {
 		{"macro", jps.canCastvoidBolt , "/stopcasting" },
@@ -261,6 +283,7 @@ local spellTable = {
     	{spells.voidEruption, jps.myDebuff(spells.shadowWordPain,"mouseover") and jps.myDebuffDuration(spells.shadowWordPain,"mouseover") < 3 , "mouseover" , "voidBold_Mouseover"},
     	{spells.voidEruption, jps.myDebuff(spells.vampiricTouch,"mouseover") and jps.myDebuffDuration(spells.vampiricTouch,"mouseover") < 3 , "mouseover" , "voidBold_Mouseover"},
     	{spells.voidEruption, true , rangedTarget , "voidBold_Buff"},
+
     	{"macro", jps.canCastMindBlast , "/stopcasting" },
 		{spells.mindBlast , not jps.Moving , rangedTarget , "mindBlast"},
     	-- spells.voidTorrent
@@ -290,43 +313,23 @@ local spellTable = {
 	--{"macro", jps.canCastMindBlast , "/stopcasting" },
 	{spells.mindBlast , not jps.Moving , rangedTarget , "mindBlast"},
 
-    -- spells.shadowWordDeath
-	{"macro", jps.canCastshadowWordDeath , "/stopcasting" },
-	{"nested", jps.spellCharges(spells.shadowWordDeath) == 2 , {
-		{spells.shadowWordDeath, jps.hp("target") < 0.35 , "target" , "Death2_Buff" },
-		{spells.shadowWordDeath, DeathEnemyTarget ~= nil , DeathEnemyTarget , "Death2_Buff" },
-		{spells.shadowWordDeath, jps.hp("mouseover") < 0.35 , "mouseover" , "Death2_Buff" },
-	}},
 	{"nested", jps.spellCharges(spells.shadowWordDeath) < 2 and not jps.buff(spells.voidForm) , {
 		{spells.shadowWordDeath, jps.hp("target") < 0.35 , "target" , "Death" },
 		{spells.shadowWordDeath, DeathEnemyTarget ~= nil , DeathEnemyTarget , "Death" },
 		{spells.shadowWordDeath, jps.hp("mouseover") < 0.35 , "mouseover" , "Death" },
 	}},
-	{"nested", jps.spellCharges(spells.shadowWordDeath) < 2 and jps.buff(spells.voidForm) and jps.insanity() < 70  , {
-		{spells.shadowWordDeath, jps.hp("target") < 0.35 , "target" , "Death1_Buff" },
-		{spells.shadowWordDeath, DeathEnemyTarget ~= nil , DeathEnemyTarget , "Death1_Buff" },
-		{spells.shadowWordDeath, jps.hp("mouseover") < 0.35 , "mouseover" , "Death1_Buff" },
-	}},
-	
+
 	{spells.mindSear, jps.MultiTarget and not jps.Moving and jps.myDebuffDuration(spells.shadowWordPain) > 4 and jps.myDebuffDuration(spells.vampiricTouch) > 4 },
 
 	{spells.vampiricTouch, not jps.Moving and jps.myDebuffDuration(spells.vampiricTouch,rangedTarget) < 3 and not jps.isRecast(spells.vampiricTouch,rangedTarget) , rangedTarget , "Refresh_VT_Target" },
 	{spells.shadowWordPain, jps.myDebuffDuration(spells.shadowWordPain,rangedTarget) < 3 and not jps.isRecast(spells.shadowWordPain,rangedTarget) , rangedTarget , "Refresh_Pain_Target" },
 	{spells.vampiricTouch, not jps.Moving and jps.myDebuffDuration(spells.vampiricTouch,"focus") < 3 and not jps.isRecast(spells.vampiricTouch,"focus") , "focus" , "Refresh_VT_Focus" },
 	{spells.shadowWordPain, jps.myDebuffDuration(spells.shadowWordPain,"focus") < 3 and not jps.isRecast(spells.shadowWordPain,"focus") , "focus" , "Refresh_Pain_Focus" },
-	{spells.vampiricTouch, canAttack("mouseover") and not jps.Moving and fnVampEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "VT_Mouseover" },
-	{spells.shadowWordPain, canAttack("mouseover") and fnPainEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "Pain_Mouseover" },
 	{spells.vampiricTouch, not jps.Moving and VampEnemyTarget ~= nil and not UnitIsUnit("target",VampEnemyTarget) , VampEnemyTarget , "VT_MultiUnit" },
 	{spells.shadowWordPain, PainEnemyTarget ~= nil and not UnitIsUnit("target",PainEnemyTarget) , PainEnemyTarget , "Pain_MultiUnit" },
-	
-	{spells.powerWordShield, damageIncoming > 0 and jps.hp("player") < 1 and not jps.buff(spells.powerWordShield) , "player" },
-	{spells.powerWordShield, jps.hp(Tank) < 0.40 and not jps.buff(spells.powerWordShield,Tank) , Tank },
-	-- "Guérison de l’ombre" 186263
-	{spells.shadowMend, not jps.Moving and jps.hp(Tank) < 0.80 and jps.castEverySeconds(186263, 4), Tank , "shadowMend_Tank" },
-	{spells.shadowMend, not jps.Moving and canHeal("mouseover") and jps.hp("mouseover") < 0.40 , "mouseover" , "shadowMend_Mouseover" },
-	
+
 	{spells.mindSpike, not jps.Moving },
-	{spells.mindFlay, not jps.Moving },
+	{spells.mindFlay, not jps.Moving and jps.cooldown(spells.mindBlast) > 1 },
 
 }
 
@@ -380,13 +383,15 @@ jps.registerRotation("PRIEST","SHADOW",function()
 	
 	local spellTable = {
 	
+	{spells.dispersion, jps.Defensive and jps.insanity() > 55 , "player" , "DISPERSION_insanity_OOC" },
+	
 	-- "Shield" 17 "Body and Soul" 64129 "Corps et âme" -- Vitesse de déplacement augmentée de 40% -- buff 65081
 	{ 17, jps.Moving and not jps.buff(17,"player") and jps.hasTalent(2,2) , "player" , "Shield_BodySoul" },
 	{ "macro", not jps.buff(65081) and jps.Moving and jps.buff(17) and jps.hasTalent(2,2) , "/cancelaura "..Shield },
 
 	-- SNM "Levitate" 1706	
-	{ 1706, jps.fallingFor() > 1.5 and not jps.buff(111759) , "player" },
-	{ 1706, IsSwimming() and not jps.buff(111759) , "player" },
+	{ 1706, jps.Defensive and jps.fallingFor() > 1.5 and not jps.buff(111759) , "player" },
+	{ 1706, jps.Defensive and IsSwimming() and not jps.buff(111759) , "player" },
 	
 	-- "Don des naaru" 59544
 	{ 59544, jps.hp("player") < 0.75 , "player" },

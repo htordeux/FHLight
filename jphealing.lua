@@ -380,27 +380,6 @@ jps.LowestFriendTimeToDie = function(timetodie)
 	return lowestFriendTTD
 end
 
--- INCOMING DAMAGE
-jps.LowestFriendIncomingDamage = function()
-	if lowHealth == nil then lowHealth = 1 end
-	local lowestUnit = nil
-	local lowestHealth = 1
-	local lowestDelta = 60
-	for unit,_ in pairs(RaidStatus) do
-		if canHeal(unit) then
-			local delta = jps.IncomingDamage(unit) - jps.IncomingHeal(unit)
-			if delta > 0 then -- dmg > heal
-				local lowest = (UnitHealth(unit) / delta) * (UnitHealth(unit) / UnitHealthMax(unit))
-				if lowest < lowestDelta then
-					lowestUnit = unit
-					lowestDelta = lowest
-				end
-			end
-		end
-	end
-	return lowestUnit
-end
-
 ------------------------------------
 -- GROUP FUNCTION IN RAID
 ------------------------------------

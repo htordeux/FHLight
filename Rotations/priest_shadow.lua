@@ -258,6 +258,11 @@ local spellTable = {
 	{spells.purifyDisease, jps.UseCDs and jps.canDispel("player","Disease") , "player" },
 	{spells.purifyDisease, jps.UseCDs and jps.canDispel(Tank,"Disease") , Tank },
 	{spells.purifyDisease, jps.UseCDs and jps.canDispel("mouseover","Disease") , "mouseover" },
+	-- OFFENSIVE Dispel -- "Dissipation de la magie" 528
+	{ "nested", jps.PvP and jps.hp(LowestImportantUnit) > 0.60 , {
+		{ spells.dispelMagic, jps.castEverySeconds(528,8) and jps.DispelOffensive(rangedTarget) , rangedTarget , "|cff1eff00DispelOffensive_" },
+		{ spells.dispelMagic, jps.castEverySeconds(528,8) and DispelOffensiveEnemyTarget ~= nil  , DispelOffensiveEnemyTarget , "|cff1eff00DispelOffensive_MULTITARGET_" },
+	}},
 	
 	-- spells.shadowWordDeath
 	{"macro", jps.canCastshadowWordDeath , "/stopcasting" },
@@ -271,9 +276,6 @@ local spellTable = {
 		{spells.shadowWordDeath, DeathEnemyTarget ~= nil , DeathEnemyTarget , "Death1_Buff" },
 		{spells.shadowWordDeath, jps.hp("mouseover") < 0.35 , "mouseover" , "Death1_Buff" },
 	}},
-	
-	{spells.vampiricTouch, canAttack("mouseover") and not jps.Moving and fnVampEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "VT_Mouseover" },
-	{spells.shadowWordPain, canAttack("mouseover") and fnPainEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "Pain_Mouseover" },
 
 	{"nested", jps.buff(spells.voidForm) , {
 		{"macro", jps.canCastvoidBolt , "/stopcasting" },
@@ -296,8 +298,8 @@ local spellTable = {
 	
 	-- Low Insanity coming up (Shadow Word: Death , Void Bolt , Mind Blast , AND Void Torrent are all on cooldown and you are in danger of reaching 0 Insanity).
 	{"nested", jps.buff(spells.voidForm) and jps.cooldown(spells.mindBlast) > 1 and not canCastShadowWordDeath , {
-		{spells.dispersion, jps.hasTalent(6,3) and jps.insanity() < 55 and jps.cooldown(spells.mindbender) > 49 , "player" , "DISPERSION_insanity" },
-		{spells.dispersion, jps.hasTalent(6,1) and jps.insanity() < 55 and jps.cooldown(spells.powerInfusion) < 9 , "player" , "DISPERSION_insanity" },
+		{spells.dispersion, jps.hasTalent(6,3) and jps.insanity() > 21 and jps.insanity() < 55 and jps.cooldown(spells.mindbender) > 49 , "player" , "DISPERSION_insanity" },
+		{spells.dispersion, jps.hasTalent(6,1) and jps.insanity() > 21 and jps.insanity() < 55 and jps.cooldown(spells.powerInfusion) < 9 , "player" , "DISPERSION_insanity" },
 	}},
 	
 	{"macro", jps.canCastvoidEruption , "/stopcasting" },
@@ -310,7 +312,12 @@ local spellTable = {
 		{spells.voidEruption, jps.hasTalent(7,1) and jps.buff(spells.lingeringInsanity) and jps.buffDuration(197937) < 4 , rangedTarget , "voidEruption" },
 	}},
 	
-	--{"macro", jps.canCastMindBlast , "/stopcasting" },
+	{spells.shadowWordPain, PainEnemyTarget ~= nil and not UnitIsUnit("target",PainEnemyTarget) , PainEnemyTarget , "Pain_MultiUnit" },
+	{spells.shadowWordPain, jps.myDebuffDuration(spells.shadowWordPain,rangedTarget) < 3 and not jps.isRecast(spells.shadowWordPain,rangedTarget) , rangedTarget , "Refresh_Pain_Target" },
+	{spells.shadowWordPain, jps.myDebuffDuration(spells.shadowWordPain,"focus") < 3 and not jps.isRecast(spells.shadowWordPain,"focus") , "focus" , "Refresh_Pain_Focus" },
+	{spells.shadowWordPain, canAttack("mouseover") and fnPainEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "Pain_Mouseover" },
+
+	{"macro", jps.canCastMindBlast , "/stopcasting" },
 	{spells.mindBlast , not jps.Moving , rangedTarget , "mindBlast"},
 
 	{"nested", jps.spellCharges(spells.shadowWordDeath) < 2 and not jps.buff(spells.voidForm) , {
@@ -321,15 +328,13 @@ local spellTable = {
 
 	{spells.mindSear, jps.MultiTarget and not jps.Moving and jps.myDebuffDuration(spells.shadowWordPain) > 4 and jps.myDebuffDuration(spells.vampiricTouch) > 4 },
 
-	{spells.vampiricTouch, not jps.Moving and jps.myDebuffDuration(spells.vampiricTouch,rangedTarget) < 3 and not jps.isRecast(spells.vampiricTouch,rangedTarget) , rangedTarget , "Refresh_VT_Target" },
-	{spells.shadowWordPain, jps.myDebuffDuration(spells.shadowWordPain,rangedTarget) < 3 and not jps.isRecast(spells.shadowWordPain,rangedTarget) , rangedTarget , "Refresh_Pain_Target" },
-	{spells.vampiricTouch, not jps.Moving and jps.myDebuffDuration(spells.vampiricTouch,"focus") < 3 and not jps.isRecast(spells.vampiricTouch,"focus") , "focus" , "Refresh_VT_Focus" },
-	{spells.shadowWordPain, jps.myDebuffDuration(spells.shadowWordPain,"focus") < 3 and not jps.isRecast(spells.shadowWordPain,"focus") , "focus" , "Refresh_Pain_Focus" },
 	{spells.vampiricTouch, not jps.Moving and VampEnemyTarget ~= nil and not UnitIsUnit("target",VampEnemyTarget) , VampEnemyTarget , "VT_MultiUnit" },
-	{spells.shadowWordPain, PainEnemyTarget ~= nil and not UnitIsUnit("target",PainEnemyTarget) , PainEnemyTarget , "Pain_MultiUnit" },
+	{spells.vampiricTouch, not jps.Moving and jps.myDebuffDuration(spells.vampiricTouch,rangedTarget) < 3 and not jps.isRecast(spells.vampiricTouch,rangedTarget) , rangedTarget , "Refresh_VT_Target" },
+	{spells.vampiricTouch, not jps.Moving and jps.myDebuffDuration(spells.vampiricTouch,"focus") < 3 and not jps.isRecast(spells.vampiricTouch,"focus") , "focus" , "Refresh_VT_Focus" },
+	{spells.vampiricTouch, canAttack("mouseover") and not jps.Moving and fnVampEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "VT_Mouseover" },
 
 	{spells.mindSpike, not jps.Moving },
-	{spells.mindFlay, not jps.Moving and jps.cooldown(spells.mindBlast) > 1 },
+	{spells.mindFlay, not jps.Moving },
 
 }
 
@@ -381,6 +386,8 @@ jps.registerRotation("PRIEST","SHADOW",function()
 	local target = nil
 	local Shield = jps.spells.priest.powerWordShield
 	
+	if IsMounted() then return end
+	
 	local spellTable = {
 	
 	{spells.dispersion, jps.Defensive and jps.insanity() > 55 , "player" , "DISPERSION_insanity_OOC" },
@@ -392,9 +399,9 @@ jps.registerRotation("PRIEST","SHADOW",function()
 	-- SNM "Levitate" 1706	
 	{ 1706, jps.Defensive and jps.fallingFor() > 1.5 and not jps.buff(111759) , "player" },
 	{ 1706, jps.Defensive and IsSwimming() and not jps.buff(111759) , "player" },
-	
+
 	-- "Don des naaru" 59544
-	{ 59544, jps.hp("player") < 0.75 , "player" },
+	{ spells.giftNaaru, jps.hp("player") < 0.80 , "player" },
 
 	-- "Oralius' Whispering Crystal" 118922 "Cristal murmurant d’Oralius" -- buff 176151
 	--{ "macro", jps.itemCooldown(118922) == 0 , "/use item:118922" , "Item_Oralius"},

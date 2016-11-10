@@ -123,7 +123,6 @@ Test()
 --	MoveForwardStart()
 --	C_Timer.After(0.25,function() MoveForwardStop() end)
 
---	local lowestUnit = jps.LowestFriendIncomingDamage()
 --	local lowestTTD = jps.LowestFriendTimeToDie(5)
 --	print("|cffffffffDamage: |cffff8000",lowestUnit,"|cffffffffTTD: |cffff8000",lowestTTD)
 

@@ -185,23 +185,30 @@ jps.spells.priest.searingInsanity = jps.toSpellName(179337)
 jps.spells.priest.giftNaaru = jps.toSpellName(59544)
 jps.spells.priest.lingeringInsanity = jps.toSpellName(197937)
 
+--local InterruptTable = {
+--	{jps.spells.priest.flashHeal, 0.80 , jps.buff(27827) or jps.PvP }, -- "Esprit de rédemption" 27827
+--	{jps.spells.priest.heal, 0.50 , jps.buff(27827) },
+--	{jps.spells.priest.prayerOfHealing , 0.80 , jps.buff(64901) or jps.buff(27827) or jps.PvP }, --"Symbole d’espoir" 64901
+--}
 
-
-jps.ShouldInterruptCasting = function ( InterruptTable, AvgHealthLoss, CountInRaid )
+jps.ShouldInterruptCasting = function ( InterruptTable, AvgHealthLoss, LowestImportantUnitHealth )
 	if jps.LastTarget == nil then return end
 	local spellCasting, _, _, _, _, endTime, _ = UnitCastingInfo("player")
 	if spellCasting == nil then return false end
 	local timeLeft = endTime/1000 - GetTime()
 	local TargetHpct = jps.hp(jps.LastTarget)
 	
-	for key, healSpellTable  in pairs(InterruptTable) do
+	for key, healSpellTable in pairs(InterruptTable) do
 		local breakpoint = healSpellTable[2]
 		local spellName = GetSpellInfo(healSpellTable[1])
 		if spellName == spellCasting and healSpellTable[3] == false then
-			if healSpellTable[1] == jps.spells.priest.prayerOfHealing and AvgHealthLoss >= breakpoint then
+			if healSpellTable[1] == jps.spells.priest.prayerOfHealing and AvgHealthLoss > breakpoint then
 				SpellStopCasting()
 				DEFAULT_CHAT_FRAME:AddMessage("STOPCASTING avgHP "..spellName.." , raid has enough hp!",0, 0.5, 0.8)
-			elseif TargetHpct >= breakpoint then
+			elseif healSpellTable[1] == jps.spells.priest.heal and LowestImportantUnitHealth < breakpoint then
+				SpellStopCasting()
+				DEFAULT_CHAT_FRAME:AddMessage("STOPCASTING LowestHP "..spellName.." , lowest has critical hp!",0, 0.5, 0.8)
+			elseif healSpellTable[1] == jps.spells.priest.flashHeal and TargetHpct > breakpoint then
 				SpellStopCasting()
 				DEFAULT_CHAT_FRAME:AddMessage("STOPCASTING OverHeal "..spellName.." , unit "..jps.LastTarget.. " has enough hp!",0, 0.5, 0.8)
 			end
@@ -319,8 +326,8 @@ end
 jps.unitForBinding = function(unit)
 	if not jps.UnitExists(unit) then return false end
 	if UnitIsUnit(unit,"player") then return false end
-	if jps.hp("player") > 0.75 then return false end
-	if jps.hp(unit) > 0.75  then return false end
+	if jps.hp("player") > 0.60 then return false end
+	if jps.hp(unit) > 0.60  then return false end
 	return true
 end
 

@@ -41,9 +41,7 @@ jps.registerRotation("PRIEST","DISCIPLINE", function()
 	local playerIsInterrupt = jps.InterruptEvents() -- return true/false ONLY FOR PLAYER
 	local playerWasControl = jps.ControlEvents() -- return true/false Player was interrupt or stun 2 sec ago ONLY FOR PLAYER
 	local isArena, _ = IsActiveBattlefieldArena()
-	
-	-- INCOMING DAMAGE
-	local LowestFriendIncDmg = jps.LowestFriendIncomingDamage()
+
 	-- LOWEST TTD
 	local LowestFriendTTD = jps.LowestFriendTimeToDie(5)
 

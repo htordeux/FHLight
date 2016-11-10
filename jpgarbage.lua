@@ -49,8 +49,8 @@ end
 local aggroTank = jps.findThreatInRaid()
 print("|cFFFF0000AggroTank: ",GetUnitName(aggroTank))
 
---local lowestUnit = jps.LowestImportantUnit()
---print("|cff1eff00Lowest: ",GetUnitName(lowestUnit))
+local lowestUnit = jps.LowestImportantUnit()
+print("|cff1eff00Lowest: ",GetUnitName(lowestUnit))
 --local friendtableaggro = jps.FriendAggroTable()
 --print("friendtableaggro: ",friendtableaggro)
 

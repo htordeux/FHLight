@@ -318,7 +318,7 @@ local spellTable = {
 	{spells.shadowWordPain, canAttack("mouseover") and fnPainEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "Pain_Mouseover" },
 
 	{"macro", jps.canCastMindBlast , "/stopcasting" },
-	{spells.mindBlast , not jps.Moving , rangedTarget , "mindBlast"},
+	{spells.mindBlast, not jps.Moving , rangedTarget , "mindBlast"},
 
 	{"nested", jps.spellCharges(spells.shadowWordDeath) < 2 and not jps.buff(spells.voidForm) , {
 		{spells.shadowWordDeath, jps.hp("target") < 0.35 , "target" , "Death" },

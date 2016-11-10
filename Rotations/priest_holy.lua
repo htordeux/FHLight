@@ -267,7 +267,6 @@ local spellTable = {
 	
 	-- "Prière de guérison" 33076 -- Buff POM 41635
 	{ spells.prayerOfMending, not jps.Moving and not jps.buffTracker(41635) and POHTarget ~= nil , POHTarget },
-	{ spells.prayerOfMending, not jps.Moving and not jps.buffTracker(41635) and CountInRange > 3 and AvgHealthLoss < 0.80 , LowestImportantUnit },
 	{ "nested", not jps.Moving and not jps.buffTracker(41635) and jps.hp(LowestImportantUnit) > 0.60 ,{
 		{ spells.prayerOfMending, MendingFriend ~= nil , MendingFriend , "Tracker_Mending_Friend" },
 		{ spells.prayerOfMending, true , TankThreat , "Tracker_Mending_Tank" },

@@ -28,7 +28,7 @@ local target = nil
 -- LOWESTIMPORTANTUNIT
 ----------------------------
 	
-local CountInRange, AvgHealthLoss, FriendUnit = jps.CountInRaidStatus()
+local CountInRange, AvgHealthLoss, FriendUnit = jps.CountInRaidStatus(0.80)
 local LowestImportantUnit = jps.LowestImportantUnit()
 
 local playerAggro = jps.FriendAggro("player")
@@ -37,10 +37,9 @@ local playerIsStun = jps.StunEvents(2) -- return true/false ONLY FOR PLAYER -- "
 local playerIsInterrupt = jps.InterruptEvents() -- return true/false ONLY FOR PLAYER
 local playerWasControl = jps.ControlEvents() -- return true/false Player was interrupt or stun 2 sec ago ONLY FOR PLAYER
 
-local Tank,TankUnit = jps.findTankInRaid() -- default "focus"
-local TankTarget = "target"
-if canHeal(Tank) then TankTarget = Tank.."target" end
-local TankThreat = jps.findThreatInRaid()
+local Tank,TankUnit = jps.findTankInRaid() -- default "focus" "player"
+local TankTarget = Tank.."target"
+local TankThreat = jps.findThreatInRaid() -- default "focus" "player"
 
 ----------------------
 -- TARGET ENEMY
@@ -319,14 +318,13 @@ local spellTable = {
 
 	{"macro", jps.canCastMindBlast , "/stopcasting" },
 	{spells.mindBlast, not jps.Moving , rangedTarget , "mindBlast"},
+	{spells.mindSear, jps.MultiTarget and not jps.Moving and jps.myDebuffDuration(spells.shadowWordPain) > 4 and jps.myDebuffDuration(spells.vampiricTouch) > 4 },
 
 	{"nested", jps.spellCharges(spells.shadowWordDeath) < 2 and not jps.buff(spells.voidForm) , {
 		{spells.shadowWordDeath, jps.hp("target") < 0.35 , "target" , "Death" },
 		{spells.shadowWordDeath, DeathEnemyTarget ~= nil , DeathEnemyTarget , "Death" },
 		{spells.shadowWordDeath, jps.hp("mouseover") < 0.35 , "mouseover" , "Death" },
 	}},
-
-	{spells.mindSear, jps.MultiTarget and not jps.Moving and jps.myDebuffDuration(spells.shadowWordPain) > 4 and jps.myDebuffDuration(spells.vampiricTouch) > 4 },
 
 	{spells.vampiricTouch, not jps.Moving and VampEnemyTarget ~= nil and not UnitIsUnit("target",VampEnemyTarget) , VampEnemyTarget , "VT_MultiUnit" },
 	{spells.vampiricTouch, not jps.Moving and jps.myDebuffDuration(spells.vampiricTouch,rangedTarget) < 3 and not jps.isRecast(spells.vampiricTouch,rangedTarget) , rangedTarget , "Refresh_VT_Target" },

@@ -53,31 +53,28 @@ local spellTable = {
 
 	-- Apply Flame Shock
 	{spells.flameShock , not jps.myDebuff(spells.flameShock) },
-	{spells.flameShock , jps.myDebuff(spells.flameShock) and jps.myDebuffDuration(spells.flameShock) < 9 and jps.maelstom() > 19 },
-	-- Cast Earth Shock Icon Earth Shock if Maelstrom is 90 or greater.
-	{spells.earthShock , jps.isUsableSpell(spells.earthShock) and jps.maelstom() > 90 },
-	-- Cast Lava Burst whenever available and Flame Shock is applied to the target.
-	{spells.lavaBurst , jps.buff(spells.lavaSurge) },
-	{spells.lavaBurst , jps.myDebuff(spells.flameShock) }, 
 	-- Cast Fire Elemental if it is off cooldown.
 	{spells.fireElemental},
+	-- Cast Earth Shock Icon Earth Shock if Maelstrom is 90 or greater.
+	{spells.earthShock , jps.isUsableSpell(spells.earthShock) and jps.maelstom() > 90 },
 	-- Cast Ascendance (if talented) if it is off cooldown.
 	{spells.ascendance  },
 	-- Cast Elemental Mastery on cooldown where appropriate.
 	{spells.elementalMastery },
+	-- Cast Icefury (if talented) and priority damage is necessary, or predictable movement is incoming.
+	{spells.icefury , jps.hasTalent(5,3) and jps.Moving },
+	-- Cast Lava Burst whenever available and Flame Shock is applied to the target.
+	{spells.lavaBurst , jps.myDebuff(spells.flameShock) },
+	-- Frost Shock if Icefury buff is active.
+	{spells.frostShock, jps.buff(spells.icefury) },
 	-- Stormkeeper whenever available if you are not about to use Ascendance
 	{spells.stormkeeper },
 	-- Maintain Totem Mastery buff.
 	{spells.totemMastery, jps.hasTalent(1,3) },
 	
-	-- Cast Icefury (if talented) and priority damage is necessary, or predictable movement is incoming.
-	{spells.icefury , jps.hasTalent(5,3) and jps.Moving },
-	-- Frost Shock if Icefury buff is active.
-	{spells.frostShock, jps.buff(spells.icefury) },
-
 	{"nested", jps.MultiTarget , {
-		-- Cast Earthquake if there are at least 4 targets present. --77478
-		{spells.earthquakeTotem , jps.MultiTarget}, 
+		-- Cast Earthquake if there are at least 4 targets present. -- 77478
+		{spells.earthquakeTotem }, 
 		-- Cast Chain Lightning as a filler on 2 or more targets.
 		{spells.chainLightning },
 	}},

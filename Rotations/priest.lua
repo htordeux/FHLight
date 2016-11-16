@@ -205,7 +205,7 @@ jps.ShouldInterruptCasting = function ( InterruptTable, AvgHealthLoss, LowestImp
 			if healSpellTable[1] == jps.spells.priest.prayerOfHealing and AvgHealthLoss > breakpoint then
 				SpellStopCasting()
 				DEFAULT_CHAT_FRAME:AddMessage("STOPCASTING avgHP "..spellName.." , raid has enough hp!",0, 0.5, 0.8)
-			elseif healSpellTable[1] == jps.spells.priest.heal and LowestImportantUnitHealth < breakpoint then
+			elseif healSpellTable[1] == jps.spells.priest.heal and jps.CastTimeLeft() > 0.60 and LowestImportantUnitHealth < breakpoint then
 				SpellStopCasting()
 				DEFAULT_CHAT_FRAME:AddMessage("STOPCASTING LowestHP "..spellName.." , lowest has critical hp!",0, 0.5, 0.8)
 			elseif healSpellTable[1] == jps.spells.priest.flashHeal and TargetHpct > breakpoint then

@@ -38,7 +38,7 @@ print("|cFFFF0000IncDamage: ", jps.IncomingDamage("player"))
 print("|cff1eff00IncHeal: ", jps.IncomingHeal("player"))
 local POHTarget, groupToHeal, groupHealth = jps.FindSubGroupHeal(1)
 print("|cff1eff00POHTarget: |cffffffff",POHTarget,"|cff1eff00Group: |cffffffff",groupToHeal,"|cff1eff00Health: |cffffffff",groupHealth)
-local CountInRange, AvgHealthLoss, FriendUnit = jps.CountInRaidStatus()
+local CountInRange, AvgHealthLoss, FriendUnit = jps.CountInRaidStatus(0.80)
 print("|cff1eff00CountInRange: |cffffffff",CountInRange,"|cff1eff00AvgHealthLoss: |cffffffff",AvgHealthLoss,"|cff1eff00FriendUnit: |cffffffff",#FriendUnit)
 write("***************************")
 
@@ -46,8 +46,8 @@ local Tank,Tanks = jps.findTankInRaid()
 for i=1,#Tanks do
 	print("|cff0070ddTank: ",GetUnitName(Tanks[i]))
 end
-local aggroTank = jps.findThreatInRaid()
-print("|cFFFF0000AggroTank: ",GetUnitName(aggroTank))
+local ThreatTank = jps.findThreatInRaid()
+print("|cFFFF0000AggroTank: ",GetUnitName(ThreatTank))
 
 local lowestUnit = jps.LowestImportantUnit()
 print("|cff1eff00Lowest: ",GetUnitName(lowestUnit))
@@ -79,6 +79,16 @@ end
 function jps_Test()
 
 Test()
+
+local rc = LibStub("LibRangeCheck-2.0")
+local minRange, maxRange = rc:GetRange('target')
+if not minRange then
+print("cannot get range estimate for target")
+elseif not maxRange then
+print("target is over " .. minRange .. " yards")
+else
+print("target is between " .. minRange .. " and " .. maxRange .. " yards")
+end
 
 --print(jps.isUsableSpell(jps.spells.priest.shadowWordDeath))
 --print(jps.spellCharges(jps.spells.priest.shadowWordDeath))

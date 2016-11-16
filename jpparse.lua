@@ -80,6 +80,26 @@ function jps.cooldown(spell)
 	return cd
 end
 
+local rc = LibStub("LibRangeCheck-2.0")
+
+--[[[
+@function `<UNIT>.distanceMin` - returns the min. approximated distance to the given unit.
+]]--
+function jps.distanceMin(unit)
+    local minRange, maxRange = rc:GetRange(unit)
+    if minRange == nil then return 99 end
+    return minRange, maxRange
+end
+
+--[[[
+@function `<UNIT>.distanceMax` - returns the max. approximated distance to the given unit.
+]]--
+function jps.distanceMax(unit)
+    local minRange, maxRange = rc:GetRange(unit)
+    if maxRange == nil then return 99 end
+    return maxRange, minRange
+end
+
 -- IsHarmfulSpell(spellname) -- IsHelpfulSpell(spellname)) returns 1 or nil -- USELESS SOMES SPELLS RETURNS NIL AS OUBLI, SPIRIT SHELL
 -- IsSpellInRange(spellID, spellType, unit) -- spellType String, "spell" or "pet"
 -- IsSpellInRange(spellName, unit) -- returns 0 if out of range, 1 if in range, or nil if the unit is invalid.
@@ -328,9 +348,9 @@ end
 
 function jps.groundClick(spellname)
 	SetCVar("deselectOnClick", "0") --	jps.Macro("/console deselectOnClick 0")
+	CameraOrSelectOrMoveStart(1)
 	CastSpellByName(spellname)
-	CameraOrSelectOrMoveStart(2)
-    CameraOrSelectOrMoveStop(2)
+	CameraOrSelectOrMoveStop(1)
 	SetCVar("deselectOnClick", "1") --	jps.Macro("/console deselectOnClick 1")
 end
 

@@ -24,11 +24,9 @@ jps.registerRotation("PRIEST","DISCIPLINE", function()
 -- LOWESTIMPORTANTUNIT
 ----------------------------
 
-	local CountInRange, AvgHealthLoss, FriendUnit = jps.CountInRaidStatus()
+	local CountInRange, AvgHealthLoss, FriendUnit = jps.CountInRaidStatus(0.80)
 	local LowestImportantUnit = jps.LowestImportantUnit()
 	local POHTarget, groupToHeal, groupHealth = jps.FindSubGroupHeal(0.80) -- Target to heal with POH in RAID with AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
-	local CountFriendLowest = jps.CountInRaidLowest(0.60)
-
 
 	local Tank,TankUnit = jps.findTankInRaid() -- default "focus" "player"
 	local TankTarget = "target"

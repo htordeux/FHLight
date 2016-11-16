@@ -24,13 +24,12 @@ jps.registerRotation("PRIEST","HOLY", function()
 -- LOWESTIMPORTANTUNIT
 ----------------------------
 
-	local CountInRange, AvgHealthLoss, FriendUnit = jps.CountInRaidStatus()
-	local LowestImportantUnit = jps.LowestImportantUnit()
+	local CountInRange, AvgHealthLoss, FriendUnit = jps.CountInRaidStatus(0.80)
 	local POHTarget, groupToHeal, groupHealth = jps.FindSubGroupHeal(0.80) -- Target to heal with POH in RAID with AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
+	local LowestImportantUnit = jps.LowestImportantUnit()
 
 	local Tank,TankUnit = jps.findTankInRaid() -- default "focus" "player"
-	local TankTarget = "target"
-	if canHeal(Tank) then TankTarget = Tank.."target" end
+	local TankTarget = Tank.."target"
 	local TankThreat = jps.findThreatInRaid() -- default "focus" "player"
 
 	local playerAggro = jps.FriendAggro("player")
@@ -133,6 +132,14 @@ jps.registerRotation("PRIEST","HOLY", function()
 				RenewFriend = unit
 				RenewFriendHealth = unitHP
 			end
+		elseif not jps.buff(139,unit) and jps.buff(27827) then
+		-- "Esprit de rédemption" buff 27827 "Spirit of Redemption"
+			RenewFriend = unit
+		elseif not jps.buff(41635) and jps.hp(unit) < 0.80 then
+		-- "Holy Mending" 196779 causes Prayer of Mending to heal the target instantly for an additional amount
+		-- whenever it jumps to a player on which Renew is active
+		-- placing Renew on players without Prayer of Mending, you will increase the likelihood of this trait to proc
+			RenewFriend = unit
 		end
 	end
 	
@@ -205,7 +212,7 @@ jps.registerRotation("PRIEST","HOLY", function()
 	local InterruptTable = {
 		{jps.spells.priest.flashHeal, 0.80 , jps.buff(27827) or jps.PvP }, -- "Esprit de rédemption" 27827
 		{jps.spells.priest.heal, 0.50 , jps.buff(27827) },
-		{jps.spells.priest.prayerOfHealing , 0.80 , jps.buff(64901) or jps.buff(27827) or jps.PvP }, --"Symbole d’espoir" 64901
+		{jps.spells.priest.prayerOfHealing , 0.80 , jps.buff(64901) or jps.buff(27827) }, -- "Symbol of Hope" 64901
 	}
 
 	-- AVOID OVERHEALING
@@ -215,47 +222,80 @@ jps.registerRotation("PRIEST","HOLY", function()
 -- SPELL TABLE ---------
 ------------------------
 
+-- casting "Holy Word: Serenity" gives buff "Divinity" 197031 your healing is increased by 15% for 6 sec.
+
+-- "Invoke the Naaru" 196684 When you use a Holy Word spell, you have a chance to summon an image of T'uure for 15 sec
+-- whenever you cast a spell, T'uure will cast a similar spell. Your Heal Flash Heal and Holy Word: Serenity cause T'uure to cast Healing Light
+-- Healing Light heals for 250% of spellpower, while your own Heal and Flash Heal heal for 475%.
+
+-- "Blessing of T'uure" 196578 "Bénédiction de T’uure" buff will also greatly increase your healing.
+-- If you can proc your Blessing of T'uure (by getting a critical heal with Flash Heal or Heal)
+-- you should then use Holy Word: Serenity to proc Divinity
+-- then use Holy Word: Sanctify for large AoE heal and buff to Prayer of Healing
+
 local spellTable = {
 
 	-- "Esprit de rédemption" buff 27827 "Spirit of Redemption"
-	{ "macro", jps.buff(27827) and CountInRange < 2 , "/cancelaura Esprit de rédemption"  },
+	{ "macro", jps.buff(27827) and CountInRange == 1 , "/cancelaura Esprit de rédemption"  },
 	{ "nested", jps.buff(27827) and not UnitIsUnit("player",LowestImportantUnit) , {
 		-- "Holy Word: Serenity" 2050
 		{ spells.holyWordSerenity , jps.hp(LowestImportantUnit) < 0.60 , LowestImportantUnit  },
-		-- "Prière de guérison" 33076
-		{ spells.prayerOfMending, not jps.Moving and not jps.buffTracker(41635) , LowestImportantUnit },
 		-- "Divine Hymn" 64843
-		{ spells.divineHymn, CountInRange > 3 and AvgHealthLoss < 0.80 },
+		{ spells.divineHymn, jps.buffDuration(27827) > 8 and CountInRange > 3 and AvgHealthLoss < 0.80 },
 		-- "Prayer of Healing" 596
-		{ spells.prayerOfHealing, POHTarget ~= nil , POHTarget },
+		{ spells.prayerOfHealing, groupHealth < 0.80 , LowestImportantUnit },
 		-- "Soins rapides" 2061
 		{ spells.flashHeal, jps.hp(LowestImportantUnit) < 0.80 , LowestImportantUnit },
+		-- "Prière de guérison" 33076
+		{ spells.prayerOfMending, true , LowestImportantUnit },
 		-- "Renew" 139
-		{ spells.renew, not jps.buff(spells.renew,LowestImportantUnit) , LowestImportantUnit },
+		{ spells.renew, jps.buffDuration(spells.renew,LowestImportantUnit) < 3 , LowestImportantUnit },
+		-- "Soins rapides" 2061
+		{ spells.flashHeal, true , LowestImportantUnit },
 	}},
 
 	-- PLAYER AGGRO --
 	-- "Médaillon de gladiateur" 208683
 	{ 208683, jps.PvP and playerIsStun , "player" , "playerCC" },
-	{ spells.guardianSpirit , jps.hp() < 0.30 , "player" , "Emergency_Guardian_Player" },
+	{ 214027, jps.PvP and playerIsStun , "player" , "playerCC" },
+	-- "Corps et esprit" 214121
 	{ spells.bodyAndMind, jps.Moving , "player" },
-	{ spells.fade, jps.playerIsTargeted() , "player" ,"Fade"},
+	-- "Fade" 586 "Disparition"
+	{ spells.fade, jps.FriendAggro("player") },
 	-- "Don des naaru" 59544
 	{ spells.giftNaaru, jps.hp() < 0.80 , "player" , "Naaru" },
 	-- "Pierre de soins" 5512
 	{ "macro", jps.hp() < 0.60 and jps.itemCooldown(5512) == 0 ,"/use item:5512" , "Aggro_Item5512" },
+	-- "Mot sacré : Châtier" 88625
+	{ spells.holyWordChastise , canDPS(rangedTarget) , rangedTarget },
 
 	-- "Guardian Spirit" 47788
-	{ spells.guardianSpirit , jps.hp(TankThreat) < 0.30 , TankThreat , "Emergency_Guardian_Tank" },
-	{ spells.guardianSpirit , jps.hp(LowestImportantUnit) < 0.30 , LowestImportantUnit , "Emergency_Guardian_Lowest" },
-	-- "Light of T'uure" 208065 it buffs the target to increase your healing done to them by 25% for 10 seconds
-	{ spells.lightOfTuure , jps.hp(LowestImportantUnit) < 0.60 , LowestImportantUnit  },
-	-- "Holy Word: Serenity" 2050
-	{ spells.holyWordSerenity , jps.hp(TankThreat) < 0.60 , TankThreat },
-	{ spells.holyWordSerenity , jps.hp(LowestImportantUnit) < 0.60 , LowestImportantUnit  },
+	{ spells.guardianSpirit, jps.hp() < 0.30 , "player" , "Emergency_Guardian_Player" },
+	{ spells.guardianSpirit, jps.hp(TankThreat) < 0.30 and not UnitIsUnit("player",TankThreat) , TankThreat , "Emergency_Guardian_Tank" },
+	{ spells.guardianSpirit, jps.hp(Tank) < 0.30 and not UnitIsUnit("player",Tank) , Tank , "Emergency_Guardian_Tank" },
+	{ spells.guardianSpirit, jps.hp(LowestImportantUnit) < 0.30 , LowestImportantUnit , "Emergency_Guardian_Lowest" },
 	-- "Soins rapides" 2061 -- "Vague de Lumière" 109186 "Surge of Light" -- gives buff 114255
-	{ spells.flashHeal , jps.hp(LowestImportantUnit) < 0.80 and jps.buff(114255) , LowestImportantUnit , "FlashHeal_114255" },
-	{ spells.flashHeal , jps.buff(114255) and jps.buffDuration(114255) < 4 , LowestImportantUnit , "FlashHeal_114255" },
+	{ spells.flashHeal, jps.hp(TankThreat) < 0.80 and jps.buff(114255) and not UnitIsUnit("player",TankThreat) , TankThreat , "FlashHeal_114255" },
+	{ spells.flashHeal, jps.hp(Tank) < 0.80 and jps.buff(114255) and not UnitIsUnit("player",Tank) , Tank , "FlashHeal_114255" },
+	{ spells.flashHeal, jps.hp(LowestImportantUnit) < 0.80 and jps.buff(114255) , LowestImportantUnit , "FlashHeal_114255" },
+	{ spells.flashHeal, jps.buff(114255) and jps.buffDuration(114255) < 3 , LowestImportantUnit , "FlashHeal_114255" },
+	-- "Light of T'uure" 208065 it buffs the target to increase your healing done to them by 25% for 10 seconds
+	{ spells.lightOfTuure, jps.hp(LowestImportantUnit) < 0.60 , LowestImportantUnit  },
+	{ spells.lightOfTuure, jps.hp(TankThreat) < 0.60 and not UnitIsUnit("player",TankThreat) , TankThreat },
+	{ spells.lightOfTuure, jps.hp(Tank) < 0.60 and not UnitIsUnit("player",Tank) , Tank },
+	-- "Holy Word: Serenity" 2050
+	{ spells.holyWordSerenity, jps.hp(TankThreat) < 0.60 and not UnitIsUnit("player",TankThreat) , TankThreat },
+	{ spells.holyWordSerenity, jps.hp(Tank) < 0.60 and not UnitIsUnit("player",Tank) , Tank },
+	{ spells.holyWordSerenity, jps.hp() < 0.60 , "player" },
+	-- EMERGENCY HEAL -- "Serendipity" 63733
+	{ "nested", jps.hp(TankThreat) < 0.60 and not jps.Moving ,{
+		{ spells.apotheosis },
+		{ spells.renew, jps.buffDuration(spells.renew,TankThreat) < 3 and jps.LastMessage == "Emergency_FlashHeal_Tank" , TankThreat , "Emergency_Renew_Tank" },
+		-- "Soins de lien" 32546
+		{ spells.bindingHeal, jps.unitForBinding(TankThreat) , TankThreat , "Emergency_Lien_Tank" },
+		-- "Soins rapides" 2061
+		{ spells.flashHeal, true , TankThreat , "Emergency_FlashHeal_Tank" },
+	}},
 
 	-- "Dispel" "Purifier" 527
 	{ "nested", jps.UseCDs , parseDispel },
@@ -264,86 +304,105 @@ local spellTable = {
 		{ spells.dispelMagic, jps.castEverySeconds(528,8) and jps.DispelOffensive(rangedTarget) , rangedTarget , "|cff1eff00DispelOffensive_" },
 		{ spells.dispelMagic, jps.castEverySeconds(528,8) and DispelOffensiveEnemyTarget ~= nil  , DispelOffensiveEnemyTarget , "|cff1eff00DispelOffensive_MULTITARGET_" },
 	}},
-	
-	-- "Prière de guérison" 33076 -- Buff POM 41635
-	{ spells.prayerOfMending, not jps.Moving and not jps.buffTracker(41635) and POHTarget ~= nil , POHTarget },
+
 	{ "nested", not jps.Moving and not jps.buffTracker(41635) and jps.hp(LowestImportantUnit) > 0.60 ,{
+		{ spells.prayerOfMending, not UnitIsUnit("player",TankThreat) , TankThreat , "Tracker_Mending_Tank" },
+		{ spells.prayerOfMending, not UnitIsUnit("player",Tank) , Tank , "Tracker_Mending_Tank" },
 		{ spells.prayerOfMending, MendingFriend ~= nil , MendingFriend , "Tracker_Mending_Friend" },
-		{ spells.prayerOfMending, true , TankThreat , "Tracker_Mending_Tank" },
-		{ spells.prayerOfMending, true , Tank , "Tracker_Mending_Tank" },
 		{ spells.prayerOfMending, true , LowestImportantUnit , "Tracker_Mending_Lowest" },
 	}},
-
-	{ spells.renew, jps.buffDuration(spells.renew,TankThreat) < 3 and jps.hp(LowestImportantUnit) > 0.80 , TankThreat , "Timer_Renew_Tank" },
-	{ spells.renew, jps.buffDuration(spells.renew,Tank) < 3 and jps.hp(LowestImportantUnit) > 0.80 , Tank , "Timer_Renew_Tank" },
-	{ spells.renew, jps.buffDuration(spells.renew,"player") < 3 and jps.hp(LowestImportantUnit) > 0.80 , "player" , "Timer_Renew_Player" },
+	
 	{ spells.renew, jps.buffDuration(spells.renew,LowestImportantUnit) < 3 and jps.LastMessage == "Emergency_FlashHeal" , LowestImportantUnit  , "Timer_Renew_Emergency_Lowest" },
-
-	{ "nested", jps.Defensive and canDPS(rangedTarget) and jps.hp(LowestImportantUnit) > 0.40  , {
-		{ spells.holyFire , canDPS(rangedTarget) , rangedTarget  },
-		{ spells.smite , not jps.Moving and canDPS(rangedTarget) , rangedTarget },
-		{ spells.holyWordChastise , canDPS(rangedTarget) , rangedTarget },
-	}},
-
-	-- Symbol of Hope you should you use expensive spells such as Prayer of Healing and Holy Word: Sanctify
-	{ spells.symbolOfHope , POHTarget ~= nil and groupHealth < 0.60 }, -- buff 64901
-	-- "Divine Hymn" 64843 should be used during periods of very intense raid damage.
-	{ spells.divineHymn , not jps.Moving and jps.buffTracker(41635) and CountInRange > 3 and AvgHealthLoss < 0.60 , LowestImportantUnit },
-	-- "Prayer of Healing" 596
-	{ "castsequence", jps.cooldown(spells.holyWordSanctify) == 0 and POHTarget ~= nil ,
-		{ spells.holyWordSanctify , spells.prayerOfHealing , spells.prayerOfHealing  }
-	},
-	{ spells.prayerOfHealing, not jps.Moving and jps.buff(64901) and POHTarget ~= nil , POHTarget },
-	{ spells.prayerOfHealing, not jps.Moving and jps.buff(200183) and POHTarget ~= nil , POHTarget },
-	{ spells.prayerOfHealing, not jps.Moving and jps.buff(197030) and POHTarget ~= nil , POHTarget },
-	-- Holy Word: Sanctify gives buff  "Divinity" 197030 When you heal with a Holy Word spell, your healing is increased by 15% for 8 sec.
-	{ spells.holyWordSanctify , POHTarget ~= nil },
-	{ spells.holyWordSanctify , CountInRange > 3 and AvgHealthLoss < 0.80 },
-	{ spells.holyWordSanctify , CountInRange > 3 and jps.hp(LowestImportantUnit) < 0.60 },
-	-- "Circle of Healing" 204883
-	{ spells.circleOfHealing , CountInRange > 3 and AvgHealthLoss < 0.80 , LowestImportantUnit },
-	{ spells.circleOfHealing , POHTarget ~= nil , POHTarget },
+	{ spells.renew, jps.buffDuration(spells.renew,"player") < 3 and jps.hp(LowestImportantUnit) > 0.60 , "player" , "Timer_Renew_Player" },
+	{ spells.renew, jps.buffDuration(spells.renew,TankThreat) < 3 and jps.hp(LowestImportantUnit) > 0.60 and not UnitIsUnit("player",TankThreat) , TankThreat , "Timer_Renew_Tank" },
+	{ spells.renew, jps.buffDuration(spells.renew,Tank) < 3 and jps.hp(LowestImportantUnit) > 0.60 and not UnitIsUnit("player",Tank) , Tank , "Timer_Renew_Tank" },
 
 	-- "Apotheosis" 200183 increasing the effects of Serendipity by 200% and reducing the cost of your Holy Words by 100%.
-	{ spells.apotheosis , CountInRange > 3 and AvgHealthLoss < 0.80 },
-	{ spells.apotheosis , POHTarget ~= nil and groupHealth < 0.80 },
+	-- "Benediction" for raids and "Apotheosis" for 5 man groups.
 	{ spells.apotheosis , CountInRange > 3 and jps.hp(LowestImportantUnit) < 0.60 },
-
 	-- EMERGENCY HEAL -- "Serendipity" 63733
 	{ "nested", jps.hp(LowestImportantUnit) < 0.60 and not jps.Moving ,{
+		{ spells.holyWordSerenity , true , LowestImportantUnit  },
 		-- "Soins de lien" 32546
 		{ spells.bindingHeal , jps.unitForBinding(LowestImportantUnit) , LowestImportantUnit , "Emergency_Lien" },
 		{ spells.bindingHeal , BindingHealFriend ~= nil , BindingHealFriend , "Emergency_Lien" },
 		-- "Soins rapides" 2061
 		{ spells.flashHeal, not jps.Moving , LowestImportantUnit , "Emergency_FlashHeal" },
 	}},
+	
 	-- "Soins" 2060
 	{ spells.heal , groupHealth > 0.80 and not jps.Moving and canHeal(TankThreat) and jps.hpInc(TankThreat) < 0.90 and jps.hp(TankThreat) > 0.60 , TankThreat , "Soins_TankThreat"  },
 	{ spells.heal , groupHealth > 0.80 and not jps.Moving and canHeal(Tank) and jps.hpInc(Tank) < 0.90 and jps.hp(Tank) > 0.60 , Tank , "Soins_Tank"  },
 	-- "Soins rapides" 2061
 	{ spells.flashHeal, groupHealth > 0.80 and not jps.Moving and canHeal(TankThreat) and jps.hpInc(TankThreat) < 0.90 and jps.hp(TankThreat) < 0.60 , TankThreat , "FlashHeal_TankThreat"  },
 	{ spells.flashHeal, groupHealth > 0.80 and not jps.Moving and canHeal(Tank) and jps.hpInc(Tank) < 0.90 and jps.hp(Tank) < 0.60 , Tank , "FlashHeal_Tank"  },
+
+	{ "nested", jps.Defensive and canDPS(rangedTarget) and jps.hp(LowestImportantUnit) > 0.60  , {
+		{ spells.holyFire , canDPS(rangedTarget) , rangedTarget  },
+		{ spells.smite , not jps.Moving and canDPS(rangedTarget) , rangedTarget },
+		{ spells.holyWordChastise , canDPS(rangedTarget) , rangedTarget },
+	}},
 	
-	-- "Prayer of Healing" 596
-	{ spells.prayerOfHealing, not jps.Moving and POHTarget ~= nil , POHTarget , "POHTarget" },
+	-- "Prière de guérison" 33076 -- Buff POM 41635
+	{ spells.prayerOfMending, not jps.Moving and CountInRange > 3 , LowestImportantUnit },
+	{ spells.prayerOfMending, not jps.Moving and POHTarget ~= nil and groupHealth < 0.80 , POHTarget },
+	-- "Symbol of Hope" you should you use expensive spells such as Prayer of Healing and Holy Word: Sanctify
+	{ spells.symbolOfHope , CountInRange > 3 and AvgHealthLoss < 0.60 and groupHealth < 0.60 },
+	-- "Divine Hymn" 64843 should be used during periods of very intense raid damage.
+	{ spells.divineHymn , not jps.Moving and jps.buffTracker(41635) and CountInRange > 3 and AvgHealthLoss < 0.60 , LowestImportantUnit },
+
+	-- "Prayer of Healing" 596 is no longer restricted to healing players who are in your group.	
+	{ "nested", jps.hp(TankThreat) > 0.60 and jps.hp(LowestImportantUnit) > 0.40 and CountInRange > 3 and groupHealth < 0.80 , {
+		{ spells.holyWordSanctify },
+		{ spells.prayerOfHealing, not jps.Moving and POHTarget ~= nil , POHTarget , "POH_Target" },
+	}},
+	{ "castsequence", jps.cooldown(spells.holyWordSanctify) == 0 and POHTarget ~= nil and groupHealth < 0.80 ,
+		{ spells.holyWordSanctify , spells.prayerOfHealing , spells.prayerOfHealing  }
+	},
+	{ "nested", not jps.Moving and POHTarget ~= nil and groupHealth < 0.80 ,{
+		{ spells.prayerOfHealing, jps.buff(64901) , POHTarget }, -- "Symbol of Hope" 64901
+		{ spells.prayerOfHealing, jps.buff(200183) , POHTarget }, -- "Apotheosis" 200183
+		{ spells.prayerOfHealing, jps.buff(197030) , POHTarget }, -- "Holy Word: Sanctify" gives buff  "Divinity" 197030
+		{ spells.prayerOfHealing, jps.buff(196490) , POHTarget }, -- "Holy Word: Sanctify" gives buff  "Puissance des naaru" 196490
+	}},
+	-- "Holy Word: Sanctify" gives buff  "Divinity" 197030 When you heal with a Holy Word spell, your healing is increased by 15% for 8 sec.
+	{ spells.holyWordSanctify, POHTarget ~= nil and groupHealth < 0.80 },
+	{ spells.holyWordSanctify, CountInRange > 3 and AvgHealthLoss < 0.80 },
+	{ spells.holyWordSanctify, CountInRange > 3 and jps.hp(LowestImportantUnit) < 0.60 },
+
+	-- "Circle of Healing" 204883
+	{ spells.circleOfHealing, CountInRange > 3 and AvgHealthLoss < 0.80 , LowestImportantUnit },
+	{ spells.circleOfHealing, POHTarget ~= nil and groupHealth < 0.80 , POHTarget },
+
+	{ spells.renew, RenewFriend ~= nil , RenewFriend , "RenewFriend" },
+	
+	-- Serendipity is a passive ability that causes Heal and Flash Heal to reduce the remaining cooldown of Holy Word: Serenity by 6 seconds
+	-- Serendipity causes Prayer of Healing Icon Prayer of Healing to reduce the remaining cooldown of Holy Word: Sanctify Icon Holy Word: Sanctify by 6 seconds.
+	{ spells.heal, not jps.Moving and jps.hp(LowestImportantUnit) < 0.90 and jps.IncomingDamage(LowestImportantUnit) > jps.IncomingHeal(LowestImportantUnit) , LowestImportantUnit , "Heal_Lowest" },
+	{ spells.heal, not jps.Moving and jps.cooldown(spells.holyWordSerenity) > 6 , LowestImportantUnit , "Heal_CD" },
+	{ spells.heal, not jps.Moving and jps.hasTalent(1,3) and jps.cooldown(spells.renew) < 3 , LowestImportantUnit , "Heal_CD" },
+
 	-- "Nova sacrée" 132157
 	{ spells.holyNova, jps.Moving and CheckInteractDistance("target",2) == true },
-
-	-- LowestFriendTTD friend unit in raid with TTD < 5 sec 
-	{ spells.heal, not jps.Moving and LowestFriendTTD ~= nil , LowestFriendTTD , "Heal_Lowest_TTD" },
-
-	{ spells.renew, RenewFriend ~= nil and jps.hp(RenewFriend) < 0.90 , RenewFriend , "RenewFriend" },
-	{ spells.heal, jps.hp(LowestImportantUnit) < 0.90 , LowestImportantUnit },
+	{ spells.smite, not jps.Moving and canDPS(rangedTarget) , rangedTarget },
 
 }
 	spell,target = parseSpellTable(spellTable)
 	return spell,target
 end , "Holy Priest Default" )
 
--- Blessing of T'uure buff will also greatly increase your healing.
--- If you can proc your Blessing of T'uure (by getting a critical heal with Flash Heal or Heal)
--- you should then use Holy Word: Serenity to proc Divinity
--- then use Holy Word: Sanctify for large AoE heal and buff to Prayer of Healing
+--To maximise your single target HPS:
+--Cast Holy Word: Sanctify Icon Holy Word: Sanctify.
+--Cast Holy Word: Serenity Icon Holy Word: Serenity.
+--Cast Flash Heal Icon Flash Heal until Holy Word: Serenity comes off cooldown.
+--Cast Holy Word: Serenity Icon Holy Word: Serenity and repeat step 3.
+--
+--To maximise your AoE HPS:
+--Cast Holy Word: Serenity Icon Holy Word: Serenity.
+--Cast Holy Word: Sanctify Icon Holy Word: Sanctify.
+--Cast Prayer of Healing Icon Prayer of Healing 3 times.
+--Cast Holy Word: Sanctify Icon Holy Word: Sanctify and repeat steps 2 and onward.
+
 
 --[[
 Below, we use the Heal Icon Heal spell to provide you with an example of a mouse-over macro:
@@ -358,7 +417,7 @@ Below, we use the Heal Icon Heal spell to provide you with an example of a mouse
 --]]
 
 
-	-- TRINKETS -- jps.useTrinket(0) est "Trinket0Slot" est slotId  13 -- "jps.useTrinket(1) est "Trinket1Slot" est slotId  14
+-- TRINKETS -- jps.useTrinket(0) est "Trinket0Slot" est slotId  13 -- "jps.useTrinket(1) est "Trinket1Slot" est slotId  14
 --	{ jps.useTrinket(0), jps.useTrinketBool(0) and not playerWasControl and jps.combatStart > 0 , "player" , "Trinket0"},
 --	{ jps.useTrinket(1), jps.useTrinketBool(1) and not playerWasControl and jps.combatStart > 0 , "player" , "Trinket1"},
 
@@ -368,7 +427,7 @@ Below, we use the Heal Icon Heal spell to provide you with an example of a mouse
 
 jps.registerRotation("PRIEST","HOLY",function()
 
-	local CountInRange, AvgHealthLoss, FriendUnit = jps.CountInRaidStatus()
+	local CountInRange, AvgHealthLoss, FriendUnit = jps.CountInRaidStatus(0.80)
 	local LowestImportantUnit = jps.LowestImportantUnit()
 	local POHTarget, groupToHeal, groupHealth = jps.FindSubGroupHeal(0.80) -- Target to heal with POH in RAID with AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
 
@@ -376,22 +435,8 @@ jps.registerRotation("PRIEST","HOLY",function()
 	
 	local spellTable = {
 	
-	-- "Esprit de rédemption" buff 27827
-	{ "macro", jps.buff(27827) and CountInRange < 2 , "/cancelaura Esprit de rédemption"  },
-	{ "nested", jps.buff(27827) and not UnitIsUnit("player",LowestImportantUnit), {
-		-- "Holy Word: Serenity" 2050
-		{ spells.holyWordSerenity , jps.hp(LowestImportantUnit) < 0.60 , LowestImportantUnit  },
-		-- "Prière de guérison" 33076
-		{ spells.prayerOfMending, not jps.Moving and not jps.buffTracker(41635) , LowestImportantUnit },
-		-- "Divine Hymn" 64843
-		{ spells.divineHymn, CountInRange > 3 and AvgHealthLoss < 0.80 },
-		-- "Prayer of Healing" 596
-		{ spells.prayerOfHealing, POHTarget ~= nil , POHTarget },
-		-- "Soins rapides" 2061
-		{ spells.flashHeal, jps.hp(LowestImportantUnit) < 0.80 , LowestImportantUnit },
-		-- "Renew" 139
-		{ spells.renew, not jps.buff(spells.renew,LowestImportantUnit) , LowestImportantUnit },
-	}},
+	-- "Esprit de rédemption" buff 27827 "Spirit of Redemption"
+	{ "macro", jps.buff(27827) , "/cancelaura Esprit de rédemption"  },
 
 	-- SNM "Levitate" 1706	
 	{ 1706, jps.fallingFor() > 1.5 and not jps.buff(111759) , "player" },

@@ -200,11 +200,27 @@ end
 -- TANK
 --------------------------
 
+function jps.findHealerInRaid()
+	local HealerUnit = {}
+	for unit,_ in pairs(RaidStatus) do
+		if jps.RoleInRaid(unit) == "HEALER" and canHeal(unit) then
+			HealerUnit[#HealerUnit+1] = unit
+		end
+	end
+	tsort(HealerUnit, function(a,b) return HealthPct(a) < HealthPct(b) end)
+	return HealerUnit[1] or "focus" , HealerUnit
+end
+
 function jps.findTankInRaid()
 	local TankUnit = {}
 	for unit,_ in pairs(RaidStatus) do
+		local unitThreat = UnitThreatSituation(unit)
 		if jps.RoleInRaid(unit) == "TANK" and canHeal(unit) then
 			TankUnit[#TankUnit+1] = unit
+		elseif unitThreat and canHeal(unit) then
+			if unitThreat == 1 then TankUnit[#TankUnit+1] = unit
+			elseif unitThreat == 3 then TankUnit[#TankUnit+1] = unit 
+			end
 		end
 	end
 	tsort(TankUnit, function(a,b) return HealthPct(a) < HealthPct(b) end)
@@ -226,84 +242,69 @@ end
 --http://wow.gamepedia.com/API_UnitDetailedThreatSituation
 --Returns 100 if the unit is tanking and nil if the unit is not on the mob's threat list.
 
-function jps.findAggroInRaid()
-	local AggroUnit = {}
-	for unit,_ in pairs(RaidStatus) do
-		local unitThreat = UnitThreatSituation(unit)
-		if unitThreat and canHeal(unit) then
-			if unitThreat == 1 then AggroUnit[#AggroUnit+1] = unit
-			elseif unitThreat == 3 then AggroUnit[#AggroUnit+1] = unit 
-			end
-		end
-	end
-	tsort(AggroUnit, function(a,b) return HealthPct(a) < HealthPct(b) end)
-	local defaultTank = "focus"
-	if canHeal("focus") then defaultTank = "focus" else defaultTank = "player" end
-	return AggroUnit[1] or defaultTank, AggroUnit
-end
-
 function jps.findThreatInRaid()
-	local TankUnit,AggroUnit = jps.findAggroInRaid()
+	local defaultTank,TankUnit = jps.findTankInRaid()
 	local maxThreat = 0
-	if #AggroUnit == 0 then return TankUnit end
-	for i=1,#AggroUnit do
-		local unit = AggroUnit[i]
-		local _,_,threatpct,_,_ = UnitThreatSituation(unit,"target")
+	for i=1,#TankUnit do
+		local unit = TankUnit[i]
+		local _,_,threatpct,_,_ = UnitDetailedThreatSituation(unit,"target")
 		if threatpct and canHeal(unit) then
 			if threatpct > maxThreat then
 				maxThreat = threatpct
-				TankUnit = unit
+				defaultTank = unit
 			end
 		end
 	end
-	return TankUnit
-end
-
-function jps.findHealerInRaid()
-	local HealerUnit = {}
-	for unit,_ in pairs(RaidStatus) do
-		if jps.RoleInRaid(unit) == "HEALER" and canHeal(unit) then
-			HealerUnit[#HealerUnit+1] = unit
-		end
-	end
-	tsort(HealerUnit, function(a,b) return HealthPct(a) < HealthPct(b) end)
-	return HealerUnit[1] or "focus" , HealerUnit
+	return defaultTank
 end
 
 ---------------------------
 -- HEALTH UNIT RAID
 ---------------------------
 
-jps.CountInRaidLowest = function (lowHealth)
-	if lowHealth == nil then lowHealth = 1 end
-	local countInRange = 0
-	for unit,_ in pairs(RaidStatus) do
-		if canHeal(unit) then
-			local unitHP = HealthPct(unit)
-			if unitHP < lowHealth then countInRange = countInRange + 1 end
-        end
-	end
-	return countInRange
-end
-
 -- COUNTS THE NUMBER OF PARTY MEMBERS INRANGE HAVING A SIGNIFICANT HEALTH PCT LOSS
-jps.CountInRaidStatus = function ()
+jps.CountInRaidStatus = function (heathpct)
+	if heathpct == nil then heathpct = 1 end
 	local countInRange = 0
-	local myFriends = {}
+	local FriendUnit = {}
 	local raidHP = 0
 	local avgHP = 1
 
 	for unit,_ in pairs(RaidStatus) do
-		if canHeal(unit) then
-			local unitHP = HealthPct(unit)
-			myFriends[#myFriends+1] = unit -- tinsert(myFriends, unit)
+		local unitHP = HealthPct(unit)
+		if canHeal(unit) and unitHP < heathpct then
+			FriendUnit[#FriendUnit+1] = unit -- tinsert(FriendUnit, unit)
 			raidHP = raidHP + unitHP
 			countInRange = countInRange + 1
         end
 	end
-	tsort(myFriends, function(a,b) return HealthPct(a) < HealthPct(b) end)
+	tsort(FriendUnit, function(a,b) return HealthPct(a) < HealthPct(b) end)
 	if countInRange > 0 then avgHP = raidHP / countInRange end
-	return countInRange, avgHP, myFriends
+	return countInRange, avgHP, FriendUnit
+end
+
+-- COUNTS THE NUMBER OF PARTY MEMBERS INRANGE HAVING A SIGNIFICANT HEALTH PCT LOSS
+-- WITH A RANGE WITH LibRangeCheck
+jps.CountInRangeStatus = function (range,heathpct)
+	if heathpct == nil then heathpct = 0.80 end
+	if range == nil then range = 40 end
+	local countInRange = 0
+	local FriendUnit = {}
+	local raidHP = 0
+	local avgHP = 1
+
+	for unit,_ in pairs(RaidStatus) do
+		local unitHP = HealthPct(unit)
+		local maxRange, minRange = jps.distanceMax(unit) 
+		if maxRange <= range and unitHP < heathpct then
+			FriendUnit[#FriendUnit+1] = unit -- tinsert(FriendUnit, unit)
+			raidHP = raidHP + unitHP
+			countInRange = countInRange + 1
+        end
+	end
+	tsort(FriendUnit, function(a,b) return HealthPct(a) < HealthPct(b) end)
+	if countInRange > 0 then avgHP = raidHP / countInRange end
+	return countInRange, avgHP, FriendUnit
 end
 
 -- LOWEST PERCENTAGE in RaidStatus

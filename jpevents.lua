@@ -836,10 +836,13 @@ end
 
 -- TABLE OF ENEMY GUID TARGETING FRIEND GUID
 -- EnemyDamager[enemyGuid] = { ["friendguid"] = friendGuid , ["friendaggro"] = GetTime() }
-function jps.RaidEnemyCount()
+function jps.EnemyDamagerCount(unit)
+	local unitguid = UnitGUID(unit)
 	local enemycount = 0
 	for unit,index in pairs(EnemyDamager) do
-		enemycount = enemycount + 1
+		if index.friendguid == unitGuid then
+			enemycount = enemycount + 1
+		end
 	end
 	return enemycount
 end
@@ -932,11 +935,11 @@ end
 -------------------------------------------------- ANTI AFK ----------------------------------------------------
 ----------------------------------------------------------------------------------------------------------------
 
-function deleteItem()
+function deleteItem(str) -- "Maquereau"
 	for bag = 0,4,1 do
 		for slot = 1, 32, 1 do
 			local name = GetContainerItemLink(bag,slot)
-			if name and string.find(name,"Maquereau") then
+			if name and string.find(name,str) then
 				PickupContainerItem(bag,slot)
 				DeleteCursorItem()
 			end

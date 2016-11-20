@@ -3,7 +3,6 @@ local spells = jps.spells.priest
 local canDPS = jps.canDPS
 local canHeal = jps.canHeal
 local canAttack = jps.canAttack
-local UnitGetTotalAbsorbs = UnitGetTotalAbsorbs
 local strfind = string.find
 local UnitClass = UnitClass
 local UnitChannelInfo = UnitChannelInfo

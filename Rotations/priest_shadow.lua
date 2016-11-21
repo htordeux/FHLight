@@ -214,7 +214,7 @@ local parseHeal = {
 	-- "Don des naaru" 59544
 	{spells.giftNaaru, true , "player" },
 	-- "Guérison de l’ombre" 186263
-	{spells.shadowMend, not jps.Moving and jps.castEverySeconds(186263, 4) , "player" , "shadowMendPlayer" },
+	{spells.shadowMend, not jps.Moving and jps.buff(spells.voidForm) and jps.castEverySeconds(186263, 4) , "player" , "shadowMendPlayer" },
 	-- "Pierre de soins" 5512
 	{ "macro", jps.hp("player") < 0.60 and jps.itemCooldown(5512) == 0 , "/use item:5512" },
 }
@@ -235,8 +235,8 @@ local spellTable = {
 	{spells.powerWordShield, jps.hp(Tank) < 0.50 and not jps.buff(spells.powerWordShield,Tank) , Tank , "shield_Tank" },
 	{spells.powerWordShield, not jps.Moving and canHeal("mouseover") and jps.hp("mouseover") < 0.50 , "mouseover" , "shield_Mouseover" },
 	-- "Guérison de l’ombre" 186263
-	{spells.shadowMend, not jps.Moving and jps.hp(Tank) < 0.50 and jps.castEverySeconds(186263, 4) , Tank , "shadowMend_Tank" },
-	{spells.shadowMend, not jps.Moving and canHeal("mouseover") and jps.hp("mouseover") < 0.50 and jps.castEverySeconds(186263, 4) , "mouseover" , "shadowMend_Mouseover" },
+	{spells.shadowMend, not jps.Moving and jps.buff(spells.voidForm) and jps.hp(Tank) < 0.50 and jps.castEverySeconds(186263, 4) , Tank , "shadowMend_Tank" },
+	{spells.shadowMend, not jps.Moving and jps.buff(spells.voidForm) and canHeal("mouseover") and jps.hp("mouseover") < 0.50 and jps.castEverySeconds(186263, 4) , "mouseover" , "shadowMend_Mouseover" },
 	
 	-- interrupts --
 	{spells.fade, jps.FriendAggro("player") },

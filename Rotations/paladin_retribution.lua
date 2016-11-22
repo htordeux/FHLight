@@ -90,6 +90,10 @@ if not UnitCanAttack("player", "target") then return end
 local spellTable = {
 
 	{ 59752, playerIsStun , "player" , "playerCC" },
+    -- "Bouclier divin" 642 -- cd 5 min
+    { spells.divineShield, jps.hp() < 0.40 , "player" },
+    -- "Imposition des mains" 633 -- cd 10 min
+    { spells.layOnHands, jps.hp() < 0.20 , "player" }, 
 
     -- interrupts
 	-- "Réprimandes" 96231
@@ -99,40 +103,36 @@ local spellTable = {
 	-- "Lumière aveuglante" 115750 -- jps.hasTalent(3,3)
     { spells.blindingLight, jps.IsCasting(rangedTarget) },
 
-    -- "Imposition des mains" 633 -- cd 10 min
-    { spells.layOnHands, jps.hp() < 0.20 , "player" },    
+    { spells.flashOfLight, jps.hp() < 0.40 and jps.buff(642), "player" },
+    { spells.flashOfLight, jps.hp() < 0.40 and jps.buff(1022), "player" },
+
+   	-- "Bénédiction de protection" 1022
+    { spells.blessingOfProtection, jps.hp() < 0.40  , "player" },
+    { spells.blessingOfProtection, jps.hp("mouseover") < 0.40 and canHeal("mouseover") , "mouseover" },
+
+   
     -- "Bouclier du vengeur" 184662 -- 15 second damage absorption shield -- gives buff 184662
 	{ shieldOfVengeance,  damageIncoming > 0 },
     -- "Vengeance du justicier" 215661 "Justicar's Vengeance" -- jps.hasTalent(5,1) -- is only recommended for solo content -- 5 holypower
     -- "Vengeance du justicier" Deals 100% additional damage and healing when used against a stunned target.
     -- "Dessein divin" 223819 "Divine Purpose" buff -- Votre prochaine technique utilisant de la puissance sacrée est gratuite. 12 secondes
     { spells.justicarsVengeance, jps.hasTalent(7,1) and jps.buff(223819) },
-   	-- "Bénédiction de protection" 1022
-    { spells.blessingOfProtection, jps.hp() < 0.40  , "player" },
-    { spells.blessingOfProtection, jps.hp("mouseover") < 0.40 and canHeal("mouseover") , "mouseover" },
-    { spells.flashOfLight, jps.hp() < 0.40 and jps.buff(1022), "player" },
   
     -- "Eye for an Eye" 205191 "Oeil pour oeil" is the best choice for raiding
     -- "Oeil pour oeil" Réduit de 35% les dégâts physiques subis et contre-attaque instantanément les ennemis qui vous frappent en mêlée, ce qui leur inflige 170% points de dégâts physiques. Dure 10 sec
     -- "Word of Glory" 210191 "Mot de gloire" is best for dungeons
     -- "Mot de gloire" Vous rendez (900% of Spell power) points de vie à un maximum de 5 cibles alliées à moins de 15 mètres ainsi qu’à vous-même. 2 charges au maximum.
 
-
-    -- "Bouclier divin" 642 -- cd 5 min
-    { spells.divineShield, jps.hp() < 0.40 , "player" },
-    { spells.flashOfLight, jps.hp() < 0.40 and jps.buff(642), "player" },
-
-
-    -- "Eclair lumineux" 19750
-    { spells.flashOfLight, jps.hp() < 0.60 and jps.castEverySeconds(19750, 4) , "player" },
-    { spells.flashOfLight, jps.hp() < 0.60 and not jps.myDebuff(spells.judgment) and jps.cooldown(spells.judgment) > 0 , "player" },
-    
     -- "Purification des toxines" 213644
     { spells.cleanseToxins, jps.canDispel("player","Poison") , "player" },
     { spells.cleanseToxins, jps.canDispel("player","Disease") , "player" },
 
+    -- "Eclair lumineux" 19750
+    { spells.flashOfLight, jps.hp() < 0.60 and jps.castEverySeconds(19750, 4) , "player" },
+    { spells.flashOfLight, jps.hp() < 0.60 and not jps.myDebuff(spells.judgment) and jps.cooldown(spells.judgment) > 0 , "player" },
+
 	-- "Jugement" 20271 -- duration 8 sec
-    { spells.judgment , jps.holyPower() > 2 }, 
+    { spells.judgment, jps.holyPower() > 2 }, 
     -- "Courroux vengeur" 31884
 	{ spells.avengingWrath, jps.cooldown(spells.judgment) == 0 and jps.holyPower() > 2 },
     -- "Traînée de cendres" 205273
@@ -146,7 +146,7 @@ local spellTable = {
     }},
 
 	{ spells.bladeOfJustice, jps.holyPower() < 3  },
-    { spells.crusaderStrike , jps.spellCharges(35395) == 2 and jps.holyPower() < 5 },
+    { spells.crusaderStrike, jps.spellCharges(35395) == 2 and jps.holyPower() < 5 },
     { spells.crusaderStrike, jps.holyPower() < 3  },
     -- "Condamnation à mort" 213757
 	{ spells.executionSentence, jps.hasTalent(1,2) and jps.holyPower() == 5 and jps.myDebuff(spells.judgment) },

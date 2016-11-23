@@ -212,11 +212,11 @@ jps.registerRotation("PRIEST","HOLY", function()
 	local InterruptTable = {
 		{jps.spells.priest.flashHeal, 0.80 , jps.buff(27827) or jps.PvP }, -- "Esprit de rédemption" 27827
 		{jps.spells.priest.heal, 0.50 , jps.buff(27827) },
-		{jps.spells.priest.prayerOfHealing , 0.80 , jps.buff(64901) or jps.buff(27827) }, -- "Symbol of Hope" 64901
+		{jps.spells.priest.prayerOfHealing , 4 , jps.buff(64901) or jps.buff(27827) }, -- "Symbol of Hope" 64901
 	}
 
 	-- AVOID OVERHEALING
-	jps.ShouldInterruptCasting(InterruptTable , groupHealth , jps.hp(LowestImportantUnit) )
+	jps.ShouldInterruptCasting(InterruptTable , CountInRange , jps.hp(LowestImportantUnit) )
 
 ------------------------
 -- SPELL TABLE ---------
@@ -241,7 +241,7 @@ local spellTable = {
 		-- "Holy Word: Serenity" 2050
 		{ spells.holyWordSerenity , jps.hp(LowestImportantUnit) < 0.60 , LowestImportantUnit  },
 		-- "Divine Hymn" 64843
-		{ spells.divineHymn, jps.buffDuration(27827) > 8 and CountInRange > 3 and AvgHealthLoss < 0.80 },
+		{ spells.divineHymn, jps.buffDuration(27827) > 8 and CountInRange > 4 and AvgHealthLoss < 0.80 },
 		-- "Prayer of Healing" 596
 		{ spells.prayerOfHealing, groupHealth < 0.80 , LowestImportantUnit },
 		-- "Soins rapides" 2061
@@ -267,7 +267,7 @@ local spellTable = {
 	-- "Pierre de soins" 5512
 	{ "macro", jps.hp() < 0.60 and jps.itemCooldown(5512) == 0 ,"/use item:5512" , "Aggro_Item5512" },
 	-- "Mot sacré : Châtier" 88625
-	{ spells.holyWordChastise , canDPS(rangedTarget) , rangedTarget },
+	{ spells.holyWordChastise , jps.PvP and canDPS(rangedTarget) , rangedTarget },
 
 	-- "Guardian Spirit" 47788
 	{ spells.guardianSpirit, jps.hp() < 0.30 , "player" , "Emergency_Guardian_Player" },
@@ -319,9 +319,9 @@ local spellTable = {
 
 	-- "Apotheosis" 200183 increasing the effects of Serendipity by 200% and reducing the cost of your Holy Words by 100%.
 	-- "Benediction" for raids and "Apotheosis" for 5 man groups.
-	{ spells.apotheosis , CountInRange > 3 and jps.hp(LowestImportantUnit) < 0.60 },
 	-- EMERGENCY HEAL -- "Serendipity" 63733
 	{ "nested", jps.hp(LowestImportantUnit) < 0.60 and not jps.Moving ,{
+		{ spells.apotheosis },
 		{ spells.holyWordSerenity , true , LowestImportantUnit  },
 		-- "Soins de lien" 32546
 		{ spells.bindingHeal , jps.unitForBinding(LowestImportantUnit) , LowestImportantUnit , "Emergency_Lien" },
@@ -344,17 +344,20 @@ local spellTable = {
 	}},
 	
 	-- "Prière de guérison" 33076 -- Buff POM 41635
-	{ spells.prayerOfMending, not jps.Moving and CountInRange > 3 , LowestImportantUnit },
-	{ spells.prayerOfMending, not jps.Moving and POHTarget ~= nil and groupHealth < 0.80 , POHTarget },
+	{ spells.prayerOfMending, not jps.Moving and jps.FriendAggro(LowestImportantUnit) , LowestImportantUnit , "POM_LowestImportantUnit" },
+	{ spells.prayerOfMending, not jps.Moving and POHTarget ~= nil and groupHealth < 0.80 , POHTarget , "POM_POHTarget" },
 	-- "Symbol of Hope" you should you use expensive spells such as Prayer of Healing and Holy Word: Sanctify
-	{ spells.symbolOfHope , CountInRange > 3 and AvgHealthLoss < 0.60 and groupHealth < 0.60 },
+	{ spells.symbolOfHope , CountInRange > 4 and AvgHealthLoss < 0.60 },
 	-- "Divine Hymn" 64843 should be used during periods of very intense raid damage.
-	{ spells.divineHymn , not jps.Moving and jps.buffTracker(41635) and CountInRange > 3 and AvgHealthLoss < 0.60 , LowestImportantUnit },
+	{ spells.divineHymn , not jps.Moving and jps.buffTracker(41635) and CountInRange > 4 and AvgHealthLoss < 0.60 , LowestImportantUnit },
 
+	-- "Holy Word: Sanctify" gives buff  "Divinity" 197030 When you heal with a Holy Word spell, your healing is increased by 15% for 8 sec.
+	{ spells.holyWordSanctify, POHTarget ~= nil and groupHealth < 0.80 },
+	{ spells.holyWordSanctify, CountInRange > 4 and AvgHealthLoss < 0.80 },
+	{ spells.holyWordSanctify, CountInRange > 4 and jps.hp(LowestImportantUnit) < 0.60 },
 	-- "Prayer of Healing" 596 is no longer restricted to healing players who are in your group.	
-	{ "nested", jps.hp(TankThreat) > 0.60 and jps.hp(LowestImportantUnit) > 0.40 and CountInRange > 3 and groupHealth < 0.80 , {
-		{ spells.holyWordSanctify },
-		{ spells.prayerOfHealing, not jps.Moving and POHTarget ~= nil , POHTarget , "POH_Target" },
+	{ "nested", jps.hp(TankThreat) > 0.60 and jps.hp(LowestImportantUnit) > 0.40 and CountInRange > 4 , {
+		{ spells.prayerOfHealing, not jps.Moving , LowestImportantUnit , "POH_LowestImportantUnit" },
 	}},
 	{ "castsequence", jps.cooldown(spells.holyWordSanctify) == 0 and POHTarget ~= nil and groupHealth < 0.80 ,
 		{ spells.holyWordSanctify , spells.prayerOfHealing , spells.prayerOfHealing  }
@@ -365,13 +368,9 @@ local spellTable = {
 		{ spells.prayerOfHealing, jps.buff(197030) , POHTarget }, -- "Holy Word: Sanctify" gives buff  "Divinity" 197030
 		{ spells.prayerOfHealing, jps.buff(196490) , POHTarget }, -- "Holy Word: Sanctify" gives buff  "Puissance des naaru" 196490
 	}},
-	-- "Holy Word: Sanctify" gives buff  "Divinity" 197030 When you heal with a Holy Word spell, your healing is increased by 15% for 8 sec.
-	{ spells.holyWordSanctify, POHTarget ~= nil and groupHealth < 0.80 },
-	{ spells.holyWordSanctify, CountInRange > 3 and AvgHealthLoss < 0.80 },
-	{ spells.holyWordSanctify, CountInRange > 3 and jps.hp(LowestImportantUnit) < 0.60 },
 
 	-- "Circle of Healing" 204883
-	{ spells.circleOfHealing, CountInRange > 3 and AvgHealthLoss < 0.80 , LowestImportantUnit },
+	{ spells.circleOfHealing, CountInRange > 4 and AvgHealthLoss < 0.80 , LowestImportantUnit },
 	{ spells.circleOfHealing, POHTarget ~= nil and groupHealth < 0.80 , POHTarget },
 
 	{ spells.renew, RenewFriend ~= nil , RenewFriend , "RenewFriend" },

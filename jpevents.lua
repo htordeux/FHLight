@@ -836,16 +836,6 @@ end
 
 -- TABLE OF ENEMY GUID TARGETING FRIEND GUID
 -- EnemyDamager[enemyGuid] = { ["friendguid"] = friendGuid , ["friendaggro"] = GetTime() }
-function jps.EnemyDamagerCount(unit)
-	local unitguid = UnitGUID(unit)
-	local enemycount = 0
-	for unit,index in pairs(EnemyDamager) do
-		if index.friendguid == unitGuid then
-			enemycount = enemycount + 1
-		end
-	end
-	return enemycount
-end
 
 jps.EnemyHealer = function(unit)
 	local unitguid = UnitGUID(unit)

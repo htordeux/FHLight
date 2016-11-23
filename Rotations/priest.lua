@@ -191,7 +191,7 @@ jps.spells.priest.lingeringInsanity = jps.toSpellName(197937)
 --	{jps.spells.priest.prayerOfHealing , 0.80 , jps.buff(64901) or jps.buff(27827) or jps.PvP }, --"Symbole d’espoir" 64901
 --}
 
-jps.ShouldInterruptCasting = function ( InterruptTable, AvgHealthLoss, LowestImportantUnitHealth )
+jps.ShouldInterruptCasting = function ( InterruptTable, CountInRange, LowestImportantUnitHealth )
 	if jps.LastTarget == nil then return end
 	local spellCasting, _, _, _, _, endTime, _ = UnitCastingInfo("player")
 	if spellCasting == nil then return false end
@@ -202,7 +202,7 @@ jps.ShouldInterruptCasting = function ( InterruptTable, AvgHealthLoss, LowestImp
 		local breakpoint = healSpellTable[2]
 		local spellName = GetSpellInfo(healSpellTable[1])
 		if spellName == spellCasting and healSpellTable[3] == false then
-			if healSpellTable[1] == jps.spells.priest.prayerOfHealing and AvgHealthLoss > breakpoint then
+			if healSpellTable[1] == jps.spells.priest.prayerOfHealing and CountInRange < breakpoint then
 				SpellStopCasting()
 				DEFAULT_CHAT_FRAME:AddMessage("STOPCASTING avgHP "..spellName.." , raid has enough hp!",0, 0.5, 0.8)
 			elseif healSpellTable[1] == jps.spells.priest.heal and jps.CastTimeLeft() > 0.60 and LowestImportantUnitHealth < breakpoint then

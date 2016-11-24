@@ -135,19 +135,6 @@ jps.registerRotation("PRIEST","DISCIPLINE", function()
 			end
 		end
 	end
-	
-	local BindingHealFriend = nil
-	local BindingHealFriendHealth = 100
-	for i=1,#FriendUnit do -- for _,unit in ipairs(FriendUnit) do
-		local unit = FriendUnit[i]
-		if jps.unitForBinding(unit) then
-			local unitHP = jps.hp(unit)
-			if unitHP < BindingHealFriendHealth then
-				BindingHealFriend = unit
-				BindingHealFriendHealth = unitHP
-			end
-		end
-	end
 
 ------------------------
 -- LOCAL FUNCTIONS ENEMY

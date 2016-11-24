@@ -285,9 +285,9 @@ end
 
 -- COUNTS THE NUMBER OF PARTY MEMBERS INRANGE HAVING A SIGNIFICANT HEALTH PCT LOSS
 -- WITH A RANGE WITH LibRangeCheck
-jps.CountInRangeStatus = function (range,heathpct)
+jps.CountInRangeStatus = function (heathpct,range)
+	if range == nil then range = 20 end
 	if heathpct == nil then heathpct = 0.80 end
-	if range == nil then range = 40 end
 	local countInRange = 0
 	local FriendUnit = {}
 	local raidHP = 0
@@ -563,6 +563,16 @@ jps.buffTracker = function(buff)
 		return true end
 	end
 	return false
+end
+
+jps.buffTrackerCount = function(buff)
+	local count = 0
+	for unit,_ in pairs(RaidStatus) do
+		if canHeal(unit) and jps.myBuffDuration(buff,unit) > 0 then
+			count = count + 1
+		end
+	end
+	return count
 end
 
 -- CHECKS THE WHOLE RAID FOR A MISSING BUFF (E.G. FORTITUDE)

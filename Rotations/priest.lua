@@ -207,6 +207,7 @@ jps.ShouldInterruptCasting = function ( InterruptTable, CountInRange, LowestImpo
 				DEFAULT_CHAT_FRAME:AddMessage("STOPCASTING avgHP "..spellName.." , raid has enough hp!",0, 0.5, 0.8)
 			elseif healSpellTable[1] == jps.spells.priest.heal and jps.CastTimeLeft() > 0.60 and LowestImportantUnitHealth < breakpoint then
 				SpellStopCasting()
+				jps.Message = "Heal_StopCasting"
 				DEFAULT_CHAT_FRAME:AddMessage("STOPCASTING LowestHP "..spellName.." , lowest has critical hp!",0, 0.5, 0.8)
 			elseif healSpellTable[1] == jps.spells.priest.flashHeal and TargetHpct > breakpoint then
 				SpellStopCasting()
@@ -239,8 +240,8 @@ function jps.canCastshadowWordDeath()
 	if Channeling ~= nil then
 	  if tostring(Channeling) == MindFlay and charges == 2 then return true end
 	  if tostring(Channeling) == MindSear and charges == 2 then return true end
-	  if tostring(Channeling) == MindFlay and charges == 1 and insanity < 70 then return true end
-	  if tostring(Channeling) == MindSear and charges == 1 and insanity < 70 then return true end
+--	  if tostring(Channeling) == MindFlay and charges == 1 and insanity < 70 then return true end
+--	  if tostring(Channeling) == MindSear and charges == 1 and insanity < 70 then return true end
 	end
 	return false
 end

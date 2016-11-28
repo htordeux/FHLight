@@ -341,7 +341,7 @@ end
 -- WARNING FOCUS RETURN FALSE IF NOT IN GROUP OR RAID BECAUSE OF UNITINRANGE(UNIT)
 -- CANHEAL returns TRUE for "target" and "focus" FRIENDS NOT IN RAID
 jps.LowestImportantUnit = function()
-	local LowestImportantUnit = "player"
+	local LowestUnit = "player"
 	if jps.Defensive then
 		local myTanks = {"player","mouseover","target","focus","targettarget","focustarget"}
 		local _,Tanks = jps.findTankInRaid()
@@ -355,13 +355,13 @@ jps.LowestImportantUnit = function()
 			local unitHP = HealthPct(unit)
 			if canHeal(unit) and unitHP < lowestHP then 
 				lowestHP = unitHP
-				LowestImportantUnit = unit
+				LowestUnit = unit
 			end
 		end
 	else
-		LowestImportantUnit = jps.LowestInRaidStatus()
+		LowestUnit = jps.LowestInRaidStatus()
 	end
-	return LowestImportantUnit
+	return LowestUnit
 end
 
 -- LOWEST TIME TO DIE

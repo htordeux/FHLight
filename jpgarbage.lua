@@ -43,14 +43,15 @@ print("|cff1eff00CountInRange: |cffffffff",CountInRange,"|cff1eff00AvgHealthLoss
 write("***************************")
 
 local Tank,Tanks = jps.findTankInRaid()
+print("DefaultTank:",Tank)
 for i=1,#Tanks do
 	print("|cff0070ddTank: ",GetUnitName(Tanks[i]))
 end
 local TankThreat = jps.findThreatInRaid()
 print("|cFFFF0000TankThreat: ",GetUnitName(TankThreat))
 
-local lowestUnit = jps.LowestImportantUnit()
-print("|cff1eff00Lowest: ",GetUnitName(lowestUnit))
+local LowestUnit = jps.LowestImportantUnit()
+print("|cff1eff00Lowest: ",GetUnitName(LowestUnit))
 --local friendtableaggro = jps.FriendAggroTable()
 --print("friendtableaggro: ",friendtableaggro)
 

@@ -18,20 +18,22 @@ jps.registerRotation("PALADIN","RETRIBUTION",function()
 local spell = nil
 local target = nil
 
+local CountInRange, AvgHealthLoss, FriendUnit = jps.CountInRaidStatus(0.80)
+local LowestUnit = jps.LowestImportantUnit()
+
+local Tank,TankUnit = jps.findTankInRaid() -- default "focus" "player"
+local TankThreat = jps.findThreatInRaid() -- default "focus" "player"
+local TankTarget = TankThreat.."target"
+
 local playerAggro = jps.FriendAggro("player")
 local playerIsStun = jps.StunEvents(2) -- return true/false ONLY FOR PLAYER -- "ROOT" was removed of Stuntype
 -- {"STUN_MECHANIC","STUN","FEAR","CHARM","CONFUSE","PACIFY","SILENCE","PACIFYSILENCE"}
 local playerIsInterrupt = jps.InterruptEvents() -- return true/false ONLY FOR PLAYER
 local playerWasControl = jps.ControlEvents() -- return true/false Player was interrupt or stun 2 sec ago ONLY FOR PLAYER
-local Tank,TankUnit = jps.findTankInRaid() -- default "focus"
-local TankTarget = "target"
-if UnitCanAssist("player",Tank) then TankTarget = Tank.."target" end
-local TankThreat = jps.findThreatInRaid()
+local ispvp = UnitIsPVP("player")
+
 local playerIsTanking = false
 if UnitIsUnit("player",TankThreat) then playerIsTanking = true end
-
-local inMelee = jps.IsSpellInRange(spells.bloodthirst,"target")
-local inRanged = jps.IsSpellInRange(57755,"target") -- "Heroic Throw" 57755 "Lancer héroïque"
 
 ----------------------
 -- TARGET ENEMY
@@ -58,18 +60,14 @@ elseif jps.UnitExists("focus") and not canDPS("focus") then
 end
 
 if canDPS("target") then rangedTarget =  "target"
-elseif canDPS(TankTarget) then rangedTarget = TankTarget
-elseif canDPS("targettarget") then rangedTarget = "targettarget"
+elseif canAttack(TankTarget) then rangedTarget = TankTarget
+elseif canAttack("targettarget") then rangedTarget = "targettarget"
 elseif canAttack("mouseover") then rangedTarget = "mouseover"
 end
 if canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
+
 local TargetMoving = select(1,GetUnitSpeed(rangedTarget)) > 0
 
-local PlayerBossDebuff = jps.BossDebuff("player")
-if jps.hp("player") < 0.20 then CreateMessage("LOW HEALTH!")
-elseif PlayerBossDebuff then CreateMessage("BOSS DEBUFF!") end
-
-local damageIncoming = jps.IncomingDamage() - jps.IncomingHeal()
 local playerIsTargeted = jps.playerIsTargeted()
 
 ------------------------
@@ -89,34 +87,40 @@ if not UnitCanAttack("player", "target") then return end
 
 local spellTable = {
 
+	-- "Chacun pour soi" 59752
 	{ 59752, playerIsStun , "player" , "playerCC" },
+
+    { spells.flashOfLight, jps.hp() < 0.40 and jps.buff(642), "player" }, -- "Bouclier divin" 642
+    { spells.flashOfLight, jps.hp() < 0.40 and jps.buff(1022), "player" }, -- "Bénédiction de protection" 1022
     -- "Bouclier divin" 642 -- cd 5 min
     { spells.divineShield, jps.hp() < 0.40 , "player" },
-    -- "Imposition des mains" 633 -- cd 10 min
-    { spells.layOnHands, jps.hp() < 0.20 , "player" }, 
+   	-- "Bénédiction de protection" 1022
+    { spells.blessingOfProtection, jps.hp() < 0.40 and not jps.buff(642) , "player" },
+    { spells.blessingOfProtection, jps.hp("mouseover") < 0.40 and canHeal("mouseover") , "mouseover" },
+     -- "Imposition des mains" 633 -- cd 10 min
+    { spells.layOnHands, jps.hp() < 0.20 , "player" },	
+
 
     -- interrupts
 	-- "Réprimandes" 96231
-	{ spells.rebuke, jps.ShouldKick(rangedTarget) },
+	{ spells.rebuke, jps.Interrupts and jps.ShouldKick(rangedTarget) , rangedTarget },
 	-- "Marteau de la justice" 853
-	{ spells.hammerOfJustice, jps.IsCasting(rangedTarget) },
-	-- "Lumière aveuglante" 115750 -- jps.hasTalent(3,3)
-    { spells.blindingLight, jps.IsCasting(rangedTarget) },
+	{ spells.hammerOfJustice, jps.Interrupts and jps.IsCasting(rangedTarget) , rangedTarget },
+	-- "Lumière aveuglante" 115750 -- 
+    { spells.blindingLight, jps.Interrupts and jps.hasTalent(3,3) and jps.IsCasting(rangedTarget) , rangedTarget },
+    -- "Repentir" 20066 -- Force la cible ennemie à plonger dans une transe méditative qui la stupéfie et lui inflige des dégâts d’un montant maximum de 25% de ses points de vie en 1 min
+	{ spells.repentance, jps.Interrupts and jps.hasTalent(3,2) and jps.IsCasting(rangedTarget) , rangedTarget },
 
-    { spells.flashOfLight, jps.hp() < 0.40 and jps.buff(642), "player" },
-    { spells.flashOfLight, jps.hp() < 0.40 and jps.buff(1022), "player" },
-
-   	-- "Bénédiction de protection" 1022
-    { spells.blessingOfProtection, jps.hp() < 0.40  , "player" },
-    { spells.blessingOfProtection, jps.hp("mouseover") < 0.40 and canHeal("mouseover") , "mouseover" },
-
-   
     -- "Bouclier du vengeur" 184662 -- 15 second damage absorption shield -- gives buff 184662
-	{ shieldOfVengeance,  damageIncoming > 0 },
+	{ spells.shieldOfVengeance,  jps.IncomingDamage("player") > jps.IncomingHeal("player") and jps.hp() < 0.80 , rangedTarget, "shieldOfVengeance" },
+	{ spells.shieldOfVengeance,  jps.MultiTarget  },
     -- "Vengeance du justicier" 215661 "Justicar's Vengeance" -- jps.hasTalent(5,1) -- is only recommended for solo content -- 5 holypower
     -- "Vengeance du justicier" Deals 100% additional damage and healing when used against a stunned target.
     -- "Dessein divin" 223819 "Divine Purpose" buff -- Votre prochaine technique utilisant de la puissance sacrée est gratuite. 12 secondes
-    { spells.justicarsVengeance, jps.hasTalent(7,1) and jps.buff(223819) },
+    { spells.justicarsVengeance, jps.hasTalent(7,1) and jps.buff(223819) , rangedTarget, "justicarsVengeance" },
+    { spells.justicarsVengeance, jps.hasTalent(7,1) and jps.holyPower() == 5 and jps.hp() < 0.60 }, -- 5 holypower
+    -- "Condamnation à mort" 213757 -- 3 holypower
+	{ spells.executionSentence, jps.hasTalent(1,2) and jps.holyPower() == 5 and jps.myDebuff(spells.judgment) },
   
     -- "Eye for an Eye" 205191 "Oeil pour oeil" is the best choice for raiding
     -- "Oeil pour oeil" Réduit de 35% les dégâts physiques subis et contre-attaque instantanément les ennemis qui vous frappent en mêlée, ce qui leur inflige 170% points de dégâts physiques. Dure 10 sec
@@ -128,13 +132,15 @@ local spellTable = {
     { spells.cleanseToxins, jps.canDispel("player","Disease") , "player" },
 
     -- "Eclair lumineux" 19750
-    { spells.flashOfLight, jps.hp() < 0.60 and jps.castEverySeconds(19750, 4) , "player" },
-    { spells.flashOfLight, jps.hp() < 0.60 and not jps.myDebuff(spells.judgment) and jps.cooldown(spells.judgment) > 0 , "player" },
+    { spells.flashOfLight, jps.hp() < 0.60 and jps.castEverySeconds(19750, 4) , "player" , "flashOfLight_Timer" },
+    { spells.flashOfLight, jps.hp() < 0.60 and not jps.myDebuff(spells.judgment) , "player" , "flashOfLight_Debuff" },
 
 	-- "Jugement" 20271 -- duration 8 sec
-    { spells.judgment, jps.holyPower() > 2 }, 
+    { spells.judgment, jps.holyPower() > 2 },
+    -- "Crusade" 231895
+	--{ spells.crusade, jps.holyPower() > 2 and jps.myDebuff(spells.judgment) and jps.myDebuffDuration(spells.judgment) > 4 , rangedTarget , "crusade" },
     -- "Courroux vengeur" 31884
-	{ spells.avengingWrath, jps.cooldown(spells.judgment) == 0 and jps.holyPower() > 2 },
+	{ spells.avengingWrath, jps.holyPower() > 2 and jps.myDebuff(spells.judgment) and jps.myDebuffDuration(spells.judgment) > 4 , rangedTarget , "avengingWrath" },
     -- "Traînée de cendres" 205273
     { spells.wakeOfAshes  },
     -- ROTATION
@@ -142,17 +148,16 @@ local spellTable = {
     	-- "Tempête divine" 53385 -- 3 holypower
     	{ spells.divineStorm, jps.myDebuff(spells.judgment) , rangedTarget , "divineStorm_MultiTarget" },
     	-- "Lumière aveuglante" 115750 -- jps.hasTalent(3,3)
-    	{ spells.blindingLight, true , rangedTarget , "blindingLight_MultiTarget" },
+    	{ spells.blindingLight, jps.hasTalent(3,3) , rangedTarget , "blindingLight_MultiTarget" },
     }},
 
-	{ spells.bladeOfJustice, jps.holyPower() < 3  },
-    { spells.crusaderStrike, jps.spellCharges(35395) == 2 and jps.holyPower() < 5 },
-    { spells.crusaderStrike, jps.holyPower() < 3  },
-    -- "Condamnation à mort" 213757
-	{ spells.executionSentence, jps.hasTalent(1,2) and jps.holyPower() == 5 and jps.myDebuff(spells.judgment) },
-    -- "Verdict du templier" 85256
-    { spells.templarsVerdict, jps.myDebuff(spells.judgment) },
-    { spells.templarsVerdict, jps.holyPower() == 5 },
+    -- "Verdict du templier" 85256 -- 3 holypower
+    { spells.templarsVerdict, jps.myDebuff(spells.judgment) , rangedTarget , "templarsVerdict_judgment" },
+    { spells.templarsVerdict, jps.holyPower() == 5 , rangedTarget , "templarsVerdict_Power" },
+	-- "Lame de justice" 184575 -- Génère 2 charge de puissance sacrée.
+	{ spells.bladeOfJustice, jps.holyPower() < 4  },
+	-- "Frappe du croisé" 35395 -- Génère 1 charge de puissance sacrée
+    { spells.crusaderStrike, jps.holyPower() < 5  },
 
 	-- "Jugement" 20271 -- duration 8 sec
     { spells.judgment  },

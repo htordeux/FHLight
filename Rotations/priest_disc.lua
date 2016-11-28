@@ -21,11 +21,11 @@ jps.registerRotation("PRIEST","DISCIPLINE", function()
 	local target = nil
 
 ----------------------------
--- LOWESTIMPORTANTUNIT
+-- LOWEST UNIT
 ----------------------------
 
 	local CountInRange, AvgHealthLoss, FriendUnit = jps.CountInRaidStatus(0.80)
-	local LowestImportantUnit = jps.LowestImportantUnit()
+	local LowestUnit = jps.LowestImportantUnit()
 	local POHTarget, groupToHeal, groupHealth = jps.FindSubGroupHeal(0.80) -- Target to heal with POH in RAID with AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
 
 	local Tank,TankUnit = jps.findTankInRaid() -- default "focus" "player"
@@ -38,7 +38,7 @@ jps.registerRotation("PRIEST","DISCIPLINE", function()
 	-- {"STUN_MECHANIC","STUN","FEAR","CHARM","CONFUSE","PACIFY","SILENCE","PACIFYSILENCE"}
 	local playerIsInterrupt = jps.InterruptEvents() -- return true/false ONLY FOR PLAYER
 	local playerWasControl = jps.ControlEvents() -- return true/false Player was interrupt or stun 2 sec ago ONLY FOR PLAYER
-	local isArena, _ = IsActiveBattlefieldArena()
+	local ispvp = UnitIsPVP("player")
 
 	-- LOWEST TTD
 	local LowestFriendTTD = jps.LowestFriendTimeToDie(5)
@@ -161,7 +161,7 @@ jps.registerRotation("PRIEST","DISCIPLINE", function()
 	local DispelOffensiveEnemyTarget = nil
 	for i=1,#EnemyUnit do -- for _,unit in ipairs(EnemyUnit) do
 		local unit = EnemyUnit[i]
-		if jps.DispelOffensive(unit) and jps.hp(LowestImportantUnit) > 0.85 then
+		if jps.DispelOffensive(unit) and jps.hp(LowestUnit) > 0.85 then
 			DispelOffensiveEnemyTarget = unit
 		break end
 	end

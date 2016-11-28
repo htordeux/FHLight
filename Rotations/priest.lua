@@ -191,7 +191,7 @@ jps.spells.priest.lingeringInsanity = jps.toSpellName(197937)
 --	{jps.spells.priest.prayerOfHealing , 0.80 , jps.buff(64901) or jps.buff(27827) or jps.PvP }, --"Symbole d’espoir" 64901
 --}
 
-jps.ShouldInterruptCasting = function ( InterruptTable, CountInRange, LowestImportantUnitHealth )
+jps.ShouldInterruptCasting = function ( InterruptTable, CountInRange, LowestUnitHealth )
 	if jps.LastTarget == nil then return end
 	local spellCasting, _, _, _, _, endTime, _ = UnitCastingInfo("player")
 	if spellCasting == nil then return false end
@@ -205,7 +205,7 @@ jps.ShouldInterruptCasting = function ( InterruptTable, CountInRange, LowestImpo
 			if healSpellTable[1] == jps.spells.priest.prayerOfHealing and CountInRange < breakpoint then
 				SpellStopCasting()
 				DEFAULT_CHAT_FRAME:AddMessage("STOPCASTING avgHP "..spellName.." , raid has enough hp!",0, 0.5, 0.8)
-			elseif healSpellTable[1] == jps.spells.priest.heal and jps.CastTimeLeft() > 0.60 and LowestImportantUnitHealth < breakpoint then
+			elseif healSpellTable[1] == jps.spells.priest.heal and jps.CastTimeLeft() > 0.60 and LowestUnitHealth < breakpoint then
 				SpellStopCasting()
 				jps.Message = "Heal_StopCasting"
 				DEFAULT_CHAT_FRAME:AddMessage("STOPCASTING LowestHP "..spellName.." , lowest has critical hp!",0, 0.5, 0.8)
@@ -238,10 +238,13 @@ function jps.canCastshadowWordDeath()
 	local charges = jps.spellCharges(jps.spells.priest.shadowWordDeath) -- "Shadow Word: Death"
 	local insanity = jps.insanity()
 	if Channeling ~= nil then
-	  if tostring(Channeling) == MindFlay and charges == 2 then return true end
-	  if tostring(Channeling) == MindSear and charges == 2 then return true end
---	  if tostring(Channeling) == MindFlay and charges == 1 and insanity < 70 then return true end
---	  if tostring(Channeling) == MindSear and charges == 1 and insanity < 70 then return true end
+		if jps.buff(jps.spells.priest.voidForm) then
+			if tostring(Channeling) == MindFlay and jps.insanity() < 70 then return true end
+			if tostring(Channeling) == MindSear and jps.insanity() < 70 then return true end
+		else
+			if tostring(Channeling) == MindFlay then return true end
+			if tostring(Channeling) == MindSear then return true end
+		end
 	end
 	return false
 end
@@ -253,7 +256,7 @@ function jps.canCastMindBlast()
 	local MindSear = GetSpellInfo(48045)
 	if Channeling ~= nil then
 		if Channeling == MindFlay then return true end
-		if Channeling == MindSear then return true end
+		--if Channeling == MindSear then return true end
 	end
 	return false
 end
@@ -266,22 +269,7 @@ function jps.canCastvoidBolt()
 	local MindSear = tostring(jps.spells.priest.mindSear)
 	if Channeling ~= nil then
 	  if tostring(Channeling) == MindFlay then return true end
-	  if tostring(Channeling) == MindSear then return true end
-	end
-	return false
-end
-
-function jps.canCastvoidEruption()
-	if not jps.targetIsBoss("target") and jps.hp("target") < 0.20 then return false end
-	if jps.buff(jps.spells.priest.voidForm) then return false end
-	if not jps.isUsableSpell(jps.spells.priest.voidEruption) then return false end
-	if jps.hasTalent(7,1) and jps.insanity() < 85 then return false end
-	local Channeling = UnitChannelInfo("player") -- "Mind Flay" is a channeling spell
-	local MindFlay = tostring(jps.spells.priest.mindFlay)
-	local MindSear = tostring(jps.spells.priest.mindSear)
-	if Channeling ~= nil then
-	  if tostring(Channeling) == MindFlay then return true end
-	  if tostring(Channeling) == MindSear then return true end
+	  --if tostring(Channeling) == MindSear then return true end
 	end
 	return false
 end

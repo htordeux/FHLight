@@ -100,10 +100,10 @@ Test()
 --print("match",string.match(target,"Mannequin") ~= nil )
 --
 --local voidFormBuff = jps.buff(jps.spells.priest.voidForm)
---local voidEruptionUsable = jps.isUsableSpell(jps.spells.priest.voidEruption)
---local voidEruptionCooldown =  jps.cooldown(jps.spells.priest.voidEruption)
 --print("voidFormBuff:",voidFormBuff)
+--local voidEruptionUsable = jps.isUsableSpell(jps.spells.priest.voidEruption)
 --print("voidEruptionUsable: ",voidEruptionUsable)
+--local voidEruptionCooldown = jps.cooldown(jps.spells.priest.voidEruption)
 --print("voidEruptionCooldown: ",voidEruptionCooldown)
 
 --local _,_,classId = UnitClass("player")

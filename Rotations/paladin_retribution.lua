@@ -156,6 +156,8 @@ local spellTable = {
     { spells.templarsVerdict, jps.holyPower() == 5 , rangedTarget , "templarsVerdict_Power" },
 	-- "Lame de justice" 184575 -- Génère 2 charge de puissance sacrée.
 	{ spells.bladeOfJustice, jps.holyPower() < 4  },
+    -- "Zèle" 217020 -- Remplace Frappe du croisé -- Génère 1 charge de puissance sacrée
+    { spells.zeal, jps.holyPower() < 4 , rangedTarget , "zeal" },
 	-- "Frappe du croisé" 35395 -- Génère 1 charge de puissance sacrée
     { spells.crusaderStrike, jps.holyPower() < 5  },
 
@@ -163,6 +165,7 @@ local spellTable = {
     { spells.judgment  },
 	-- "Lame de justice" 184575 -- Génère 2 charge de puissance sacrée.
 	{ spells.bladeOfJustice  },
+	{ spells.zeal , true, rangedTarget , "zeal" },
 	-- "Frappe du croisé" 35395 -- Génère 1 charge de puissance sacrée
     { spells.crusaderStrike  },
 

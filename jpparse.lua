@@ -73,8 +73,8 @@ function jps.cooldown(spell)
 	local spellname = toSpellName(spell)
 	if spellname == nil then return 0 end
 	local start,duration,_ = GetSpellCooldown(spellname)
-	-- if spell is unknown start is nil and cd is 0 => set it to 999 if the spell is unknown
-	if start == nil then return 999 end
+	-- if spell is unknown start is nil and cd is 0 => set it to 99 if the spell is unknown
+	if start == nil then return 99 end
 	local cd = start+duration-GetTime()
 	if cd < 0 then return 0 end
 	return cd
@@ -88,7 +88,7 @@ local rc = LibStub("LibRangeCheck-2.0")
 function jps.distanceMin(unit)
     local minRange, maxRange = rc:GetRange(unit)
     if minRange == nil then return 99 end
-    return minRange, maxRange
+    return minRange
 end
 
 --[[[
@@ -97,7 +97,7 @@ end
 function jps.distanceMax(unit)
     local minRange, maxRange = rc:GetRange(unit)
     if maxRange == nil then return 99 end
-    return maxRange, minRange
+    return maxRange
 end
 
 -- IsHarmfulSpell(spellname) -- IsHelpfulSpell(spellname)) returns 1 or nil -- USELESS SOMES SPELLS RETURNS NIL AS OUBLI, SPIRIT SHELL

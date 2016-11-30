@@ -137,16 +137,6 @@ for i=1,#EnemyUnit do -- for _,unit in ipairs(EnemyUnit) do
 	break end
 end
 
-local SilenceEnemyTarget = nil
-for i=1,#EnemyUnit do -- for _,unit in ipairs(EnemyUnit) do
-	local unit = EnemyUnit[i]
-	if jps.IsSpellInRange(15487,unit) then
-		if jps.ShouldKick(unit) then
-			SilenceEnemyTarget = unit
-		break end
-	end
-end
-
 local VoidBoltTarget = nil
 local VoidBoltTargetDuration = 20
 for i=1,#EnemyUnit do -- for _,unit in ipairs(EnemyUnit) do
@@ -226,7 +216,8 @@ local spellTable = {
 	
 	-- interrupts --
 	{spells.fade, not ispvp and jps.FriendAggro("player") },
-	{spells.silence, jps.Interrupts and SilenceEnemyTarget ~= nil , SilenceEnemyTarget , "Silence_MultiUnit_Target" },
+	{spells.silence, jps.Interrupts and jps.IsCasting(rangedTarget) and jps.distanceMax(rangedTarget) < 30 , rangedTarget , "Silence_Target" },
+	{spells.silence, jps.Interrupts and jps.IsCasting("focus") and jps.distanceMax("focus") < 30 , "focus" , "Silence_Focus" },
 	-- "Psychic Scream" 8122 "Cri psychique"  -- FARMING OR PVP -- NOT PVE -- debuff same ID 8122
 	{spells.psychicScream, jps.Defensive and jps.IsCasting(rangedTarget) and jps.canFear(rangedTarget) , rangedTarget },
 	-- "Mind Bomb" 205369 -- 30 yd range
@@ -255,13 +246,16 @@ local spellTable = {
 	{"nested", jps.buff(spells.voidForm) , {
 
 		{"macro", jps.canCastvoidBolt , "/stopcasting" },
-		--{spells.voidEruption, jps.myDebuff(spells.shadowWordPain,rangedTarget) and jps.myDebuffDuration(spells.shadowWordPain,rangedTarget) < 4 , rangedTarget , "voidBold_Target"},
-		--{spells.voidEruption, jps.myDebuff(spells.vampiricTouch,rangedTarget) and jps.myDebuffDuration(spells.vampiricTouch,rangedTarget) < 4 , rangedTarget , "voidBold_Target"},
+		{spells.voidEruption, jps.myDebuff(spells.shadowWordPain,rangedTarget) and jps.myDebuffDuration(spells.shadowWordPain,rangedTarget) < 4 , rangedTarget , "voidBold_Target" },
+		{spells.voidEruption, jps.myDebuff(spells.vampiricTouch,rangedTarget) and jps.myDebuffDuration(spells.vampiricTouch,rangedTarget) < 4 , rangedTarget , "voidBold_Target" },
 		{spells.voidEruption, VoidBoltTarget ~= nil , VoidBoltTarget , "voidBold_MultiUnit"},
 		{spells.voidEruption, jps.myDebuff(spells.shadowWordPain,"mouseover") , "mouseover" , "voidBold_Mouseover"},
     	{spells.voidEruption, jps.myDebuff(spells.vampiricTouch,"mouseover") , "mouseover" , "voidBold_Mouseover"},
     	{spells.voidEruption, true , rangedTarget , "voidBold"},
+    	
+    	{spells.voidTorrent , not jps.Moving and jps.myDebuffDuration(spells.vampiricTouch,rangedTarget) > 6 and jps.myDebuffDuration(spells.shadowWordPain,rangedTarget) > 6 , rangedTarget , "voidTorrent"},
 
+    	{spells.shadowWordDeath, jps.spellCharges(spells.shadowWordDeath) == 2 , "target" , "Death_Buff_2" },
 		{"macro", jps.canCastshadowWordDeath , "/stopcasting" },
     	{spells.shadowWordDeath, jps.insanity() < 70 and jps.hp("target") < 0.35 , "target" , "Death_Buff" },
 		{spells.shadowWordDeath, jps.insanity() < 70 and  DeathEnemyTarget ~= nil , DeathEnemyTarget , "Death_Buff" },
@@ -270,21 +264,22 @@ local spellTable = {
 	    {spells.mindSear, jps.MultiTarget and not jps.Moving and jps.cooldown(spells.voidTorrent) > 4 },
 		
     	{"macro", jps.canCastMindBlast , "/stopcasting" },
-		{spells.mindBlast , not jps.Moving , rangedTarget , "mindBlast" },
-		{spells.voidTorrent , not jps.Moving and jps.insanity() < 90 , rangedTarget , "voidTorrent"},
-
+		{spells.mindBlast, not jps.Moving , rangedTarget , "mindBlast" },
+	    
    		-- spells.mindbender
    		{spells.shadowfiend, jps.buffStacks(spells.voidForm) > 9 , rangedTarget , "high_shadowfiend_Buff" },
 		{spells.mindbender,  jps.buffStacks(spells.voidForm) > 9 , rangedTarget , "high_mindbender_Buff" },
 		{spells.mindbender, jps.insanity() < 55 , rangedTarget , "low_mindbender_Buff" },
 		
 		-- Low Insanity coming up (Shadow Word: Death , Void Bolt , Mind Blast , AND Void Torrent are all on cooldown and you are in danger of reaching 0 Insanity).
-		{spells.dispersion, jps.hasTalent(6,3) and jps.insanity() > 21 and jps.insanity() < 55 and jps.cooldown(spells.mindbender) > 51 , "player" , "DISPERSION_insanity" },
-		{spells.dispersion, jps.hasTalent(6,1) and jps.insanity() > 21 and jps.insanity() < 55 and jps.cooldown(spells.powerInfusion) < 7 , "player" , "DISPERSION_insanity" },
-		{spells.dispersion, jps.hasTalent(6,3) and jps.insanity() > 21 and jps.insanity() < 55 and jps.cooldown(spells.voidTorrent) < 5 , "player" , "DISPERSION_insanity" },
+		{spells.dispersion, jps.hasTalent(6,3) and jps.insanity() > 21 and jps.insanity() < 55 and jps.cooldown(spells.mindbender) > 51 , "player" , "DISPERSION_insanity_Mindbender" },
+		{spells.dispersion, jps.hasTalent(6,1) and jps.insanity() > 21 and jps.insanity() < 55 and jps.cooldown(spells.powerInfusion) < 7 , "player" , "DISPERSION_insanity_Infusion" },
 
 	}},
-	
+
+	{spells.vampiricTouch, not jps.Moving and jps.myDebuffDuration(spells.vampiricTouch,rangedTarget) < 4 and not jps.isRecast(spells.vampiricTouch,rangedTarget) , rangedTarget , "Refresh_VT_Target" },
+	{spells.shadowWordPain, jps.myDebuffDuration(spells.shadowWordPain,rangedTarget) < 4 and not jps.isRecast(spells.shadowWordPain,rangedTarget) , rangedTarget , "Refresh_Pain_Target" },	
+
 	{spells.voidEruption, not jps.buff(spells.voidform) and jps.hasTalent(7,1) and jps.insanity() > 85 and not jps.Moving and isTargetElite  , rangedTarget , "voidEruption" },
 	{spells.voidEruption, not jps.buff(spells.voidform) and jps.insanity()== 100 and not jps.Moving and isTargetElite , rangedTarget , "voidEruption" },
 
@@ -299,13 +294,13 @@ local spellTable = {
 	{"macro", jps.canCastMindBlast , "/stopcasting" },
 	{spells.mindBlast, not jps.Moving , rangedTarget , "mindBlast"},
 	--{spells.mindSear, jps.MultiTarget and not jps.Moving },
+	
+	{spells.mindSear, jps.MultiTarget and not jps.Moving and jps.myDebuffDuration(spells.vampiricTouch,rangedTarget) > 6 and jps.myDebuffDuration(spells.shadowWordPain,rangedTarget) > 6},
 
-	{spells.vampiricTouch, not jps.Moving and jps.myDebuffDuration(spells.vampiricTouch,rangedTarget) < 4 and not jps.isRecast(spells.vampiricTouch,rangedTarget) , rangedTarget , "Refresh_VT_Target" },
-	{spells.vampiricTouch, not jps.Moving and jps.myDebuffDuration(spells.vampiricTouch,"focus") < 4 and not jps.isRecast(spells.vampiricTouch,"focus") , "focus" , "Refresh_VT_Focus" },	
+	{spells.vampiricTouch, not jps.Moving and jps.myDebuffDuration(spells.vampiricTouch,"focus") < 4 and not jps.isRecast(spells.vampiricTouch,"focus") , "focus" , "Refresh_VT_Focus" },
+	{spells.shadowWordPain, jps.myDebuffDuration(spells.shadowWordPain,"focus") < 4 and not jps.isRecast(spells.shadowWordPain,rangedTarget) , "focus" , "Refresh_Pain_Focus" },	
+
 	{spells.vampiricTouch, not jps.Moving and VampEnemyTarget ~= nil and not UnitIsUnit("target",VampEnemyTarget) , VampEnemyTarget , "VT_MultiUnit" },
-
-	{spells.shadowWordPain, jps.myDebuffDuration(spells.shadowWordPain,rangedTarget) < 3 and not jps.isRecast(spells.shadowWordPain,rangedTarget) , rangedTarget , "Refresh_Pain_Target" },
-	{spells.shadowWordPain, jps.myDebuffDuration(spells.shadowWordPain,"focus") < 3 and not jps.isRecast(spells.shadowWordPain,"focus") , "focus" , "Refresh_Pain_Focus" },
 	{spells.shadowWordPain, PainEnemyTarget ~= nil and not UnitIsUnit("target",PainEnemyTarget) , PainEnemyTarget , "Pain_MultiUnit" },
 
 	{spells.shadowWordPain, canDPS("mouseover") and fnPainEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "Pain_Mouseover" },

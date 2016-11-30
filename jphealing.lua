@@ -295,7 +295,7 @@ jps.CountInRangeStatus = function (heathpct,range)
 
 	for unit,_ in pairs(RaidStatus) do
 		local unitHP = HealthPct(unit)
-		local maxRange, minRange = jps.distanceMax(unit) 
+		local maxRange = jps.distanceMax(unit) 
 		if maxRange <= range and unitHP < heathpct then
 			FriendUnit[#FriendUnit+1] = unit -- tinsert(FriendUnit, unit)
 			raidHP = raidHP + unitHP

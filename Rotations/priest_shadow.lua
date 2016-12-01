@@ -208,10 +208,10 @@ local spellTable = {
 	{spells.vampiricEmbrace, CountInRange > 2 and AvgHealthLoss < 0.80 },
 	{"nested", jps.hp("player") < 0.80 and not jps.buff(spells.vampiricEmbrace) , parseHeal },
 	
-	{spells.powerWordShield, jps.hp(Tank) < 0.50 and not jps.buff(spells.powerWordShield,Tank) , Tank , "shield_Tank" },
+	{spells.powerWordShield, jps.hp(TankThreat) < 0.50 and not jps.buff(spells.powerWordShield,TankThreat) , TankThreat , "shield_TankThreat" },
 	{spells.powerWordShield, canHeal("mouseover") and jps.hp("mouseover") < 0.50 , "mouseover" , "shield_Mouseover" },
 	-- "Guérison de l’ombre" 186263
-	{spells.shadowMend, not jps.Moving and not jps.buff(spells.voidForm) and jps.hp(Tank) < 0.50 and jps.castEverySeconds(186263, 4) , Tank , "shadowMend_Tank" },
+	{spells.shadowMend, not jps.Moving and not jps.buff(spells.voidForm) and jps.hp(TankThreat) < 0.50 and jps.castEverySeconds(186263, 4) , TankThreat , "shadowMend_TankThreat" },
 	{spells.shadowMend, not jps.Moving and not jps.buff(spells.voidForm) and canHeal("mouseover") and jps.hp("mouseover") < 0.50 and jps.castEverySeconds(186263, 4) , "mouseover" , "shadowMend_Mouseover" },
 	
 	-- interrupts --
@@ -228,6 +228,8 @@ local spellTable = {
 	{spells.mindbender, not jps.buff(spells.lingeringInsanity) and not jps.buff(spells.voidform) },
 	-- "Power Infusion" 10060
 	{spells.powerInfusion, jps.buffStacks(spells.voidForm) > 11 },
+	-- "Déferlante d’ombre" 205385
+	--{spells.shadowCrash, jps.hasTalent(6,2) , rangedTarget , "shadowCrash" },
 
 	-- "Purify Disease" 213634
 	{spells.purifyDisease, jps.UseCDs and jps.canDispel("player","Disease") , "player" },
@@ -266,14 +268,15 @@ local spellTable = {
     	{"macro", jps.canCastMindBlast , "/stopcasting" },
 		{spells.mindBlast, not jps.Moving , rangedTarget , "mindBlast" },
 	    
-   		-- spells.mindbender
+   		-- spells.mindbender -- 15 seconds cd 1 min
    		{spells.shadowfiend, jps.buffStacks(spells.voidForm) > 9 , rangedTarget , "high_shadowfiend_Buff" },
 		{spells.mindbender,  jps.buffStacks(spells.voidForm) > 9 , rangedTarget , "high_mindbender_Buff" },
 		{spells.mindbender, jps.insanity() < 55 , rangedTarget , "low_mindbender_Buff" },
 		
 		-- Low Insanity coming up (Shadow Word: Death , Void Bolt , Mind Blast , AND Void Torrent are all on cooldown and you are in danger of reaching 0 Insanity).
 		{spells.dispersion, jps.hasTalent(6,3) and jps.insanity() > 21 and jps.insanity() < 55 and jps.cooldown(spells.mindbender) > 51 , "player" , "DISPERSION_insanity_Mindbender" },
-		{spells.dispersion, jps.hasTalent(6,1) and jps.insanity() > 21 and jps.insanity() < 55 and jps.cooldown(spells.powerInfusion) < 7 , "player" , "DISPERSION_insanity_Infusion" },
+		{spells.dispersion, jps.hasTalent(6,1) and jps.insanity() > 21 and jps.insanity() < 55 and jps.cooldown(spells.powerInfusion) < 6 , "player" , "DISPERSION_insanity_Infusion" },
+		--{spells.dispersion, jps.insanity() > 21 and jps.insanity() < 55 and jps.cooldown(spells.voidTorrent) < 6 , "player" , "DISPERSION_insanity_voidEruption" },
 
 	}},
 

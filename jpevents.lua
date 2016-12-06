@@ -925,7 +925,8 @@ end
 -------------------------------------------------- ANTI AFK ----------------------------------------------------
 ----------------------------------------------------------------------------------------------------------------
 
-function deleteItem(str) -- "Maquereau"
+function deleteItem()
+	local str = "Maquereau"
 	for bag = 0,4,1 do
 		for slot = 1, 32, 1 do
 			local name = GetContainerItemLink(bag,slot)

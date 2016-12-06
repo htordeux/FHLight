@@ -40,6 +40,7 @@ local POHTarget, groupToHeal, groupHealth = jps.FindSubGroupHeal()
 print("|cff1eff00POHTarget: |cffffffff",POHTarget,"|cff1eff00Group: |cffffffff",groupToHeal,"|cff1eff00Health: |cffffffff",groupHealth)
 local CountInRange, AvgHealthLoss, FriendUnit = jps.CountInRaidStatus(0.80)
 print("|cff1eff00CountInRange: |cffffffff",CountInRange,"|cff1eff00AvgHealthLoss: |cffffffff",AvgHealthLoss,"|cff1eff00FriendUnit: |cffffffff",#FriendUnit)
+print("|cff1eff00TTDTarget: |cffffffff",jps.TimeToDie("target"))
 write("***************************")
 
 local Tank,Tanks = jps.findTankInRaid()

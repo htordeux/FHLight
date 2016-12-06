@@ -238,7 +238,7 @@ function jps.canCastshadowWordDeath()
 	local charges = jps.spellCharges(jps.spells.priest.shadowWordDeath) -- "Shadow Word: Death"
 	local insanity = jps.insanity()
 	if Channeling ~= nil then
-		if jps.buff(jps.spells.priest.voidForm) then
+		if jps.buff(194249) then
 			if tostring(Channeling) == MindFlay and jps.insanity() < 70 then return true end
 			if tostring(Channeling) == MindSear and jps.insanity() < 70 then return true end
 		else
@@ -262,7 +262,7 @@ function jps.canCastMindBlast()
 end
 
 function jps.canCastvoidBolt()
-	if not jps.buff(jps.spells.priest.voidForm) then return false end
+	if not jps.buff(194249) then return false end
 	if jps.cooldown(jps.spells.priest.voidEruption) > 0 then return false end
 	local Channeling = UnitChannelInfo("player") -- "Mind Flay" is a channeling spell
 	local MindFlay = tostring(jps.spells.priest.mindFlay)

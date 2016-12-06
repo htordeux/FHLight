@@ -310,17 +310,19 @@ end
 -- LOWEST PERCENTAGE in RaidStatus
 jps.LowestInRaidStatus = function()
 	local lowestUnit = "player"
+	local lowestUnitPrev = "player"
 	local lowestHP = 1
 	for unit,_ in pairs(RaidStatus) do
 		if canHeal(unit) then
 			local unitHP = HealthPct(unit)
 			if unitHP < lowestHP then
 				lowestHP = unitHP
+				lowestUnitPrev = lowestUnit
 				lowestUnit = unit
 			end
 		end
 	end
-	return lowestUnit
+	return lowestUnit, lowestUnitPrev
 end
 
 -- LOWEST HP in RaidStatus
@@ -379,6 +381,22 @@ jps.LowestFriendTimeToDie = function(timetodie)
 		end
 	end
 	return lowestFriendTTD
+end
+
+-- Highest damage versus incomingheal over 5 sec
+jps.HighestFriendDamage = function()
+	local lowestFriend = nil
+	local highestdamage = 0
+	for unit,_ in pairs(RaidStatus) do
+		if canHeal(unit) then
+			local damage = jps.IncomingDamage(unit) - jps.IncomingHeal(unit)
+			if damage > highestdamage then
+				highestdamage = damage
+				lowestFriend = unit
+			end
+		end
+	end
+	return lowestFriend
 end
 
 ------------------------------------

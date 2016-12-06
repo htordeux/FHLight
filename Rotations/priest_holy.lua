@@ -23,10 +23,11 @@ jps.registerRotation("PRIEST","HOLY", function()
 -- LOWEST UNIT
 ----------------------------
 
-	local CountInRange, AvgHealthLoss, FriendUnit = jps.CountInRaidStatus(0.80)
+	local CountInRange, AvgHealthLoss, FriendUnit = jps.CountInRaidStatus()
 	local POHInRange, _, _ = jps.CountInRangeStatus(0.80,20)
 	local POHTarget, groupToHeal, groupHealth = jps.FindSubGroupHeal(0.80) -- Target to heal with POH in RAID with AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
-	local LowestUnit = jps.LowestImportantUnit()
+	local LowestUnit, LowestUnitPrev = jps.LowestImportantUnit()
+	local HighestDamageFriend = jps.HighestFriendDamage
 
 	local Tank,TankUnit = jps.findTankInRaid() -- default "focus" "player"
 	local TankThreat = jps.findThreatInRaid() -- default "focus" "player"
@@ -132,7 +133,7 @@ jps.registerRotation("PRIEST","HOLY", function()
 				RenewFriend = unit
 				RenewFriendHealth = unitHP
 			end
-		elseif not jps.buff(41635) and jps.hp(unit) < 0.80 then
+		elseif not jps.buff(139,unit) and not jps.buff(41635) and jps.hp(unit) < 0.80 then
 		-- "Holy Mending" 196779 causes Prayer of Mending to heal the target instantly for an additional amount
 		-- whenever it jumps to a player on which Renew is active
 		-- placing Renew on players without Prayer of Mending, you will increase the likelihood of this trait to proc
@@ -194,13 +195,13 @@ jps.registerRotation("PRIEST","HOLY", function()
 ------------------------------------------------------
 
 	local InterruptTable = {
-		{jps.spells.priest.flashHeal, 0.80 , jps.buff(27827) or jps.PvP }, -- "Esprit de rédemption" 27827
+		{jps.spells.priest.flashHeal, 0.80 , jps.buff(27827) or ispvp }, -- "Esprit de rédemption" 27827
 		{jps.spells.priest.heal, 0.50 , jps.buff(27827) },
 		{jps.spells.priest.prayerOfHealing , 4 , jps.buff(64901) or jps.buff(27827) }, -- "Symbol of Hope" 64901
 	}
 
 	-- AVOID OVERHEALING
-	jps.ShouldInterruptCasting(InterruptTable , CountInRange , jps.hp(LowestUnit) )
+	jps.ShouldInterruptCasting(InterruptTable , POHInRange , jps.hp(LowestUnit) )
 
 ------------------------
 -- SPELL TABLE ---------
@@ -228,7 +229,7 @@ local spellTable = {
 		-- "Holy Word: Serenity" 2050
 		{ spells.holyWordSerenity , jps.hp(LowestUnit) < 0.60 , LowestUnit  },
 		-- "Divine Hymn" 64843
-		{ spells.divineHymn, jps.buffDuration(27827) > 8 and CountInRange > 4 and AvgHealthLoss < 0.80 },
+		{ spells.divineHymn, jps.buffDuration(27827) > 8 and POHInRange > 4 and AvgHealthLoss < 0.60 },
 		-- "Prayer of Healing" 596
 		{ spells.prayerOfHealing, POHInRange > 4 , LowestUnit },
 		-- "Soins rapides" 2061
@@ -247,8 +248,8 @@ local spellTable = {
 
 	-- PLAYER AGGRO --
 	-- "Médaillon de gladiateur" 208683
-	{ 208683, jps.PvP and playerIsStun , "player" , "playerCC" },
-	{ 214027, jps.PvP and playerIsStun , "player" , "playerCC" },
+	{ 208683, ispvp and playerIsStun , "player" , "playerCC" },
+	{ 214027, ispvp and playerIsStun , "player" , "playerCC" },
 	-- "Corps et esprit" 214121
 	{ spells.bodyAndMind, jps.Moving , "player" },
 	-- "Fade" 586 "Disparition"
@@ -258,7 +259,22 @@ local spellTable = {
 	-- "Pierre de soins" 5512
 	{ "macro", jps.hp("player") < 0.60 and jps.itemCooldown(5512) == 0 ,"/use item:5512" , "Aggro_Item5512" },
 	-- "Mot sacré : Châtier" 88625
-	{ spells.holyWordChastise , jps.PvP and canDPS(rangedTarget) , rangedTarget },
+	{ spells.holyWordChastise , ispvp and canDPS(rangedTarget) , rangedTarget },
+	
+	{ "nested", ispvp and jps.hp("player") < 1 and jps.FriendAggro("player") , {
+		{ spells.holyWordSerenity, jps.hp("player") < 0.60 , "player" },
+		{ spells.guardianSpirit, jps.hp("player") < 0.30 , "player" },
+		{ spells.flashHeal, jps.hp("player") < 0.80 , "player" },
+		{ spells.renew, jps.buffDuration(spells.renew,"player") < 3 , "player" },
+	}},
+	
+	-- jps.hp(HighestDamageFriend) < 0.80
+
+--	{ "nested", ispvp and jps.hp(LowestUnit) < 0.60 and jps.hp(LowestUnitPrev) < 0.60 , {
+--		{ spells.holyWordSerenity, true , LowestUnit },
+--		{ spells.flashHeal, true , LowestUnitPrev },
+--		{ spells.flashHeal, true , LowestUnit },
+--	}},
 
 	-- "Guardian Spirit" 47788
 	{ spells.guardianSpirit, jps.hp("player") < 0.30 , "player" , "Emergency_Guardian_Player" },
@@ -343,9 +359,9 @@ local spellTable = {
 	}},
 
 	-- "Symbol of Hope" you should you use expensive spells such as Prayer of Healing and Holy Word: Sanctify
-	{ spells.symbolOfHope , CountInRange > 4 and AvgHealthLoss < 0.60 },
+	{ spells.symbolOfHope , POHInRange > 4 and AvgHealthLoss < 0.60 },
 	-- "Divine Hymn" 64843 should be used during periods of very intense raid damage.
-	{ spells.divineHymn , not jps.Moving and jps.buffTracker(41635) and CountInRange > 4 and AvgHealthLoss < 0.60 , LowestUnit },
+	{ spells.divineHymn , not jps.Moving and jps.buffTracker(41635) and POHInRange > 4 and AvgHealthLoss < 0.60 , LowestUnit },
 
 --	{ "castsequence", jps.cooldown(spells.holyWordSanctify) == 0 and POHTarget ~= nil and groupHealth < 0.80 ,
 --		{ spells.holyWordSanctify , spells.prayerOfHealing , spells.prayerOfHealing  }
@@ -378,7 +394,7 @@ local spellTable = {
 	}},
 
 	-- "Circle of Healing" 204883
-	{ spells.circleOfHealing, CountInRange > 4 and AvgHealthLoss < 0.80 , LowestUnit },
+	{ spells.circleOfHealing, POHInRange > 4 and AvgHealthLoss < 0.80 , LowestUnit },
 	{ spells.circleOfHealing, POHTarget ~= nil and groupHealth < 0.80 , POHTarget },
 
 	-- "Renew" 139

@@ -13,9 +13,9 @@ local UnitIsUnit = UnitIsUnit
 ------------------------------------------------------------------------------------------------------
 ---------------------------------------------- ROTATION ----------------------------------------------
 ------------------------------------------------------------------------------------------------------
---jps.PvP for OFFENSIVE Dispel
+
 --jps.Defensive for "Psychic Scream" and "Levitate"
---jps.Interrupts for "Silence"
+--jps.Interrupts for "Silence" et "Mind Bomb"
 --jps.UseCDs for "Purify Disease"
 
 jps.registerRotation("PRIEST","SHADOW",function()
@@ -74,17 +74,17 @@ elseif canAttack(TankTarget) then rangedTarget = TankTarget
 elseif canAttack("targettarget") then rangedTarget = "targettarget"
 elseif canAttack("mouseover") then rangedTarget = "mouseover"
 end
-if canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
+if canAttack(rangedTarget) then jps.Macro("/target "..rangedTarget) end
 
 local TargetMoving = select(1,GetUnitSpeed(rangedTarget)) > 0
+local playerIsTargeted = jps.playerIsTargeted()
+
 local isTargetElite = false
 if jps.targetIsBoss("target") then isTargetElite = true
 elseif jps.TimeToDie("target") > 5 then isTargetElite = true
 elseif jps.hp("target") > 0.50 then isTargetElite = true
 elseif string.find(GetUnitName("target"),"Mannequin") then isTargetElite = true
 end
-
-local playerIsTargeted = jps.playerIsTargeted()
 
 ------------------------
 -- LOCAL FUNCTIONS ENEMY
@@ -172,12 +172,6 @@ end
 -- if jps.debuffDuration(114404,"target") > 18 and jps.UnitExists("target") then MoveBackwardStart() end
 -- if jps.debuffDuration(114404,"target") < 18 and jps.debuff(114404,"target") and jps.UnitExists("target") then MoveBackwardStop() end
 
-----------------------------------------------------------
--- TRINKETS -- OPENING -- CANCELAURA -- SPELLSTOPCASTING
-----------------------------------------------------------
-
-if jps.buff(47585,"player") then return end -- "Dispersion" 47585
-
 -------------------------------------------------------------
 ------------------------ TABLES
 -------------------------------------------------------------
@@ -189,7 +183,7 @@ local parseHeal = {
 	-- "Don des naaru" 59544
 	{spells.giftNaaru, true , "player" },
 	-- "Guérison de l’ombre" 186263
-	{spells.shadowMend, not jps.Moving and not jps.buff(spells.voidForm) and jps.castEverySeconds(186263, 4) , "player" , "shadowMendPlayer" },
+	{spells.shadowMend, not jps.Moving and not jps.buff(194249) and jps.castEverySeconds(186263, 4) , "player" , "shadowMendPlayer" },
 	-- "Pierre de soins" 5512
 	{ "macro", jps.hp("player") < 0.60 and jps.itemCooldown(5512) == 0 , "/use item:5512" },
 }
@@ -198,7 +192,13 @@ local parseHeal = {
 -- SPELLTABLE
 -----------------------------
 
+-- "Dernier souffle d’Anund" buff 215210 (Brassards Legendaire) -- 15 secondes restantes
+-- Chaque fois que Mot de l’ombre : Douleur et Toucher vampirique infligent des dégâts
+-- les dégâts de votre prochain Éclair de Vide sont augmentés de 2%, ce effet se cumulant jusqu’à 50 fois.
+
+if jps.buff(47585,"player") then return end -- "Dispersion" 47585
 if not UnitCanAttack("player", "target") then return end
+if jps.IsChannelingSpell(spells.voidEruption) and not jps.UnitExists("target") then SpellStopCasting() end
 
 local spellTable = {
 
@@ -210,42 +210,51 @@ local spellTable = {
 	
 	{spells.powerWordShield, jps.hp(TankThreat) < 0.50 and not jps.buff(spells.powerWordShield,TankThreat) , TankThreat , "shield_TankThreat" },
 	{spells.powerWordShield, canHeal("mouseover") and jps.hp("mouseover") < 0.50 , "mouseover" , "shield_Mouseover" },
+	{spells.powerWordShield, jps.Moving and not jps.buff(17,"player") and jps.hasTalent(2,2) , "player" , "Shield_BodySoul" },
 	-- "Guérison de l’ombre" 186263
-	{spells.shadowMend, not jps.Moving and not jps.buff(spells.voidForm) and jps.hp(TankThreat) < 0.50 and jps.castEverySeconds(186263, 4) , TankThreat , "shadowMend_TankThreat" },
-	{spells.shadowMend, not jps.Moving and not jps.buff(spells.voidForm) and canHeal("mouseover") and jps.hp("mouseover") < 0.50 and jps.castEverySeconds(186263, 4) , "mouseover" , "shadowMend_Mouseover" },
+	{spells.shadowMend, not jps.Moving and not jps.buff(194249) and jps.hp(TankThreat) < 0.50 and jps.castEverySeconds(186263, 4) , TankThreat , "shadowMend_TankThreat" },
+	{spells.shadowMend, not jps.Moving and not jps.buff(194249) and canHeal("mouseover") and jps.hp("mouseover") < 0.50 , "mouseover" , "shadowMend_Mouseover" },
 	
 	-- interrupts --
 	{spells.fade, not ispvp and jps.FriendAggro("player") },
 	{spells.silence, jps.Interrupts and jps.IsCasting(rangedTarget) and jps.distanceMax(rangedTarget) < 30 , rangedTarget , "Silence_Target" },
 	{spells.silence, jps.Interrupts and jps.IsCasting("focus") and jps.distanceMax("focus") < 30 , "focus" , "Silence_Focus" },
 	-- "Psychic Scream" 8122 "Cri psychique"  -- FARMING OR PVP -- NOT PVE -- debuff same ID 8122
-	{spells.psychicScream, jps.Defensive and jps.IsCasting(rangedTarget) and jps.canFear(rangedTarget) , rangedTarget },
+	{spells.psychicScream, jps.Interrupts and jps.Defensive and jps.IsCasting(rangedTarget) and jps.canFear(rangedTarget) , rangedTarget },
+	{spells.psychicScream, jps.Interrupts and jps.Defensive and jps.IsCasting("focus") and jps.canFear("focus") , "focus" },
 	-- "Mind Bomb" 205369 -- 30 yd range
-	{spells.mindBomb, jps.IsCasting(rangedTarget) , rangedTarget },
-	{spells.mindBomb, jps.MultiTarget , rangedTarget },
-
-	-- Opening
-	{spells.mindbender, not jps.buff(spells.lingeringInsanity) and not jps.buff(spells.voidform) },
-	-- "Power Infusion" 10060
-	{spells.powerInfusion, jps.buffStacks(spells.voidForm) > 11 },
-	-- "Déferlante d’ombre" 205385
-	--{spells.shadowCrash, jps.hasTalent(6,2) , rangedTarget , "shadowCrash" },
-
+	{spells.mindBomb, jps.Interrupts and jps.IsCasting(rangedTarget) , rangedTarget },
+	{spells.mindBomb, jps.Interrupts and jps.IsCasting("focus") , "focus" },
+	{spells.mindBomb, jps.Interrupts and jps.MultiTarget , rangedTarget },
 	-- "Purify Disease" 213634
 	{spells.purifyDisease, jps.UseCDs and jps.canDispel("player","Disease") , "player" },
-	{spells.purifyDisease, jps.UseCDs and jps.canDispel(Tank,"Disease") , Tank },
+	{spells.purifyDisease, jps.UseCDs and jps.canDispel(TankThreat,"Disease") , TankThreat },
 	{spells.purifyDisease, jps.UseCDs and jps.canDispel("mouseover","Disease") , "mouseover" },
 	-- OFFENSIVE Dispel -- "Dissipation de la magie" 528
-	{ "nested", jps.PvP and jps.hp(LowestUnit) > 0.60 , {
+	{ "nested", ispvp and jps.hp(LowestUnit) > 0.60 , {
 		{ spells.dispelMagic, jps.castEverySeconds(528,8) and jps.DispelOffensive(rangedTarget) , rangedTarget , "|cff1eff00DispelOffensive_" },
 		{ spells.dispelMagic, jps.castEverySeconds(528,8) and DispelOffensiveEnemyTarget ~= nil  , DispelOffensiveEnemyTarget , "|cff1eff00DispelOffensive_MULTITARGET_" },
 	}},
-	
 	-- SNM "Levitate" 1706	
 	{ 1706, jps.Defensive and jps.fallingFor() > 1.5 and not jps.buff(111759) , "player" },
 	{ 1706, jps.Defensive and IsSwimming() and not jps.buff(111759) , "player" },
 
-	{"nested", jps.buff(spells.voidForm) , {
+	-- Opening -- "Voidform" buff 194249 -- "Lingering Insanity" buff 197937
+	{spells.mindBlast, not jps.Moving and not jps.buff(197937) and not jps.buff(194249) , rangedTarget , "mindBlast_Opening"},
+	{spells.mindbender, not jps.buff(197937) and not jps.buff(194249) },
+	-- "Power Infusion" 10060
+	--{spells.powerInfusion, jps.buffStacks(194249) > 9 },
+	{ "nested", jps.buffStacks(194249) > 9 , {
+		{spells.powerInfusion, UnitLevel("target") == -1 },
+		{spells.powerInfusion, jps.targetIsBoss("target") and jps.hp("target") > 0.50 },
+		{spells.powerInfusion, jps.MultiTarget },
+		{spells.powerInfusion, UnitLevel("focus") == -1 },
+		{spells.powerInfusion, jps.targetIsBoss("focus") and jps.hp("focus") > 0.50 },
+	}},
+
+	{spells.shadowWordDeath, jps.spellCharges(spells.shadowWordDeath) == 2 and jps.insanity() < 100 , "target" , "Death_Buff_2" },
+
+	{"nested", jps.buff(194249) , {
 
 		{"macro", jps.canCastvoidBolt , "/stopcasting" },
 		{spells.voidEruption, jps.myDebuff(spells.shadowWordPain,rangedTarget) and jps.myDebuffDuration(spells.shadowWordPain,rangedTarget) < 4 , rangedTarget , "voidBold_Target" },
@@ -255,59 +264,65 @@ local spellTable = {
     	{spells.voidEruption, jps.myDebuff(spells.vampiricTouch,"mouseover") , "mouseover" , "voidBold_Mouseover"},
     	{spells.voidEruption, true , rangedTarget , "voidBold"},
     	
-    	{spells.voidTorrent , not jps.Moving and jps.myDebuffDuration(spells.vampiricTouch,rangedTarget) > 6 and jps.myDebuffDuration(spells.shadowWordPain,rangedTarget) > 6 , rangedTarget , "voidTorrent"},
+       	{spells.voidTorrent , not jps.Moving and jps.myDebuffDuration(spells.vampiricTouch,rangedTarget) > 6 and jps.myDebuffDuration(spells.shadowWordPain,rangedTarget) > 6 , rangedTarget , "voidTorrent"},
 
-    	{spells.shadowWordDeath, jps.spellCharges(spells.shadowWordDeath) == 2 , "target" , "Death_Buff_2" },
 		{"macro", jps.canCastshadowWordDeath , "/stopcasting" },
-    	{spells.shadowWordDeath, jps.insanity() < 70 and jps.hp("target") < 0.35 , "target" , "Death_Buff" },
-		{spells.shadowWordDeath, jps.insanity() < 70 and  DeathEnemyTarget ~= nil , DeathEnemyTarget , "Death_Buff" },
-		{spells.shadowWordDeath, jps.insanity() < 70 and jps.hp("mouseover") < 0.35 , "mouseover" , "Death_Buff" },
+    	{spells.shadowWordDeath, jps.insanity() < 71 and jps.hp("target") < 0.35 , "target" , "Death_Buff" },
+		{spells.shadowWordDeath, jps.insanity() < 71 and  DeathEnemyTarget ~= nil , DeathEnemyTarget , "Death_Buff" },
+		{spells.shadowWordDeath, jps.insanity() < 71 and jps.hp("mouseover") < 0.35 , "mouseover" , "Death_Buff" },
 		
-	    {spells.mindSear, jps.MultiTarget and not jps.Moving and jps.cooldown(spells.voidTorrent) > 4 },
-		
-    	{"macro", jps.canCastMindBlast , "/stopcasting" },
+	    {"macro", jps.canCastMindBlast , "/stopcasting" },
 		{spells.mindBlast, not jps.Moving , rangedTarget , "mindBlast" },
-	    
+
+		{spells.mindSear, jps.MultiTarget and not jps.Moving and jps.myDebuffDuration(spells.vampiricTouch,rangedTarget) > 6 and jps.myDebuffDuration(spells.shadowWordPain,rangedTarget) > 6 },
+
    		-- spells.mindbender -- 15 seconds cd 1 min
-   		{spells.shadowfiend, jps.buffStacks(spells.voidForm) > 9 , rangedTarget , "high_shadowfiend_Buff" },
-		{spells.mindbender,  jps.buffStacks(spells.voidForm) > 9 , rangedTarget , "high_mindbender_Buff" },
+   		{spells.shadowfiend, jps.buffStacks(194249) > 9 , rangedTarget , "high_shadowfiend_Buff" },
+		{spells.mindbender,  jps.buffStacks(194249) > 9 , rangedTarget , "high_mindbender_Buff" },
 		{spells.mindbender, jps.insanity() < 55 , rangedTarget , "low_mindbender_Buff" },
 		
 		-- Low Insanity coming up (Shadow Word: Death , Void Bolt , Mind Blast , AND Void Torrent are all on cooldown and you are in danger of reaching 0 Insanity).
-		{spells.dispersion, jps.hasTalent(6,3) and jps.insanity() > 21 and jps.insanity() < 55 and jps.cooldown(spells.mindbender) > 51 , "player" , "DISPERSION_insanity_Mindbender" },
-		{spells.dispersion, jps.hasTalent(6,1) and jps.insanity() > 21 and jps.insanity() < 55 and jps.cooldown(spells.powerInfusion) < 6 , "player" , "DISPERSION_insanity_Infusion" },
-		--{spells.dispersion, jps.insanity() > 21 and jps.insanity() < 55 and jps.cooldown(spells.voidTorrent) < 6 , "player" , "DISPERSION_insanity_voidEruption" },
+		{spells.dispersion, jps.hasTalent(6,3) and jps.insanity() > 21 and jps.insanity() < 100 and jps.cooldown(spells.mindbender) > 51 , "player" , "DISPERSION_insanity_Mindbender" },
+		{spells.dispersion, jps.hasTalent(6,1) and jps.insanity() > 49 and jps.insanity() < 100 and jps.cooldown(spells.powerInfusion) < 6 and jps.buffStacks(194249) > 9 , "player" , "DISPERSION_insanity_Infusion" },
+		--{spells.dispersion, jps.insanity() > 21 and jps.insanity() < 100 and jps.cooldown(spells.voidTorrent) < 6 , "player" , "DISPERSION_insanity_voidEruption" },
 
 	}},
 
 	{spells.vampiricTouch, not jps.Moving and jps.myDebuffDuration(spells.vampiricTouch,rangedTarget) < 4 and not jps.isRecast(spells.vampiricTouch,rangedTarget) , rangedTarget , "Refresh_VT_Target" },
 	{spells.shadowWordPain, jps.myDebuffDuration(spells.shadowWordPain,rangedTarget) < 4 and not jps.isRecast(spells.shadowWordPain,rangedTarget) , rangedTarget , "Refresh_Pain_Target" },	
 
-	{spells.voidEruption, not jps.buff(spells.voidform) and jps.hasTalent(7,1) and jps.insanity() > 85 and not jps.Moving and isTargetElite  , rangedTarget , "voidEruption" },
-	{spells.voidEruption, not jps.buff(spells.voidform) and jps.insanity()== 100 and not jps.Moving and isTargetElite , rangedTarget , "voidEruption" },
+	{spells.voidEruption, not jps.buff(194249) and jps.hasTalent(7,1) and jps.insanity() > 85 and not jps.Moving and isTargetElite  , rangedTarget , "voidEruption" },
+	{spells.voidEruption, not jps.buff(194249) and jps.insanity() == 100 and not jps.Moving and isTargetElite , rangedTarget , "voidEruption" },
+	
+	-- "Déferlante d’ombre" 205385
+	--{spells.shadowCrash, jps.hasTalent(6,2) , rangedTarget , "shadowCrash" },
 
 	-- spells.shadowWordDeath
 	{"macro", jps.canCastshadowWordDeath , "/stopcasting" },
-	{"nested", not jps.buff(spells.voidForm) , {
+	{"nested", not jps.buff(194249) , {
 		{spells.shadowWordDeath, jps.hp("target") < 0.35 , "target" , "Death" },
+		{spells.shadowWordDeath, jps.hp("focus") < 0.35 , "focus" , "Death" },
 		{spells.shadowWordDeath, DeathEnemyTarget ~= nil , DeathEnemyTarget , "Death" },
 		{spells.shadowWordDeath, jps.hp("mouseover") < 0.35 , "mouseover" , "Death" },
 	}},
 	
 	{"macro", jps.canCastMindBlast , "/stopcasting" },
 	{spells.mindBlast, not jps.Moving , rangedTarget , "mindBlast"},
-	--{spells.mindSear, jps.MultiTarget and not jps.Moving },
-	
-	{spells.mindSear, jps.MultiTarget and not jps.Moving and jps.myDebuffDuration(spells.vampiricTouch,rangedTarget) > 6 and jps.myDebuffDuration(spells.shadowWordPain,rangedTarget) > 6},
 
+	{spells.shadowWordPain, ispvp and canAttack("mouseover") and fnPainEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") and jps.hp("mouseover") > 0.20 , "mouseover" , "Pain_Mouseover" },	
+	{spells.shadowWordPain, jps.MultiTarget and canAttack("mouseover") and fnPainEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") and jps.hp("mouseover") > 0.20 , "mouseover" , "Pain_Mouseover" },
+	{spells.mindSear, jps.MultiTarget and not jps.Moving and jps.myDebuffDuration(spells.vampiricTouch,rangedTarget) > 6 and jps.myDebuffDuration(spells.shadowWordPain,rangedTarget) > 6 },
+	
+	-- "Vampiric Touch" heals the Priest for 50% of damage
 	{spells.vampiricTouch, not jps.Moving and jps.myDebuffDuration(spells.vampiricTouch,"focus") < 4 and not jps.isRecast(spells.vampiricTouch,"focus") , "focus" , "Refresh_VT_Focus" },
 	{spells.shadowWordPain, jps.myDebuffDuration(spells.shadowWordPain,"focus") < 4 and not jps.isRecast(spells.shadowWordPain,rangedTarget) , "focus" , "Refresh_Pain_Focus" },	
-
-	{spells.vampiricTouch, not jps.Moving and VampEnemyTarget ~= nil and not UnitIsUnit("target",VampEnemyTarget) , VampEnemyTarget , "VT_MultiUnit" },
+	
+	-- "Shadow Word: Pain" 
+	{spells.shadowWordPain, canAttack("mouseover") and fnPainEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "Pain_Mouseover" },
 	{spells.shadowWordPain, PainEnemyTarget ~= nil and not UnitIsUnit("target",PainEnemyTarget) , PainEnemyTarget , "Pain_MultiUnit" },
 
-	{spells.shadowWordPain, canDPS("mouseover") and fnPainEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "Pain_Mouseover" },
-	{spells.vampiricTouch, canDPS("mouseover") and not jps.Moving and fnVampEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "VT_Mouseover" },
+	{spells.vampiricTouch, not jps.Moving and VampEnemyTarget ~= nil and not UnitIsUnit("target",VampEnemyTarget) , VampEnemyTarget , "VT_MultiUnit" },
+	{spells.vampiricTouch, canAttack("mouseover") and not jps.Moving and fnVampEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") and jps.hp("mouseover") > 0.20 , "mouseover" , "VT_Mouseover" },
 
 	{spells.mindSpike, not jps.Moving },
 	{spells.mindFlay, not jps.Moving },
@@ -366,10 +381,8 @@ jps.registerRotation("PRIEST","SHADOW",function()
 	
 	local spellTable = {
 	
-	{spells.dispersion, jps.Defensive and jps.insanity() > 55 , "player" , "DISPERSION_insanity_OOC" },
-	
 	-- "Shield" 17 "Body and Soul" 64129 "Corps et âme" -- Vitesse de déplacement augmentée de 40% -- buff 65081
-	{ 17, jps.Moving and not jps.buff(17,"player") and jps.hasTalent(2,2) , "player" , "Shield_BodySoul" },
+	{ spells.powerWordShield, jps.Moving and not jps.buff(17,"player") and jps.hasTalent(2,2) , "player" , "Shield_BodySoul" },
 	{ "macro", not jps.buff(65081) and jps.Moving and jps.buff(17) and jps.hasTalent(2,2) , "/cancelaura "..Shield },
 
 	-- SNM "Levitate" 1706	
@@ -380,7 +393,7 @@ jps.registerRotation("PRIEST","SHADOW",function()
 	{ spells.giftNaaru, jps.hp("player") < 0.80 , "player" },
 
 	-- "Oralius' Whispering Crystal" 118922 "Cristal murmurant d’Oralius" -- buff 176151
-	--{ "macro", jps.itemCooldown(118922) == 0 , "/use item:118922" , "Item_Oralius"},
+	{ "macro", jps.itemCooldown(118922) == 0 , "/use item:118922" , "Item_Oralius"},
 
 }
 

@@ -240,7 +240,7 @@ local spellTable = {
 	{ 1706, jps.Defensive and IsSwimming() and not jps.buff(111759) , "player" },
 
 	-- Opening -- "Voidform" buff 194249 -- "Lingering Insanity" buff 197937
-	{spells.mindBlast, not jps.Moving and not jps.buff(197937) and not jps.buff(194249) , rangedTarget , "mindBlast_Opening"},
+	{spells.mindBlast, not jps.Moving and not jps.buff(197937) and not jps.buff(194249) and jps.insanity() < 100 , rangedTarget , "mindBlast_Opening"},
 	{spells.mindbender, not jps.buff(197937) and not jps.buff(194249) },
 	-- "Power Infusion" 10060
 	--{spells.powerInfusion, jps.buffStacks(194249) > 9 },
@@ -289,7 +289,7 @@ local spellTable = {
 	}},
 
 	{spells.vampiricTouch, not jps.buff(194249) and not jps.Moving and jps.myDebuffDuration(spells.vampiricTouch,rangedTarget) < 4 and not jps.isRecast(spells.vampiricTouch,rangedTarget) , rangedTarget , "Refresh_VT_Target" },
-	{spells.shadowWordPain, not jps.buff(194249) and jps.myDebuffDuration(spells.shadowWordPain,rangedTarget) < 4 and not jps.isRecast(spells.shadowWordPain,rangedTarget) , rangedTarget , "Refresh_Pain_Target" },	
+	{spells.shadowWordPain, not jps.buff(194249) and jps.myDebuffDuration(spells.shadowWordPain,rangedTarget) < 4 and not jps.isRecast(spells.shadowWordPain,rangedTarget) , rangedTarget , "Refresh_Pain_Target" },
 
 	{spells.voidEruption, not jps.buff(194249) and jps.hasTalent(7,1) and jps.insanity() > 85 and not jps.Moving and isTargetElite  , rangedTarget , "voidEruption" },
 	{spells.voidEruption, not jps.buff(194249) and jps.insanity() == 100 and not jps.Moving and isTargetElite , rangedTarget , "voidEruption" },
@@ -309,14 +309,17 @@ local spellTable = {
 	{"macro", jps.canCastMindBlast , "/stopcasting" },
 	{spells.mindBlast, not jps.Moving , rangedTarget , "mindBlast"},
 
+	{spells.shadowWordPain, jps.MultiTarget and canAttack("mouseover") and fnPainEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "Pain_Mouseover" },
+	{spells.mindSear, jps.MultiTarget and not jps.Moving , rangedTarget , "MultiTarget_MindSear" },
+
+	--{spells.vampiricTouch, not jps.buff(194249) and not jps.Moving and jps.myDebuffDuration(spells.vampiricTouch,"focus") < 4 and not jps.isRecast(spells.vampiricTouch,"focus") , "focus" , "Refresh_VT_Focus" },
+	--{spells.shadowWordPain, not jps.buff(194249) and jps.myDebuffDuration(spells.shadowWordPain,"focus") < 4 and not jps.isRecast(spells.shadowWordPain,"focus") , "focus" , "Refresh_Pain_Focus" },	
+
 	-- "Shadow Word: Pain"
 	{spells.vampiricTouch, not jps.Moving and fnVampEnemyTarget("focus") , "focus" , "VT_Focus" },
 	{spells.shadowWordPain, fnPainEnemyTarget("focus") , "focus" , "Pain_Focus" },
 	{spells.shadowWordPain, PainEnemyTarget ~= nil and not UnitIsUnit("target",PainEnemyTarget) , PainEnemyTarget , "Pain_MultiUnit" },
 	{spells.shadowWordPain, canAttack("mouseover") and fnPainEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "Pain_Mouseover" },
-
-	{spells.mindSear, jps.EnemyCount() > 4 and not jps.Moving and jps.myDebuffDuration(spells.vampiricTouch,rangedTarget) > 6 and jps.myDebuffDuration(spells.shadowWordPain,rangedTarget) > 6 , rangedTarget , "EnemyCount_MindSear" },
-	{spells.mindSear, jps.MultiTarget and not jps.Moving and jps.myDebuffDuration(spells.vampiricTouch,rangedTarget) > 6 and jps.myDebuffDuration(spells.shadowWordPain,rangedTarget) > 6 , rangedTarget , "MultiTarget_MindSear" },
 
 	-- "Vampiric Touch" heals the Priest for 50% of damage
 	{spells.vampiricTouch, not jps.Moving and VampEnemyTarget ~= nil and not UnitIsUnit("target",VampEnemyTarget) , VampEnemyTarget , "VT_MultiUnit" },
@@ -391,7 +394,7 @@ jps.registerRotation("PRIEST","SHADOW",function()
 	{ spells.giftNaaru, jps.hp("player") < 0.80 , "player" },
 
 	-- "Oralius' Whispering Crystal" 118922 "Cristal murmurant d’Oralius" -- buff 176151
-	{ "macro", jps.itemCooldown(118922) == 0 , "/use item:118922" , "Item_Oralius"},
+	{ "macro", not jps.buff(156079) and not jps.buff(188031) and jps.itemCooldown(118922) == 0 , "/use item:118922" , "Item_Oralius"},
 
 }
 

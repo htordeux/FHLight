@@ -22,11 +22,6 @@ CtrlKeyIsDown = IsControlKeyDown();
 
 local function Test()
 
-local RaidStatusDebuff = jps.RaidStatusDebuff()
-for unit,debuff in pairs(RaidStatusDebuff) do
-	print("unit:",unit,"debuff:",debuff)
-end
-
 write("***************************")
 --  print("Haste",UnitSpellHaste("player"),"-",GetCombatRating(20))
 --	print("Stun:|cff0070dd ", jps.checkTimer("PlayerStun"))
@@ -51,10 +46,11 @@ end
 local TankThreat = jps.findThreatInRaid()
 print("|cFFFF0000TankThreat: ",GetUnitName(TankThreat))
 
-local LowestUnit = jps.LowestImportantUnit()
-print("|cff1eff00Lowest: ",GetUnitName(LowestUnit))
---local friendtableaggro = jps.FriendAggroTable()
---print("friendtableaggro: ",friendtableaggro)
+local LowestUnit, LowestUnitPrev = jps.LowestImportantUnit()
+print("|cff1eff00LowestUnit: ",GetUnitName(LowestUnit))
+print("|cff1eff00LowestUnitPrev: ",GetUnitName(LowestUnitPrev))
+print("|cff1eff00EnemyCount: ",jps.EnemyCount())
+
 
 end
 
@@ -77,10 +73,28 @@ end
 function jps_RaidTest()
 	jps.LookupRaid()
 end
+
+function ChatRandom()
+	-- SendChatMessage("text" [, "chatType" [, languageIndex [, "channel"]]])
+	local table = { "bonsoir" , "Seul est vraiment libre l'homme qui ne possède rien", "La liberté commence où l'ignorance finit",
+	"La liberté n'existe que si l'on s'en sert", "L'ambition est le dernier refuge de l’échec" }
+	
+	local str = ""
+	local val = 0
+	val = math.random(1,#table)
+	str = table[val]
+	SendChatMessage("bonsoir"..str , "GUILD" )
+end
  
 function jps_Test()
 
 Test()
+
+local RaidStatusDebuff = jps.RaidStatusDebuff()
+write("RaidStatusDebuff: ",jps.tableLength(RaidStatusDebuff))
+for unit,debuff in pairs(RaidStatusDebuff) do
+	print("unit:",unit,"debuff:",unpack(debuff))
+end
 
 --local rc = LibStub("LibRangeCheck-2.0")
 --local minRange, maxRange = rc:GetRange('target')
@@ -99,7 +113,7 @@ Test()
 --local target = GetUnitName("target")
 --print("find",string.find(target,"Mannequin") ~= nil )
 --print("match",string.match(target,"Mannequin") ~= nil )
---
+
 --local voidFormBuff = jps.buff(jps.spells.priest.voidForm)
 --print("voidFormBuff:",voidFormBuff)
 --local voidEruptionUsable = jps.isUsableSpell(jps.spells.priest.voidEruption)

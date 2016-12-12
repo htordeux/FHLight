@@ -134,9 +134,8 @@ jps.registerRotation("PRIEST","HOLY", function()
 				RenewFriendHealth = unitHP
 			end
 		elseif not jps.buff(139,unit) and not jps.buff(41635) and jps.hp(unit) < 0.80 then
-		-- "Holy Mending" 196779 causes Prayer of Mending to heal the target instantly for an additional amount
-		-- whenever it jumps to a player on which Renew is active
-		-- placing Renew on players without Prayer of Mending, you will increase the likelihood of this trait to proc
+		-- "Holy Mending" 196779 causes Prayer of Mending to heal the target instantly for an additional amount whenever it jumps to a player on which Renew is active
+		-- placing Renew on players without "Prayer of Mending" 33076 -- Buff POM 41635 you will increase the likelihood of this trait to proc
 			RenewFriend = unit
 		end
 	end
@@ -260,14 +259,7 @@ local spellTable = {
 	{ "macro", jps.hp("player") < 0.60 and jps.itemCooldown(5512) == 0 ,"/use item:5512" , "Aggro_Item5512" },
 	-- "Mot sacré : Châtier" 88625
 	{ spells.holyWordChastise , ispvp and canDPS(rangedTarget) , rangedTarget },
-	
-	{ "nested", ispvp and jps.hp("player") < 1 and jps.FriendAggro("player") , {
-		{ spells.holyWordSerenity, jps.hp("player") < 0.60 , "player" },
-		{ spells.guardianSpirit, jps.hp("player") < 0.30 , "player" },
-		{ spells.flashHeal, jps.hp("player") < 0.80 , "player" },
-		{ spells.renew, jps.buffDuration(spells.renew,"player") < 3 , "player" },
-	}},
-	
+
 	-- jps.hp(HighestDamageFriend) < 0.80
 
 --	{ "nested", ispvp and jps.hp(LowestUnit) < 0.60 and jps.hp(LowestUnitPrev) < 0.60 , {
@@ -282,20 +274,22 @@ local spellTable = {
 	{ spells.guardianSpirit, jps.hp(Tank) < 0.30 and not UnitIsUnit("player",Tank) , Tank , "Emergency_Guardian_Tank" },
 	{ spells.guardianSpirit, jps.hp(LowestUnit) < 0.30 , LowestUnit , "Emergency_Guardian_Lowest" },
 	-- "Soins rapides" 2061 -- "Vague de Lumière" 109186 "Surge of Light" -- gives buff 114255
+	{ spells.flashHeal, jps.hp("player") < 0.80 and jps.buff(114255) , "player" , "FlashHeal_114255" },
 	{ spells.flashHeal, jps.hp(TankThreat) < 0.80 and jps.buff(114255) and not UnitIsUnit("player",TankThreat) , TankThreat , "FlashHeal_114255" },
 	{ spells.flashHeal, jps.hp(Tank) < 0.80 and jps.buff(114255) and not UnitIsUnit("player",Tank) , Tank , "FlashHeal_114255" },
-	{ spells.flashHeal, jps.hp("player") < 0.80 and jps.buff(114255) , "player" , "FlashHeal_114255" },
 	{ spells.flashHeal, jps.hp(LowestUnit) < 0.60 and jps.buff(114255) , LowestUnit , "FlashHeal_114255" },
 	{ spells.flashHeal, jps.buff(114255) and jps.buffDuration(114255) < 3 , LowestUnit , "FlashHeal_114255" },
 	-- "Holy Word: Serenity" 2050
+	{ spells.holyWordSerenity, jps.hp("player") < 0.60 , "player" , "Emergency_player" },
 	{ spells.holyWordSerenity, jps.hp(TankThreat) < 0.60 and not UnitIsUnit("player",TankThreat) , TankThreat , "Emergency_TankThreat" },
 	{ spells.holyWordSerenity, jps.hp(Tank) < 0.60 and not UnitIsUnit("player",Tank) , Tank , "Emergency_Tank" },
-	{ spells.holyWordSerenity, jps.hp("player") < 0.60 , "player" , "Emergency_player" },
 	{ spells.holyWordSerenity , jps.hp(LowestUnit) < 0.40 , LowestUnit  , "Emergency_Lowest" },
 	-- "Light of T'uure" 208065 it buffs the target to increase your healing done to them by 25% for 10 seconds
-	{ spells.lightOfTuure, jps.hp(TankThreat) < 0.60 and not UnitIsUnit("player",TankThreat) , TankThreat },
-	{ spells.lightOfTuure, jps.hp(Tank) < 0.60 and not UnitIsUnit("player",Tank) , Tank },
-	{ spells.lightOfTuure, jps.hp(LowestUnit) < 0.40 , LowestUnit  },
+	{ spells.lightOfTuure, jps.hp("player") < 0.60 , "player" , "Emergency_Tuure_Player" }, 
+	{ spells.lightOfTuure, jps.hp(TankThreat) < 0.60 and not UnitIsUnit("player",TankThreat) , TankThreat , "Emergency_Tuure_TankThreat" }, 
+	{ spells.lightOfTuure, jps.hp(Tank) < 0.60 and not UnitIsUnit("player",Tank) , Tank , "Emergency_Tuure_Tank" }, 
+	{ spells.lightOfTuure, jps.hp(LowestUnit) < 0.40 , LowestUnit , "Emergency_Tuure_Lowest" }, 
+
 	-- "Apotheosis" 200183 increasing the effects of Serendipity by 200% and reducing the cost of your Holy Words by 100%.
 	{ spells.apotheosis, jps.hasTalent(7,1) and jps.hp(TankThreat) < 0.60 },
 	{ spells.apotheosis, jps.hasTalent(7,1) and jps.hp(LowestUnit) < 0.60 },
@@ -323,9 +317,9 @@ local spellTable = {
 
 	-- EMERGENCY HEAL -- "Serendipity" 6373
 	-- "Soins rapides" 2061
-	{ spells.flashHeal, jps.hp(LowestUnit) < 0.50 and jps.LastMessage == "Heal_StopCasting" , LowestUnit , "Emergency_FlashHeal" },
-	{ spells.flashHeal, jps.hp(LowestUnit) < 0.50 and groupHealth > 0.80 , LowestUnit , "Emergency_FlashHeal" },
-	{ spells.flashHeal, jps.hp(LowestUnit) < 0.50 and AvgHealthLoss > 0.80 , LowestUnit , "Emergency_FlashHeal" },
+	{ spells.flashHeal, not jps.Moving and jps.hp(LowestUnit) < 0.50 and jps.LastMessage == "Heal_StopCasting" , LowestUnit , "Emergency_FlashHeal" },
+	{ spells.flashHeal, not jps.Moving and jps.hp(LowestUnit) < 0.50 and groupHealth > 0.80 , LowestUnit , "Emergency_FlashHeal" },
+	{ spells.flashHeal, not jps.Moving and jps.hp(LowestUnit) < 0.50 and AvgHealthLoss > 0.80 , LowestUnit , "Emergency_FlashHeal" },
 
 	-- "Dispel" "Purifier" 527
 	{ "nested", jps.UseCDs , parseDispel },

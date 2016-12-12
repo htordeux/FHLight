@@ -83,7 +83,7 @@ local isTargetElite = false
 if jps.targetIsBoss("target") then isTargetElite = true
 elseif jps.TimeToDie("target") > 5 then isTargetElite = true
 elseif jps.hp("target") > 0.50 then isTargetElite = true
-elseif string.find(GetUnitName("target"),"Mannequin") then isTargetElite = true
+elseif string.find(GetUnitName("target"),"Mannequin") ~= nil then isTargetElite = true
 end
 
 ------------------------
@@ -282,14 +282,14 @@ local spellTable = {
 		{spells.mindbender, jps.insanity() < 55 , rangedTarget , "low_mindbender_Buff" },
 		
 		-- Low Insanity coming up (Shadow Word: Death , Void Bolt , Mind Blast , AND Void Torrent are all on cooldown and you are in danger of reaching 0 Insanity).
-		{spells.dispersion, jps.hasTalent(6,3) and jps.insanity() > 21 and jps.insanity() < 100 and jps.cooldown(spells.mindbender) > 51 , "player" , "DISPERSION_insanity_Mindbender" },
-		{spells.dispersion, jps.hasTalent(6,1) and jps.insanity() > 49 and jps.insanity() < 100 and jps.cooldown(spells.powerInfusion) < 6 and jps.buffStacks(194249) > 9 , "player" , "DISPERSION_insanity_Infusion" },
-		--{spells.dispersion, jps.insanity() > 21 and jps.insanity() < 100 and jps.cooldown(spells.voidTorrent) < 6 , "player" , "DISPERSION_insanity_voidEruption" },
+		{spells.dispersion, jps.hasTalent(6,3) and jps.insanity() > 21 and jps.insanity() < 100 and jps.cooldown(spells.mindbender) > 51 , "player" , "DISPERSION_Insanity_Mindbender" },
+		{spells.dispersion, jps.hasTalent(6,1) and jps.insanity() > 49 and jps.insanity() < 100 and jps.cooldown(spells.powerInfusion) < 6 and jps.buffStacks(194249) > 9 , "player" , "DISPERSION_Insanity_Infusion" },
+		--{spells.dispersion, jps.insanity() > 21 and jps.insanity() < 100 and jps.cooldown(spells.voidTorrent) < 6 , "player" , "DISPERSION_Insanity_VoidEruption" },
 
 	}},
 
-	{spells.vampiricTouch, not jps.Moving and jps.myDebuffDuration(spells.vampiricTouch,rangedTarget) < 4 and not jps.isRecast(spells.vampiricTouch,rangedTarget) , rangedTarget , "Refresh_VT_Target" },
-	{spells.shadowWordPain, jps.myDebuffDuration(spells.shadowWordPain,rangedTarget) < 4 and not jps.isRecast(spells.shadowWordPain,rangedTarget) , rangedTarget , "Refresh_Pain_Target" },	
+	{spells.vampiricTouch, not jps.buff(194249) and not jps.Moving and jps.myDebuffDuration(spells.vampiricTouch,rangedTarget) < 4 and not jps.isRecast(spells.vampiricTouch,rangedTarget) , rangedTarget , "Refresh_VT_Target" },
+	{spells.shadowWordPain, not jps.buff(194249) and jps.myDebuffDuration(spells.shadowWordPain,rangedTarget) < 4 and not jps.isRecast(spells.shadowWordPain,rangedTarget) , rangedTarget , "Refresh_Pain_Target" },	
 
 	{spells.voidEruption, not jps.buff(194249) and jps.hasTalent(7,1) and jps.insanity() > 85 and not jps.Moving and isTargetElite  , rangedTarget , "voidEruption" },
 	{spells.voidEruption, not jps.buff(194249) and jps.insanity() == 100 and not jps.Moving and isTargetElite , rangedTarget , "voidEruption" },
@@ -309,20 +309,18 @@ local spellTable = {
 	{"macro", jps.canCastMindBlast , "/stopcasting" },
 	{spells.mindBlast, not jps.Moving , rangedTarget , "mindBlast"},
 
-	{spells.shadowWordPain, ispvp and canAttack("mouseover") and fnPainEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") and jps.hp("mouseover") > 0.20 , "mouseover" , "Pain_Mouseover" },	
-	{spells.shadowWordPain, jps.MultiTarget and canAttack("mouseover") and fnPainEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") and jps.hp("mouseover") > 0.20 , "mouseover" , "Pain_Mouseover" },
-	{spells.mindSear, jps.MultiTarget and not jps.Moving and jps.myDebuffDuration(spells.vampiricTouch,rangedTarget) > 6 and jps.myDebuffDuration(spells.shadowWordPain,rangedTarget) > 6 },
-	
-	-- "Vampiric Touch" heals the Priest for 50% of damage
-	{spells.vampiricTouch, not jps.Moving and jps.myDebuffDuration(spells.vampiricTouch,"focus") < 4 and not jps.isRecast(spells.vampiricTouch,"focus") , "focus" , "Refresh_VT_Focus" },
-	{spells.shadowWordPain, jps.myDebuffDuration(spells.shadowWordPain,"focus") < 4 and not jps.isRecast(spells.shadowWordPain,rangedTarget) , "focus" , "Refresh_Pain_Focus" },	
-	
-	-- "Shadow Word: Pain" 
-	{spells.shadowWordPain, canAttack("mouseover") and fnPainEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "Pain_Mouseover" },
+	-- "Shadow Word: Pain"
+	{spells.vampiricTouch, not jps.Moving and fnVampEnemyTarget("focus") , "focus" , "VT_Focus" },
+	{spells.shadowWordPain, fnPainEnemyTarget("focus") , "focus" , "Pain_Focus" },
 	{spells.shadowWordPain, PainEnemyTarget ~= nil and not UnitIsUnit("target",PainEnemyTarget) , PainEnemyTarget , "Pain_MultiUnit" },
+	{spells.shadowWordPain, canAttack("mouseover") and fnPainEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "Pain_Mouseover" },
 
+	{spells.mindSear, jps.EnemyCount() > 4 and not jps.Moving and jps.myDebuffDuration(spells.vampiricTouch,rangedTarget) > 6 and jps.myDebuffDuration(spells.shadowWordPain,rangedTarget) > 6 , rangedTarget , "EnemyCount_MindSear" },
+	{spells.mindSear, jps.MultiTarget and not jps.Moving and jps.myDebuffDuration(spells.vampiricTouch,rangedTarget) > 6 and jps.myDebuffDuration(spells.shadowWordPain,rangedTarget) > 6 , rangedTarget , "MultiTarget_MindSear" },
+
+	-- "Vampiric Touch" heals the Priest for 50% of damage
 	{spells.vampiricTouch, not jps.Moving and VampEnemyTarget ~= nil and not UnitIsUnit("target",VampEnemyTarget) , VampEnemyTarget , "VT_MultiUnit" },
-	{spells.vampiricTouch, canAttack("mouseover") and not jps.Moving and fnVampEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") and jps.hp("mouseover") > 0.20 , "mouseover" , "VT_Mouseover" },
+	{spells.vampiricTouch, not jps.Moving and canAttack("mouseover") and fnVampEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") and jps.hp("mouseover") > 0.20 , "mouseover" , "VT_Mouseover" },
 
 	{spells.mindSpike, not jps.Moving },
 	{spells.mindFlay, not jps.Moving },

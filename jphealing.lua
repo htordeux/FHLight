@@ -343,7 +343,8 @@ end
 -- WARNING FOCUS RETURN FALSE IF NOT IN GROUP OR RAID BECAUSE OF UNITINRANGE(UNIT)
 -- CANHEAL returns TRUE for "target" and "focus" FRIENDS NOT IN RAID
 jps.LowestImportantUnit = function()
-	local LowestUnit = "player"
+	local lowestUnit = "player"
+	local lowestUnitPrev = "player"
 	if jps.Defensive then
 		local myTanks = {"player","mouseover","target","focus","targettarget","focustarget"}
 		local _,Tanks = jps.findTankInRaid()
@@ -357,13 +358,13 @@ jps.LowestImportantUnit = function()
 			local unitHP = HealthPct(unit)
 			if canHeal(unit) and unitHP < lowestHP then 
 				lowestHP = unitHP
-				LowestUnit = unit
+				lowestUnit = unit
 			end
 		end
 	else
-		LowestUnit = jps.LowestInRaidStatus()
+		lowestUnit, lowestUnitPrev = jps.LowestInRaidStatus()
 	end
-	return LowestUnit
+	return lowestUnit, lowestUnitPrev
 end
 
 -- LOWEST TIME TO DIE
@@ -625,55 +626,21 @@ jps.WarningDebuffs = function(unit)
 	return false
 end
 
-jps.RaidStatusDebuff = function() -- returns table 
-	local RaidStatusDebuff = {}
-	for unit,_ in pairs(RaidStatus) do
-		local auraName, debuffType, expirationTime, castBy, spellId
-		local i = 1
-		auraName, _, _, _, debuffType, _, expirationTime, castBy, _, _, spellId = UnitDebuff(unit, i) 
-		while auraName do
-			if debuffType ~= nil and expirationTime - GetTime() > 1 then
-			RaidStatusDebuff[unit] = debuffType
-			end
-			i = i + 1
-			auraName, _, _, _, debuffType, _, expirationTime, castBy, _, _, spellId = UnitDebuff(unit, i)
-		end
-	end
-	return RaidStatusDebuff
-end
-
 jps.canDispel = function(unit,dispelType) -- "Magic", "Poison", "Disease", "Curse"
 	if not canHeal(unit) then return false end
 	if jps.WarningDebuffs(unit) then return false end
 	if dispelType == nil then dispelType = "Magic" end
-	local auraName, debuffType, expirationTime, castBy, spellId
+	local auraName, debuffType, expirationTime, spellId
 	local i = 1
-	auraName, _, _, _, debuffType, _, expirationTime, castBy, _, _, spellId = UnitDebuff(unit, i) 
+	auraName, _, _, _, debuffType, _, expirationTime, _, _, _, spellId = UnitDebuff(unit, i) 
 	while auraName do
 		if debuffType ~= nil and debuffType == dispeltype and expirationTime - GetTime() > 1 then
 		if jps.Debug then write("debuffType:",debuffType) end
 		return true end
 		i = i + 1
-		auraName, _, _, _, debuffType, _, expirationTime, castBy, _, _, spellId = UnitDebuff(unit, i)
+		auraName, _, _, _, debuffType, _, expirationTime, _, _, _, spellId = UnitDebuff(unit, i)
 	end
 	return false
-end
-
-jps.canDispelUnit = function(dispelType) -- "Magic", "Poison", "Disease", "Curse"
-	if dispelType == nil then dispelType = "Magic" end
-	local dispelUnit = nil
-	local dispelUnitHP = 1
-	local RaidStatusDebuff = jps.RaidStatusDebuff()
-	for unit,_ in pairs(RaidStatus) do
-		if RaidStatusDebuff[unit] == dispelType then -- jps.canDispel(unit,dispelType)
-			local unitHP = HealthPct(unit)
-			if unitHP < dispelUnitHP then
-				dispelUnitHP = unitHP
-				dispelUnit = unit
-			end
-		end
-	end
-	return dispelUnit
 end
 
 function jps.DispelMagicTarget()
@@ -704,13 +671,37 @@ end
 -- BOSS DEBUFF
 ---------------------------------------
 
+-- name, rank, icon, count, debuffType, duration, expirationTime, unitCaster, isStealable, shouldConsolidate, spellId, canApplyAura, isBossDebuff, value1, value2, value3 = UnitDebuff("unit", index or ["name", "rank"][, "filter"])
+
+jps.RaidStatusDebuff = function() -- returns table 
+	local RaidStatusDebuff = {}
+	for unit,_ in pairs(RaidStatus) do
+		local auraName, debuffType, expirationTime, spellId
+		local i = 1
+		auraName, _, _, _, debuffType, _, expirationTime, unitCaster, _, _, spellId = UnitDebuff(unit, i) 
+		while auraName do
+			if debuffType ~= nil and expirationTime - GetTime() > 1 then
+				if RaidStatusDebuff[unit] == nil then
+					RaidStatusDebuff[unit] = {debuffType}
+				else 
+					tinsert(RaidStatusDebuff[unit],1,debuffType)
+				end
+			end
+			i = i + 1
+			auraName, _, _, _, debuffType, _, expirationTime, unitCaster, _, _, spellId = UnitDebuff(unit, i)
+		end
+	end
+	return RaidStatusDebuff
+end
+
 function jps.BossDebuff(unit)
-	if jps.WarningDebuffs(unit) then return false end
 	local i = 1
 	local auraName,debuffType,expirationTime,unitCaster,spellId,isBossDebuff
 	auraName, _, _, _, debuffType, _, expirationTime, unitCaster, _, _, spellId, _, isBossDebuff = UnitDebuff(unit, i)
 	while auraName do
-		if UnitClassification(unitCaster) == "elite" and debuffType == "Magic" then return true end
+		local classCaster = UnitClassification(unitCaster)
+		if string.find(classCaster,"boss") ~= nil and debuffType ~= nil then return true end
+		if string.find(classCaster,"elite") ~= nil and debuffType ~= nil then return true end
 		i = i + 1
 		auraName, _, _, _, debuffType, _, expirationTime, unitCaster, _, _, spellId, _, isBossDebuff = UnitDebuff(unit, i)
 	end

@@ -549,12 +549,9 @@ end)
 jps.events.registerEvent("UNIT_HEALTH_FREQUENT", function(unitID)
 	if jps.isHealer and canHeal(unitID) then
 		jps.UpdateRaidStatus()
+		if UnitAffectingCombat(unitID) then jps.Combat = true end
 	else
 		jps.UpdateRaidUnit(unitID)
-	end
-	-- for healing purpose update jps.combat
-	if not jps.Combat and IsInGroup() then
-		if UnitAffectingCombat(unitID) and canHeal(unitID) then jps.Combat = true end
 	end
 end)
 
@@ -849,6 +846,10 @@ jps.EnemyDamager = function(unit)
 	return false
 end
 
+jps.EnemyCount = function()
+	return jps.tableLength(EnemyDamager)
+end
+
 -- TABLE OF ENEMY GUID TARGETING FRIEND GUID
 -- EnemyDamager[enemyGuid] = { ["friendguid"] = friendGuid , ["friendaggro"] = GetTime() }
 jps.FriendAggro = function (unit)
@@ -930,7 +931,7 @@ function deleteItem()
 	for bag = 0,4,1 do
 		for slot = 1, 32, 1 do
 			local name = GetContainerItemLink(bag,slot)
-			if name and string.find(name,str) then
+			if name and string.find(name,str) ~= nil then
 				PickupContainerItem(bag,slot)
 				DeleteCursorItem()
 			end

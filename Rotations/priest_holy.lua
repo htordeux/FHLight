@@ -55,8 +55,10 @@ jps.registerRotation("PRIEST","HOLY", function()
 	elseif canAttack("mouseover") then rangedTarget = "mouseover"
 	end
 	-- if your target is friendly keep it as target
-	if not canHeal("target") and canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
+	if not canHeal("target") and canAttack(rangedTarget) then jps.Macro("/target "..rangedTarget) end
+
 	local TargetMoving = select(1,GetUnitSpeed(rangedTarget)) > 0
+	local playerIsTargeted = jps.playerIsTargeted()
 
 ----------------------------
 -- LOCAL FUNCTIONS FRIENDS
@@ -173,13 +175,6 @@ jps.registerRotation("PRIEST","HOLY", function()
 -- LOCAL TABLES
 ------------------------
 	
-	local parseControl = {
-		-- "Silence" 15487
-		{ 15487, jps.IsSpellInRange(15487,rangedTarget) , rangedTarget },
-		-- "Psychic Scream" "Cri psychique" 8122 -- debuff same ID 8122
-		{ 8122, jps.canFear(rangedTarget) , rangedTarget },
-	}
-	
 	local parseDispel = {
 		-- "Dispel" "Purifier" 527
 		{ spells.purify, jps.canDispel("player","Magic") , "player" , "Dispel" },
@@ -255,15 +250,16 @@ local spellTable = {
 	-- "Don des naaru" 59544
 	{ spells.giftNaaru, jps.hp("player") < 0.80 , "player" , "Naaru" },
 	-- "Pierre de soins" 5512
-	{ "macro", jps.hp("player") < 0.60 and jps.itemCooldown(5512) == 0 ,"/use item:5512" , "Item5512" },
+	{ "macro", jps.hp("player") < 0.60 and jps.itemCooldown(5512) == 0 ,"/use item:5512" },
 	-- "Mot sacré : Châtier" 88625
 	{ spells.holyWordChastise , jps.PvP and canDPS(rangedTarget) , rangedTarget },
 
 	-- "Guardian Spirit" 47788
-	{ spells.guardianSpirit, jps.hp("player") < 0.30 , "player" , "Emergency_Guardian_Player" },
 	{ spells.guardianSpirit, jps.hp(TankThreat) < 0.30 and not UnitIsUnit("player",TankThreat) , TankThreat , "Emergency_Guardian_Tank" },
 	{ spells.guardianSpirit, jps.hp(Tank) < 0.30 and not UnitIsUnit("player",Tank) , Tank , "Emergency_Guardian_Tank" },
 	{ spells.guardianSpirit, jps.hp(LowestUnit) < 0.30 , LowestUnit , "Emergency_Guardian_Lowest" },
+	-- "Gardiens de la Lumière" -- Esprit gardien invoque un esprit supplémentaire pour veiller sur vous.
+	{ spells.guardianSpirit, jps.hp("player") < 0.30 , "player" , "Emergency_Guardian_Player" },
 	-- "Soins rapides" 2061 -- "Vague de Lumière" 109186 "Surge of Light" -- gives buff 114255
 	{ spells.flashHeal, jps.hp("player") < 0.80 and jps.buff(114255) , "player" , "FlashHeal_Surge" },
 	{ spells.flashHeal, jps.hp(TankThreat) < 0.80 and jps.buff(114255) and not UnitIsUnit("player",TankThreat) , TankThreat , "FlashHeal_Surge" },
@@ -308,14 +304,15 @@ local spellTable = {
 	-- "Soins rapides" 2061
 	{ spells.flashHeal, not jps.Moving and jps.hp(LowestUnit) < 0.50 and jps.LastMessage == "Heal_StopCasting" , LowestUnit , "Emergency_Lowest" },	
 	-- "Renew" 139
-	{ spells.renew, RenewFriend ~= nil and jps.buffTrackerCount(139) < 3 and jps.hp(LowestUnit) > 0.60 , RenewFriend , "Renew_TrackerCount" },
+	{ spells.renew, RenewFriend ~= nil and jps.buffTrackerCount(139) < 4 and jps.hp(LowestUnit) > 0.60 , RenewFriend , "Renew_TrackerCount" },
 	-- "Prière de guérison" 33076 -- Buff POM 41635 -- "Guerison sacrée"
 	{ spells.prayerOfMending, not jps.Moving and jps.buffTrackerCount(139) > 3 and jps.hp(LowestUnit) > 0.60 , LowestUnit , "POM_TrackerCount" },
+	{ spells.prayerOfMending, not jps.Moving and POHTarget ~= nil and groupHealth < 0.80 , POHTarget , "POM_POHTarget" },
 
 	-- EMERGENCY HEAL -- "Serendipity" 63733
 	-- "Soins rapides" 2061
-	{ spells.flashHeal, groupHealth > 0.80 and not jps.Moving and jps.hp(TankThreat) < 0.60 and jps.hpInc(TankThreat) < 0.90  , TankThreat , "Emergency_TankThreat"  },
-	{ spells.flashHeal, groupHealth > 0.80 and not jps.Moving and jps.hp(Tank) < 0.60 and jps.hpInc(Tank) < 0.90  , Tank , "Emergency_Tank"  },	
+	{ spells.flashHeal, groupHealth > 0.80 and not jps.Moving and jps.hp(TankThreat) < 0.60  , TankThreat , "Emergency_TankThreat"  },
+	{ spells.flashHeal, groupHealth > 0.80 and not jps.Moving and jps.hp(Tank) < 0.60  , Tank , "Emergency_Tank"  },	
 	{ spells.flashHeal, AvgHealthLoss > 0.80 and not jps.Moving and jps.hp(TankThreat) < 0.60 and not UnitIsUnit("player",TankThreat) , TankThreat , "Emergency_TankThreat" },
 	{ spells.flashHeal, AvgHealthLoss > 0.80 and not jps.Moving and jps.hp(Tank) < 0.60 and not UnitIsUnit("player",Tank) , Tank , "Emergency_Tank" },
 	-- "Soins de lien" 32546
@@ -324,9 +321,15 @@ local spellTable = {
 	-- "Soins rapides" 2061
 	{ spells.flashHeal, not jps.Moving and jps.hp(LowestUnit) < 0.50 and groupHealth > 0.80 , LowestUnit , "Emergency_Lowest" },
 	{ spells.flashHeal, not jps.Moving and jps.hp(LowestUnit) < 0.50 and AvgHealthLoss > 0.80 , LowestUnit , "Emergency_Lowest" },
+	
+	{ "nested", jps.Defensive and canDPS(rangedTarget) and jps.hp(LowestUnit) > 0.60  , {
+		{ spells.holyWordChastise , canDPS(rangedTarget) , rangedTarget },
+		{ spells.holyFire , canDPS(rangedTarget) , rangedTarget  },
+		{ spells.smite , not jps.Moving and canDPS(rangedTarget) , rangedTarget },
+		{ spells.holyNova, jps.Moving and CheckInteractDistance("target",2) == true },
+	}},
 
 	-- "Prière de guérison" 33076 -- Buff POM 41635
-	{ spells.prayerOfMending, not jps.Moving and POHTarget ~= nil and groupHealth < 0.80 , POHTarget , "POM_POHTarget" },
 	{ "nested", not jps.Moving and not jps.buffTracker(41635) and jps.hp(LowestUnit) > 0.60 ,{
 		{ spells.prayerOfMending, not UnitIsUnit("player",TankThreat) , TankThreat , "Tracker_Mending_Tank" },
 		{ spells.prayerOfMending, not UnitIsUnit("player",Tank) , Tank , "Tracker_Mending_Tank" },
@@ -335,15 +338,8 @@ local spellTable = {
 	}},
 
 	-- "Soins" 2060
-	{ spells.heal , groupHealth > 0.80 and not jps.Moving and canHeal(TankThreat) and jps.hpInc(TankThreat) < 0.90 , TankThreat , "Soins_TankThreat"  },
-	{ spells.heal , groupHealth > 0.80 and not jps.Moving and canHeal(Tank) and jps.hpInc(Tank) < 0.90 , Tank , "Soins_Tank"  },
-	
-	{ "nested", jps.Defensive and canDPS(rangedTarget) and jps.hp(LowestUnit) > 0.60  , {
-		{ spells.holyWordChastise , canDPS(rangedTarget) , rangedTarget },
-		{ spells.holyFire , canDPS(rangedTarget) , rangedTarget  },
-		{ spells.smite , not jps.Moving and canDPS(rangedTarget) , rangedTarget },
-		{ spells.holyNova, jps.Moving and CheckInteractDistance("target",2) == true },
-	}},
+	{ spells.heal , groupHealth > 0.80 and not jps.Moving and canHeal(TankThreat) and jps.hpInc(TankThreat) < 1 , TankThreat , "Soins_TankThreat"  },
+	{ spells.heal , groupHealth > 0.80 and not jps.Moving and canHeal(Tank) and jps.hpInc(Tank) < 1 , Tank , "Soins_Tank"  },
 
 	-- "Symbol of Hope" you should you use expensive spells such as Prayer of Healing and Holy Word: Sanctify
 	{ spells.symbolOfHope , POHInRange > 4 and AvgHealthLoss < 0.60 },

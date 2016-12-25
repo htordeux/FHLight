@@ -211,14 +211,15 @@ local spellTable = {
 	
 	-- interrupts --
 	{spells.fade, not ispvp and jps.FriendAggro("player") },
-	{spells.silence, jps.Interrupts and jps.IsCasting(rangedTarget) and jps.distanceMax(rangedTarget) < 30 , rangedTarget , "Silence_Target" },
-	{spells.silence, jps.Interrupts and jps.IsCasting("focus") and jps.distanceMax("focus") < 30 , "focus" , "Silence_Focus" },
+	-- "Silence" 15487 -- debuff same ID
+	{spells.silence, jps.Interrupts and not jps.debuff(226943,rangedTarget) and jps.IsCasting(rangedTarget) and jps.distanceMax(rangedTarget) < 30 , rangedTarget , "Silence_Target" },
+	{spells.silence, jps.Interrupts and not jps.debuff(226943,"focus") and jps.IsCasting("focus") and jps.distanceMax("focus") < 30 , "focus" , "Silence_Focus" },
 	-- "Psychic Scream" 8122 "Cri psychique"  -- FARMING OR PVP -- NOT PVE -- debuff same ID 8122
 	{spells.psychicScream, jps.Interrupts and jps.IsCasting(rangedTarget) and jps.canFear(rangedTarget) , rangedTarget },
 	{spells.psychicScream, jps.Interrupts and jps.IsCasting("focus") and jps.canFear("focus") , "focus" },
-	-- "Mind Bomb" 205369 -- 30 yd range
-	{spells.mindBomb, jps.Interrupts and jps.IsCasting(rangedTarget) , rangedTarget },
-	{spells.mindBomb, jps.Interrupts and jps.IsCasting("focus") , "focus" },
+	-- "Mind Bomb" 205369 -- 30 yd range -- debuff "Explosion mentale" 226943
+	{spells.mindBomb, jps.Interrupts and jps.IsCasting(rangedTarget) and jps.distanceMax(rangedTarget) < 30 , rangedTarget },
+	{spells.mindBomb, jps.Interrupts and jps.IsCasting("focus") and jps.distanceMax("focus") < 30 , "focus" },
 	{spells.mindBomb, jps.Interrupts and jps.MultiTarget , rangedTarget },
 	-- "Purify Disease" 213634
 	{spells.purifyDisease, jps.UseCDs and jps.canDispel("player","Disease") , "player" },
@@ -308,9 +309,9 @@ local spellTable = {
 	{spells.vampiricTouch, not jps.Moving and VampEnemyTarget ~= nil and not UnitIsUnit("target",VampEnemyTarget) , VampEnemyTarget , "VT_MultiUnit" },
 	{spells.shadowWordPain, PainEnemyTarget ~= nil and not UnitIsUnit("target",PainEnemyTarget) , PainEnemyTarget , "Pain_MultiUnit" },
 	
-	{spells.shadowWordPain, canAttack("mouseover") and fnPainEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "Pain_Mouseover" },
 	{spells.vampiricTouch, not jps.Moving and canAttack("mouseover") and fnVampEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") and jps.hp("mouseover") > 0.20 , "mouseover" , "VT_Mouseover" },
-
+	{spells.shadowWordPain, canAttack("mouseover") and fnPainEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "Pain_Mouseover" },
+	
 	{spells.mindSpike, not jps.Moving },
 	{spells.mindFlay, not jps.Moving },
 

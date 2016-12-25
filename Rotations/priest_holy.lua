@@ -336,6 +336,11 @@ local spellTable = {
 		{ spells.prayerOfMending, MendingFriend ~= nil , MendingFriend , "Tracker_Mending_Friend" },
 		{ spells.prayerOfMending, true , LowestUnit , "Tracker_Mending_Lowest" },
 	}},
+	
+	{ "nested", jps.MultiTarget and not jps.Moving and jps.hp(TankThreat) > 0.40 and AvgHealthLoss < 0.80 and groupHealth < 0.80 ,{
+		{ spells.prayerOfHealing, POHInRange > 4 , LowestUnit , "POH_LowestUnit" },
+		{ spells.prayerOfHealing, POHTarget ~= nil , POHTarget , "POH_Target" },
+	}},
 
 	-- "Soins" 2060
 	{ spells.heal , groupHealth > 0.80 and not jps.Moving and canHeal(TankThreat) and jps.hpInc(TankThreat) < 1 , TankThreat , "Soins_TankThreat"  },
@@ -359,8 +364,8 @@ local spellTable = {
 	{ spells.holyWordSanctify, POHTarget ~= nil and groupHealth < 0.80 , POHTarget , "Sanctify_POH" },
 	{ spells.holyWordSanctify, POHInRange > 4 and AvgHealthLoss < 0.80 , LowestUnit, "Sanctify_CountInRange" },
 	-- "Prayer of Healing" 596 is no longer restricted to healing players who are in your group.	
-	{ spells.prayerOfHealing, not jps.Moving and jps.hp(TankThreat) > 0.40 and POHInRange > 4 and AvgHealthLoss < 0.80 , LowestUnit , "POH_LowestUnit" },
-	{ spells.prayerOfHealing, not jps.Moving and POHTarget ~= nil and groupHealth < 0.80 , POHTarget },
+	{ spells.prayerOfHealing, not jps.Moving and POHInRange > 4 and AvgHealthLoss < 0.80 , LowestUnit , "POH_LowestUnit" },
+	{ spells.prayerOfHealing, not jps.Moving and POHTarget ~= nil and groupHealth < 0.80 , POHTarget , "POH_Target" },
 
 	-- "Renew" 139
 	{ spells.renew, jps.buffDuration(spells.renew,"player") < 3 and jps.hp(LowestUnit) > 0.60 , "player" , "Timer_Renew_Player" },

@@ -239,8 +239,8 @@ function jps.canCastshadowWordDeath()
 	local insanity = jps.insanity()
 	if Channeling ~= nil then
 		if jps.buff(194249) then
-			if tostring(Channeling) == MindFlay and jps.insanity() < 70 then return true end
-			if tostring(Channeling) == MindSear and jps.insanity() < 70 then return true end
+			if tostring(Channeling) == MindFlay and jps.insanity() < 71 then return true end
+			if tostring(Channeling) == MindSear and jps.insanity() < 71 then return true end
 		else
 			if tostring(Channeling) == MindFlay then return true end
 			if tostring(Channeling) == MindSear then return true end

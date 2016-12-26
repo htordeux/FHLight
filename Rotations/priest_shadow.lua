@@ -203,8 +203,8 @@ local spellTable = {
 	}},
 	
 	-- "Power Word: Shield" 17
-	{spells.powerWordShield, jps.hp(TankThreat) < 0.50 and not jps.buff(spells.powerWordShield,TankThreat) , TankThreat , "shield_TankThreat" },
-	{spells.powerWordShield, canHeal("mouseover") and jps.hp("mouseover") < 0.50 and not jps.buff(spells.powerWordShield,"mouseover") , "mouseover" , "shield_Mouseover" },
+	{spells.powerWordShield, jps.hp(TankThreat) < 0.50 and not jps.buff(17,TankThreat) , TankThreat , "shield_TankThreat" },
+	{spells.powerWordShield, canHeal("mouseover") and jps.hp("mouseover") < 0.50 and not jps.buff(17,"mouseover") , "mouseover" , "shield_Mouseover" },
 	{spells.powerWordShield, jps.Moving and not jps.buff(17,"player") and jps.hasTalent(2,2) , "player" , "Shield_BodySoul" },
 	-- "Guérison de l’ombre" 186263
 	{spells.shadowMend, not jps.Moving and not jps.buff(194249) and canHeal("mouseover") and jps.hp("mouseover") < 0.50 , "mouseover" , "shadowMend_Mouseover" },
@@ -242,6 +242,7 @@ local spellTable = {
 
 	{spells.shadowWordDeath, jps.spellCharges(spells.shadowWordDeath) == 2 and jps.insanity() < 100 , "target" , "Death_Buff_2" },
 	{spells.shadowWordDeath, jps.spellCharges(spells.shadowWordDeath) == 2 and jps.insanity() < 100 , "focus" , "Death_Buff_2" },
+	{spells.shadowWordDeath, jps.spellCharges(spells.shadowWordDeath) == 2 and jps.insanity() < 100 , "mouseover" , "Death_Buff_2" },
 
 	{"nested", jps.buff(194249) , {
 		{"macro", jps.canCastvoidBolt , "/stopcasting" },

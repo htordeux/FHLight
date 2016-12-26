@@ -289,7 +289,8 @@ jps.CountInRangeStatus = function (heathpct,range)
 	if range == nil then range = 20 end
 	if heathpct == nil then heathpct = 0.80 end
 	local countInRange = 0
-	local FriendUnit = {}
+	local friendTarget = nil
+	local lowestHP = heathpct
 	local raidHP = 0
 	local avgHP = 1
 
@@ -297,14 +298,16 @@ jps.CountInRangeStatus = function (heathpct,range)
 		local unitHP = HealthPct(unit)
 		local maxRange = jps.distanceMax(unit) 
 		if maxRange <= range and unitHP < heathpct then
-			FriendUnit[#FriendUnit+1] = unit -- tinsert(FriendUnit, unit)
+			if unitHP < lowestHP then
+				lowestHP = unitHP
+				friendTarget = unit
+			end
 			raidHP = raidHP + unitHP
 			countInRange = countInRange + 1
         end
 	end
-	tsort(FriendUnit, function(a,b) return HealthPct(a) < HealthPct(b) end)
 	if countInRange > 0 then avgHP = raidHP / countInRange end
-	return countInRange, avgHP, FriendUnit
+	return countInRange, avgHP, friendTarget
 end
 
 -- LOWEST PERCENTAGE in RaidStatus
@@ -506,20 +509,20 @@ jps.FindSubGroupHeal = function(lowHealth)
 	
 	local groupCount = 2
 	local groupToHeal = 0
-	local groupToHealHealthAvg = 1
+	local groupToHealHP = 1
 	for group,index in pairs(HealthGroup) do
 		local indexAvg = index[1] / index[2]
 		local indexCount = index[3]
 		if indexAvg < lowHealth and indexCount > groupCount then
 			groupCount = indexCount
-			groupToHealHealthAvg = indexAvg
+			groupToHealHP = indexAvg
 			groupToHeal = tonumber(group)
 		end
 	end
 
 	local tt = nil
 	local lowestHP = lowHealth
-	if groupToHealHealthAvg > lowHealth then return tt, groupToHeal, groupToHealHealthAvg end
+	if groupToHealHP > lowHealth then return tt, groupToHeal, groupToHealHP end
 
 	for unit,_ in pairs(RaidStatus) do
 		local unitHealth = HealthPct(unit)
@@ -528,7 +531,7 @@ jps.FindSubGroupHeal = function(lowHealth)
 			lowestHP = unitHealth
 		end
 	end
-	return tt, groupToHeal, groupToHealHealthAvg  -- RETURN Group unit with avg health group lower than lowHealth
+	return tt, groupToHeal, groupToHealHP  -- RETURN Group unit with avg health group lower than lowHealth
 end
 
 -- FIND THE RAID SUBGROUP TO HEAL WITH AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE

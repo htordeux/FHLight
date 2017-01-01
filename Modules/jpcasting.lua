@@ -140,3 +140,41 @@ function jps.Distance(unit)
 	if dist == 0 and UnitPosition(unit) == nil then dist = 100 end
 	return dist
 end
+
+-- Patch 7.1.0 : RETURNS NIL WHILE INSIDE A RESTRICTED AREA (INSTANCE/BATTLEGROUND/ARENA).
+
+-- jps.Distance(unit) Works with "player", "partyN" or "raidN" as unit type.
+jps.FriendNearby = function(distance)
+	if distance == nil then distance = 8 end
+	local count = 0
+	for unit,_ in pairs(RaidStatus) do
+		if jps.Distance(unit) < distance and HealthPct(unit) < 0.95 then
+			count = count + 1
+		end
+	end
+	return count
+end
+
+----------------------
+-- LIBRANGECHECK
+----------------------
+
+local rc = LibStub("LibRangeCheck-2.0")
+
+--[[[
+@function `<UNIT>.distanceMin` - returns the min. approximated distance to the given unit.
+]]--
+function jps.distanceMin(unit)
+    local minRange, maxRange = rc:GetRange(unit)
+    if minRange == nil then return 99 end
+    return minRange
+end
+
+--[[[
+@function `<UNIT>.distanceMax` - returns the max. approximated distance to the given unit.
+]]--
+function jps.distanceMax(unit)
+    local minRange, maxRange = rc:GetRange(unit)
+    if maxRange == nil then return 99 end
+    return maxRange
+end

@@ -235,7 +235,7 @@ local spellTable = {
 	{ 1706, jps.Defensive and IsSwimming() and not jps.buff(111759) , "player" },
 
 	-- Opening -- "Voidform" buff 194249 -- "Lingering Insanity" buff 197937
-	{spells.mindBlast, not jps.Moving and not jps.buff(197937) and not jps.buff(194249) and jps.insanity() < 100 , rangedTarget , "mindBlast_Opening"},
+	{spells.mindBlast, not jps.Moving and not jps.buff(194249) and jps.insanity() < 100 , rangedTarget , "mindBlast_Opening"},
 	{spells.mindbender, not jps.buff(197937) and not jps.buff(194249) },
 	-- "Power Infusion" 10060
 	{spells.powerInfusion, jps.buffStacks(194249) > 9 },

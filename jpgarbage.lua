@@ -28,19 +28,18 @@ write("***************************")
 --	print("Interrupt:|cff0070dd ", jps.checkTimer("PlayerInterrupt"))
 --	print("|cFFFF0000Aggro:|cff0070dd ", jps.FriendAggro("player"))
 --	print("ControlEvents: ",jps.ControlEvents())
---	print("EnemyCastingSpellControl: ",jps.checkTimer("SpellControl") > 0)
+--	print("|cff1eff00EnemyCount: ",jps.EnemyCount())
 print("|cFFFF0000IncDamage: ", jps.IncomingDamage("player"))
 print("|cff1eff00IncHeal: ", jps.IncomingHeal("player"))
 print("|cff1eff00TTDTarget: |cffffffff",jps.TimeToDie("target"))
-local POHTarget, groupToHeal, groupHealth = jps.FindSubGroupHeal()
-print("|cff1eff00POHTarget: |cffffffff",POHTarget,"|cff1eff00Group: |cffffffff",groupToHeal,"|cff1eff00Health: |cffffffff",groupHealth)
-local CountInRange, AvgHealth, FriendUnit = jps.CountInRaidStatus(0.80)
-print("|cff1eff00CountInRange: |cffffffff",CountInRange,"|cff1eff00AvgHealth: |cffffffff",AvgHealth,"|cff1eff00FriendUnit: |cffffffff",#FriendUnit)
-local POHRange, POHAvgHealth, POHFriend = jps.CountInRangeStatus(0.80,20)
-print("|cff1eff00POHRange: |cffffffff",POHRange,"|cff1eff00POHAvgHealth: |cffffffff",POHAvgHealth,"|cff1eff00POHFriend: |cffffffff",POHFriend)
-
+local POHTarget, POHGroup, HealthGroup = jps.FindSubGroupHeal()
+print("|cff1eff00POHTarget: |cffffffff",POHTarget,"|cff1eff00Group: |cffffffff",POHGroup,"|cff1eff00HealthGroup: |cffffffff",HealthGroup)
+local CountInRange, AvgHealthRaid, FriendUnit, FriendLowest = jps.CountInRaidStatus()
+print("|cff1eff00CountInRange: |cffffffff",CountInRange,"|cff1eff00FriendUnit: |cffffffff",#FriendUnit,"|cff1eff00AvgHealthRaid: |cffffffff",AvgHealthRaid,"|cff1eff00FriendLowest: |cffffffff",GetUnitName(FriendLowest))
+local LowestUnit, LowestUnitPrev = jps.LowestImportantUnit()
+print("|cff1eff00LowestUnit: ",GetUnitName(LowestUnit))
+print("|cff1eff00LowestUnitPrev: ",GetUnitName(LowestUnitPrev))
 write("***************************")
-
 local Tank,Tanks = jps.findTankInRaid()
 print("DefaultTank:",Tank)
 for i=1,#Tanks do
@@ -48,12 +47,7 @@ for i=1,#Tanks do
 end
 local TankThreat = jps.findThreatInRaid()
 print("|cFFFF0000TankThreat: ",GetUnitName(TankThreat))
-
-local LowestUnit, LowestUnitPrev = jps.LowestImportantUnit()
-print("|cff1eff00LowestUnit: ",GetUnitName(LowestUnit))
-print("|cff1eff00LowestUnitPrev: ",GetUnitName(LowestUnitPrev))
-print("|cff1eff00EnemyCount: ",jps.EnemyCount())
-
+write("***************************")
 
 end
 

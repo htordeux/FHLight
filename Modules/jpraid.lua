@@ -136,12 +136,6 @@ end
 -- ENEMY TARGET
 ----------------------
 
-jps.canAttack = function(unit)
-	if not canDPS(unit) then return false end
-	if not UnitAffectingCombat(unit) then return false end
-	return true
-end
-
 function jps.targetIsBoss(unit)
 	if unit == nil then unit = "target" end
 	if not jps.UnitExists(unit) then return false end

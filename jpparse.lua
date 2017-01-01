@@ -205,12 +205,11 @@ end
 -- UnitInRange return FALSE when not in a party/raid
 function jps.canHeal(unit)
 	if unit == "player" then return true end
+	if unit == "target" and UnitCanAssist("player","target") and UnitIsFriend("player","target") then return true end
+	if unit == "focus" and UnitCanAssist("player","focus") and UnitIsFriend("player","focus") then return true end
 	if not jps.UnitExists(unit) then return false end
 	if UnitInVehicle(unit) then return false end
 	if jps.PlayerIsBlacklisted(unit) then return false end
-	-- jps.defensive for jps.LowestImportantUnit
-	if unit == "target" and UnitCanAssist("player","target") and UnitIsFriend("player","target") then return true end
-	if unit == "focus" and UnitCanAssist("player","focus") and UnitIsFriend("player","focus") then return true end
 	if not UnitCanAssist("player",unit) then return false end
 	if not UnitIsFriend("player",unit) then return false end
 	if not select(1,UnitInRange(unit)) then return false end
@@ -226,6 +225,12 @@ function jps.canDPS(unit)
 	if not UnitCanAttack("player", unit) then return false end
 	if jps.PlayerIsBlacklisted(unit) then return false end
 	if not jps.IsSpellInRange(jps.HarmSpell,unit) then return false end
+	return true
+end
+
+jps.canAttack = function(unit)
+	if not jps.canDPS(unit) then return false end
+	if not UnitAffectingCombat(unit) then return false end
 	return true
 end
 

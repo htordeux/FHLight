@@ -3,7 +3,6 @@ local spells = jps.spells.priest
 local canDPS = jps.canDPS
 local canHeal = jps.canHeal
 local canAttack = jps.canAttack
-local UnitGetTotalAbsorbs = UnitGetTotalAbsorbs
 local strfind = string.find
 local UnitClass = UnitClass
 local UnitChannelInfo = UnitChannelInfo
@@ -24,14 +23,13 @@ jps.registerRotation("PRIEST","DISCIPLINE", function()
 -- LOWEST UNIT
 ----------------------------
 
-	local CountInRange, AvgHealthLoss, FriendUnit = jps.CountInRaidStatus(0.80)
-	local LowestUnit = jps.LowestImportantUnit()
-	local POHTarget, groupToHeal, groupHealth = jps.FindSubGroupHeal(0.80) -- Target to heal with POH in RAID with AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
+	local CountInRange, AvgHealthRaid, FriendUnit, FriendLowest = jps.CountInRaidStatus(0.80) -- CountInRange return count raid unit below healpct -- FriendUnit return table with all raid unit in range
+	local POHTarget, POHGroup, HealthGroup = jps.FindSubGroupHeal(0.80) -- Target to heal with POH in RAID with AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
+	local LowestUnit, LowestUnitPrev = jps.LowestImportantUnit()
 
 	local Tank,TankUnit = jps.findTankInRaid() -- default "focus" "player"
-	local TankTarget = "target"
-	if canHeal(Tank) then TankTarget = Tank.."target" end
 	local TankThreat = jps.findThreatInRaid() -- default "focus" "player"
+	local TankTarget = TankThreat.."target"
 
 	local playerAggro = jps.FriendAggro("player")
 	local playerIsStun = jps.StunEvents(2) -- return true/false ONLY FOR PLAYER -- "ROOT" was removed of Stuntype
@@ -39,9 +37,7 @@ jps.registerRotation("PRIEST","DISCIPLINE", function()
 	local playerIsInterrupt = jps.InterruptEvents() -- return true/false ONLY FOR PLAYER
 	local playerWasControl = jps.ControlEvents() -- return true/false Player was interrupt or stun 2 sec ago ONLY FOR PLAYER
 	local ispvp = UnitIsPVP("player")
-
-	-- LOWEST TTD
-	local LowestFriendTTD = jps.LowestFriendTimeToDie(5)
+	local raidCount = #FriendUnit
 
 ----------------------
 -- TARGET ENEMY
@@ -51,13 +47,15 @@ jps.registerRotation("PRIEST","DISCIPLINE", function()
 	local rangedTarget, EnemyUnit, TargetCount = jps.LowestTarget()
 
 	if canDPS("target") then rangedTarget =  "target"
-	elseif canDPS(TankTarget) then rangedTarget = TankTarget
-	elseif canDPS("targettarget") then rangedTarget = "targettarget"
+	elseif canAttack(TankTarget) then rangedTarget = TankTarget
+	elseif canAttack("targettarget") then rangedTarget = "targettarget"
 	elseif canAttack("mouseover") then rangedTarget = "mouseover"
 	end
 	-- if your target is friendly keep it as target
-	if not canHeal("target") and canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
+	if not canHeal("target") and canAttack(rangedTarget) then jps.Macro("/target "..rangedTarget) end
+
 	local TargetMoving = select(1,GetUnitSpeed(rangedTarget)) > 0
+	local playerIsTargeted = jps.playerIsTargeted()
 
 ----------------------------
 -- LOCAL FUNCTIONS FRIENDS
@@ -170,18 +168,12 @@ jps.registerRotation("PRIEST","DISCIPLINE", function()
 -- LOCAL TABLES
 ------------------------
 	
-	local parseControl = {
-		-- "Silence" 15487
-		{ 15487, jps.IsSpellInRange(15487,rangedTarget) , rangedTarget },
-		-- "Psychic Scream" "Cri psychique" 8122 -- debuff same ID 8122
-		{ 8122, jps.canFear(rangedTarget) , rangedTarget },
-	}
-	
 	local parseDispel = {
 		-- "Dispel" "Purifier" 527
-		{ 527, DispelFriendRole ~= nil , DispelFriendRole , "|cff1eff00DispelFriend_Role" },
-		{ 527, DispelFriendPvP ~= nil , DispelFriendPvP , "|cff1eff00DispelFriend_PvP" },
-		{ 527, DispelFriendPvE ~= nil , DispelFriendPvE , "|cff1eff00DispelFriend_PvE" },
+		{ spells.purify, jps.canDispel("player","Magic") , "player" , "Dispel" },
+		{ spells.purify, DispelFriendRole ~= nil , DispelFriendRole , "|cff1eff00DispelFriend_Role" },
+		{ spells.purify, DispelFriendPvP ~= nil , DispelFriendPvP , "|cff1eff00DispelFriend_PvP" },
+		{ spells.purify, DispelFriendPvE ~= nil , DispelFriendPvE , "|cff1eff00DispelFriend_PvE" },
 	}
 
 ------------------------------------------------------

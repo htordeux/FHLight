@@ -266,48 +266,26 @@ end
 jps.CountInRaidStatus = function (heathpct)
 	if heathpct == nil then heathpct = 1 end
 	local countInRange = 0
+	local raidHealth = 0
+	local avgHealth = 1
 	local FriendUnit = {}
-	local raidHP = 0
-	local avgHP = 1
+	local lowestUnit = "player"
 
 	for unit,_ in pairs(RaidStatus) do
 		local unitHP = HealthPct(unit)
-		if canHeal(unit) and unitHP < heathpct then
+		if canHeal(unit) then
 			FriendUnit[#FriendUnit+1] = unit -- tinsert(FriendUnit, unit)
-			raidHP = raidHP + unitHP
-			countInRange = countInRange + 1
+			raidHealth = raidHealth + unitHP
+			if unitHP < heathpct then countInRange = countInRange + 1 end
         end
 	end
-	tsort(FriendUnit, function(a,b) return HealthPct(a) < HealthPct(b) end)
-	if countInRange > 0 then avgHP = raidHP / countInRange end
-	return countInRange, avgHP, FriendUnit
-end
-
--- COUNTS THE NUMBER OF PARTY MEMBERS INRANGE HAVING A SIGNIFICANT HEALTH PCT LOSS
--- WITH A RANGE WITH LibRangeCheck
-jps.CountInRangeStatus = function (heathpct,range)
-	if range == nil then range = 20 end
-	if heathpct == nil then heathpct = 0.80 end
-	local countInRange = 0
-	local friendTarget = nil
-	local lowestHP = heathpct
-	local raidHP = 0
-	local avgHP = 1
-
-	for unit,_ in pairs(RaidStatus) do
-		local unitHP = HealthPct(unit)
-		local maxRange = jps.distanceMax(unit) 
-		if maxRange <= range and unitHP < heathpct then
-			if unitHP < lowestHP then
-				lowestHP = unitHP
-				friendTarget = unit
-			end
-			raidHP = raidHP + unitHP
-			countInRange = countInRange + 1
-        end
+	local raidCount = #FriendUnit
+	if raidCount > 0 then
+		avgHealth = raidHealth / raidCount
+		tsort(FriendUnit, function(a,b) return HealthPct(a) < HealthPct(b) end)
+		lowestUnit = FriendUnit[1]
 	end
-	if countInRange > 0 then avgHP = raidHP / countInRange end
-	return countInRange, avgHP, friendTarget
+	return countInRange, avgHealth, FriendUnit, lowestUnit
 end
 
 -- LOWEST PERCENTAGE in RaidStatus
@@ -361,6 +339,7 @@ jps.LowestImportantUnit = function()
 			local unitHP = HealthPct(unit)
 			if canHeal(unit) and unitHP < lowestHP then 
 				lowestHP = unitHP
+				lowestUnitPrev = lowestUnit
 				lowestUnit = unit
 			end
 		end
@@ -406,18 +385,6 @@ end
 ------------------------------------
 -- GROUP FUNCTION IN RAID
 ------------------------------------
--- Patch 7.1.0 : RETURNS NIL WHILE INSIDE A RESTRICTED AREA (INSTANCE/BATTLEGROUND/ARENA).
--- jps.Distance(unit) Works with "player", "partyN" or "raidN" as unit type.
-jps.FriendNearby = function(distance)
-	if distance == nil then distance = 8 end
-	local count = 0
-	for unit,_ in pairs(RaidStatus) do
-		if jps.Distance(unit) < distance and HealthPct(unit) < 0.95 then
-			count = count + 1
-		end
-	end
-	return count
-end
 
 -- FIND the Unit Layout of an UNITNAME in RAID -- Bob raid7
 -- UnitInRaid Layout position for raid members: integer ascending from 0 (which is the first member of the first group)
@@ -458,27 +425,27 @@ jps.FindSubGroupTarget = function(lowHealth)
 	end
 
 	local groupCount = 2
-	local groupToHeal = 0
+	local groupNumber = 0
 	for i=1,#groupTable do
 		if groupTable[i] == nil then break end
 		if groupTable[i] > groupCount then -- HEAL >= 3 JOUEURS
 			groupCount = groupTable[i]
-			groupToHeal = i
+			groupNumber = i
 		end
 	end
 
 	local tt = nil
 	local lowestHP = lowHealth
-	if groupToHeal > 0 then
+	if groupNumber > 0 then
 		for unit,_ in pairs(RaidStatus) do
 			local unitHP = HealthPct(unit)
-			if FindSubGroupUnit(unit) == groupToHeal and unitHP < lowestHP then
+			if FindSubGroupUnit(unit) == groupNumber and unitHP < lowestHP then
 				tt = unit
 				lowestHP = unitHP
 			end
 		end
 	end
-	return tt, groupToHeal -- RETURN Group with at least 3 unit in range
+	return tt, groupNumber -- RETURN Group with at least 3 unit in range
 end
 
 -- FIND THE RAID SUBGROUP TO HEAL WITH AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
@@ -508,30 +475,30 @@ jps.FindSubGroupHeal = function(lowHealth)
 	end
 	
 	local groupCount = 2
-	local groupToHeal = 0
-	local groupToHealHP = 1
+	local groupNumber = 0
+	local groupHealth = 1
 	for group,index in pairs(HealthGroup) do
 		local indexAvg = index[1] / index[2]
 		local indexCount = index[3]
 		if indexAvg < lowHealth and indexCount > groupCount then
 			groupCount = indexCount
-			groupToHealHP = indexAvg
-			groupToHeal = tonumber(group)
+			groupHealth = indexAvg
+			groupNumber = tonumber(group)
 		end
 	end
 
 	local tt = nil
 	local lowestHP = lowHealth
-	if groupToHealHP > lowHealth then return tt, groupToHeal, groupToHealHP end
+	if groupHealth > lowHealth then return tt, groupNumber, groupHealth end
 
 	for unit,_ in pairs(RaidStatus) do
 		local unitHealth = HealthPct(unit)
-		if FindSubGroupUnit(unit) == groupToHeal and unitHealth < lowestHP then
+		if FindSubGroupUnit(unit) == groupNumber and unitHealth < lowestHP then
 			tt = unit
 			lowestHP = unitHealth
 		end
 	end
-	return tt, groupToHeal, groupToHealHP  -- RETURN Group unit with avg health group lower than lowHealth
+	return tt, groupNumber, groupHealth  -- RETURN Group unit with avg health group lower than lowHealth
 end
 
 -- FIND THE RAID SUBGROUP TO HEAL WITH AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
@@ -550,26 +517,26 @@ local FindSubGroup = function(lowHealth)
 	end
 
 	local groupCount = 2
-	local groupToHeal = 0
+	local groupNumber = 0
 	for i=1,#groupTable do
 		if groupTable[i] == nil then break end
 		if groupTable[i] > groupCount then -- HEAL >= 3 JOUEURS
 			groupCount = groupTable[i]
-			groupToHeal = i
+			groupNumber = i
 		end
 	end
-	return groupToHeal -- RETURN Group with at least 3 unit in range
+	return groupNumber -- RETURN Group with at least 3 unit in range
 end
 
 -- FIND THE TARGET IN SUBGROUP TO HEAL WITH BUFF SPIRIT SHELL IN RAID
 jps.FindSubGroupAura = function(aura) -- auraID to get correct spellID
 	local tt = nil
 	local tt_count = 0
-	local groupToHeal = FindSubGroup()
+	local groupNumber = FindSubGroup()
 
 	for unit,_ in pairs(RaidStatus) do
 		local mybuff = jps.buffId(aura,unit) -- spellID
-		if not mybuff and FindSubGroupUnit(unit) == groupToHeal then
+		if not mybuff and FindSubGroupUnit(unit) == groupNumber then
 			tt = unit
 			tt_count = tt_count + 1
 		end

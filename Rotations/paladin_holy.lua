@@ -23,10 +23,9 @@ jps.registerRotation("PALADIN","HOLY",function()
 -- LOWEST UNIT
 ----------------------------
 
-	local CountInRange, AvgHealthLoss, FriendUnit = jps.CountInRaidStatus(0.80)
-	local POHInRange, _, _ = jps.CountInRangeStatus(0.80,20)
-	local POHTarget, groupToHeal, groupHealth = jps.FindSubGroupHeal(0.80) -- Target to heal with POH in RAID with AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
-	local LowestUnit = jps.LowestImportantUnit()
+	local CountInRange, AvgHealthRaid, FriendUnit, FriendLowest = jps.CountInRaidStatus(0.80) -- CountInRange return count raid unit below healpct -- FriendUnit return table with all raid unit in range
+	local POHTarget, POHGroup, HealthGroup = jps.FindSubGroupHeal(0.80) -- Target to heal with POH in RAID with AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
+	local LowestUnit, LowestUnitPrev = jps.LowestImportantUnit()
 
 	local Tank,TankUnit = jps.findTankInRaid() -- default "focus" "player"
 	local TankThreat = jps.findThreatInRaid() -- default "focus" "player"
@@ -38,9 +37,7 @@ jps.registerRotation("PALADIN","HOLY",function()
 	local playerIsInterrupt = jps.InterruptEvents() -- return true/false ONLY FOR PLAYER
 	local playerWasControl = jps.ControlEvents() -- return true/false Player was interrupt or stun 2 sec ago ONLY FOR PLAYER
 	local ispvp = UnitIsPVP("player")
-
-	-- LOWEST TTD
-	local LowestFriendTTD = jps.LowestFriendTimeToDie(5)
+	local raidCount = #FriendUnit
 
 ----------------------
 -- TARGET ENEMY
@@ -72,8 +69,10 @@ jps.registerRotation("PALADIN","HOLY",function()
 	elseif canAttack("mouseover") then rangedTarget = "mouseover"
 	end
 	-- if your target is friendly keep it as target
-	if not canHeal("target") and canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
+	if not canHeal("target") and canAttack(rangedTarget) then jps.Macro("/target "..rangedTarget) end
+
 	local TargetMoving = select(1,GetUnitSpeed(rangedTarget)) > 0
+	local playerIsTargeted = jps.playerIsTargeted()
 
 ----------------------------
 -- LOCAL FUNCTIONS FRIENDS
@@ -102,8 +101,6 @@ jps.registerRotation("PALADIN","HOLY",function()
 			DispelFriendRole = unit
 		break end
 	end
-	
-	
 	
 ------------------------
 -- LOCAL FUNCTIONS ENEMY
@@ -168,7 +165,7 @@ local spellTable = {
 	}},
 
     -- "Courroux vengeur" 31842 -- gives buff 31842
-    { spells.avengingWrath, CountInRange > 3 and AvgHealthLoss < 0.80 , LowestUnit },
+    { spells.avengingWrath, CountInRange > 3 and AvgHealthRaid < 0.80 , LowestUnit },
     { spells.avengingWrath, jps.hp(Tank) < 0.60 and jps.hp(LowestUnit) < 0.60 and not UnitIsUnit(Tank,LowestUnit), LowestUnit },
     -- "Vengeur sacré" 105809 -- Augmente votre hâte de 30% et les soins de votre Horion sacré de 30% pendant 20 sec.
 	{ spells.holyAvenger, jps.hp(Tank) < 0.40 , Tank }, 
@@ -183,7 +180,7 @@ local spellTable = {
 	
 	-- "Lumière de l’aube" 85222
     -- rend de la vie à un maximum de 5 alliés blessés se trouvant dans un cône frontal de 15 mètres
-    { spells.lightOfDawn, POHInRange > 3 , LowestUnit },
+    { spells.lightOfDawn, POHCountInRange > 3 , LowestUnit },
 
 	-- "Eclair lumineux" 19750 -- 
 	{ spells.flashOfLight, not jps.Moving and jps.hp(LowestUnit) < 0.60 , LowestUnit },

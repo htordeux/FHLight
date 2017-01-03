@@ -176,13 +176,13 @@ local ReleaseAberrations = jps.toSpellName(92703)
 function jps.ShouldKick(unit)
 	if not canDPS(unit) then return false end
 	local casting = select(1,UnitCastingInfo(unit))
-	local notinterruptible = select(9,UnitCastingInfo(unit)) --  if true, indicates that this cast cannot be interrupted 
+	local notinterruptible = select(9,UnitCastingInfo(unit)) -- if true, indicates that this cast cannot be interrupted 
 	local channelling = select(1,UnitChannelInfo(unit))
 	local not_interruptible = select(8,UnitChannelInfo(unit)) -- if true, indicates that this cast cannot be interrupted
 	if casting == nil and channelling == nil then return false end
-	if casting and not notinterruptible then
+	if casting and notinterruptible == false then
 		return true
-	elseif channelling and not not_interruptible then
+	elseif channelling and not_interruptible == false then
 		return true
 	end
 	return false

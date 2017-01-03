@@ -175,6 +175,7 @@ jps.SpellHasRange = function(spell)
 	return hasRange
 end
 
+-- UnitIsDeadOrGhost(unit) Returns false for priests who are currently in [Spirit of Redemption] form, having died once and are about to die again
 function jps.UnitExists(unit)
 	if unit == nil then return false end
 	if not UnitExists(unit) then return false end

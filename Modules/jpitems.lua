@@ -65,42 +65,10 @@ function jps.useBagItem(itemName)
 	return false
 end 
 
-local useSlotMacros = {}
-function jps.useSlot(num)
-	-- get the Trinket ID
-	local trinketId = GetInventoryItemID("player", num)
-	if not trinketId then return "" end
-
-	-- Check if it's on cooldown
-	local trinketCd = jps.itemCooldown(trinketId)
-	if trinketCd > 0 then return "" end
-
-	 -- Check if it's usable
-	local trinketUsable = GetItemSpell(trinketId)
-	if not trinketUsable then return "" end
-
-	-- Abort Disenchant (or any Spell Targeting) if active
-	if SpellIsTargeting() then
-		SpellStopTargeting()
-	end
-
-	-- Use it
-	if not useSlotMacros[num] then useSlotMacros[num] = {"/use "..num} end
-	return useSlotMacros[num]
-end
-
 -- For trinket's. Pass 0 or 1 for the number.
+-- { "macro", jps.useTrinket(0) , "/use 13"},
+-- { "macro", jps.useTrinket(1) , "/use 14"},
 function jps.useTrinket(trinketNum)
-	-- The index actually starts at 0
-	local slotName = "Trinket"..(trinketNum).."Slot" -- "Trinket0Slot" "Trinket1Slot"
-	-- Get the slot ID
-	local slotId = select(1,GetInventorySlotInfo(slotName)) -- "Trinket0Slot" est 13 "Trinket1Slot" est 14
-
-	return jps.useSlot(slotId)
-end
-
--- For trinket's. Pass 0 or 1 for the number.
-function jps.useTrinketBool(trinketNum)
 	-- The index actually starts at 0
 	local slotName = "Trinket"..(trinketNum).."Slot" -- "Trinket0Slot" "Trinket1Slot"
 	-- Get the slot ID

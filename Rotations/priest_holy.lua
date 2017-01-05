@@ -44,13 +44,20 @@ jps.registerRotation("PRIEST","HOLY", function()
 	local POHInRange = 0
 	if CountInRange > 4 and IsInRaid() then -- Raid
 		for i=1,#FriendUnit do
+			local unit = FriendUnit[i]
 			local maxRange = jps.distanceMax(unit)
-			if maxRange <= 20 then
+			if maxRange <= 20 and jps.hp(unit) < 0.80 then
 				POHInRange = POHInRange + 1
         	end
 		end
 	elseif CountInRange > 2 and not IsInRaid() then -- Party
-		POHInRange = 5
+		for i=1,#FriendUnit do
+			local unit = FriendUnit[i]
+			local maxRange = jps.distanceMax(unit)
+			if maxRange <= 20 and jps.hp(unit) < 0.80 then
+				POHInRange = POHInRange + 1
+        	end
+		end
 	end
 
 ----------------------
@@ -100,20 +107,7 @@ jps.registerRotation("PRIEST","HOLY", function()
 
 	-- DISPEL --
 	
-	local DispelFriendPvE = jps.DispelMagicTarget() -- {"Magic", "Poison", "Disease", "Curse"}
-	local DispelFriendPvP = nil
-	local DispelFriendHealth = 100
-	for i=1,#FriendUnit do -- for _,unit in ipairs(FriendUnit) do
-		local unit = FriendUnit[i]
-		if jps.DispelLoseControl(unit) then -- jps.DispelLoseControl includes jps.WarningDebuffs
-			local unitHP = jps.hp(unit)
-			if unitHP < DispelFriendHealth then
-				DispelFriendPvP = unit
-				DispelFriendHealth = unitHP
-			end
-		end
-	end
-
+	local DispelFriend = jps.DispelMagicTarget() -- "Magic", "Poison", "Disease", "Curse"
 	local DispelFriendRole = nil
 	for i=1,#TankUnit do -- for _,unit in ipairs(TankUnit) do
 		local unit = TankUnit[i]
@@ -156,24 +150,6 @@ jps.registerRotation("PRIEST","HOLY", function()
 -- LOCAL FUNCTIONS ENEMY
 ------------------------
 
-	local SilenceEnemyTarget = nil
-	for i=1,#EnemyUnit do -- for _,unit in ipairs(EnemyUnit) do
-		local unit = EnemyUnit[i]
-		if jps.IsSpellInRange(15487,unit) then
-			if jps.ShouldKick(unit) then
-				SilenceEnemyTarget = unit
-			break end
-		end
-	end
-
-	local FearEnemyTarget = nil
-	for i=1,#EnemyUnit do -- for _,unit in ipairs(EnemyUnit) do
-		local unit = EnemyUnit[i]
-		if jps.canFear(unit) and not jps.LoseControl(unit) then
-			FearEnemyTarget = unit
-		break end
-	end
-
 	local DispelOffensiveEnemyTarget = nil
 	for i=1,#EnemyUnit do -- for _,unit in ipairs(EnemyUnit) do
 		local unit = EnemyUnit[i]
@@ -190,8 +166,7 @@ jps.registerRotation("PRIEST","HOLY", function()
 		-- "Dispel" "Purifier" 527
 		{ spells.purify, jps.canDispel("player","Magic") , "player" , "Dispel" },
 		{ spells.purify, DispelFriendRole ~= nil , DispelFriendRole , "|cff1eff00DispelFriend_Role" },
-		{ spells.purify, DispelFriendPvP ~= nil , DispelFriendPvP , "|cff1eff00DispelFriend_PvP" },
-		{ spells.purify, DispelFriendPvE ~= nil , DispelFriendPvE , "|cff1eff00DispelFriend_PvE" },
+		{ spells.purify, DispelFriend ~= nil , DispelFriend , "|cff1eff00DispelFriend" },
 	}
 
 ------------------------------------------------------
@@ -228,7 +203,7 @@ if jps.ChannelTimeLeft("player") > 0 then return end
 local spellTable = {
 
 	-- "Esprit de rédemption" buff 27827 "Spirit of Redemption"
-	{ "macro", jps.buff(27827) and CountInRange < 2 , "/cancelaura Esprit de rédemption"  },
+	{ "macro", jps.buff(27827) and raidCount == 1 , "/cancelaura Esprit de rédemption"  },
 	{ "nested", jps.buff(27827) and not UnitIsUnit("player",LowestUnit) , {
 		-- "Holy Word: Serenity" 2050
 		{ spells.holyWordSerenity , jps.hp(LowestUnit) < 0.60 , LowestUnit  },
@@ -262,6 +237,7 @@ local spellTable = {
 	-- "Pierre de soins" 5512
 	{ "macro", jps.hp("player") < 0.60 and jps.itemCooldown(5512) == 0 ,"/use item:5512" },
 	-- "Mot sacré : Châtier" 88625
+	{ spells.holyWordChastise , ispvp and canDPS(rangedTarget) , rangedTarget },
 	{ "nested", jps.Defensive and canDPS(rangedTarget) and jps.hp(LowestUnit) > 0.60  , {
 		{ spells.holyWordChastise , canDPS(rangedTarget) , rangedTarget },
 		{ spells.holyFire , canDPS(rangedTarget) , rangedTarget  },
@@ -298,7 +274,7 @@ local spellTable = {
 	-- "Dispel" "Purifier" 527
 	{ "nested", jps.UseCDs , parseDispel },
 	-- OFFENSIVE Dispel -- "Dissipation de la magie" 528
-	{ "nested", jps.PvP and jps.hp(LowestUnit) > 0.60 , {
+	{ "nested", ispvp and jps.hp(LowestUnit) > 0.60 , {
 		{ spells.dispelMagic, jps.castEverySeconds(528,8) and jps.DispelOffensive(rangedTarget) , rangedTarget , "|cff1eff00DispelOffensive_" },
 		{ spells.dispelMagic, jps.castEverySeconds(528,8) and DispelOffensiveEnemyTarget ~= nil  , DispelOffensiveEnemyTarget , "|cff1eff00DispelOffensive_MULTITARGET_" },
 	}},
@@ -333,11 +309,15 @@ local spellTable = {
 	{ spells.flashHeal, not jps.Moving and jps.hp(LowestUnit) < 0.60 and HealthGroup > 0.80 , LowestUnit , "Emergency_Lowest" },
 	{ spells.flashHeal, not jps.Moving and jps.hp(LowestUnit) < 0.60 and AvgHealthRaid > 0.80 , LowestUnit , "Emergency_Lowest" },
 
+	-- "Holy Word: Sanctify" gives buff  "Divinity" 197030 When you heal with a Holy Word spell, your healing is increased by 15% for 8 sec.
+	{ spells.holyWordSanctify, AvgHealthRaid < 0.80 and CountInRange > 4 , FriendLowest, "Sanctify_POHFriend" },
+	{ spells.holyWordSanctify, POHTarget ~= nil and HealthGroup < 0.80 and not IsInRaid() , POHTarget, "Sanctify_POHTarget" },
 	-- "Divine Hymn" 64843 should be used during periods of very intense raid damage.
 	{ spells.divineHymn , not jps.Moving and jps.buffTracker(41635) and AvgHealthRaid < 0.70 and CountInRange * 2 > raidCount , LowestUnit },
 	-- "Prayer of Healing" 596 is no longer restricted to healing players who are in your group.
 	-- "Prayer of Healing" soignant jusqu’à 5 alliés blessés à moins de 20 mètres de la cible
-	{ spells.prayerOfHealing, jps.hp(LowestUnit) > 0.30 and jps.hp(Tank) > 0.50 and POHInRange > 4 , "player" , "POH_Distance" }, 
+	{ spells.prayerOfHealing, jps.hp(Tank) > 0.50 and POHInRange > 4 and IsInRaid() , "player" , "POH_Distance" },
+	{ spells.prayerOfHealing, jps.hp(Tank) > 0.50 and POHInRange > 3 and not IsInRaid() , "player" , "POH_Distance" },
 
 	-- "Soins" 2060
 	{ spells.heal , HealthGroup > 0.80 and not jps.Moving and canHeal(Tank) and jps.hpInc(Tank) < 1 , Tank , "Soins_Tank"  },
@@ -354,9 +334,6 @@ local spellTable = {
 		{ spells.prayerOfHealing, jps.buff(197030) , POHTarget , "POH_Buff" }, -- "Holy Word: Sanctify" gives buff  "Divinity" 197030
 		{ spells.prayerOfHealing, jps.buff(196490) , POHTarget , "POH_Buff" }, -- "Holy Word: Sanctify" gives buff  "Puissance des naaru" 196490
 	}},
-	-- "Holy Word: Sanctify" gives buff  "Divinity" 197030 When you heal with a Holy Word spell, your healing is increased by 15% for 8 sec.
-	{ spells.holyWordSanctify, AvgHealthRaid < 0.80 and CountInRange > 4 , FriendLowest, "Sanctify_POHFriend" },
-	{ spells.holyWordSanctify, POHTarget ~= nil and HealthGroup < 0.80 , FriendLowest, "Sanctify_POHFriend" },
 	-- "Prayer of Healing" 596 is no longer restricted to healing players who are in your group.
 	-- "Prayer of Healing" soignant jusqu’à 5 alliés blessés à moins de 20 mètres de la cible
 	{ spells.prayerOfHealing, not jps.Moving and AvgHealthRaid < 0.80 and CountInRange > 4 , FriendLowest , "POH_Friend" },
@@ -408,11 +385,6 @@ Below, we use the Heal Icon Heal spell to provide you with an example of a mouse
     Lastly, if neither of the above two conditions are met, it will cast Heal on yourself.
 
 --]]
-
-
--- TRINKETS -- jps.useTrinket(0) est "Trinket0Slot" est slotId  13 -- "jps.useTrinket(1) est "Trinket1Slot" est slotId  14
---	{ jps.useTrinket(0), jps.useTrinketBool(0) and not playerWasControl and jps.combatStart > 0 , "player" , "Trinket0"},
---	{ jps.useTrinket(1), jps.useTrinketBool(1) and not playerWasControl and jps.combatStart > 0 , "player" , "Trinket1"},
 
 --------------------------------------------------------------------------------------------------------------
 ------------------------------------------------ ROTATION OOC ------------------------------------------------

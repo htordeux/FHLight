@@ -244,15 +244,26 @@ local spellTable = {
 		{ spells.dispelMagic, jps.castEverySeconds(528,8) and DispelOffensiveEnemyTarget ~= nil  , DispelOffensiveEnemyTarget , "|cff1eff00DispelOffensive_MULTITARGET_" },
 	}},
 
-	-- Opening -- "Voidform" buff 194249 -- "Lingering Insanity" buff 197937
-	{spells.mindBlast, not jps.Moving and not jps.buff(194249) and jps.insanity() < 85 , rangedTarget , "mindBlast_Opening"},
+	-- spells.mindbender -- 15 seconds cd 1 min
 	{spells.mindbender, not jps.buff(197937) and not jps.buff(194249) },
+
+	-- Opening -- "Voidform" buff 194249 -- "Lingering Insanity" buff 197937
+	{spells.mindBlast, not jps.Moving and not jps.buff(194249) and jps.insanity() < 100 , rangedTarget , "mindBlast_Opening"},
+	{spells.mindBlast, not jps.Moving and not isTargetElite , rangedTarget , "mindBlast_Opening"},
+
+	-- "Mot de l’ombre : Mort" 199911
+	{"nested", jps.spellCharges(spells.shadowWordDeath) == 2 , {
+		{spells.shadowWordDeath, jps.hp("target") < 0.35 , "target" , "Death" },
+		{spells.shadowWordDeath, jps.hp("focus") < 0.35 , "focus" , "Death" },
+		{spells.shadowWordDeath, DeathEnemyTarget ~= nil , DeathEnemyTarget , "Death" },
+		{spells.shadowWordDeath, jps.hp("mouseover") < 0.35 , "mouseover" , "Death" },
+	}},
+
 	-- "Power Infusion" 10060
 	{spells.powerInfusion, jps.buffStacks(194249) > 9 },
 
-	{spells.shadowWordDeath, jps.spellCharges(spells.shadowWordDeath) == 2 and jps.insanity() < 100 , "target" , "Death_Buff_2" },
-	{spells.shadowWordDeath, jps.spellCharges(spells.shadowWordDeath) == 2 and jps.insanity() < 100 , "focus" , "Death_Buff_2" },
-	{spells.shadowWordDeath, jps.spellCharges(spells.shadowWordDeath) == 2 and jps.insanity() < 100 , "mouseover" , "Death_Buff_2" },
+	-- TRINKETS -- jps.useTrinket(0) est "Trinket0Slot" est slotId  13 -- "jps.useTrinket(1) est "Trinket1Slot" est slotId  14
+	{ "macro", jps.useTrinket(1) , "/use 14"},
 
 	{"nested", jps.buff(194249) , {
        	{spells.voidTorrent , not jps.Moving and jps.myDebuffDuration(spells.vampiricTouch,rangedTarget) > 6 and jps.myDebuffDuration(spells.shadowWordPain,rangedTarget) > 6 , rangedTarget , "voidTorrent"},
@@ -289,7 +300,7 @@ local spellTable = {
 	{spells.voidEruption, not jps.buff(194249) and jps.hasTalent(7,1) and jps.insanity() > 85 and not jps.Moving and isTargetElite  , rangedTarget , "voidEruption" },
 	{spells.voidEruption, not jps.buff(194249) and jps.insanity() == 100 and not jps.Moving and isTargetElite , rangedTarget , "voidEruption" },
 
-	-- spells.shadowWordDeath
+	-- "Mot de l’ombre : Mort" 199911
 	{"macro", jps.canCastshadowWordDeath , "/stopcasting" },
 	{"nested", not jps.buff(194249) , {
 		{spells.shadowWordDeath, jps.hp("target") < 0.35 , "target" , "Death" },
@@ -302,7 +313,7 @@ local spellTable = {
 	{spells.mindBlast, not jps.Moving , rangedTarget , "mindBlast"},
 
 	-- "Déferlante d’ombre" 205385
-	--{spells.shadowCrash, jps.hasTalent(6,2) , rangedTarget , "shadowCrash" },
+	--{spells.shadowCrash, jps.MultiTarget and jps.hasTalent(6,2) , rangedTarget , "shadowCrash" },
 	{spells.shadowWordPain, jps.MultiTarget and canAttack("mouseover") and fnPainEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "Pain_Mouseover" },
 	{spells.mindSear, jps.MultiTarget and not jps.Moving , rangedTarget , "MultiTarget_MindSear" },
 

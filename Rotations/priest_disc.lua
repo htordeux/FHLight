@@ -83,23 +83,8 @@ jps.registerRotation("PRIEST","DISCIPLINE", function()
 			end
 		end
 	end
-
-	-- DISPEL --
 	
-	local DispelFriendPvE = jps.DispelMagicTarget() -- {"Magic", "Poison", "Disease", "Curse"}
-	local DispelFriendPvP = nil
-	local DispelFriendHealth = 100
-	for i=1,#FriendUnit do -- for _,unit in ipairs(FriendUnit) do
-		local unit = FriendUnit[i]
-		if jps.DispelLoseControl(unit) then -- jps.DispelLoseControl includes jps.WarningDebuffs
-			local unitHP = jps.hp(unit)
-			if unitHP < DispelFriendHealth then
-				DispelFriendPvP = unit
-				DispelFriendHealth = unitHP
-			end
-		end
-	end
-
+	local DispelFriend = jps.DispelMagicTarget() -- "Magic", "Poison", "Disease", "Curse"
 	local DispelFriendRole = nil
 	for i=1,#TankUnit do -- for _,unit in ipairs(TankUnit) do
 		local unit = TankUnit[i]
@@ -163,18 +148,6 @@ jps.registerRotation("PRIEST","DISCIPLINE", function()
 			DispelOffensiveEnemyTarget = unit
 		break end
 	end
-
-------------------------
--- LOCAL TABLES
-------------------------
-	
-	local parseDispel = {
-		-- "Dispel" "Purifier" 527
-		{ spells.purify, jps.canDispel("player","Magic") , "player" , "Dispel" },
-		{ spells.purify, DispelFriendRole ~= nil , DispelFriendRole , "|cff1eff00DispelFriend_Role" },
-		{ spells.purify, DispelFriendPvP ~= nil , DispelFriendPvP , "|cff1eff00DispelFriend_PvP" },
-		{ spells.purify, DispelFriendPvE ~= nil , DispelFriendPvE , "|cff1eff00DispelFriend_PvE" },
-	}
 
 ------------------------------------------------------
 -- OVERHEAL -- OPENING -- CANCELAURA -- STOPCASTING --

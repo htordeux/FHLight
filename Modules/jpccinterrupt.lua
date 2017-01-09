@@ -70,21 +70,20 @@ end
 -- { "cc" , "root" , "silence" , "immune" }
 -- LoseControl could be FRIEND or ENEMY
 jps.LoseControl = function(unit)
-	local timeControlled = 0
 	-- Check debuffs
-	local auraName, debuffType, duration, expTime, spellID
+	local auraName, debuffType, expTime, spellID
 	local i = 1
 	auraName, _, _, _, debuffType, duration, expTime, _, _, _, spellID, _ = UnitDebuff(unit,i)
 	while auraName do
 		local Priority = jps.SpellControl[spellID]
-		if Priority then
+		if Priority ~= nil then
 			if Priority == "cc"  then
-				if expTime ~= nil then timeControlled = expTime - GetTime() end
-				if timeControlled > 1 then return true end
+				if expTime ~= nil and expTime - GetTime() > 1 then
+				return true end
 			end
 		end
 		i = i + 1
-		auraName, _, _, _, debuffType, duration, expTime, _, _, _, spellID, _ = UnitDebuff(unit,i)
+		auraName, _, _, _, debuffType, _, expTime, _, _, _, spellID, _ = UnitDebuff(unit,i)
 	end
 	return false
 end
@@ -93,21 +92,20 @@ end
 jps.DispelLoseControl = function(unit)
 	if not canHeal(unit) then return false end
 	if jps.WarningDebuffs(unit) then return false end
-	local timeControlled = 0
 	-- Check debuffs
-	local auraName, debuffType, duration, expTime, spellID
+	local auraName, debuffType, expTime, spellID
 	local i = 1
-	auraName, _, _, _, debuffType, duration, expTime, _, _, _, spellID, _ = UnitDebuff(unit,i)
+	auraName, _, _, _, debuffType, _, expTime, _, _, _, spellID, _ = UnitDebuff(unit,i)
 	while auraName do
 		local Priority = jps.SpellControl[spellID]
-		if Priority and debuffType == "Magic" then -- {"Magic", "Poison", "Disease", "Curse"}
+		if Priority ~= nil and debuffType == "Magic" then -- "Magic", "Poison", "Disease", "Curse"
 			if Priority == "cc" then
-				if expTime ~= nil then timeControlled = expTime - GetTime() end
-				if timeControlled > 1 then return true end
+				if expTime ~= nil and expTime - GetTime() > 1 then
+				return true end
 			end
 		end
 		i = i + 1
-		auraName, _, _, _, debuffType, duration, expTime, _, _, _, spellID, _ = UnitDebuff(unit,i)
+		auraName, _, _, _, debuffType, _, expTime, _, _, _, spellID, _ = UnitDebuff(unit,i)
 	end
 	return false
 end
@@ -116,21 +114,20 @@ end
 jps.DispelLoseControlPriority = function(unit)
 	if not canHeal(unit) then return false end
 	if jps.WarningDebuffs(unit) then return false end
-	local timeControlled = 0
 	-- Check debuffs
-	local auraName, debuffType, duration, expTime, spellID
+	local auraName, debuffType, expTime, spellID
 	local i = 1
-	auraName, _, _, _, debuffType, duration, expTime, _, _, _, spellID = UnitDebuff(unit, i)
+	auraName, _, _, _, debuffType, _, expTime, _, _, _, spellID = UnitDebuff(unit, i)
 	while auraName do
 		local Priority = jps.BigDebuff[spellID]
-		if Priority and debuffType == "Magic" then -- {"Magic", "Poison", "Disease", "Curse"}
+		if Priority ~= nil and debuffType == "Magic" then -- "Magic", "Poison", "Disease", "Curse"
 			if Priority == "cc" then
-				if expTime ~= nil then timeControlled = expTime - GetTime() end
-				if timeControlled > 1 then return true end
+				if expTime ~= nil and expTime - GetTime() > 1 then
+				return true end
 			end
 		end
 		i = i + 1
-		auraName, _, _, _, debuffType, duration, expTime, _, _, _, spellID = UnitDebuff(unit, i)
+		auraName, _, _, _, debuffType, _, expTime, _, _, _, spellID = UnitDebuff(unit, i)
 	end
 	return false
 end

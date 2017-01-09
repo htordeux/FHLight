@@ -48,7 +48,7 @@ local spellTable = {
 
 	-- heals
 	{spells.giftNaaru, jps.hp("player") < 0.80 , "player" , "giftNaaru"},
-	{spells.healingSurge, jps.UseCDs and jps.hp("player") < 0.50 , "player" , "healingSurge"},
+	{spells.healingSurge, jps.hp("player") < 0.50 , "player" , "healingSurge"},
 	{spells.astralShift, jps.hp("player") < 0.50 , "player" },
 
 	-- Apply Flame Shock

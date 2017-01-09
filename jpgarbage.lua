@@ -49,6 +49,16 @@ local TankThreat = jps.findThreatInRaid()
 print("|cFFFF0000TankThreat: ",GetUnitName(TankThreat))
 write("***************************")
 
+local POHInRange = 0
+for i=1,#FriendUnit do
+	local unit = FriendUnit[i]
+	local maxRange = jps.distanceMax(unit)
+	if jps.hp(unit) < 0.80 then
+		POHInRange = POHInRange + 1
+	end
+end
+print("POHInRange: ",POHInRange)
+
 end
 
 local function DkTest()
@@ -87,11 +97,11 @@ function jps_Test()
 
 Test()
 
-local RaidStatusDebuff = jps.RaidStatusDebuff()
-write("RaidStatusDebuff: ",jps.tableLength(RaidStatusDebuff))
-for unit,debuff in pairs(RaidStatusDebuff) do
-	print("unit:",unit,"debuff:",unpack(debuff))
-end
+--local RaidStatusDebuff = jps.RaidStatusDebuff()
+--write("RaidStatusDebuff: ",jps.tableLength(RaidStatusDebuff))
+--for unit,debuff in pairs(RaidStatusDebuff) do
+--	print("unit:",unit,"debuff:",unpack(debuff))
+--end
 
 --local rc = LibStub("LibRangeCheck-2.0")
 --local minRange, maxRange = rc:GetRange('target')

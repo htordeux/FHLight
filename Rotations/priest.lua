@@ -279,17 +279,8 @@ jps.canFear = function(rangedTarget)
 	local BerserkerRage = GetSpellInfo(18499)
 	if jps.buff(BerserkerRage,rangedTarget) then return false end
 	local canFear = false
-	if jps.canDPS(rangedTarget) then
-		if (CheckInteractDistance(rangedTarget,2) == true) then canFear = true end
-	end
+	if (CheckInteractDistance(rangedTarget,2) == true) then canFear = true end
 	return canFear
-end
-
-jps.canShadowfiend = function(rangedTarget)
-	if not jps.canDPS(rangedTarget) then return false end
-	if UnitGetTotalAbsorbs(rangedTarget) > 0 then return false end
-	if jps.TimeToDie(rangedTarget) > 12 then return true end
-	return false
 end
 
 ------------------------------------
@@ -324,6 +315,5 @@ jps.unitForLeap = function(unit)
 	if not jps.UnitExists(unit) then return false end
 	if UnitIsUnit(unit,"player") then return false end
 	if not jps.FriendAggro(unit) then return false end
-	if not jps.LoseControl(unit) then return false end
 	return true
 end

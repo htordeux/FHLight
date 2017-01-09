@@ -78,22 +78,7 @@ jps.registerRotation("PALADIN","HOLY",function()
 -- LOCAL FUNCTIONS FRIENDS
 ----------------------------
 
-	-- DISPEL --
-	
-	local DispelFriendPvE = jps.DispelMagicTarget() -- {"Magic", "Poison", "Disease", "Curse"}
-	local DispelFriendPvP = nil
-	local DispelFriendHealth = 100
-	for i=1,#FriendUnit do -- for _,unit in ipairs(FriendUnit) do
-		local unit = FriendUnit[i]
-		if jps.DispelLoseControl(unit) then -- jps.DispelLoseControl includes jps.WarningDebuffs
-			local unitHP = jps.hp(unit)
-			if unitHP < DispelFriendHealth then
-				DispelFriendPvP = unit
-				DispelFriendHealth = unitHP
-			end
-		end
-	end
-
+	local DispelFriend = jps.DispelMagicTarget() -- "Magic", "Poison", "Disease", "Curse"
 	local DispelFriendRole = nil
 	for i=1,#TankUnit do -- for _,unit in ipairs(TankUnit) do
 		local unit = TankUnit[i]

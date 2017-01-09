@@ -596,19 +596,20 @@ jps.WarningDebuffs = function(unit)
 	return false
 end
 
-jps.canDispel = function(unit,dispelType) -- "Magic", "Poison", "Disease", "Curse"
+jps.canDispel = function(unit,dispel) -- "Magic", "Poison", "Disease", "Curse"
 	if not canHeal(unit) then return false end
 	if jps.WarningDebuffs(unit) then return false end
-	if dispelType == nil then dispelType = "Magic" end
+	if dispel == nil then dispel = "Magic" end
 	local auraName, debuffType, expirationTime, spellId
 	local i = 1
-	auraName, _, _, _, debuffType, _, expirationTime, _, _, _, spellId = UnitDebuff(unit, i) 
+	auraName, _, _, _, debuffType, _, expTime, _, _, _, spellId = UnitDebuff(unit, i) 
 	while auraName do
-		if debuffType ~= nil and debuffType == dispeltype and expirationTime - GetTime() > 1 then
-		if jps.Debug then write("debuffType:",debuffType) end
-		return true end
+		if debuffType ~= nil and debuffType == dispel then
+			if expTime ~= nil and expTime - GetTime() > 1 then
+			return true end
+		end
 		i = i + 1
-		auraName, _, _, _, debuffType, _, expirationTime, _, _, _, spellId = UnitDebuff(unit, i)
+		auraName, _, _, _, debuffType, _, expTime, _, _, _, spellId = UnitDebuff(unit, i)
 	end
 	return false
 end
@@ -648,9 +649,9 @@ jps.RaidStatusDebuff = function() -- returns table
 	for unit,_ in pairs(RaidStatus) do
 		local auraName, debuffType, expirationTime, spellId
 		local i = 1
-		auraName, _, _, _, debuffType, _, expirationTime, unitCaster, _, _, spellId = UnitDebuff(unit, i) 
+		auraName, _, _, _, debuffType, _, expTime, _, _, _, spellId = UnitDebuff(unit, i) 
 		while auraName do
-			if debuffType ~= nil and expirationTime - GetTime() > 1 then
+			if debuffType ~= nil and expTime - GetTime() > 1 then
 				if RaidStatusDebuff[unit] == nil then
 					RaidStatusDebuff[unit] = {debuffType}
 				else 
@@ -658,7 +659,7 @@ jps.RaidStatusDebuff = function() -- returns table
 				end
 			end
 			i = i + 1
-			auraName, _, _, _, debuffType, _, expirationTime, unitCaster, _, _, spellId = UnitDebuff(unit, i)
+			auraName, _, _, _, debuffType, _, expirationTime, _, _, _, spellId = UnitDebuff(unit, i)
 		end
 	end
 	return RaidStatusDebuff
@@ -666,14 +667,14 @@ end
 
 function jps.BossDebuff(unit)
 	local i = 1
-	local auraName,debuffType,expirationTime,unitCaster,spellId,isBossDebuff
-	auraName, _, _, _, debuffType, _, expirationTime, unitCaster, _, _, spellId, _, isBossDebuff = UnitDebuff(unit, i)
+	local auraName,debuffType,expirationTime,spellId,isBossDebuff
+	auraName, _, _, _, debuffType, _, expirationTime, _, _, _, spellId, _, isBossDebuff = UnitDebuff(unit, i)
 	while auraName do
 		local classCaster = UnitClassification(unitCaster)
 		if string.find(classCaster,"boss") ~= nil and debuffType ~= nil then return true end
 		if string.find(classCaster,"elite") ~= nil and debuffType ~= nil then return true end
 		i = i + 1
-		auraName, _, _, _, debuffType, _, expirationTime, unitCaster, _, _, spellId, _, isBossDebuff = UnitDebuff(unit, i)
+		auraName, _, _, _, debuffType, _, expirationTime, _, _, _, spellId, _, isBossDebuff = UnitDebuff(unit, i)
 	end
 	return false
 end

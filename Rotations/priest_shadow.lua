@@ -28,7 +28,7 @@ local target = nil
 ----------------------------
 	
 local CountInRange, AvgHealthLoss, FriendUnit = jps.CountInRaidStatus(0.80)
-local LowestUnit = jps.LowestImportantUnit()
+local LowestUnit,_ = jps.LowestImportantUnit()
 
 local Tank,TankUnit = jps.findTankInRaid() -- default "focus" "player"
 local TankThreat = jps.findThreatInRaid() -- default "focus" "player"
@@ -240,8 +240,8 @@ local spellTable = {
 	{spells.purifyDisease, jps.UseCDs and jps.canDispel("mouseover","Disease") , "mouseover" },
 	-- OFFENSIVE Dispel -- "Dissipation de la magie" 528
 	{ "nested", ispvp and jps.hp(LowestUnit) > 0.60 , {
-		{ spells.dispelMagic, jps.castEverySeconds(528,8) and jps.DispelOffensive(rangedTarget) , rangedTarget , "|cff1eff00DispelOffensive_" },
-		{ spells.dispelMagic, jps.castEverySeconds(528,8) and DispelOffensiveEnemyTarget ~= nil  , DispelOffensiveEnemyTarget , "|cff1eff00DispelOffensive_MULTITARGET_" },
+		{ spells.dispelMagic, jps.castEverySeconds(528,4) and jps.DispelOffensive(rangedTarget) , rangedTarget , "|cff1eff00DispelOffensive_" },
+		{ spells.dispelMagic, jps.castEverySeconds(528,4) and DispelOffensiveEnemyTarget ~= nil  , DispelOffensiveEnemyTarget , "|cff1eff00DispelOffensive_MULTITARGET_" },
 	}},
 
 	-- spells.mindbender -- 15 seconds cd 1 min
@@ -252,7 +252,7 @@ local spellTable = {
 	{spells.mindBlast, not jps.Moving and not isTargetElite , rangedTarget , "mindBlast_Opening"},
 
 	-- "Mot de l’ombre : Mort" 199911
-	{"nested", jps.spellCharges(spells.shadowWordDeath) == 2 , {
+	{"nested", jps.spellCharges(spells.shadowWordDeath) == 2 and not jps.buff(194249) , {
 		{spells.shadowWordDeath, jps.hp("target") < 0.35 , "target" , "Death" },
 		{spells.shadowWordDeath, jps.hp("focus") < 0.35 , "focus" , "Death" },
 		{spells.shadowWordDeath, DeathEnemyTarget ~= nil , DeathEnemyTarget , "Death" },
@@ -274,7 +274,7 @@ local spellTable = {
 		{spells.shadowWordDeath, jps.insanity() < 71 and  DeathEnemyTarget ~= nil , DeathEnemyTarget , "Death_Buff" },
 		{spells.shadowWordDeath, jps.insanity() < 71 and jps.hp("mouseover") < 0.35 , "mouseover" , "Death_Buff" },
 		
-		{spells.mindSear, jps.MultiTarget and not jps.Moving and jps.myDebuffDuration(spells.vampiricTouch,rangedTarget) > 6 and jps.myDebuffDuration(spells.shadowWordPain,rangedTarget) > 6 },
+		{spells.mindSear, jps.MultiTarget and not jps.Moving and jps.myDebuffDuration(spells.vampiricTouch,rangedTarget) > 6 },
 		
 	    {"macro", jps.canCastMindBlast , "/stopcasting" },
 		{spells.mindBlast, not jps.Moving , rangedTarget , "mindBlast" },

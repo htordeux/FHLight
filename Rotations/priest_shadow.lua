@@ -273,11 +273,11 @@ local spellTable = {
     	{spells.shadowWordDeath, jps.insanity() < 71 and jps.hp("focus") < 0.35 , "focus" , "Death_Buff" },
 		{spells.shadowWordDeath, jps.insanity() < 71 and  DeathEnemyTarget ~= nil , DeathEnemyTarget , "Death_Buff" },
 		{spells.shadowWordDeath, jps.insanity() < 71 and jps.hp("mouseover") < 0.35 , "mouseover" , "Death_Buff" },
-		
-		{spells.mindSear, jps.MultiTarget and not jps.Moving and jps.myDebuffDuration(spells.vampiricTouch,rangedTarget) > 6 },
-		
+
 	    {"macro", jps.canCastMindBlast , "/stopcasting" },
 		{spells.mindBlast, not jps.Moving , rangedTarget , "mindBlast" },
+		
+		{spells.mindSear, jps.MultiTarget and not jps.Moving and jps.myDebuffDuration(spells.vampiricTouch,rangedTarget) > 6 },
 		
 	   	-- spells.mindbender -- 15 seconds cd 1 min
    		{spells.shadowfiend, jps.buffStacks(194249) > 9 , rangedTarget , "high_shadowfiend_Buff" },
@@ -312,18 +312,18 @@ local spellTable = {
 	{"macro", jps.canCastMindBlast , "/stopcasting" },
 	{spells.mindBlast, not jps.Moving , rangedTarget , "mindBlast"},
 
-	-- "Déferlante d’ombre" 205385
-	--{spells.shadowCrash, jps.MultiTarget and jps.hasTalent(6,2) , rangedTarget , "shadowCrash" },
-	{spells.shadowWordPain, jps.MultiTarget and canAttack("mouseover") and fnPainEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "Pain_Mouseover" },
-	{spells.mindSear, jps.MultiTarget and not jps.Moving , rangedTarget , "MultiTarget_MindSear" },
-
-	--{spells.vampiricTouch, not jps.buff(194249) and not jps.Moving and jps.myDebuffDuration(spells.vampiricTouch,"focus") < 4 and not jps.isRecast(spells.vampiricTouch,"focus") , "focus" , "Refresh_VT_Focus" },
-	--{spells.shadowWordPain, not jps.buff(194249) and jps.myDebuffDuration(spells.shadowWordPain,"focus") < 4 and not jps.isRecast(spells.shadowWordPain,"focus") , "focus" , "Refresh_Pain_Focus" },	
+	{"nested", jps.MultiTarget , {
+		-- "Déferlante d’ombre" 205385
+		--{spells.shadowCrash, jps.hasTalent(6,2) , rangedTarget , "shadowCrash" },
+		{spells.shadowWordPain, canAttack("mouseover") and fnPainEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "Pain_Mouseover" },
+		{spells.vampiricTouch, not jps.Moving and canAttack("mouseover") and fnVampEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") and jps.hp("mouseover") > 0.20 , "mouseover" , "VT_Mouseover" },
+		{spells.mindSear, not jps.Moving , rangedTarget , "MultiTarget_MindSear" },
+	}},
 
 	-- "Shadow Word: Pain" -- "Vampiric Touch" heals the Priest for 50% of damage
 	{spells.vampiricTouch, not jps.Moving and fnVampEnemyTarget("focus") , "focus" , "VT_Focus" },
-	{spells.vampiricTouch, not jps.Moving and VampEnemyTarget ~= nil and not UnitIsUnit("target",VampEnemyTarget) , VampEnemyTarget , "VT_MultiUnit" },
 	{spells.shadowWordPain, fnPainEnemyTarget("focus") , "focus" , "Pain_Focus" },
+	{spells.vampiricTouch, not jps.Moving and VampEnemyTarget ~= nil and not UnitIsUnit("target",VampEnemyTarget) , VampEnemyTarget , "VT_MultiUnit" },
 	{spells.shadowWordPain, PainEnemyTarget ~= nil and not UnitIsUnit("target",PainEnemyTarget) , PainEnemyTarget , "Pain_MultiUnit" },
 	
 	{spells.vampiricTouch, not jps.Moving and canAttack("mouseover") and fnVampEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") and jps.hp("mouseover") > 0.20 , "mouseover" , "VT_Mouseover" },

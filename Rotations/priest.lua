@@ -274,18 +274,17 @@ function jps.canCastvoidBolt()
 	return false
 end
 
-jps.canFear = function(rangedTarget)
-	if not jps.canDPS(rangedTarget) then return false end
-	local BerserkerRage = GetSpellInfo(18499)
-	if jps.buff(BerserkerRage,rangedTarget) then return false end
-	local canFear = false
-	if (CheckInteractDistance(rangedTarget,2) == true) then canFear = true end
-	return canFear
-end
-
 ------------------------------------
 -- FUNCTIONS FRIEND UNIT
 ------------------------------------
+
+local BerserkerRage = GetSpellInfo(18499)
+jps.canFear = function(rangedTarget)
+	if not jps.canDPS(rangedTarget) then return false end
+	if jps.buff(BerserkerRage,rangedTarget) then return false end
+	if (CheckInteractDistance(rangedTarget,2) == true) then return true end
+	return false
+end
 
 jps.unitForClarity = function(unit)
 	if not jps.UnitExists(unit) then return false end

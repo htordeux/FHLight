@@ -199,7 +199,6 @@ local spellTable = {
 		{spells.voidEruption, jps.myDebuff(spells.vampiricTouch,rangedTarget) and jps.myDebuffDuration(spells.vampiricTouch,rangedTarget) < 4 , rangedTarget , "voidBold_Target" },
 		{spells.voidEruption, jps.myDebuff(spells.shadowWordPain,"mouseover") , "mouseover" , "voidBold_Mouseover"},
     	{spells.voidEruption, jps.myDebuff(spells.vampiricTouch,"mouseover") , "mouseover" , "voidBold_Mouseover"},
-    	{spells.voidEruption, true , rangedTarget , "voidBold"},
     }},
     
     {"nested", jps.hp("player") < 0.80 and not jps.buff(15286) , {
@@ -266,6 +265,9 @@ local spellTable = {
 	{ "macro", jps.useTrinket(1) , "/use 14"},
 
 	{"nested", jps.buff(194249) , {
+		{"macro", jps.canCastvoidBolt , "/stopcasting" },
+		{spells.voidEruption, true , rangedTarget , "voidBold"},
+
        	{spells.voidTorrent , not jps.Moving and jps.myDebuffDuration(spells.vampiricTouch,rangedTarget) > 6 and jps.myDebuffDuration(spells.shadowWordPain,rangedTarget) > 6 , rangedTarget , "voidTorrent"},
 
 		{"macro", jps.canCastshadowWordDeath , "/stopcasting" },
@@ -286,12 +288,12 @@ local spellTable = {
 
 		-- Low Insanity coming up (Shadow Word: Death , Void Bolt , Mind Blast , AND Void Torrent are all on cooldown and you are in danger of reaching 0 Insanity).
 		{spells.dispersion, jps.hasTalent(6,3) and jps.insanity() > 21 and jps.insanity() < 100 and jps.cooldown(spells.mindbender) > 51 , "player" , "DISPERSION_Insanity_Mindbender" },
-		--{spells.dispersion, jps.hasTalent(6,1) and jps.insanity() > 49 and jps.insanity() < 100 and jps.cooldown(spells.powerInfusion) < 6 and jps.buffStacks(194249) > 9 , "player" , "DISPERSION_Insanity_Infusion" },
+		{spells.dispersion, jps.hasTalent(6,1) and jps.insanity() > 49 and jps.insanity() < 100 and jps.cooldown(spells.powerInfusion) < 6 and jps.buffStacks(194249) > 9 and jps.targetIsBoss("target") and jps.hp("target") > 20 , "player" , "DISPERSION_Insanity_Infusion" },
 		
 		-- "Power Word: Shield" 17	
 		{spells.powerWordShield, not jps.buff(spells.powerWordShield) and jps.hp("player") < 0.50 , "player" },
-		-- "Guérison de l’ombre" 186263
-		{spells.shadowMend, not jps.Moving and not jps.buff(194249) and jps.hp("player") < 0.50 and jps.castEverySeconds(186263, 4) , "player" },
+		-- "Guérison de l’ombre" 186263 -- buff
+		{spells.shadowMend, not jps.Moving and not jps.buff(194249) and jps.hp("player") < 0.50 , "player" },
 	}},
 
 	{spells.vampiricTouch, not jps.buff(194249) and not jps.Moving and jps.myDebuffDuration(spells.vampiricTouch,rangedTarget) < 4 and not jps.isRecast(spells.vampiricTouch,rangedTarget) , rangedTarget , "Refresh_VT_Target" },
@@ -315,8 +317,8 @@ local spellTable = {
 	{"nested", jps.MultiTarget , {
 		-- "Déferlante d’ombre" 205385
 		--{spells.shadowCrash, jps.hasTalent(6,2) , rangedTarget , "shadowCrash" },
+		{spells.vampiricTouch, not jps.Moving and VampEnemyTarget ~= nil and not UnitIsUnit("target",VampEnemyTarget) , VampEnemyTarget , "VT_MultiUnit" },
 		{spells.shadowWordPain, canAttack("mouseover") and fnPainEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "Pain_Mouseover" },
-		{spells.vampiricTouch, not jps.Moving and canAttack("mouseover") and fnVampEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") and jps.hp("mouseover") > 0.20 , "mouseover" , "VT_Mouseover" },
 		{spells.mindSear, not jps.Moving , rangedTarget , "MultiTarget_MindSear" },
 	}},
 

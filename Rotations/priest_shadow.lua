@@ -271,7 +271,6 @@ local spellTable = {
 	{"nested", jps.MultiTarget and not jps.buff(194249) , {
     	{spells.vampiricTouch, not jps.Moving and fnVampEnemyTarget("target") , "target" , "VT_Target" },
     	{spells.shadowWordPain, fnPainEnemyTarget("target") , "target" , "Pain_Target" },
-        {spells.shadowWordPain, canAttack("mouseover") and fnPainEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "Pain_Mouseover" },	
 		{spells.mindFlay, isTargetElite and jps.insanity() < 70 and not jps.Moving and jps.myDebuff(spells.shadowWordPain,rangedTarget) , rangedTarget , "mindFlay_MultiTarget" },
 		{spells.mindFlay, not isTargetElite and jps.insanity() < 100 and not jps.Moving and jps.myDebuff(spells.shadowWordPain,rangedTarget) , rangedTarget , "mindFlay_MultiTarget" },
 	}},
@@ -288,12 +287,6 @@ local spellTable = {
 		{spells.shadowWordDeath, jps.insanity() < 71 , DeathEnemyTarget , "Death_Buff" },
 		{spells.shadowWordDeath, jps.insanity() < 71 , "mouseover" , "Death_Buff" },
 
-		{spells.mindBlast, jps.MultiTarget and not jps.Moving , rangedTarget , "mindBlast" },
-		{spells.vampiricTouch, jps.MultiTarget and not jps.Moving and fnVampEnemyTarget("target") , "target" , "VT_Target" },
-		{spells.shadowWordPain, jps.MultiTarget and fnPainEnemyTarget("target") , "target" , "Pain_Target" },
-		{spells.shadowWordPain, jps.MultiTarget and canAttack("mouseover") and fnPainEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "Pain_Mouseover" },
-		{spells.mindFlay, jps.MultiTarget and not jps.Moving and jps.myDebuff(spells.shadowWordPain,"target") , "target" , "mindFlay_MultiTarget" },
-
 	    {"macro", jps.canCastMindBlast , "/stopcasting" },
 		{spells.mindBlast, not jps.Moving , rangedTarget , "mindBlast" },
 
@@ -306,7 +299,13 @@ local spellTable = {
 		--{spells.dispersion, jps.hasTalent(6,3) and jps.insanity() > 21 and jps.insanity() < 71 and jps.cooldown(spells.mindbender) > 51 , "player" , "DISPERSION_Insanity_Mindbender" },
 
 		-- "Power Word: Shield" 17	
-		{spells.powerWordShield, not jps.buff(spells.powerWordShield) and jps.hp("player") < 0.50 , "player" },
+		{spells.powerWordShield, not jps.buff(spells.powerWordShield) and jps.hp("player") < 0.60 , "player" },
+
+		{spells.mindFlay, jps.MultiTarget and not jps.Moving and jps.myDebuff(spells.shadowWordPain,"target") , "target" , "mindFlay_MultiTarget" },
+
+    	{spells.vampiricTouch, not jps.Moving and canAttack("mouseover") and fnVampEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "VT_Mouseover" },		
+		{spells.shadowWordPain, canAttack("mouseover") and fnPainEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "Pain_Mouseover" },
+
 	}},
 
 	{spells.vampiricTouch, not jps.buff(194249) and not jps.Moving and jps.myDebuffDuration(spells.vampiricTouch,rangedTarget) < 4 and not jps.isRecast(spells.vampiricTouch,rangedTarget) , rangedTarget , "Refresh_VT_Target" },
@@ -347,8 +346,8 @@ local spellTable = {
     {spells.shadowWordPain, PainEnemyTarget ~= nil and not UnitIsUnit("target",PainEnemyTarget) , PainEnemyTarget , "Pain_MultiUnit" },
 
     -- "Vampiric Touch" heals the Priest for 50% of damage 24 sec
-    {spells.shadowWordPain, canAttack("mouseover") and fnPainEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "Pain_Mouseover" },
     {spells.vampiricTouch, not jps.Moving and canAttack("mouseover") and fnVampEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "VT_Mouseover" },
+    {spells.shadowWordPain, canAttack("mouseover") and fnPainEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "Pain_Mouseover" },
 
     -- Mind Flay Insanity generation has been increased
     -- If the target is afflicted with Shadow Word: Pain you will also deal splash damage to nearby targets.

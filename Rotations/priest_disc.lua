@@ -83,7 +83,7 @@ jps.registerRotation("PRIEST","DISCIPLINE", function()
 			end
 		end
 	end
-	
+
 	local DispelFriend = jps.DispelMagicTarget() -- "Magic", "Poison", "Disease", "Curse"
 	local DispelFriendRole = nil
 	for i=1,#TankUnit do -- for _,unit in ipairs(TankUnit) do
@@ -122,24 +122,6 @@ jps.registerRotation("PRIEST","DISCIPLINE", function()
 ------------------------
 -- LOCAL FUNCTIONS ENEMY
 ------------------------
-
-	local SilenceEnemyTarget = nil
-	for i=1,#EnemyUnit do -- for _,unit in ipairs(EnemyUnit) do
-		local unit = EnemyUnit[i]
-		if jps.IsSpellInRange(15487,unit) then
-			if jps.ShouldKick(unit) then
-				SilenceEnemyTarget = unit
-			break end
-		end
-	end
-
-	local FearEnemyTarget = nil
-	for i=1,#EnemyUnit do -- for _,unit in ipairs(EnemyUnit) do
-		local unit = EnemyUnit[i]
-		if jps.canFear(unit) and not jps.LoseControl(unit) then
-			FearEnemyTarget = unit
-		break end
-	end
 
 	local DispelOffensiveEnemyTarget = nil
 	for i=1,#EnemyUnit do -- for _,unit in ipairs(EnemyUnit) do

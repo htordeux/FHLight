@@ -194,16 +194,6 @@ local spellTable = {
 	{spells.vampiricEmbrace, jps.hp("player") < 0.60 },
 	{spells.vampiricEmbrace, CountInRange > 2 and AvgHealthLoss < 0.80 },
 	{spells.fade, not ispvp and jps.FriendAggro("player") },
-	
-	{"nested", jps.buff(194249) , {
-		{"macro", jps.canCastvoidBolt , "/stopcasting" },
-		{spells.voidEruption, VoidBoltTarget ~= nil , VoidBoltTarget , "voidBold_MultiUnit"},
-		{spells.voidEruption, jps.myDebuff(spells.shadowWordPain,"mouseover") , "mouseover" , "voidBold_Mouseover"},
-		{spells.voidEruption, jps.myDebuff(spells.vampiricTouch,"mouseover") , "mouseover" , "voidBold_Mouseover"},
-		{spells.voidEruption, true , rangedTarget , "voidBold"},
-    }},
-    
-    {spells.voidEruption, jps.MultiTarget and not jps.buff(194249) and jps.insanity() == 100 and not jps.Moving and not isTargetElite , rangedTarget , "voidEruption_MultiTarget" },
 
 	-- HEAL --
 	-- "Pierre de soins" 5512
@@ -267,17 +257,16 @@ local spellTable = {
 		{spells.shadowWordDeath, DeathEnemyTarget ~= nil , DeathEnemyTarget , "Death_Opening" },
 		{spells.shadowWordDeath, true , "mouseover" , "Death_Opening" },
 	}},
-	
-	{"nested", jps.MultiTarget and not jps.buff(194249) , {
-    	{spells.vampiricTouch, not jps.Moving and fnVampEnemyTarget("target") , "target" , "VT_Target" },
-    	{spells.shadowWordPain, fnPainEnemyTarget("target") , "target" , "Pain_Target" },
-		{spells.mindFlay, isTargetElite and jps.insanity() < 70 and not jps.Moving and jps.myDebuff(spells.shadowWordPain,rangedTarget) , rangedTarget , "mindFlay_MultiTarget" },
-		{spells.mindFlay, not isTargetElite and jps.insanity() < 100 and not jps.Moving and jps.myDebuff(spells.shadowWordPain,rangedTarget) , rangedTarget , "mindFlay_MultiTarget" },
-	}},
 
 	{"nested", jps.buff(194249) , {
 		-- "Power Infusion" 10060
-		{spells.powerInfusion, jps.buffStacks(194249) > 9 },
+		{spells.powerInfusion, jps.buffStacks(194249) > 9 and jps.insanity() > 54 },
+		
+		{"macro", jps.canCastvoidBolt , "/stopcasting" },
+		{spells.voidEruption, VoidBoltTarget ~= nil , VoidBoltTarget , "voidBold_MultiUnit"},
+		{spells.voidEruption, jps.myDebuff(spells.shadowWordPain,"mouseover") , "mouseover" , "voidBold_Mouseover"},
+		{spells.voidEruption, jps.myDebuff(spells.vampiricTouch,"mouseover") , "mouseover" , "voidBold_Mouseover"},
+		{spells.voidEruption, true , rangedTarget , "voidBold"},
 		
        	{spells.voidTorrent , not jps.Moving and jps.myDebuffDuration(spells.vampiricTouch,rangedTarget) > 6 and jps.myDebuffDuration(spells.shadowWordPain,rangedTarget) > 6 , rangedTarget , "voidTorrent"},
 
@@ -313,6 +302,17 @@ local spellTable = {
 	
 	{spells.voidEruption, not jps.buff(194249) and jps.hasTalent(7,1) and jps.insanity() > 69 and not jps.Moving and isTargetElite  , rangedTarget , "voidEruption" },
 	{spells.voidEruption, not jps.buff(194249) and jps.insanity() == 100 and not jps.Moving and isTargetElite , rangedTarget , "voidEruption" },
+    {spells.voidEruption, jps.MultiTarget and not jps.buff(194249) and jps.insanity() == 100 and not jps.Moving and not isTargetElite , rangedTarget , "voidEruption_MultiTarget" },
+
+    -- "Déferlante d’ombre" 205385
+    {spells.shadowCrash, jps.hasTalent(7,2) , rangedTarget , "shadowCrash" },
+    
+	{"nested", jps.MultiTarget and not jps.buff(194249) , {
+    	{spells.vampiricTouch, not jps.Moving and canAttack("mouseover") and fnVampEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "VT_Mouseover" },		
+		{spells.shadowWordPain, canAttack("mouseover") and fnPainEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "Pain_Mouseover" },
+		{spells.mindFlay, isTargetElite and jps.insanity() < 70 and not jps.Moving and jps.myDebuff(spells.shadowWordPain,rangedTarget) , rangedTarget , "mindFlay_MultiTarget" },
+		{spells.mindFlay, not isTargetElite and jps.insanity() < 100 and not jps.Moving and jps.myDebuff(spells.shadowWordPain,rangedTarget) , rangedTarget , "mindFlay_MultiTarget" },
+	}},
 
 	-- "Mot de l’ombre : Mort" 199911
 	{"macro", jps.canCastshadowWordDeath , "/stopcasting" },
@@ -326,9 +326,6 @@ local spellTable = {
 	{"macro", jps.canCastMindBlast , "/stopcasting" },
 	{spells.mindBlast, not jps.Moving , rangedTarget , "mindBlast"},
 
-    -- "Déferlante d’ombre" 205385
-    {spells.shadowCrash, jps.hasTalent(7,2) , rangedTarget , "shadowCrash" },
-   
 	-- "Misery" -- Vampiric Touch also applies Shadow Word: Pain to the target.
     {"nested", jps.hasTalent(6,2) , {
         {spells.vampiricTouch, not jps.Moving and fnVampEnemyTarget("target") , "target" , "VT_Target" },

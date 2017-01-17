@@ -251,6 +251,7 @@ function jps.canCastshadowWordDeath()
 end
 
 function jps.canCastMindBlast()
+	--if jps.MultiTarget then return false end
 	if jps.cooldown(jps.spells.priest.mindBlast) > 0 then return false end
 	local Channeling = UnitChannelInfo("player") -- "Mind Flay" is a channeling spell
 	if Channeling ~= nil then
@@ -260,6 +261,7 @@ function jps.canCastMindBlast()
 end
 
 function jps.canCastvoidBolt()
+	--if jps.MultiTarget then return false end
 	if not jps.buff(194249) then return false end
 	if jps.cooldown(jps.spells.priest.voidEruption) > 0 then return false end
 	local Channeling = UnitChannelInfo("player") -- "Mind Flay" is a channeling spell

@@ -27,9 +27,8 @@ jps.registerRotation("PALADIN","HOLY",function()
 	local POHTarget, POHGroup, HealthGroup = jps.FindSubGroupHeal(0.80) -- Target to heal with POH in RAID with AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
 	local LowestUnit, LowestUnitPrev = jps.LowestImportantUnit()
 
-	local Tank,TankUnit = jps.findTankInRaid() -- default "focus" "player"
-	local TankThreat = jps.findThreatInRaid() -- default "focus" "player"
-	local TankTarget = TankThreat.."target"
+	local Tank,TankUnit = jps.findRaidTank() -- default "player"
+	local TankTarget = Tank.."target"
 
 	local playerAggro = jps.FriendAggro("player")
 	local playerIsStun = jps.StunEvents(2) -- return true/false ONLY FOR PLAYER -- "ROOT" was removed of Stuntype

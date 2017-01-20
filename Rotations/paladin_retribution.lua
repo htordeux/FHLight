@@ -21,9 +21,10 @@ local target = nil
 local CountInRange, AvgHealthLoss, FriendUnit = jps.CountInRaidStatus(0.80)
 local LowestUnit = jps.LowestImportantUnit()
 
-local Tank,TankUnit = jps.findTankInRaid() -- default "focus" "player"
-local TankThreat = jps.findThreatInRaid() -- default "focus" "player"
-local TankTarget = TankThreat.."target"
+local Tank,TankUnit = jps.findRaidTank() -- default "player"
+local TankTarget = Tank.."target"
+local playerIsTanking = false
+if UnitIsUnit("player",Tank) then playerIsTanking = true end
 
 local playerAggro = jps.FriendAggro("player")
 local playerIsStun = jps.StunEvents(2) -- return true/false ONLY FOR PLAYER -- "ROOT" was removed of Stuntype
@@ -31,9 +32,6 @@ local playerIsStun = jps.StunEvents(2) -- return true/false ONLY FOR PLAYER -- "
 local playerIsInterrupt = jps.InterruptEvents() -- return true/false ONLY FOR PLAYER
 local playerWasControl = jps.ControlEvents() -- return true/false Player was interrupt or stun 2 sec ago ONLY FOR PLAYER
 local ispvp = UnitIsPVP("player")
-
-local playerIsTanking = false
-if UnitIsUnit("player",TankThreat) then playerIsTanking = true end
 
 ----------------------
 -- TARGET ENEMY

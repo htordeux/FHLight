@@ -41,7 +41,6 @@ end
 
 local RaidStatusRole = {}
 local RaidStatus = {}
-local RaidRoster = {}
 
 jps.UpdateRaidStatus = function ()
 	local unit = nil
@@ -91,9 +90,7 @@ end
 
 jps.UpdateRaidRole = function ()
 	twipe(RaidStatusRole)
-	twipe(RaidRoster)
 	for unit,_ in pairs(RaidStatus) do
-		RaidRoster[#RaidRoster+1] = unit
 		local role = UnitGroupRolesAssigned(unit)
 		local class = select(2,UnitClass(unit))
 		if RaidStatusRole[unit] == nil then RaidStatusRole[unit] = {} end
@@ -200,7 +197,7 @@ end
 -- TANK
 --------------------------
 
-function jps.findHealerInRaid()
+function jps.findRaidHealer()
 	local HealerUnit = {}
 	for unit,_ in pairs(RaidStatus) do
 		if jps.RoleInRaid(unit) == "HEALER" and canHeal(unit) then
@@ -208,25 +205,23 @@ function jps.findHealerInRaid()
 		end
 	end
 	tsort(HealerUnit, function(a,b) return HealthPct(a) < HealthPct(b) end)
-	return HealerUnit[1] or "focus" , HealerUnit
+	local myHealer = HealerUnit[1]
+	return myHealer, HealerUnit
 end
 
-function jps.findTankInRaid()
+function jps.findRaidTank()
 	local TankUnit = {}
 	for unit,_ in pairs(RaidStatus) do
-		local unitThreat = UnitThreatSituation(unit)
-		if jps.RoleInRaid(unit) == "TANK" and canHeal(unit) then
-			TankUnit[#TankUnit+1] = unit
-		elseif unitThreat and canHeal(unit) then
-			if unitThreat == 1 then TankUnit[#TankUnit+1] = unit
-			elseif unitThreat == 3 then TankUnit[#TankUnit+1] = unit 
+		if canHeal(unit) then
+			if jps.RoleInRaid(unit) == "TANK" and canHeal(unit) then
+				TankUnit[#TankUnit+1] = unit
 			end
 		end
 	end
 	tsort(TankUnit, function(a,b) return HealthPct(a) < HealthPct(b) end)
-	local defaultTank = "focus"
-	if canHeal("focus") then defaultTank = "focus" else defaultTank = "player" end
-	return TankUnit[1] or defaultTank, TankUnit
+	local myTank = TankUnit[1]
+	if canHeal(myTank) then myTank = TankUnit[1] elseif canHeal("focus") then myTank = "focus" else myTank = "player" end
+	return myTank, TankUnit
 end
 
 --status = UnitThreatSituation("unit"[, "otherunit"])
@@ -242,21 +237,44 @@ end
 --http://wow.gamepedia.com/API_UnitDetailedThreatSituation
 --Returns 100 if the unit is tanking and nil if the unit is not on the mob's threat list.
 
-function jps.findThreatInRaid()
-	local defaultTank,TankUnit = jps.findTankInRaid()
-	local maxThreat = 0
-	for i=1,#TankUnit do
-		local unit = TankUnit[i]
-		local _,_,threatpct,_,_ = UnitDetailedThreatSituation(unit,"target")
-		if threatpct and canHeal(unit) then
-			if threatpct > maxThreat then
-				maxThreat = threatpct
-				defaultTank = unit
+
+function jps.findRaidTankThreat()
+	local TankUnit = {}
+	for unit,_ in pairs(RaidStatus) do
+		if canHeal(unit) then
+			local unitThreat = UnitThreatSituation(unit)
+			if unitThreat == 1 and canHeal(unit) then
+				TankUnit[#TankUnit+1] = unit
+			elseif unitThreat == 3 and canHeal(unit) then
+				TankUnit[#TankUnit+1] = unit
 			end
 		end
 	end
-	return defaultTank
+	tsort(TankUnit, function(a,b) return HealthPct(a) < HealthPct(b) end)
+	local myTank = TankUnit[1]
+	if canHeal(myTank) then myTank = TankUnit[1] else myTank = "player" end
+	return myTank, TankUnit
 end
+
+--function jps.findRaidTankThreat()
+--	local TankUnit = {}
+--	local maxThreat = 0
+--	for unit,_ in pairs(RaidStatus) do
+--		if canHeal(unit) then
+--			local _,_,threatpct,_,_ = UnitDetailedThreatSituation(unit,"target")
+--			if threatpct and canHeal(unit) then
+--				if threatpct > maxThreat then
+--					maxThreat = threatpct
+--					myTank = unit
+--				end
+--			end
+--		end
+--	end
+--	tsort(TankUnit, function(a,b) return HealthPct(a) < HealthPct(b) end)
+--	local myTank = TankUnit[1]
+--	if canHeal(myTank) then myTank = TankUnit[1] else myTank = "player" end
+--	return myTank, TankUnit
+--end
 
 ---------------------------
 -- HEALTH UNIT RAID
@@ -328,7 +346,7 @@ jps.LowestImportantUnit = function()
 	local lowestUnitPrev = "player"
 	if jps.Defensive then
 		local myTanks = {"player","mouseover","target","focus","targettarget","focustarget"}
-		local _,Tanks = jps.findTankInRaid()
+		local _,Tanks = jps.findRaidTank()
 		for i=1,#Tanks do
 			local unit = Tanks[i]
 			myTanks[#myTanks+1] = unit
@@ -366,20 +384,10 @@ jps.LowestFriendTimeToDie = function(timetodie)
 	return lowestFriendTTD
 end
 
--- Highest damage versus incomingheal over 5 sec
-jps.HighestFriendDamage = function()
-	local lowestFriend = nil
-	local highestdamage = 0
-	for unit,_ in pairs(RaidStatus) do
-		if canHeal(unit) then
-			local damage = jps.IncomingDamage(unit) - jps.IncomingHeal(unit)
-			if damage > highestdamage then
-				highestdamage = damage
-				lowestFriend = unit
-			end
-		end
-	end
-	return lowestFriend
+-- IncomingDamage versus IncomingHeal over 5 sec
+jps.FriendDamage = function(unit)
+	local damage = jps.IncomingDamage(unit) - jps.IncomingHeal(unit)
+	return damage
 end
 
 ------------------------------------

@@ -29,9 +29,8 @@ local target = nil
 local CountInRange, AvgHealthLoss, FriendUnit = jps.CountInRaidStatus(0.80)
 local LowestUnit,_ = jps.LowestImportantUnit()
 
-local Tank,TankUnit = jps.findTankInRaid() -- default "focus" "player"
-local TankThreat = jps.findThreatInRaid() -- default "focus" "player"
-local TankTarget = TankThreat.."target"
+local Tank,TankUnit = jps.findRaidTank() -- default "player"
+local TankTarget = Tank.."target"
 
 local playerAggro = jps.FriendAggro("player")
 local playerIsStun = jps.StunEvents(2) -- return true/false ONLY FOR PLAYER -- "ROOT" was removed of Stuntype
@@ -210,7 +209,7 @@ local spellTable = {
 	
 	-- "Power Word: Shield" 17
 	{spells.powerWordShield, jps.Defensive and jps.Moving and not jps.buff(17,"player") and jps.hasTalent(2,2) , "player" , "Shield_BodySoul" },
-	{spells.powerWordShield, jps.hp(TankThreat) < 0.50 and not jps.buff(17,TankThreat) , TankThreat , "shield_TankThreat" },
+	{spells.powerWordShield, jps.hp(Tank) < 0.50 and not jps.buff(17,Tank) , Tank , "shield_Tank" },
 	{spells.powerWordShield, canHeal("mouseover") and jps.hp("mouseover") < 0.50 and not jps.buff(17,"mouseover") , "mouseover" , "shield_Mouseover" },
 	-- "Guérison de l’ombre" 186263 -- debuff "Shadow Mend" 187464 10 sec
 	{spells.shadowMend, not jps.Moving and not jps.buff(194249) and canHeal("mouseover") and jps.hp("mouseover") < 0.50 and jps.castEverySeconds(186263,4) , "mouseover" , "shadowMend_Mouseover" },
@@ -233,7 +232,7 @@ local spellTable = {
 	{ "nested", jps.UseCDs and DispelFriend ~= nil , {
 		{spells.purifyDisease, jps.canDispel("mouseover","Disease") , "mouseover" },
 		{spells.purifyDisease, jps.canDispel("player","Disease") , "player" },
-		{spells.purifyDisease, jps.canDispel(TankThreat,"Disease") , TankThreat },
+		{spells.purifyDisease, jps.canDispel(Tank,"Disease") , Tank },
 		{spells.purifyDisease, true , DispelFriend },
 	}},
 	-- OFFENSIVE Dispel -- "Dissipation de la magie" 528

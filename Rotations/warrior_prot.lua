@@ -23,12 +23,11 @@ local playerIsStun = jps.StunEvents(2) -- return true/false ONLY FOR PLAYER -- "
 -- {"STUN_MECHANIC","STUN","FEAR","CHARM","CONFUSE","PACIFY","SILENCE","PACIFYSILENCE"}
 local playerIsInterrupt = jps.InterruptEvents() -- return true/false ONLY FOR PLAYER
 local playerWasControl = jps.ControlEvents() -- return true/false Player was interrupt or stun 2 sec ago ONLY FOR PLAYER
-local Tank,TankUnit = jps.findTankInRaid() -- default "focus"
-local TankTarget = "target"
-if UnitCanAssist("player",Tank) then TankTarget = Tank.."target" end
-local TankThreat = jps.findThreatInRaid()
+
+local Tank,TankUnit = jps.findRaidTank() -- default "player"
+local TankTarget = Tank.."target"
 local playerIsTanking = false
-if UnitIsUnit("player",TankThreat) then playerIsTanking = true end
+if UnitIsUnit("player",Tank) then playerIsTanking = true end
 
 local inMelee = jps.IsSpellInRange(spells.devastate,"target")
 local inRanged = jps.IsSpellInRange(57755,"target") -- "Heroic Throw" 57755 "Lancer héroïque"
@@ -81,7 +80,7 @@ local spellTable = {
 
 -- "Interception" 198304
 {spells.intercept, CheckInteractDistance("target",2) == false and CheckInteractDistance("target", 1) == true , "target" , "interceptTarget" },
-{spells.intercept, not playerIsTanking and CheckInteractDistance(TankThreat,2) == false and CheckInteractDistance(TankThreat, 1) == true , TankThreat , "interceptTank" },
+{spells.intercept, not playerIsTanking and CheckInteractDistance(Tank,2) == false and CheckInteractDistance(Tank, 1) == true , Tank , "interceptTank" },
 
 -- "Bond héroïque" 6544 "Heroic Leap"
 --{spells.heroicLeap, jps.cooldown(spells.intercept) == 0 and jps.rage() < 10 },

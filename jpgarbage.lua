@@ -40,13 +40,16 @@ local LowestUnit, LowestUnitPrev = jps.LowestImportantUnit()
 print("|cff1eff00LowestUnit: ",GetUnitName(LowestUnit))
 print("|cff1eff00LowestUnitPrev: ",GetUnitName(LowestUnitPrev))
 write("***************************")
-local Tank,Tanks = jps.findTankInRaid()
-print("DefaultTank:",Tank)
+local Tank,Tanks = jps.findRaidTank()
+local Threat,Threats = jps.findRaidTankThreat()
+print("Tank: ",Tank, "Theat: ",Threat)
 for i=1,#Tanks do
 	print("|cff0070ddTank: ",GetUnitName(Tanks[i]))
 end
-local TankThreat = jps.findThreatInRaid()
-print("|cFFFF0000TankThreat: ",GetUnitName(TankThreat))
+for i=1,#Threats do
+	print("|cff0070ddTankThreat: ",GetUnitName(Threats[i]))
+end
+
 write("***************************")
 
 

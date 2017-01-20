@@ -187,8 +187,8 @@ jps.spells.priest.lingeringInsanity = jps.toSpellName(197937)
 
 --local InterruptTable = {
 --	{jps.spells.priest.flashHeal, 0.80 , jps.buff(27827) or jps.PvP }, -- "Esprit de rédemption" 27827
---	{jps.spells.priest.heal, 0.50 , jps.buff(27827) },
---	{jps.spells.priest.prayerOfHealing , 0.80 , jps.buff(64901) or jps.buff(27827) or jps.PvP }, --"Symbole d’espoir" 64901
+--	{jps.spells.priest.heal, 0.95 , jps.buff(27827) },
+--	{jps.spells.priest.prayerOfHealing , 3 , jps.buff(64901) or jps.buff(27827) }, -- "Symbol of Hope" 64901
 --}
 
 jps.ShouldInterruptCasting = function ( InterruptTable, CountInRange, LowestUnitHealth )
@@ -205,13 +205,12 @@ jps.ShouldInterruptCasting = function ( InterruptTable, CountInRange, LowestUnit
 			if healSpellTable[1] == jps.spells.priest.prayerOfHealing and CountInRange < breakpoint then
 				SpellStopCasting()
 				DEFAULT_CHAT_FRAME:AddMessage("STOPCASTING avgHP "..spellName.." , raid has enough hp!",0, 0.5, 0.8)
-			elseif healSpellTable[1] == jps.spells.priest.heal and jps.CastTimeLeft() > 0.60 and LowestUnitHealth < breakpoint then
+			elseif healSpellTable[1] == jps.spells.priest.heal and TargetHpct > breakpoint then
 				SpellStopCasting()
-				jps.Message = "Heal_StopCasting"
-				DEFAULT_CHAT_FRAME:AddMessage("STOPCASTING LowestHP "..spellName.." , lowest has critical hp!",0, 0.5, 0.8)
+				DEFAULT_CHAT_FRAME:AddMessage("STOPCASTING OverHeal "..spellName.." , unit "..jps.LastTarget.." has enough hp!",0, 0.5, 0.8)
 			elseif healSpellTable[1] == jps.spells.priest.flashHeal and TargetHpct > breakpoint then
 				SpellStopCasting()
-				DEFAULT_CHAT_FRAME:AddMessage("STOPCASTING OverHeal "..spellName.." , unit "..jps.LastTarget.. " has enough hp!",0, 0.5, 0.8)
+				DEFAULT_CHAT_FRAME:AddMessage("STOPCASTING OverHeal "..spellName.." , unit "..jps.LastTarget.." has enough hp!",0, 0.5, 0.8)
 			end
 		end
 	end

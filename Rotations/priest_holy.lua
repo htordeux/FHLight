@@ -39,13 +39,12 @@ jps.registerRotation("PRIEST","HOLY", function()
 	local ispvp = UnitIsPVP("player")
 	local raidCount = #FriendUnit
 
-	-- "Prayer of Healing" 596 -- A powerful prayer that heals the target and the 4 nearest allies within 40 yards for (250% of Spell power)
---	local POHInRange = 0
+--	local friendInRange = 0
 --	for i=1,#FriendUnit do
 --		local unit = FriendUnit[i]
 --		local maxRange = jps.distanceMax(unit)
---		if maxRange <= 40 and jps.hp(unit) < 0.80 then
---			POHInRange = POHInRange + 1
+--		if maxRange < 21 and jps.hp(unit) < 0.80 then
+--			friendInRange = friendInRange + 1
 --		end
 --	end
 
@@ -122,6 +121,16 @@ jps.registerRotation("PRIEST","HOLY", function()
 			RenewFriend = unit
 		end
 	end
+	
+	local healFriend = nil
+	for i=1,#FriendUnit do
+		if jps.hasTalent(1,2) then
+			local unit = FriendUnit[i]
+			if jps.buff(139,unit) and jps.buffDuration(139,unit) < 3 and jps.hp(unit) < 0.80 then
+				healFriend = unit
+			break end
+		end
+	end
 
 ------------------------
 -- LOCAL FUNCTIONS ENEMY
@@ -138,15 +147,16 @@ jps.registerRotation("PRIEST","HOLY", function()
 ------------------------------------------------------
 -- OVERHEAL -- OPENING -- CANCELAURA -- STOPCASTING --
 ------------------------------------------------------
-
+	local breakpoint = 3
+	if IsInRaid() then breakpoint = 4 end
 	local InterruptTable = {
 		{jps.spells.priest.flashHeal, 0.80 , jps.buff(27827) or ispvp }, -- "Esprit de rédemption" 27827
 		{jps.spells.priest.heal, 0.95 , jps.buff(27827) },
-		{jps.spells.priest.prayerOfHealing , 3 , jps.buff(64901) or jps.buff(27827) }, -- "Symbol of Hope" 64901
+		{jps.spells.priest.prayerOfHealing , breakpoint , true },
 	}
 
 	-- AVOID OVERHEALING
-	jps.ShouldInterruptCasting(InterruptTable , CountInRange , AvgHealthRaid )
+	jps.ShouldInterruptCasting(InterruptTable, CountInRange, AvgHealthRaid)
 
 ------------------------
 -- SPELL TABLE ---------
@@ -180,7 +190,8 @@ local spellTable = {
 		-- "Soins rapides" 2061
 		{ spells.flashHeal, jps.hp(LowestUnit) < 0.80 , LowestUnit },
 		-- "Renew" 139
-		{ spells.renew, jps.buffDuration(spells.renew,LowestUnit) < 3 , LowestUnit },
+		{ spells.renew, not jps.buff(spells.renew,LowestUnit) , LowestUnit },
+		{ spells.renew, not jps.buff(spells.renew,LowestUnitPrev) , LowestUnitPrev },
 	}},
 	
 	-- SNM "Levitate" 1706	
@@ -201,8 +212,6 @@ local spellTable = {
 	{ spells.giftNaaru, jps.hp("player") < 0.80 , "player" , "Naaru" },
 	-- "Pierre de soins" 5512
 	{ "macro", jps.hp("player") < 0.60 and jps.itemCooldown(5512) == 0 ,"/use item:5512" },
-	-- "Renew" 139 PvP
-	{ spells.renew, ispvp and jps.buffDuration(spells.renew,"player") < 3 and jps.hp(LowestUnit) > 0.60 , "player" , "Timer_Renew_Player" },
 	-- "Mot sacré : Châtier" 88625
 	{ spells.holyWordChastise , ispvp and canDPS(rangedTarget) , rangedTarget },
 	{ "nested", jps.Defensive and canDPS(rangedTarget) and jps.hp(LowestUnit) > 0.60  , {
@@ -214,7 +223,7 @@ local spellTable = {
 
 	-- "Guardian Spirit" 47788
 	-- "Gardiens de la Lumière" -- Esprit gardien invoque un esprit supplémentaire pour veiller sur vous.
-	{ spells.guardianSpirit, jps.hp(TankThreat) < 0.50 and jps.FriendDamage(TankThreat) * 2 > UnitHealth(TankThreat) , TankThreat , "Damage_Guardian_Tank" },
+	{ spells.guardianSpirit, jps.hp(TankThreat) < 0.50 and not UnitIsUnit("player",TankThreat) and jps.FriendDamage(TankThreat) * 2 > UnitHealth(TankThreat) , TankThreat , "Damage_Guardian_Tank" },
 	{ spells.guardianSpirit, jps.hp(TankThreat) < 0.30 and not UnitIsUnit("player",TankThreat) , TankThreat , "Emergency_Guardian_Tank" },
 	{ spells.guardianSpirit, jps.hp(Tank) < 0.30 and not UnitIsUnit("player",Tank) , Tank , "Emergency_Guardian_Tank" },
 	{ spells.guardianSpirit, jps.hp(LowestUnit) < 0.30 , LowestUnit , "Emergency_Guardian_Lowest" },
@@ -239,7 +248,7 @@ local spellTable = {
 	{ spells.lightOfTuure, jps.hp(Tank) < 0.80 and not jps.buff(208065,Tank) , Tank , "Tuure_Tank" },
 	{ spells.lightOfTuure, jps.hp(LowestUnit) < 0.60 and not jps.buff(208065,LowestUnit) , LowestUnit, "Tuure_Lowest" },
 	-- "Holy Word: Serenity" 2050
-	{ spells.holyWordSerenity, jps.hp("player") < 0.60 , "player" , "Emergency_player" },
+	{ spells.holyWordSerenity, jps.hp("player") < 0.60 , "player" , "Emergency_Player" },
 	{ spells.holyWordSerenity, jps.hp(TankThreat) < 0.60 and not UnitIsUnit("player",TankThreat) , TankThreat , "Emergency_Tank" },
 	{ spells.holyWordSerenity, jps.hp(Tank) < 0.60 and not UnitIsUnit("player",Tank) , Tank , "Emergency_Tank" },
 	{ spells.holyWordSerenity, jps.hp(LowestUnit) < 0.40 , LowestUnit  , "Emergency_Lowest" },
@@ -259,21 +268,34 @@ local spellTable = {
 
 	-- MOUSEOVER
 	{ "nested", jps.Interrupts and jps.hp("mouseover") < 0.95 and canHeal("mouseover") , {
+		{ spells.holyWordSerenity, jps.hp("mouseover") < 0.40 , "mouseover" },
 		{ spells.flashHeal, not jps.Moving and jps.hp("mouseover") < 0.60 , "mouseover" },
 		{ spells.renew, not jps.buff(spells.renew,"mouseover") and jps.hp("mouseover") < 0.95 , "mouseover" },
-		{ spells.holyWordSerenity, jps.hp("mouseover") < 0.40 , "mouseover" },
+		{ spells.prayerOfMending, not jps.buffTracker(41635) , "mouseover" },
 		{ spells.heal, not jps.Moving and jps.hp("mouseover") < 0.95 , "mouseover" },
+	}},
+	-- PVP --
+	{ "nested", ispvp ,{
+		{ spells.prayerOfMending, not jps.buffTracker(41635) , "player" , "Tracker_Mending" },
+		{ spells.renew, jps.buffDuration(spells.renew,"player") < 3 and jps.hp(LowestUnit) > 0.60 , "player" , "Timer_Renew_Player" },
+		{ spells.flashHeal, not jps.Moving and jps.hp("player") < 0.80 , "player" , "Emergency_Player" },
+		{ spells.flashHeal, not jps.Moving and jps.hp(LowestUnit) < 0.70 , LowestUnit , "Emergency_LowestUnit" },
+		{ spells.renew, jps.hp("player") > jps.hp(LowestUnit) and jps.hp(LowestUnit) < 0.90 and not jps.buff(spells.renew,LowestUnit) , LowestUnit , "Renew_Lowest" },
+		{ spells.holyNova, jps.Moving and CheckInteractDistance("target",2) == true and not UnitIsUnit("player","target") , "target" },
 	}},
 
 	-- "Prière de guérison" 33076 -- Buff POM 41635
-	{ "nested", not jps.Moving and not jps.buffTracker(41635) and jps.hp(LowestUnit) > 0.40 ,{
+	{ "nested", not jps.Moving and not jps.buffTracker(41635) and jps.hp(LowestUnit) > 0.60 ,{
 		{ spells.prayerOfMending, not UnitIsUnit("player",TankThreat) , TankThreat , "Tracker_Mending_Tank" },
-		{ spells.prayerOfMending, not UnitIsUnit("player",Tank) , Tank , "Tracker_Mending_Tank" },
 		{ spells.prayerOfMending, MendingFriend ~= nil , MendingFriend , "Tracker_Mending_Friend" },
 	}},
-	{ spells.prayerOfMending, not jps.buff(41635,TankThreat) and not jps.Moving and CountInRange > 4 and IsInRaid() , TankThreat , "POM_CountInRange" },
-	{ spells.prayerOfMending, not jps.buff(41635,Tank) and not jps.Moving and CountInRange > 4 and IsInRaid() , Tank , "POM_CountInRange" },
-	{ spells.prayerOfMending, MendingFriend ~= nil and not jps.Moving and CountInRange > 2 and not IsInRaid() , MendingFriend , "POM_CountInRange" },
+	
+	{ "nested", not jps.Moving and CountInRange > 2 and jps.hp(TankThreat) > 0.60 ,{
+		{ spells.prayerOfMending, not jps.buff(41635,TankThreat) and not IsInRaid() , TankThreat , "POM_CountInRange" },
+		{ spells.prayerOfMending, MendingFriend ~= nil and not IsInRaid() , MendingFriend , "POM_CountInRange" },
+		{ spells.prayerOfMending, not jps.buff(41635,TankThreat) and CountInRange > 4 and IsInRaid() , TankThreat , "POM_CountInRange" },
+		{ spells.prayerOfMending, MendingFriend ~= nil and CountInRange > 4 and IsInRaid() , MendingFriend , "POM_CountInRange" },
+	}},
 
 	-- "Divine Hymn" 64843 should be used during periods of very intense raid damage.
 	{ spells.divineHymn , not jps.Moving and jps.buffTracker(41635) and CountInRange * 2 > raidCount and AvgHealthRaid < 0.60 and not IsInRaid() , LowestUnit },
@@ -284,24 +306,24 @@ local spellTable = {
 	{ spells.bindingHeal, jps.hp(TankThreat) < 0.60 and not UnitIsUnit("player",TankThreat) and not jps.Moving and jps.unitForBinding(TankThreat) , TankThreat , "Emergency_Lien" },
 	{ spells.bindingHeal, jps.hp(Tank) < 0.60 and not UnitIsUnit("player",Tank) and not jps.Moving and jps.unitForBinding(Tank) , Tank , "Emergency_Lien" },
 	{ spells.bindingHeal, jps.hp(LowestUnit) < 0.60 and not UnitIsUnit("player",LowestUnit) and not jps.Moving and jps.unitForBinding(LowestUnit) , LowestUnit , "Emergency_Lien" },
-	-- "Soins rapides" 2061
-	{ spells.flashHeal, ispvp and not jps.Moving and jps.hp("player") < 0.80 , "player" , "Emergency_player" },
-	{ spells.flashHeal, ispvp and not jps.Moving and jps.hp(LowestUnit) < 0.80 , LowestUnit , "Emergency_Lowest" },
 
 	-- "Renew" 139
 	{ spells.renew, jps.buffDuration(spells.renew,TankThreat) < 3 and jps.hp(LowestUnit) > 0.60 and not UnitIsUnit("player",TankThreat) , TankThreat , "Timer_Renew_Tank" },
 	{ spells.renew, jps.buffDuration(spells.renew,Tank) < 3 and jps.hp(LowestUnit) > 0.60 and not UnitIsUnit("player",Tank) , Tank , "Timer_Renew_Tank" },
 	{ spells.renew, jps.buffDuration(spells.renew,"player") < 3 and jps.hp(LowestUnit) > 0.60 and jps.hp("player") < 0.95 , "player" , "Timer_Renew_Player" },
-	{ spells.renew, jps.hp(Tank) > jps.hp(LowestUnit) and jps.hp(LowestUnit) < 0.90 and not jps.buff(spells.renew,LowestUnit) and CountInRange < 3 and not IsInRaid() , LowestUnit , "Renew_Lowest" },
-	{ spells.renew, jps.hp(Tank) > jps.hp(LowestUnit) and jps.hp(LowestUnit) < 0.90 and not jps.buff(spells.renew,LowestUnit) and CountInRange < 5 and IsInRaid() , LowestUnit , "Renew_Lowest" },
-	
-	-- "Soins rapides" 2061
-	{ spells.flashHeal, not jps.Moving and jps.hp(TankThreat) < 0.60 , TankThreat , "Emergency_Tank"  },
-	{ spells.flashHeal, not jps.Moving and jps.hp(Tank) < 0.60 , Tank , "Emergency_Tank"  },
-	{ spells.flashHeal, not jps.Moving and jps.hp(TankThreat) > jps.hp(LowestUnit) and jps.hp(LowestUnit) < 0.40 , LowestUnit , "Emergency_Lowest_40" },
-	{ spells.flashHeal, not jps.Moving and jps.hp(LowestUnit) < 0.60 and CountInRange < 5 and IsInRaid() , LowestUnit , "Emergency_Lowest_60" },
-	{ spells.flashHeal, not jps.Moving and jps.hp(LowestUnit) < 0.60 and CountInRange < 3 and not IsInRaid()  , LowestUnit , "Emergency_Lowest_60" },
+	{ spells.renew, jps.hp(TankThreat) > jps.hp(LowestUnit) and jps.hp(LowestUnit) < 0.90 and not jps.buff(spells.renew,LowestUnit) and CountInRange < 3 and not IsInRaid() , LowestUnit , "Renew_Lowest" },
+	{ spells.renew, jps.hp(TankThreat) > jps.hp(LowestUnit) and jps.hp(LowestUnit) < 0.85 and not jps.buff(spells.renew,LowestUnit) and CountInRange < 5 and IsInRaid() , LowestUnit , "Renew_Lowest" },
+	{ spells.renew, RenewFriend ~= nil and jps.hp(TankThreat) > 0.85 and AvgHealthRaid > 0.80 , RenewFriend , "Renew_Friend" },
 
+	{ "nested", not jps.Moving and jps.hp(LowestUnit) < 0.60 ,{
+		-- "Soins rapides" 2061
+		{ spells.flashHeal, jps.hp(TankThreat) < 0.60 , TankThreat , "Emergency_Tank"  },
+		{ spells.flashHeal, jps.hp(TankThreat) > jps.hp(LowestUnit) and jps.hp(LowestUnit) < 0.40 and not IsInRaid() , LowestUnit , "Emergency_Lowest_40" },
+		{ spells.flashHeal, jps.hp(TankThreat) > jps.hp(LowestUnit) and jps.hp(LowestUnit) < 0.40 and CountInRange < 5 and IsInRaid() , LowestUnit , "Emergency_Lowest_40" },
+		{ spells.flashHeal, CountInRange < 5 and IsInRaid() , LowestUnit , "Emergency_Lowest_60" },
+		{ spells.flashHeal, CountInRange < 3 and not IsInRaid() , LowestUnit , "Emergency_Lowest_60" },
+	}},
+	
 	-- jps.buff(64901) -- "Symbol of Hope" 64901
 	-- jps.buff(200183) -- "Apotheosis" 200183
 	-- jps.buff(197030) -- "Holy Word: Sanctify" gives buff "Divinity" 197030
@@ -310,19 +332,19 @@ local spellTable = {
 		-- "Prayer of Healing" 596 -- A powerful prayer that heals the target and the 4 nearest allies within 40 yards for (250% of Spell power)
 		{ spells.prayerOfHealing, not jps.Moving  and jps.buff(197030) , "player" , "POH_CountInRange" },
 		--  not moving for holyWordSanctify to be sure to do not cast anywhere
-		{ spells.holyWordSanctify, not jps.Moving and jps.distanceMax(Tank) < 21 , "player", "Sanctify_CountInRange" },
+		{ spells.holyWordSanctify, not jps.Moving and jps.distanceMax(TankThreat) < 21 , TankThreat, "Sanctify_CountInRange" },
 	}},
 	{ "nested", IsInRaid() and CountInRange > 4 ,{
 		-- "Prayer of Healing" 596 -- A powerful prayer that heals the target and the 4 nearest allies within 40 yards for (250% of Spell power)
 		{ spells.prayerOfHealing, not jps.Moving  and jps.buff(197030) , "player" , "POH_CountInRange" },
 		--  not moving for holyWordSanctify to be sure to do not cast anywhere
-		{ spells.holyWordSanctify, not jps.Moving and jps.distanceMax(Tank) < 21 , "player", "Sanctify_CountInRange" },
+		{ spells.holyWordSanctify, not jps.Moving and jps.distanceMax(TankThreat) < 21 , TankThreat , "Sanctify_CountInRange" },
 	}},
 
 	-- PARTY MultiTarget
 	{ "nested", not IsInRaid() and POHTarget ~= nil and HealthGroup < 0.80 ,{
 		-- "Holy Word: Sanctify" gives buff  "Divinity" 197030 When you heal with a Holy Word spell, your healing is increased by 15% for 8 sec.
-		{ spells.holyWordSanctify, not jps.Moving and jps.distanceMax(Tank) < 21  , POHTarget , "Sanctify_POHTarget" },
+		{ spells.holyWordSanctify, not jps.Moving and jps.distanceMax(POHTarget) < 21  , POHTarget , "Sanctify_POHTarget" },
 		-- "Prayer of Healing" 596
 		--{ "castsequence", jps.cooldown(spells.holyWordSanctify) == 0 and POHTarget ~= nil and HealthGroup < 0.80 , { spells.holyWordSanctify , spells.prayerOfHealing , spells.prayerOfHealing  } },
 		{ spells.prayerOfHealing, not jps.Moving , POHTarget , "POHTarget" },
@@ -332,7 +354,7 @@ local spellTable = {
 	-- RAID MultiTarget
 	{ "nested", IsInRaid() and CountInRange > 4 and AvgHealthRaid < 0.80 ,{
 		-- "Holy Word: Sanctify" gives buff  "Divinity" 197030 When you heal with a Holy Word spell, your healing is increased by 15% for 8 sec.
-		{ spells.holyWordSanctify, not jps.Moving and jps.distanceMax(Tank) < 21 , FriendLowest, "Sanctify_POHFriend" },
+		{ spells.holyWordSanctify, not jps.Moving and jps.distanceMax(FriendLowest) < 21 , FriendLowest, "Sanctify_POHFriend" },
 		-- "Prayer of Healing" 596
 		{ spells.prayerOfHealing, not jps.Moving , FriendLowest , "POHFriend" },
 		-- "Circle of Healing" 204883
@@ -343,8 +365,10 @@ local spellTable = {
 	-- Serendipity is a passive ability that causes Heal and Flash Heal to reduce the remaining cooldown of Holy Word: Serenity by 6 seconds
 	-- Serendipity causes Prayer of Healing Icon Prayer of Healing to reduce the remaining cooldown of Holy Word: Sanctify Icon Holy Word: Sanctify by 6 seconds.
 	{ "nested", not jps.Moving ,{
-		{ spells.flashHeal, not jps.Moving and jps.hp(TankThreat) < 0.70 , TankThreat , "Emergency_Tank_70"  },
-		{ spells.flashHeal, not jps.Moving and jps.hp(TankThreat) < 0.80 and jps.FriendDamage(TankThreat) * 2 > UnitHealth(TankThreat) , TankThreat , "Emergency_Tank_80"  },
+		{ spells.flashHeal, jps.hp(TankThreat) < 0.70 , TankThreat , "Emergency_Tank_70"  },
+		{ spells.heal, jps.hp(TankThreat) > 0.85 and jps.buffDuration(spells.renew,TankThreat) > 3 and healFriend ~= nil , healFriend , "Soins_Lowest_Talent"  },
+		{ spells.heal, jps.hp(TankThreat) < 0.80 and jps.buffDuration(spells.renew,TankThreat) > 3 and jps.buff(208065,TankThreat) , TankThreat , "Soins_Tank_Buffed"  },
+		{ spells.heal, jps.hp(TankThreat) < 0.80 and jps.buffDuration(spells.renew,TankThreat) > 3 and jps.buff(197030) , TankThreat , "Soins_Tank_Buffed"  },
 		{ spells.heal, jps.hp(TankThreat) < 0.95 , TankThreat , "Soins_Tank"  },
 		{ spells.heal, jps.hp(Tank) < 0.95 , Tank , "Soins_Tank"  },
 		{ spells.heal, jps.hp(LowestUnit) < 0.95 and jps.cooldown(spells.holyWordSerenity) > 0 , LowestUnit , "Heal_CD_Serenity" },
@@ -354,7 +378,7 @@ local spellTable = {
 	{ spells.renew, RenewFriend ~= nil , RenewFriend , "Renew_Friend" },
 
 	-- "Nova sacrée" 132157
-	{ spells.holyNova, jps.Moving and CheckInteractDistance("target",2) == true },
+	{ spells.holyNova, jps.Moving and CheckInteractDistance("target",2) == true and not UnitIsUnit("player","target") , "target" },
 	{ spells.smite, not jps.Moving and canDPS(rangedTarget) , rangedTarget },
 
 }
@@ -409,6 +433,8 @@ jps.registerRotation("PRIEST","HOLY",function()
 	-- "Don des naaru" 59544
 	{ spells.giftNaaru, jps.hp("player") < 0.80 , "player" },
 	{ spells.bodyAndMind, jps.Moving , "player" },
+	
+	{ spells.flashHeal, not jps.Moving and jps.hp("player") < 0.80 , "player" , "Emergency_Player" },
 
 	-- "Oralius' Whispering Crystal" 118922 "Cristal murmurant d’Oralius" -- buff 176151
 	{ "macro", not jps.buff(156079) and not jps.buff(188031) and jps.itemCooldown(118922) == 0 , "/use item:118922" , "Item_Oralius"},

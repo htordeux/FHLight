@@ -200,8 +200,10 @@ end
 function jps.findRaidHealer()
 	local HealerUnit = {}
 	for unit,_ in pairs(RaidStatus) do
-		if jps.RoleInRaid(unit) == "HEALER" and canHeal(unit) then
-			HealerUnit[#HealerUnit+1] = unit
+		if canHeal(unit) then
+			if jps.RoleInRaid(unit) == "HEALER" then
+				HealerUnit[#HealerUnit+1] = unit
+			end
 		end
 	end
 	tsort(HealerUnit, function(a,b) return HealthPct(a) < HealthPct(b) end)
@@ -213,7 +215,7 @@ function jps.findRaidTank()
 	local TankUnit = {}
 	for unit,_ in pairs(RaidStatus) do
 		if canHeal(unit) then
-			if jps.RoleInRaid(unit) == "TANK" and canHeal(unit) then
+			if jps.RoleInRaid(unit) == "TANK" then
 				TankUnit[#TankUnit+1] = unit
 			end
 		end
@@ -236,7 +238,6 @@ end
 --isTanking, status, threatpct, rawthreatpct, threatvalue = UnitDetailedThreatSituation("unit", "mob")
 --http://wow.gamepedia.com/API_UnitDetailedThreatSituation
 --Returns 100 if the unit is tanking and nil if the unit is not on the mob's threat list.
-
 
 function jps.findRaidTankThreat()
 	local TankUnit = {}

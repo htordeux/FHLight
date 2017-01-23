@@ -37,19 +37,18 @@ print("|cff1eff00POHTarget: |cffffffff",POHTarget,"|cff1eff00Group: |cffffffff",
 local CountInRange, AvgHealthRaid, FriendUnit, FriendLowest = jps.CountInRaidStatus(0.80)
 print("|cff1eff00CountInRange: |cffffffff",CountInRange,"|cff1eff00FriendUnit: |cffffffff",#FriendUnit,"|cff1eff00AvgHealthRaid: |cffffffff",AvgHealthRaid,"|cff1eff00FriendLowest: |cffffffff",GetUnitName(FriendLowest))
 local LowestUnit, LowestUnitPrev = jps.LowestImportantUnit()
-print("|cff1eff00LowestUnit: ",GetUnitName(LowestUnit))
-print("|cff1eff00LowestUnitPrev: ",GetUnitName(LowestUnitPrev))
+print("|cff1eff00LowestUnit: |cffffffff",GetUnitName(LowestUnit))
+print("|cff1eff00LowestUnitPrev: |cffffffff",GetUnitName(LowestUnitPrev))
 write("***************************")
 local Tank,Tanks = jps.findRaidTank()
 local Threat,Threats = jps.findRaidTankThreat()
-print("Tank: ",Tank, "Theat: ",Threat)
+print("|cff0070ddTank: |cffffffff",GetUnitName(Tank), "|cFFFF0000Theat: |cffffffff",GetUnitName(Threat))
 for i=1,#Tanks do
-	print("|cff0070ddTank: ",GetUnitName(Tanks[i]))
+	print("|cff0070ddTank: |cffffffff",GetUnitName(Tanks[i]))
 end
 for i=1,#Threats do
-	print("|cff0070ddTankThreat: ",GetUnitName(Threats[i]))
+	print("|cFFFF0000TankThreat: |cffffffff",GetUnitName(Threats[i]))
 end
-
 write("***************************")
 
 

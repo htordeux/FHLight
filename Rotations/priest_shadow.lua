@@ -198,19 +198,14 @@ local spellTable = {
 	-- "Pierre de soins" 5512
 	{ "macro", jps.hp("player") < 0.60 and jps.itemCooldown(5512) == 0 , "/use item:5512" },
 	-- "Don des naaru" 59544
-	{spells.giftNaaru, jps.hp("player") < 0.80 , "player" },
-	-- "Voidform" buff 194249 -- "Etreinte vampirique" buff 15286
-    {"nested", jps.hp("player") < 0.80 and not jps.buff(194249) , {
-		-- "Power Word: Shield" 17	
-		{spells.powerWordShield, not jps.buff(spells.powerWordShield) , "player" },
-		-- "Guérison de l’ombre" 186263 -- debuff "Shadow Mend" 187464 10 sec
-		{spells.shadowMend, not jps.Moving and not jps.buff(15286) and jps.castEverySeconds(186263,4) , "player" },
-	}},
-	
+	{spells.giftNaaru, jps.hp("player") < 0.70 , "player" },
+	-- "Power Word: Shield" 17	
+	{spells.powerWordShield, jps.hp("player") < 0.80 and not jps.buff(194249) and not jps.buff(spells.powerWordShield) , "player" },
+	-- "Guérison de l’ombre" 186263 -- debuff "Shadow Mend" 187464 10 sec
+	{spells.shadowMend, not jps.Moving and not jps.buff(194249) and jps.hp("player") < 0.80 and not jps.buff(15286) and jps.castEverySeconds(186263,4) , "player" },
 	-- "Power Word: Shield" 17
-	{spells.powerWordShield, jps.Defensive and jps.Moving and not jps.buff(17,"player") and jps.hasTalent(2,2) , "player" , "Shield_BodySoul" },
-	{spells.powerWordShield, jps.hp(Tank) < 0.50 and not jps.buff(17,Tank) , Tank , "shield_Tank" },
-	{spells.powerWordShield, canHeal("mouseover") and jps.hp("mouseover") < 0.50 and not jps.buff(17,"mouseover") , "mouseover" , "shield_Mouseover" },
+	{spells.powerWordShield, jps.Defensive and jps.hasTalent(2,2) and jps.Moving and not jps.buff(spells.powerWordShield,"player") , "player" , "Shield_BodySoul" },
+	{spells.powerWordShield, canHeal("mouseover") and jps.hp("mouseover") < 0.50 and not jps.buff(spells.powerWordShield,"mouseover") , "mouseover" , "shield_Mouseover" },
 	-- "Guérison de l’ombre" 186263 -- debuff "Shadow Mend" 187464 10 sec
 	{spells.shadowMend, not jps.Moving and not jps.buff(194249) and canHeal("mouseover") and jps.hp("mouseover") < 0.50 and jps.castEverySeconds(186263,4) , "mouseover" , "shadowMend_Mouseover" },
 	
@@ -257,6 +252,17 @@ local spellTable = {
 		{spells.shadowWordDeath, true , "mouseover" , "Death_Opening" },
 	}},
 
+    -- "Déferlante d’ombre" 205385
+    {spells.shadowCrash, jps.hasTalent(7,2) , rangedTarget , "shadowCrash" },
+
+    -- Mind Flay If the target is afflicted with Shadow Word: Pain you will also deal splash damage to nearby targets.	
+	{"nested", jps.MultiTarget and not jps.buff(194249) , {
+    	{spells.vampiricTouch, not jps.Moving and canAttack("target") and fnVampEnemyTarget("target") , "target" , "VT_Target" },		
+		{spells.shadowWordPain, fnPainEnemyTarget("target") , "target" , "Pain_Target" },
+		{spells.mindFlay, isTargetElite and jps.insanity() < 70 and not jps.Moving and jps.myDebuff(spells.shadowWordPain,"target") , "target" , "mindFlay_MultiTarget" },
+		{spells.mindFlay, not isTargetElite and jps.insanity() < 100 and not jps.Moving and jps.myDebuff(spells.shadowWordPain,"target") , "target" , "mindFlay_MultiTarget" },
+	}},
+
 	{"nested", jps.buff(194249) , {
 		-- "Power Infusion" 10060
 		{spells.powerInfusion, jps.buffStacks(194249) > 9 and jps.insanity() > 54 },
@@ -275,6 +281,11 @@ local spellTable = {
 		{spells.shadowWordDeath, jps.insanity() < 71 , DeathEnemyTarget , "Death_Buff" },
 		{spells.shadowWordDeath, jps.insanity() < 71 , "mouseover" , "Death_Buff" },
 
+		{spells.powerWordShield, jps.MultiTarget and jps.hp("player") < 0.60 and not jps.buff(spells.powerWordShield) , "player" },		
+		{spells.mindBlast, not jps.Moving , rangedTarget , "mindBlast"},
+	    -- Mind Flay If the target is afflicted with Shadow Word: Pain you will also deal splash damage to nearby targets.
+		{spells.mindFlay, jps.MultiTarget and not jps.Moving and jps.myDebuff(spells.shadowWordPain,"target") , "target" , "mindFlay_MultiTarget" },
+
 	    {"macro", jps.canCastMindBlast , "/stopcasting" },
 		{spells.mindBlast, not jps.Moving , rangedTarget , "mindBlast" },
 
@@ -289,8 +300,6 @@ local spellTable = {
 		-- "Power Word: Shield" 17	
 		{spells.powerWordShield, not jps.buff(spells.powerWordShield) and jps.hp("player") < 0.60 , "player" },
 
-		{spells.mindFlay, jps.MultiTarget and not jps.Moving and jps.myDebuff(spells.shadowWordPain,"target") , "target" , "mindFlay_MultiTarget" },
-
     	{spells.vampiricTouch, not jps.Moving and canAttack("mouseover") and fnVampEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "VT_Mouseover" },		
 		{spells.shadowWordPain, canAttack("mouseover") and fnPainEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "Pain_Mouseover" },
 
@@ -301,17 +310,7 @@ local spellTable = {
 	
 	{spells.voidEruption, not jps.buff(194249) and jps.hasTalent(7,1) and jps.insanity() > 69 and not jps.Moving and isTargetElite  , rangedTarget , "voidEruption" },
 	{spells.voidEruption, not jps.buff(194249) and jps.insanity() == 100 and not jps.Moving and isTargetElite , rangedTarget , "voidEruption" },
-    {spells.voidEruption, jps.MultiTarget and not jps.buff(194249) and jps.insanity() == 100 and not jps.Moving and not isTargetElite , rangedTarget , "voidEruption_MultiTarget" },
-
-    -- "Déferlante d’ombre" 205385
-    {spells.shadowCrash, jps.hasTalent(7,2) , rangedTarget , "shadowCrash" },
-    
-	{"nested", jps.MultiTarget and not jps.buff(194249) , {
-    	{spells.vampiricTouch, not jps.Moving and canAttack("mouseover") and fnVampEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "VT_Mouseover" },		
-		{spells.shadowWordPain, canAttack("mouseover") and fnPainEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "Pain_Mouseover" },
-		{spells.mindFlay, isTargetElite and jps.insanity() < 70 and not jps.Moving and jps.myDebuff(spells.shadowWordPain,rangedTarget) , rangedTarget , "mindFlay_MultiTarget" },
-		{spells.mindFlay, not isTargetElite and jps.insanity() < 100 and not jps.Moving and jps.myDebuff(spells.shadowWordPain,rangedTarget) , rangedTarget , "mindFlay_MultiTarget" },
-	}},
+    {spells.voidEruption, not jps.buff(194249) and jps.insanity() == 100 and not jps.Moving and jps.MultiTarget , rangedTarget , "voidEruption_MultiTarget" },
 
 	-- "Mot de l’ombre : Mort" 199911
 	{"macro", jps.canCastshadowWordDeath , "/stopcasting" },
@@ -326,11 +325,11 @@ local spellTable = {
 	{spells.mindBlast, not jps.Moving , rangedTarget , "mindBlast"},
 
 	-- "Misery" -- Vampiric Touch also applies Shadow Word: Pain to the target.
-    {"nested", jps.hasTalent(6,2) , {
-        {spells.vampiricTouch, not jps.Moving and fnVampEnemyTarget("target") , "target" , "VT_Target" },
-        {spells.vampiricTouch, not jps.Moving and fnVampEnemyTarget("focus") , "focus" , "VT_Focus" },
-        {spells.vampiricTouch, not jps.Moving and VampEnemyTarget ~= nil and not UnitIsUnit("target",VampEnemyTarget) , VampEnemyTarget , "VT_MultiUnit" },
-        {spells.vampiricTouch, not jps.Moving and canAttack("mouseover") and fnVampEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "VT_Mouseover" },
+    {"nested", jps.hasTalent(6,2) and not jps.Moving , {
+        {spells.vampiricTouch, fnVampEnemyTarget("target") , "target" , "VT_Target" },
+        {spells.vampiricTouch, fnVampEnemyTarget("focus") , "focus" , "VT_Focus" },
+        {spells.vampiricTouch, VampEnemyTarget ~= nil and not UnitIsUnit("target",VampEnemyTarget) , VampEnemyTarget , "VT_MultiUnit" },
+        {spells.vampiricTouch, canAttack("mouseover") and fnVampEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "VT_Mouseover" },
     }},
    
    	-- "Vampiric Touch" heals the Priest for 50% of damage 24 sec
@@ -346,7 +345,6 @@ local spellTable = {
     {spells.shadowWordPain, canAttack("mouseover") and fnPainEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "Pain_Mouseover" },
 
     -- Mind Flay Insanity generation has been increased
-    -- If the target is afflicted with Shadow Word: Pain you will also deal splash damage to nearby targets.
     {spells.mindFlay, not jps.Moving },
 
 }

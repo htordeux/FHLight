@@ -380,6 +380,7 @@ function jps.Cast(spell) -- "number" "string"
 	end
 
 	if jps.Debug then write(spellname,"|cff1eff00","|",GetUnitName(jps.Target),"|cffffffff","|",jps.Message) end
+	--if jps.Debug then print(jps.LastCast,"|cff1eff00","|",GetUnitName(jps.LastTarget),"|cffffffff","|",jps.LastMessage) end
 		
 	jps.TimedCasting[spellname] = math.ceil(GetTime())
 	jps.LastCast = spellname

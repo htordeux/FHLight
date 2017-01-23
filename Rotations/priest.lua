@@ -195,7 +195,6 @@ jps.ShouldInterruptCasting = function ( InterruptTable, CountInRange, LowestUnit
 	if jps.LastTarget == nil then return end
 	local spellCasting, _, _, _, _, endTime, _ = UnitCastingInfo("player")
 	if spellCasting == nil then return false end
-	local timeLeft = endTime/1000 - GetTime()
 	local TargetHpct = jps.hp(jps.LastTarget) -- pendant le spellcast jps.LastTarget = jps.Target
 	
 	for key, healSpellTable in pairs(InterruptTable) do

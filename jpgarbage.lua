@@ -50,7 +50,7 @@ for i=1,#Threats do
 	print("|cFFFF0000TankThreat: |cffffffff",GetUnitName(Threats[i]))
 end
 write("***************************")
-
+print("jps.EnemyCount",jps.EnemyCount())
 
 end
 

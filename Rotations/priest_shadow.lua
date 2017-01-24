@@ -183,7 +183,7 @@ end
 
 if jps.buff(47585,"player") then return end
 if not UnitCanAttack("player", "target") then return end
-if jps.IsChannelingSpell(spells.voidEruption) and not jps.UnitExists("target") then SpellStopCasting() end
+if not jps.buff(194249) and jps.IsCastingSpell(spells.voidEruption) and not jps.UnitExists("target") then SpellStopCasting() end
 
 local spellTable = {
 
@@ -199,12 +199,11 @@ local spellTable = {
 	{ "macro", jps.hp("player") < 0.60 and jps.itemCooldown(5512) == 0 , "/use item:5512" },
 	-- "Don des naaru" 59544
 	{spells.giftNaaru, jps.hp("player") < 0.70 , "player" },
-	-- "Power Word: Shield" 17	
-	{spells.powerWordShield, jps.hp("player") < 0.80 and not jps.buff(194249) and not jps.buff(spells.powerWordShield) , "player" },
 	-- "Guérison de l’ombre" 186263 -- debuff "Shadow Mend" 187464 10 sec
 	{spells.shadowMend, not jps.Moving and not jps.buff(194249) and jps.hp("player") < 0.80 and not jps.buff(15286) and jps.castEverySeconds(186263,4) , "player" },
 	-- "Power Word: Shield" 17
-	{spells.powerWordShield, jps.Defensive and not isUsableShadowWordDeath() and jps.hasTalent(2,2) and jps.Moving and not jps.buff(spells.powerWordShield,"player") , "player" , "Shield_BodySoul" },
+	{spells.powerWordShield, jps.Defensive and jps.Moving and jps.hasTalent(2,2) and not jps.buff(spells.powerWordShield,"player") and not isUsableShadowWordDeath() , "player" , "Shield_BodySoul" },
+	{spells.powerWordShield, jps.hp("player") < 0.80 and not jps.buff(194249) and not jps.buff(spells.powerWordShield) , "player" },
 	{spells.powerWordShield, canHeal("mouseover") and jps.hp("mouseover") < 0.50 and not jps.buff(spells.powerWordShield,"mouseover") , "mouseover" , "shield_Mouseover" },
 	-- "Guérison de l’ombre" 186263 -- debuff "Shadow Mend" 187464 10 sec
 	{spells.shadowMend, not jps.Moving and not jps.buff(194249) and canHeal("mouseover") and jps.hp("mouseover") < 0.50 and jps.castEverySeconds(186263,4) , "mouseover" , "shadowMend_Mouseover" },
@@ -257,7 +256,7 @@ local spellTable = {
 
     -- Mind Flay If the target is afflicted with Shadow Word: Pain you will also deal splash damage to nearby targets.	
 	{"nested", jps.MultiTarget and not jps.buff(194249) , {
-    	{spells.vampiricTouch, not jps.Moving and canAttack("target") and fnVampEnemyTarget("target") , "target" , "VT_Target" },		
+    	{spells.vampiricTouch, not jps.Moving and fnVampEnemyTarget("target") , "target" , "VT_Target" },		
 		{spells.shadowWordPain, fnPainEnemyTarget("target") , "target" , "Pain_Target" },
 		{spells.shadowWordPain, jps.insanity() < 100 and canAttack("mouseover") and fnPainEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "Pain_Mouseover" },
 		{spells.mindFlay, isTargetElite and jps.insanity() < 70 and not jps.Moving and jps.myDebuff(spells.shadowWordPain,"target") , "target" , "mindFlay_MultiTarget" },
@@ -280,19 +279,20 @@ local spellTable = {
 		
        	{spells.voidTorrent , not jps.Moving and jps.myDebuffDuration(spells.vampiricTouch,rangedTarget) > 6 and jps.myDebuffDuration(spells.shadowWordPain,rangedTarget) > 6 , rangedTarget , "voidTorrent"},
 
+	    -- Mind Flay If the target is afflicted with Shadow Word: Pain you will also deal splash damage to nearby targets.
+		{"nested", jps.MultiTarget , {
+			{spells.shadowWordDeath, DeathEnemyTarget ~= nil , DeathEnemyTarget , "Death_MultiTarget" },
+			{spells.shadowWordDeath, true , "mouseover" , "Death_MultiTarget" },
+			{spells.mindBlast, not jps.Moving , rangedTarget , "mindBlast_MultiTarget"},
+			{spells.shadowWordPain, fnPainEnemyTarget("target") , "target" , "Pain_MultiTarget" },
+			{spells.mindFlay, not jps.Moving and jps.myDebuff(spells.shadowWordPain,"target") , "target" , "mindFlay_MultiTarget" },
+		}},
+		
 		{"macro", jps.canCastshadowWordDeath , "/stopcasting" },
     	{spells.shadowWordDeath, jps.insanity() < 71 , "target" , "Death_Buff" },
     	{spells.shadowWordDeath, jps.insanity() < 71 , "focus" , "Death_Buff" },
 		{spells.shadowWordDeath, jps.insanity() < 71 , DeathEnemyTarget , "Death_Buff" },
 		{spells.shadowWordDeath, jps.insanity() < 71 , "mouseover" , "Death_Buff" },
-	
-		{spells.mindBlast, not jps.Moving , rangedTarget , "mindBlast"},
-	    -- Mind Flay If the target is afflicted with Shadow Word: Pain you will also deal splash damage to nearby targets.
-		{"nested", jps.MultiTarget , {
-			{spells.powerWordShield, jps.hp("player") < 0.60 and not jps.buff(spells.powerWordShield) , "player" },
-			{spells.shadowWordPain, fnPainEnemyTarget("target") , "target" , "Pain_Target" },
-			{spells.mindFlay, not jps.Moving and jps.myDebuff(spells.shadowWordPain,"target") , "target" , "mindFlay_MultiTarget" },
-		}},
 
 	    {"macro", jps.canCastMindBlast , "/stopcasting" },
 		{spells.mindBlast, not jps.Moving , rangedTarget , "mindBlast" },
@@ -302,7 +302,6 @@ local spellTable = {
 
 		-- "Power Word: Shield" 17	
 		{spells.powerWordShield, jps.hp("player") < 0.60 and not jps.buff(spells.powerWordShield) , "player" },
-
 	}},
 
 	{spells.vampiricTouch, not jps.buff(194249) and not jps.Moving and jps.myDebuffDuration(spells.vampiricTouch,rangedTarget) < 4 and not jps.isRecast(spells.vampiricTouch,rangedTarget) , rangedTarget , "Refresh_VT_Target" },
@@ -310,16 +309,12 @@ local spellTable = {
 	
 	{spells.voidEruption, not jps.buff(194249) and jps.hasTalent(7,1) and jps.insanity() > 69 and not jps.Moving and isTargetElite  , rangedTarget , "voidEruption" },
 	{spells.voidEruption, not jps.buff(194249) and jps.insanity() == 100 and not jps.Moving and isTargetElite , rangedTarget , "voidEruption" },
-    {spells.voidEruption, not jps.buff(194249) and jps.insanity() == 100 and not jps.Moving and jps.MultiTarget , rangedTarget , "voidEruption_MultiTarget" },
+    {spells.voidEruption, not jps.buff(194249) and jps.insanity() == 100 and not jps.Moving and jps.EnemyCount() > 3 , rangedTarget , "voidEruption_MultiTarget" },
 
 	-- "Mot de l’ombre : Mort" 199911
 	{"macro", jps.canCastshadowWordDeath , "/stopcasting" },
-	{"nested", not jps.buff(194249) , {
-		{spells.shadowWordDeath, jps.hp("target") < 0.35 , "target" , "Death" },
-		{spells.shadowWordDeath, jps.hp("focus") < 0.35 , "focus" , "Death" },
-		{spells.shadowWordDeath, DeathEnemyTarget ~= nil , DeathEnemyTarget , "Death" },
-		{spells.shadowWordDeath, jps.hp("mouseover") < 0.35 , "mouseover" , "Death" },
-	}},
+	{spells.shadowWordDeath, DeathEnemyTarget ~= nil , DeathEnemyTarget , "Death" },
+	{spells.shadowWordDeath, true , "mouseover" , "Death" },
 	
 	{"macro", jps.canCastMindBlast , "/stopcasting" },
 	{spells.mindBlast, not jps.Moving , rangedTarget , "mindBlast"},

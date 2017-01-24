@@ -108,7 +108,7 @@ jps.registerRotation("PRIEST","HOLY", function()
 	-- "Holy Mending" 196779 causes Prayer of Mending to heal the target instantly for an additional amount whenever it jumps to a player on which Renew is active
 	-- Renew on players without "Prayer of Mending" 33076 -- Buff POM 41635 you will increase the likelihood of this trait to proc
 	local RenewFriend = nil
-	local RenewFriendHealth = 1
+	local RenewFriendHealth = 0.90
 	for i=1,#FriendUnit do -- for _,unit in ipairs(FriendUnit) do
 		local unit = FriendUnit[i]
 		local unitHP = jps.hp(unit)
@@ -117,7 +117,7 @@ jps.registerRotation("PRIEST","HOLY", function()
 				RenewFriend = unit
 				RenewFriendHealth = unitHP
 			end
-		elseif not jps.buff(139,unit) and not jps.buff(41635) and jps.hp(unit) < 0.90 then
+		elseif not jps.buff(139,unit) and not jps.buff(41635) and jps.hp(unit) < 0.85 then
 			RenewFriend = unit
 		end
 	end
@@ -126,7 +126,7 @@ jps.registerRotation("PRIEST","HOLY", function()
 	for i=1,#FriendUnit do
 		if jps.hasTalent(1,2) then
 			local unit = FriendUnit[i]
-			if jps.buff(139,unit) and jps.buffDuration(139,unit) < 3 and jps.hp(unit) < 0.80 then
+			if jps.buff(139,unit) and jps.buffDuration(139,unit) < 5 and jps.hp(unit) < 0.80 then
 				healFriend = unit
 			break end
 		end
@@ -263,7 +263,7 @@ local spellTable = {
 	-- OFFENSIVE Dispel -- "Dissipation de la magie" 528
 	{ "nested", ispvp and jps.hp(LowestUnit) > 0.60 , {
 		{ spells.dispelMagic, jps.castEverySeconds(528,4) and jps.DispelOffensive(rangedTarget) , rangedTarget , "|cff1eff00DispelOffensive_" },
-		{ spells.dispelMagic, jps.castEverySeconds(528,4) and DispelOffensiveEnemyTarget ~= nil  , DispelOffensiveEnemyTarget , "|cff1eff00DispelOffensive_MULTITARGET_" },
+		{ spells.dispelMagic, jps.castEverySeconds(528,4) and DispelOffensiveEnemyTarget ~= nil  , DispelOffensiveEnemyTarget , "|cff1eff00DispelOffensive_MultiTarget" },
 	}},
 
 	-- MOUSEOVER
@@ -366,7 +366,7 @@ local spellTable = {
 	-- Serendipity causes Prayer of Healing Icon Prayer of Healing to reduce the remaining cooldown of Holy Word: Sanctify Icon Holy Word: Sanctify by 6 seconds.
 	{ "nested", not jps.Moving ,{
 		{ spells.flashHeal, jps.hp(TankThreat) < 0.70 , TankThreat , "Emergency_Tank_70"  },
-		{ spells.heal, jps.hp(TankThreat) > 0.85 and jps.buffDuration(spells.renew,TankThreat) > 3 and healFriend ~= nil , healFriend , "Soins_Lowest_Talent"  },
+		{ spells.heal, jps.hp(TankThreat) > 0.90 and jps.buffDuration(spells.renew,TankThreat) > 3 and healFriend ~= nil , healFriend , "Soins_Lowest_Talent"  },
 		{ spells.heal, jps.hp(TankThreat) < 0.80 and jps.buffDuration(spells.renew,TankThreat) > 3 and jps.buff(208065,TankThreat) , TankThreat , "Soins_Tank_Buffed"  },
 		{ spells.heal, jps.hp(TankThreat) < 0.80 and jps.buffDuration(spells.renew,TankThreat) > 3 and jps.buff(197030) , TankThreat , "Soins_Tank_Buffed"  },
 		{ spells.heal, jps.hp(TankThreat) < 0.95 , TankThreat , "Soins_Tank"  },

@@ -204,7 +204,7 @@ local spellTable = {
 	-- "Guérison de l’ombre" 186263 -- debuff "Shadow Mend" 187464 10 sec
 	{spells.shadowMend, not jps.Moving and not jps.buff(194249) and jps.hp("player") < 0.80 and not jps.buff(15286) and jps.castEverySeconds(186263,4) , "player" },
 	-- "Power Word: Shield" 17
-	{spells.powerWordShield, jps.Defensive and jps.hasTalent(2,2) and jps.Moving and not jps.buff(spells.powerWordShield,"player") , "player" , "Shield_BodySoul" },
+	{spells.powerWordShield, jps.Defensive and not isUsableShadowWordDeath() and jps.hasTalent(2,2) and jps.Moving and not jps.buff(spells.powerWordShield,"player") , "player" , "Shield_BodySoul" },
 	{spells.powerWordShield, canHeal("mouseover") and jps.hp("mouseover") < 0.50 and not jps.buff(spells.powerWordShield,"mouseover") , "mouseover" , "shield_Mouseover" },
 	-- "Guérison de l’ombre" 186263 -- debuff "Shadow Mend" 187464 10 sec
 	{spells.shadowMend, not jps.Moving and not jps.buff(194249) and canHeal("mouseover") and jps.hp("mouseover") < 0.50 and jps.castEverySeconds(186263,4) , "mouseover" , "shadowMend_Mouseover" },
@@ -259,13 +259,18 @@ local spellTable = {
 	{"nested", jps.MultiTarget and not jps.buff(194249) , {
     	{spells.vampiricTouch, not jps.Moving and canAttack("target") and fnVampEnemyTarget("target") , "target" , "VT_Target" },		
 		{spells.shadowWordPain, fnPainEnemyTarget("target") , "target" , "Pain_Target" },
+		{spells.shadowWordPain, jps.insanity() < 100 and canAttack("mouseover") and fnPainEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "Pain_Mouseover" },
 		{spells.mindFlay, isTargetElite and jps.insanity() < 70 and not jps.Moving and jps.myDebuff(spells.shadowWordPain,"target") , "target" , "mindFlay_MultiTarget" },
 		{spells.mindFlay, not isTargetElite and jps.insanity() < 100 and not jps.Moving and jps.myDebuff(spells.shadowWordPain,"target") , "target" , "mindFlay_MultiTarget" },
 	}},
 
 	{"nested", jps.buff(194249) , {
 		-- "Power Infusion" 10060
-		{spells.powerInfusion, jps.buffStacks(194249) > 9 and jps.insanity() > 54 },
+		{spells.powerInfusion, jps.buffStacks(194249) > 9 and jps.insanity() > 54 and isTargetElite },
+		-- spells.mindbender -- 15 seconds cd 1 min
+   		{spells.shadowfiend, jps.buffStacks(194249) > 9 , rangedTarget , "high_shadowfiend_Buff" },
+		{spells.mindbender,  jps.buffStacks(194249) > 9 , rangedTarget , "high_mindbender_Buff" },
+		{spells.mindbender, jps.insanity() < 55 , rangedTarget , "low_mindbender_Buff" },
 		
 		{"macro", jps.canCastvoidBolt , "/stopcasting" },
 		{spells.voidEruption, VoidBoltTarget ~= nil , VoidBoltTarget , "voidBold_MultiUnit"},
@@ -280,28 +285,23 @@ local spellTable = {
     	{spells.shadowWordDeath, jps.insanity() < 71 , "focus" , "Death_Buff" },
 		{spells.shadowWordDeath, jps.insanity() < 71 , DeathEnemyTarget , "Death_Buff" },
 		{spells.shadowWordDeath, jps.insanity() < 71 , "mouseover" , "Death_Buff" },
-
-		{spells.powerWordShield, jps.MultiTarget and jps.hp("player") < 0.60 and not jps.buff(spells.powerWordShield) , "player" },		
+	
 		{spells.mindBlast, not jps.Moving , rangedTarget , "mindBlast"},
 	    -- Mind Flay If the target is afflicted with Shadow Word: Pain you will also deal splash damage to nearby targets.
-		{spells.mindFlay, jps.MultiTarget and not jps.Moving and jps.myDebuff(spells.shadowWordPain,"target") , "target" , "mindFlay_MultiTarget" },
+		{"nested", jps.MultiTarget , {
+			{spells.powerWordShield, jps.hp("player") < 0.60 and not jps.buff(spells.powerWordShield) , "player" },
+			{spells.shadowWordPain, fnPainEnemyTarget("target") , "target" , "Pain_Target" },
+			{spells.mindFlay, not jps.Moving and jps.myDebuff(spells.shadowWordPain,"target") , "target" , "mindFlay_MultiTarget" },
+		}},
 
 	    {"macro", jps.canCastMindBlast , "/stopcasting" },
 		{spells.mindBlast, not jps.Moving , rangedTarget , "mindBlast" },
-
-	   	-- spells.mindbender -- 15 seconds cd 1 min
-   		{spells.shadowfiend, jps.buffStacks(194249) > 9 , rangedTarget , "high_shadowfiend_Buff" },
-		{spells.mindbender,  jps.buffStacks(194249) > 9 , rangedTarget , "high_mindbender_Buff" },
-		{spells.mindbender, jps.insanity() < 55 , rangedTarget , "low_mindbender_Buff" },
 
 		-- Low Insanity coming up (Shadow Word: Death , Void Bolt , Mind Blast , AND Void Torrent are all on cooldown and you are in danger of reaching 0 Insanity).
 		--{spells.dispersion, jps.hasTalent(6,3) and jps.insanity() > 21 and jps.insanity() < 71 and jps.cooldown(spells.mindbender) > 51 , "player" , "DISPERSION_Insanity_Mindbender" },
 
 		-- "Power Word: Shield" 17	
-		{spells.powerWordShield, not jps.buff(spells.powerWordShield) and jps.hp("player") < 0.60 , "player" },
-
-    	{spells.vampiricTouch, not jps.Moving and canAttack("mouseover") and fnVampEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "VT_Mouseover" },		
-		{spells.shadowWordPain, canAttack("mouseover") and fnPainEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "Pain_Mouseover" },
+		{spells.powerWordShield, jps.hp("player") < 0.60 and not jps.buff(spells.powerWordShield) , "player" },
 
 	}},
 

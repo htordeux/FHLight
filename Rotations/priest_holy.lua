@@ -435,6 +435,9 @@ jps.registerRotation("PRIEST","HOLY",function()
 	{ spells.bodyAndMind, jps.Moving , "player" },
 	
 	{ spells.flashHeal, not jps.Moving and jps.hp("player") < 0.80 , "player" , "Emergency_Player" },
+	
+	-- "Renew" 139
+	{ spells.renew, jps.buffDuration(spells.renew,LowestUnit) < 3 and jps.hp(LowestUnit) < 0.80 , LowestUnit , "Renew_Topoff" }, -- heals because group never want's to stop
 
 	-- "Oralius' Whispering Crystal" 118922 "Cristal murmurant d’Oralius" -- buff 176151
 	{ "macro", not jps.buff(156079) and not jps.buff(188031) and jps.itemCooldown(118922) == 0 , "/use item:118922" , "Item_Oralius"},

@@ -64,7 +64,8 @@ elseif canAttack("mouseover") then rangedTarget = "mouseover"
 end
 if canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
 
-local TargetMoving = select(1,GetUnitSpeed(rangedTarget)) > 0
+local targetMoving = select(1,GetUnitSpeed(rangedTarget)) > 0
+local targetNotSlow = select(1,GetUnitSpeed(rangedTarget)) > 6
 
 local playerIsTargeted = jps.playerIsTargeted()
 
@@ -87,6 +88,13 @@ local spellTable = {
 
 	-- "Chacun pour soi" 59752
 	{ 59752, playerIsStun , "player" , "playerCC" },
+	{ 208683, playerIsStun , "player" , "playerCC" },
+	
+	-- "Use bottom trinket"
+	{"macro", ispvp and jps.hp() < 0.80 and jps.IncomingDamage("player") > jps.IncomingHeal("player") and not jps.buff(642) and not jps.buff(1022) , "/use 14" },
+    
+    -- "Healthstone"
+    { "macro", jps.hp() < 0.60 and jps.itemCooldown(5512) == 0 ,"/use item:5512" },
 
     { spells.flashOfLight, jps.hp() < 0.40 and jps.buff(642), "player" }, -- "Bouclier divin" 642
     { spells.flashOfLight, jps.hp() < 0.40 and jps.buff(1022), "player" }, -- "Bénédiction de protection" 1022
@@ -108,6 +116,9 @@ local spellTable = {
     { spells.blindingLight, jps.Interrupts and jps.hasTalent(3,3) and jps.IsCasting(rangedTarget) , rangedTarget },
     -- "Repentir" 20066 -- Force la cible ennemie à plonger dans une transe méditative qui la stupéfie et lui inflige des dégâts d’un montant maximum de 25% de ses points de vie en 1 min
 	{ spells.repentance, jps.Interrupts and jps.hasTalent(3,2) and jps.IsCasting(rangedTarget) , rangedTarget },
+	-- "Arcane Torrent" 155145
+    { 155145, jps.Interrupts and jps.IsCasting(rangedTarget) and CheckInteractDistance(rangedTarget,3) == true , rangedTarget },
+	{ spells.handOfHindrance, ispvp and targetMoving and targetNotSlow , rangedTarget },
 
     -- "Bouclier du vengeur" 184662 -- 15 second damage absorption shield -- gives buff 184662
 	{ spells.shieldOfVengeance,  jps.IncomingDamage("player") > jps.IncomingHeal("player") and jps.hp() < 0.80 , rangedTarget, "shieldOfVengeance" },
@@ -144,7 +155,7 @@ local spellTable = {
     -- ROTATION
     { "nested", jps.MultiTarget ,{
     	-- "Tempête divine" 53385 -- 3 holypower
-    	{ spells.divineStorm, jps.myDebuff(spells.judgment) , rangedTarget , "divineStorm_MultiTarget" },
+    	{ spells.divineStorm, jps.myDebuff(spells.judgment) and CheckInteractDistance(rangedTarget,2) == true , rangedTarget , "divineStorm_MultiTarget" },
     	-- "Lumière aveuglante" 115750 -- jps.hasTalent(3,3)
     	{ spells.blindingLight, jps.hasTalent(3,3) , rangedTarget , "blindingLight_MultiTarget" },
     }},
@@ -193,7 +204,7 @@ local spellTable = {
     -- "Purification des toxines" 213644
     { spells.cleanseToxins, jps.canDispel("player","Poison") , "player" },
     -- Buff
-    { 203528, not jps.buff(203528) , "player" },
+    --{ 203528, not jps.buff(203528) , "player" }, -- no longer available
     { 203538, not jps.buff(203538) , "player" },
     { 203539, not jps.buff(203539) , "player" },
 

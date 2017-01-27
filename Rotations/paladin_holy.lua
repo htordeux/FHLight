@@ -1,4 +1,3 @@
-
 local spells = jps.spells.paladin
 local canDPS = jps.canDPS
 local canHeal = jps.canHeal
@@ -29,8 +28,9 @@ jps.registerRotation("PALADIN","HOLY",function()
 
 	local Tank,TankUnit = jps.findRaidTank() -- default "player"
 	local TankTarget = Tank.."target"
-
+	
 	local playerAggro = jps.FriendAggro("player")
+	local lowestAggro = jps.FriendAggro(LowestUnit)
 	local playerIsStun = jps.StunEvents(2) -- return true/false ONLY FOR PLAYER -- "ROOT" was removed of Stuntype
 	-- {"STUN_MECHANIC","STUN","FEAR","CHARM","CONFUSE","PACIFY","SILENCE","PACIFYSILENCE"}
 	local playerIsInterrupt = jps.InterruptEvents() -- return true/false ONLY FOR PLAYER
@@ -77,7 +77,22 @@ jps.registerRotation("PALADIN","HOLY",function()
 -- LOCAL FUNCTIONS FRIENDS
 ----------------------------
 
-	local DispelFriend = jps.DispelMagicTarget() -- "Magic", "Poison", "Disease", "Curse"
+	-- DISPEL --
+	
+	local DispelFriendPvE = jps.DispelMagicTarget() -- {"Magic", "Poison", "Disease", "Curse"}
+	local DispelFriendPvP = nil
+	local DispelFriendHealth = 100
+	for i=1,#FriendUnit do -- for _,unit in ipairs(FriendUnit) do
+		local unit = FriendUnit[i]
+		if jps.DispelLoseControl(unit) then -- jps.DispelLoseControl includes jps.WarningDebuffs
+			local unitHP = jps.hp(unit)
+			if unitHP < DispelFriendHealth then
+				DispelFriendPvP = unit
+				DispelFriendHealth = unitHP
+			end
+		end
+	end
+
 	local DispelFriendRole = nil
 	for i=1,#TankUnit do -- for _,unit in ipairs(TankUnit) do
 		local unit = TankUnit[i]
@@ -85,6 +100,16 @@ jps.registerRotation("PALADIN","HOLY",function()
 			DispelFriendRole = unit
 		break end
 	end
+	
+	local parseDispel = {
+		-- "Cleanse"
+		{ spells.cleanse, jps.canDispel("player","Poison") , "player" , "Dispel" },
+		{ spells.cleanse, jps.canDispel("player","Disease") , "player" , "Dispel" },
+		{ spells.cleanse, jps.canDispel("player","Magic") , "player" , "Dispel" },
+		{ spells.cleanse, DispelFriendRole ~= nil , DispelFriendRole , "|cff1eff00DispelFriend_Role" },
+		{ spells.cleanse, DispelFriendPvP ~= nil , DispelFriendPvP , "|cff1eff00DispelFriend_PvP" },
+		{ spells.cleanse, DispelFriendPvE ~= nil , DispelFriendPvE , "|cff1eff00DispelFriend_PvE" },
+	}
 	
 ------------------------
 -- LOCAL FUNCTIONS ENEMY
@@ -101,18 +126,24 @@ jps.registerRotation("PALADIN","HOLY",function()
 
 local spellTable = {
 
-	-- "Chacun pour soi" 59752
-	{ 59752, playerIsStun , "player" , "playerCC" },
+	-- "Adaptation" 214027
+	{ 214027, playerIsStun , "player" , "playerCC" },
+	-- "Use bottom trinket"
+	{"macro", ispvp and jps.hp() < 0.80 and jps.IncomingDamage("player") > jps.IncomingHeal("player") and not jps.buff(642) and not jps.buff(1022) , "/use 14" },
+    -- "Healthstone"
+    { "macro", jps.hp() < 0.60 and jps.itemCooldown(5512) == 0 ,"/use item:5512" },
     
+    -- "Light of the Martyr" 183998 -- when blessing of protection
+    { spells.lightOfTheMartyr, jps.buff(1022) , LowestUnit },
     -- "Bouclier divin" 642 -- cd 5 min
-    { spells.divineShield, jps.hp(Tank) < 0.40 , Tank },
-    { spells.divineShield, jps.hp(LowestUnit) < 0.40 , LowestUnit },
+    { spells.divineShield, jps.hp() < 0.30 and jps.IncomingDamage("player") > jps.IncomingHeal("player") , "player" },
     -- "Bénédiction de protection" 1022
-    { spells.blessingOfProtection, jps.hp("player") < 0.60 and not jps.buff(642) , "player" },
+    { spells.blessingOfProtection, jps.hp() < 0.60 and not jps.buff(642) , "player" },
     { spells.blessingOfProtection, jps.hp("mouseover") < 0.60 and canHeal("mouseover") , "mouseover" },
+    { spells.blessingOfProtection, ispvp and jps.hp(LowestUnit) < 0.20 and lowestAggro , LowestUnit },
     -- "Vengeur sacré" 498
     { spells.divineProtection, jps.hp(Tank) < 0.80 and jps.IncomingDamage(Tank) > jps.IncomingHeal(Tank) , Tank },
-	{ spells.divineProtection, jps.hp("player") < 0.80 and jps.IncomingDamage("player") > jps.IncomingHeal("player") , "player" },
+	{ spells.divineProtection, jps.hp() < 0.80 and jps.IncomingDamage("player") > jps.IncomingHeal("player") , "player" },
      -- "Imposition des mains" 633 -- cd 10 min
     { spells.layOnHands, jps.hp() < 0.20 , "player" },
     -- "Guide de lumière" 53563
@@ -123,20 +154,26 @@ local spellTable = {
 	{ spells.hammerOfJustice, jps.Interrupts and jps.IsCasting(rangedTarget) , rangedTarget },
 	{ spells.hammerOfJustice, jps.Interrupts and jps.IsCasting("focus") , "focus" },
 	-- "Lumière aveuglante" 115750 --
-	{ spells.blindingLight, jps.Interrupts and jps.hasTalent(3,3) and jps.IsCasting("focus") , "focus" },
-    { spells.blindingLight, jps.Interrupts and jps.hasTalent(3,3) and jps.IsCasting(rangedTarget) , rangedTarget },
+	{ spells.blindingLight, jps.Interrupts and jps.hasTalent(3,3) and jps.IsCasting("focus") and CheckInteractDistance("focus",3) == true , "focus" },
+    { spells.blindingLight, jps.Interrupts and jps.hasTalent(3,3) and jps.IsCasting(rangedTarget) and CheckInteractDistance(rangedTarget,3) == true , rangedTarget },
+    -- "Arcane Torrent" 155145
+    { 155145, jps.Interrupts and jps.IsCasting(rangedTarget) and CheckInteractDistance(rangedTarget,3) == true , rangedTarget },
     
     -- "Don de foi" 223306 -- Imprègne de foi une cible alliée pendant 5 sec et lui rend (600% of Spell power) points de vie à la fin de l’effet.
-    { spells.bestowFaith, jps.hp("player") < 0.80 and not jps.buff(223306) , "player" },
+    { spells.bestowFaith, jps.hp() < 0.80 and not jps.buff(223306) , "player" },
     { spells.bestowFaith, jps.hp(LowestUnit) < 0.80 and not jps.buff(223306,LowestUnit) , LowestUnit },
     { spells.bestowFaith, jps.hp(Tank) < 0.80 and not jps.buff(223306,Tank) , Tank },
     -- "Horion sacré" 20473
 	{ spells.holyShock, jps.hp(LowestUnit) < 0.80 , LowestUnit },
+	{ spells.holyShock, true , rangedTarget },
    	-- "Eclair lumineux" 19750
 	{ spells.flashOfLight, not jps.Moving and jps.hp(LowestUnit) < 0.60 and jps.buff(54149) , LowestUnit },
+	{ spells,flashOfLight, ispvp and not jps.Moving and jps.hp() < 0.80 , "player" },
 	-- "Lumière sacrée" 82326
 	{ spells.holyLight, not jps.Moving and jps.hp(LowestUnit) < 0.80 and jps.buff(54149) , LowestUnit },
 
+	{ "nested", jps.UseCDs , parseDispel },
+	
 	{ "nested", jps.Defensive , {
 		-- "Jugement" 20271 -- duration 8 sec
 		{ spells.judgment, jps.hp(LowestUnit) > 0.60 , rangedTarget },
@@ -146,13 +183,18 @@ local spellTable = {
 		{ spells.holyShock, jps.hp(LowestUnit) > 0.80 , rangedTarget },
 		-- 26573
 		{ spells.consecration, CheckInteractDistance(rangedTarget,2) == true , rangedTarget },
+		--"Aura Mastery" 31821
+		{ spells.auraMastery, ispvp and AvgHealthRaid < 0.50 },
 	}},
 
     -- "Courroux vengeur" 31842 -- gives buff 31842
     { spells.avengingWrath, CountInRange > 3 and AvgHealthRaid < 0.80 , LowestUnit },
-    { spells.avengingWrath, jps.hp(Tank) < 0.60 and jps.hp(LowestUnit) < 0.60 and not UnitIsUnit(Tank,LowestUnit), LowestUnit },
+    { spells.avengingWrath, not ispvp and jps.hp(Tank) < 0.60 and jps.hp(LowestUnit) < 0.60 and not UnitIsUnit(Tank,LowestUnit), LowestUnit },
+    { spells.avengingWrath, jps.hp() < 0.80 and jps.IncomingDamage("player") > jps.IncomingHeal("player") , "player" },
+    { spells.avengingWrath, jps.hp(rangedTarget) < 0.30 and CheckInteractDistance(rangedTarget,3) == true , "player" },
     -- "Vengeur sacré" 105809 -- Augmente votre hâte de 30% et les soins de votre Horion sacré de 30% pendant 20 sec.
-	{ spells.holyAvenger, jps.hp(Tank) < 0.40 , Tank }, 
+	{ spells.holyAvenger, jps.hp(Tank) < 0.40 , Tank },
+	{ spells,holyAvenger, ispvp and jps.hp() < 0.50 , "player" },
 	
 	
 	-- "Délivrance de Tyr" 200652 -- buff 200654 -- Soins reçus de Lumière sacrée et Éclair lumineux augmentés de 20%. 
@@ -164,7 +206,7 @@ local spellTable = {
 	
 	-- "Lumière de l’aube" 85222
     -- rend de la vie à un maximum de 5 alliés blessés se trouvant dans un cône frontal de 15 mètres
-    { spells.lightOfDawn, POHCountInRange > 3 , LowestUnit },
+    { spells.lightOfDawn, POHGroup , LowestUnit },
 
 	-- "Eclair lumineux" 19750 -- 
 	{ spells.flashOfLight, not jps.Moving and jps.hp(LowestUnit) < 0.60 , LowestUnit },
@@ -174,7 +216,33 @@ local spellTable = {
 
 }
 
-
 	spell,target = parseSpellTable(spellTable)
 	return spell,target
 end, "Paladin Holy")
+
+--------------------------------------------------------------------------------------------------------------
+------------------------------------------------ ROTATION OOC ------------------------------------------------
+--------------------------------------------------------------------------------------------------------------
+
+jps.registerRotation("PALADIN","HOLY",function()
+
+	local LowestUnit = jps.LowestImportantUnit()
+	local areaType = IsInInstance()
+	local isOutdoors = IsOutdoors()
+	local ispvp = UnitIsPVP("player")
+
+	if IsMounted() then return end
+	
+	local spellTable = {
+	
+	-- "Holy Light" 82326
+	{ spells.holyLight, jps.hp(LowestUnit) < 0.60 , LowestUnit },
+	-- "Flash of Light" 19750
+	{ spells.flashOfLight, jps.hp(LowestUnit) < 0.80 , LowestUnit },
+
+}
+
+	local spell,target = parseSpellTable(spellTable)
+	return spell,target
+
+end,"OOC Paladin Holy",false,true)

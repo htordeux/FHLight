@@ -353,8 +353,9 @@ local leaveCombat = function()
 	jps.HealerBlacklist = {} 
 	jps.UpdateRaidStatus()
 	jps.UpdateRaidRole()
-	jps.castSequence = {} 
-	
+	jps.castSequence = {}
+	jps.LastCastUnitWipe()
+
 	-- Garbage
 	collectGarbage()
 end

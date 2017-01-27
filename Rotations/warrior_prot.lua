@@ -96,11 +96,11 @@ local spellTable = {
 {spells.berserkerRage, playerIsStun },
 {spells.berserkerRage, jps.buff(spells.battleCry) },
 -- "Ivresse de la victoire" 34428
-{spells.victoryRush, jps.hp() < 1 },
+{spells.victoryRush, jps.hp("player") < 1 },
 -- "Mur protecteur" 871 buff same id
-{spells.shieldWall, jps.hp() < 0.40 and not jps.buff(12975) , "target" , "shieldWall" }, -- cd 4 min
+{spells.shieldWall, jps.hp("player") < 0.40 and not jps.buff(12975) , "target" , "shieldWall" }, -- cd 4 min
 -- "Dernier rempart" 12975 buff same id
-{spells.lastStand , jps.hp() < 0.40 and not jps.buff(871) , "target" , "lastStand" }, -- cd 3 min
+{spells.lastStand , jps.hp("player") < 0.40 and not jps.buff(871) , "target" , "lastStand" }, -- cd 3 min
 -- "Demoralizing Shout" 1160 -- "Shield Block" buff 132404 -- "Dur au mal" 190456
 {spells.demoralizingShout, not jps.buff(190456) },
 {spells.demoralizingShout, not jps.buff(132404) },

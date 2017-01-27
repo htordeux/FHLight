@@ -78,10 +78,10 @@ if not UnitCanAttack("player", "target") then return end
 
 local spellTable = {
 
-{spells.commandingShout, jps.hp() < 0.40 and not jps.buff(spells.commandingShout) },
-{spells.enragedRegeneration, jps.hp() < 0.70 , "target", "Regeneration" },
+{spells.commandingShout, jps.hp("player") < 0.40 and not jps.buff(spells.commandingShout) },
+{spells.enragedRegeneration, jps.hp("player") < 0.70 , "target", "Regeneration" },
 -- when enragedRegeneration is active, Bloodthirst heals for an additional 20% of your total health when cast.
-{spells.bloodthirst, jps.buff(spells.enragedRegeneration) and jps.hp() < 1 , "target", "bloodthirst_Regeneration" },
+{spells.bloodthirst, jps.buff(spells.enragedRegeneration) and jps.hp("player") < 1 , "target", "bloodthirst_Regeneration" },
 
 -- interrupts --
 {spells.pummel, jps.Interrupts and jps.ShouldKick("target") },

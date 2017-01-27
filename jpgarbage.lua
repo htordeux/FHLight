@@ -90,6 +90,11 @@ function jps_Test()
 
 Test()
 
+--local table = jps.LastCastUnitEval()
+--for spell,unit in pairs(table) do
+--	print("Spell: ",spell,"Unit: ",unit)
+--end
+
 --local RaidStatusDebuff = jps.RaidStatusDebuff()
 --write("RaidStatusDebuff: ",jps.tableLength(RaidStatusDebuff))
 --for unit,debuff in pairs(RaidStatusDebuff) do

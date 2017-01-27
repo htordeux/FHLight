@@ -70,13 +70,13 @@ local spellTable = {
 	-- "Planer"
 	{ 131347, jps.fallingFor() > 1.5 , "player" },
 	-- "Métamorphose" 187827
-	{ spells.metamorphosis , jps.hp() < 0.70 , "target" , "Métamorphose" },
+	{ spells.metamorphosis , jps.hp("player") < 0.70 , "target" , "Métamorphose" },
 	-- "Pointes démoniaques" 203720 -- Physical dmg
-	{ spells.demonSpikes , jps.IncomingDamage() > 0 , "target" , "demonSpikes" },
+	{ spells.demonSpikes , jps.IncomingDamage("player") > 0 , "target" , "demonSpikes" },
 	-- "Marques protectrices" 218256 -- Magic dmg
-	{ spells.empowerWards , jps.IncomingDamage() > 0 , "target" , "empowerWards" },
+	{ spells.empowerWards , jps.IncomingDamage("player") > 0 , "target" , "empowerWards" },
 	-- "Marque enflammée" 204021
-	{ spells.fieryBrand , jps.IncomingDamage() > 0 and jps.hp() < 0.70 , "target" , "fieryBrand" },
+	{ spells.fieryBrand , jps.IncomingDamage("player") > 0 and jps.hp("player") < 0.70 , "target" , "fieryBrand" },
 	
 	-- "Tourment" 185245
 	{ spells.torment, not jps.playerIsTargeted() },

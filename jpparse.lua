@@ -368,6 +368,23 @@ end
 -- CAST
 ----------------------
 
+local CastSpellTable = {}
+-- { ["Rénovation"] = "player", ["Soins"] = "party1", ["Soins rapides"] = "raid4" }
+
+function jps.LastCastUnit(spell)
+	local unit = CastSpellTable[spell]
+	if unit ~= nil then return unit end
+	return "none"
+end
+
+function jps.LastCastUnitEval()
+	return CastSpellTable
+end
+
+function jps.LastCastUnitWipe()
+	CastSpellTable = {}
+end
+
 function jps.Cast(spell) -- "number" "string"
 	local spellname = toSpellName(spell)
 	if spellname == nil then return false end
@@ -387,7 +404,10 @@ function jps.Cast(spell) -- "number" "string"
 	jps.LastTarget = jps.Target
 	jps.LastTargetGUID = UnitGUID(jps.LastTarget)
 	jps.LastMessage = jps.Message
-	
+
+	-- { ["Rénovation"] = "player", ["Soins"] = "party1", ["Soins rapides"] = "raid4" }	
+	CastSpellTable[jps.LastCast] = jps.LastTarget
+
 	if (jps.IconSpell ~= spellname) then
 		jps.set_jps_icon(spellname)
 	end

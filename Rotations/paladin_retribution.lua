@@ -89,7 +89,6 @@ local spellTable = {
 	-- "Chacun pour soi" 59752
 	{ 59752, playerIsStun , "player" , "playerCC" },
 	{ 208683, playerIsStun , "player" , "playerCC" },
-<<<<<<< HEAD
 	-- "Use bottom trinket"
 	{"macro", ispvp and jps.hp("player") < 0.80 and jps.IncomingDamage("player") > jps.IncomingHeal("player") and not jps.buff(642) and not jps.buff(1022) , "/use 14" },
     -- "Healthstone"
@@ -97,17 +96,6 @@ local spellTable = {
 
     { spells.flashOfLight, jps.hp("player") < 0.40 and jps.buff(642), "player" }, -- "Bouclier divin" 642
     { spells.flashOfLight, jps.hp("player") < 0.40 and jps.buff(1022), "player" }, -- "Bénédiction de protection" 1022
-=======
-	
-	-- "Use bottom trinket"
-	{"macro", ispvp and jps.hp() < 0.80 and jps.IncomingDamage("player") > jps.IncomingHeal("player") and not jps.buff(642) and not jps.buff(1022) , "/use 14" },
-    
-    -- "Healthstone"
-    { "macro", jps.hp() < 0.60 and jps.itemCooldown(5512) == 0 ,"/use item:5512" },
-
-    { spells.flashOfLight, jps.hp() < 0.40 and jps.buff(642), "player" }, -- "Bouclier divin" 642
-    { spells.flashOfLight, jps.hp() < 0.40 and jps.buff(1022), "player" }, -- "Bénédiction de protection" 1022
->>>>>>> origin/master
     -- "Bouclier divin" 642 -- cd 5 min
     { spells.divineShield, jps.hp("player") < 0.40 , "player" },
    	-- "Bénédiction de protection" 1022
@@ -214,10 +202,6 @@ local spellTable = {
     -- "Purification des toxines" 213644
     { spells.cleanseToxins, jps.canDispel("player","Poison") , "player" },
     -- Buff
-<<<<<<< HEAD
-=======
-    --{ 203528, not jps.buff(203528) , "player" }, -- no longer available
->>>>>>> origin/master
     { 203538, not jps.buff(203538) , "player" },
     { 203539, not jps.buff(203539) , "player" },
 

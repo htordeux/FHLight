@@ -395,19 +395,6 @@ local spellTable = {
 	return spell,target
 end , "Holy Priest Default" )
 
---To maximise your single target HPS:
---Cast Holy Word: Sanctify Icon Holy Word: Sanctify.
---Cast Holy Word: Serenity Icon Holy Word: Serenity.
---Cast Flash Heal Icon Flash Heal until Holy Word: Serenity comes off cooldown.
---Cast Holy Word: Serenity Icon Holy Word: Serenity and repeat step 3.
-
---To maximise your AoE HPS:
---Cast Holy Word: Serenity Icon Holy Word: Serenity.
---Cast Holy Word: Sanctify Icon Holy Word: Sanctify.
---Cast Prayer of Healing Icon Prayer of Healing 3 times.
---Cast Holy Word: Sanctify Icon Holy Word: Sanctify and repeat steps 2 and onward.
-
-
 --[[
 Below, we use the Heal Icon Heal spell to provide you with an example of a mouse-over macro:
 

@@ -67,6 +67,10 @@ if canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
 
 local targetMoving = select(1,GetUnitSpeed(rangedTarget)) > 0
 local targetSlow = select(1,GetUnitSpeed(rangedTarget)) < 7
+<<<<<<< HEAD
+=======
+
+>>>>>>> origin/master
 local targetClass = UnitClass(rangedTarget)
 
 local isTargetElite = false
@@ -86,7 +90,11 @@ local spellTable = {
 	
 	-- Shouts/Buffs --
 	{ spells.battleCry, not jps.buff(spells.battleCry) and jps.debuff(spells.colossusSmash) }, -- if the Colossus Smash  Colossus Smash debuff is active on your target
+<<<<<<< HEAD
 	{ spells.commandingShout, jps.hp("player") < 0.30 and not jps.buff(spells.commandingShout) and jps.IncomingDamage("player") > jps.IncomingHeal("player") },
+=======
+	{ spells.commandingShout, jps.hp() < 0.30 and not jps.buff(spells.commandingShout) and jps.IncomingDamage("player") > jps.IncomingHeal("player") },
+>>>>>>> origin/master
 	{ spells.focusedRage, true , "player" },
 	{ spells.focusedRage, jps.debuff(209574) and jps.myDebuffDuration(209574,rangedTarget) > 9 , rangedTarget }, -- once with each fresh application of Shattered Defenses
 	{ spells.focusedRage, rage >= 0.75 , rangedTarget }, -- if above 75 rage to avoid rage capping
@@ -98,10 +106,17 @@ local spellTable = {
 	-- Defensives/Self Heals --
 	-- "Healthstone"
 	{ 195710, playerIsStun , "player" , "playerCC" },
+<<<<<<< HEAD
     { "macro", jps.hp("player") < 0.60 and jps.itemCooldown(5512) == 0 ,"/use item:5512" },
 	{ spells.defensiveStance, jps.hp("player") < 0.30 and jps.IncomingDamage("player") > jps.IncomingHeal("player") },
 	--{ "macro", jps.hp("player") > 0.30 , "/cast Defensive Stance" , "player" },
 	{ spells.defensiveStance, jps.buff(spells.defensiveStance) and jps.hp("player") > 0.30 , "player" },
+=======
+    { "macro", jps.hp() < 0.60 and jps.itemCooldown(5512) == 0 ,"/use item:5512" },
+	{ spells.defensiveStance, jps.hp() < 0.30 and jps.IncomingDamage("player") > jps.IncomingHeal("player") },
+	--{ "macro", jps.hp() > 0.30 , "/cast Defensive Stance" , "player" },
+	{ spells.defensiveStance, jps.buff(spells.defensiveStance) and jps.hp() > 0.30 , "player" },
+>>>>>>> origin/master
 	{ spells.victoryRush, true , "target", "Victory_Rush" },
 
 	-- Interrupts --

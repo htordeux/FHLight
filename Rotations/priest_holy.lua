@@ -108,7 +108,7 @@ jps.registerRotation("PRIEST","HOLY", function()
 	-- "Holy Mending" 196779 causes Prayer of Mending to heal the target instantly for an additional amount whenever it jumps to a player on which Renew is active
 	-- Renew on players without "Prayer of Mending" 33076 -- Buff POM 41635 you will increase the likelihood of this trait to proc
 	local RenewFriend = nil
-	local RenewFriendHealth = 0.80
+	local RenewFriendHealth = 0.85
 	for i=1,#FriendUnit do -- for _,unit in ipairs(FriendUnit) do
 		local unit = FriendUnit[i]
 		local unitHP = jps.hp(unit)
@@ -116,7 +116,7 @@ jps.registerRotation("PRIEST","HOLY", function()
 			if unitHP < RenewFriendHealth then
 				RenewFriend = unit
 				RenewFriendHealth = unitHP
-			elseif not jps.buff(41635) and jps.hp(unit) < 0.80 then
+			elseif not jps.buff(41635) and jps.hp(unit) < 0.85 then
 				RenewFriend = unit
 			end
 		end
@@ -322,9 +322,9 @@ local spellTable = {
 	{ spells.renew, jps.buffDuration(spells.renew,Tank) < 3 and jps.hp(LowestUnit) > 0.60 and not UnitIsUnit("player",Tank)and jps.hp(Tank) < 0.90 , Tank , "Timer_Renew_Tank" },
 	{ spells.renew, jps.buffDuration(spells.renew,"player") < 3 and jps.hp(LowestUnit) > 0.60 and jps.hp("player") < 0.90 , "player" , "Timer_Renew_Player" },
 	{ "nested", jps.hp(TankThreat) > jps.hp(LowestUnit) and jps.hp(LowestUnit) > 0.40 and CountInRange < 4 ,{	
-		{ spells.renew, not jps.buff(spells.renew,LowestUnit) and jps.hp(LowestUnit) < 0.80 , LowestUnit , "Renew_Lowest" },
+		{ spells.renew, not jps.buff(spells.renew,LowestUnit) and jps.hp(LowestUnit) < 0.85 , LowestUnit , "Renew_Lowest" },
 		{ spells.renew, RenewFriend ~= nil , RenewFriend , "Renew_Friend" },
-		{ spells.renew, not jps.buff(spells.renew,LowestUnit) and jps.hp(LowestUnit) < 0.80 and CountInRange < 6 and IsInRaid() , LowestUnit , "Renew_Lowest" },
+		{ spells.renew, not jps.buff(spells.renew,LowestUnit) and jps.hp(LowestUnit) < 0.85 and CountInRange < 6 and IsInRaid() , LowestUnit , "Renew_Lowest" },
 		{ spells.renew, RenewFriend ~= nil and CountInRange < 6 and IsInRaid() , RenewFriend , "Renew_Friend" },
 	}},
 

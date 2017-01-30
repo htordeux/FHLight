@@ -454,7 +454,7 @@ jps.FindSubGroupTarget = function(lowHealth)
 			end
 		end
 	end
-	return tt, groupNumber -- RETURN Group with at least 3 unit in range
+	return tt -- RETURN Target in a Group with at least 3 units in range with unitHealth < lowHealth
 end
 
 -- FIND THE RAID SUBGROUP TO HEAL WITH AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
@@ -498,8 +498,6 @@ jps.FindSubGroupHeal = function(lowHealth)
 
 	local tt = nil
 	local lowestHP = lowHealth
-	if groupHealth > lowHealth then return tt, groupNumber, groupHealth end
-
 	for unit,_ in pairs(RaidStatus) do
 		local unitHealth = HealthPct(unit)
 		if FindSubGroupUnit(unit) == groupNumber and unitHealth < lowestHP then
@@ -507,7 +505,7 @@ jps.FindSubGroupHeal = function(lowHealth)
 			lowestHP = unitHealth
 		end
 	end
-	return tt, groupNumber, groupHealth  -- RETURN Group unit with avg health group lower than lowHealth
+	return tt, groupHealth  -- RETURN Target and avgHealth Group with at least 3 units in range with unitHealth < lowHealth
 end
 
 -- FIND THE RAID SUBGROUP TO HEAL WITH AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
@@ -537,32 +535,17 @@ local FindSubGroup = function(lowHealth)
 	return groupNumber -- RETURN Group with at least 3 unit in range
 end
 
--- FIND THE TARGET IN SUBGROUP TO HEAL WITH BUFF SPIRIT SHELL IN RAID
-jps.FindSubGroupAura = function(aura) -- auraID to get correct spellID
-	local tt = nil
-	local tt_count = 0
-	local groupNumber = FindSubGroup()
-
-	for unit,_ in pairs(RaidStatus) do
-		local mybuff = jps.buffId(aura,unit) -- spellID
-		if not mybuff and FindSubGroupUnit(unit) == groupNumber then
-			tt = unit
-			tt_count = tt_count + 1
-		end
-	end
-	if tt_count > 2 then return tt end
-	return nil
-end
-
+-- name, rank, icon, count, debuffType, duration, expirationTime, unitCaster, isStealable, shouldConsolidate, spellId, canApplyAura, isBossDebuff, value1, value2, value3 = UnitBuff("unit", index or "name"[, "rank"[, "filter"]])
 -- CHECKS THE WHOLE RAID FOR A BUFF (E.G. PRAYER OF MENDING)
 jps.buffTracker = function(buff)
 	for unit,_ in pairs(RaidStatus) do
-		if canHeal(unit) and jps.myBuffDuration(buff,unit) > 20 then
+		if canHeal(unit) and jps.myBuffDuration(buff,unit) > 0 then
 		return true end
 	end
 	return false
 end
 
+-- CHECKS THE WHOLE RAID FOR A COUNTING BUFF (E.G. RENEW)
 jps.buffTrackerCount = function(buff)
 	local count = 0
 	for unit,_ in pairs(RaidStatus) do
@@ -571,6 +554,18 @@ jps.buffTrackerCount = function(buff)
 		end
 	end
 	return count
+end
+
+-- CHECKS THE WHOLE RAID FOR A CHARGE BUFF (E.G. PRAYER Of MENDING)
+jps.buffTrackerCharge = function(buff)
+	local charge = 0
+	for unit,_ in pairs(RaidStatus) do
+		if canHeal(unit) and jps.myBuffDuration(buff,unit) > 0 then
+			local spellname = toSpellName(buff)
+			charge = select(4,UnitBuff(unit,spellname))
+		break end
+	end
+	return charge
 end
 
 -- CHECKS THE WHOLE RAID FOR A MISSING BUFF (E.G. FORTITUDE)

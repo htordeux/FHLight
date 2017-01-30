@@ -29,11 +29,11 @@ write("***************************")
 --	print("|cFFFF0000Aggro:|cff0070dd ", jps.FriendAggro("player"))
 --	print("ControlEvents: ",jps.ControlEvents())
 --	print("|cff1eff00EnemyCount: ",jps.EnemyCount())
-print("|cFFFF0000IncDamage: ", jps.IncomingDamage("player"))
-print("|cff1eff00IncHeal: ", jps.IncomingHeal("player"))
+print("|cFFFF0000IncDamage: ", jps.IncomingDamage("target"))
+print("|cff1eff00IncHeal: ", jps.IncomingHeal("target"))
 print("|cff1eff00TTDTarget: |cffffffff",jps.TimeToDie("target"))
-local POHTarget, POHGroup, HealthGroup = jps.FindSubGroupHeal()
-print("|cff1eff00POHTarget: |cffffffff",POHTarget,"|cff1eff00Group: |cffffffff",POHGroup,"|cff1eff00HealthGroup: |cffffffff",HealthGroup)
+local TargetGroup, HealthGroup = jps.FindSubGroupHeal()
+print("|cff1eff00Target: |cffffffff",TargetGroup,"|cff1eff00HealthGroup: |cffffffff",HealthGroup)
 local CountInRange, AvgHealthRaid, FriendUnit, FriendLowest = jps.CountInRaidStatus(0.80)
 print("|cff1eff00CountInRange: |cffffffff",CountInRange,"|cff1eff00FriendUnit: |cffffffff",#FriendUnit,"|cff1eff00AvgHealthRaid: |cffffffff",AvgHealthRaid,"|cff1eff00FriendLowest: |cffffffff",GetUnitName(FriendLowest))
 local LowestUnit, LowestUnitPrev = jps.LowestImportantUnit()
@@ -92,8 +92,10 @@ Test()
 
 --local table = jps.LastCastUnitEval()
 --for spell,unit in pairs(table) do
---	print("Spell: ",spell,"Unit: ",unit)
+--	print("|cff1eff00Spell: |cffffffff",spell,"|cff1eff00Unit: |cffffffff",unit)
 --end
+
+print("|cff1eff00prayerOfMendingBuff: |cffffffff",jps.buffTrackerCharge(41635))
 
 --local RaidStatusDebuff = jps.RaidStatusDebuff()
 --write("RaidStatusDebuff: ",jps.tableLength(RaidStatusDebuff))

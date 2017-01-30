@@ -299,9 +299,9 @@ end
 
 jps.unitForBinding = function(unit)
 	if not jps.UnitExists(unit) then return false end
-	if UnitIsUnit(unit,"player") then return false end
-	if jps.hp("player") > 0.60 then return false end
-	if jps.hp(unit) > 0.60  then return false end
+	if UnitIsUnit("player",unit) then return false end
+	if jps.hp("player") > 0.80 then return false end
+	if jps.hp(unit) > 0.80  then return false end
 	return true
 end
 

@@ -53,6 +53,7 @@ local pairs = pairs
 local tinsert = table.insert
 local tremove = table.remove
 local toSpellName = jps.toSpellName
+local GetUnitName = GetUnitName
 
 --------------------------
 -- (UN)REGISTER FUNCTIONS 
@@ -587,7 +588,7 @@ local updateEnemyDamager = function()
 	end
 end
 
--- IncomingDamage[destGUID] = { {GetTime(),dmg,destName}, ... }
+-- IncomingDamage[destGUID] = { {GetTime(),damage,destName}, ... }
 local updateIncomingDamage = function()
 	for unit,index in pairs(IncomingDamage) do
 		local data = #index
@@ -629,20 +630,33 @@ jps.registerOnUpdate(UpdateIntervalRaidStatus)
 --------------------------
 -- COMBAT_LOG_EVENT_UNFILTERED FUNCTIONS
 --------------------------
+-- eventtable[1] == timestamp
+-- eventtable[2] == combatEvent
+-- eventtable[3] == hideCaster
 -- eventtable[4] == sourceGUID
 -- eventtable[5] == sourceName
 -- eventtable[6] == sourceFlags
+-- eventtable[7] == sourceFlags2
 -- eventtable[8] == destGUID
 -- eventtable[9] == destName
 -- eventtable[10] == destFlags
--- eventtable[15] -- amount if suffix is SPELL_DAMAGE or SPELL_HEAL
--- eventtable[12] -- amount if suffix is SWING_DAMAGE
+-- eventtable[11] == destFlags2
+-- eventtable[12] == spellID -- amount if prefix is SWING_DAMAGE
+-- eventtable[13] == spellName -- amount if prefix is ENVIRONMENTAL_DAMAGE
+-- eventtable[14] == spellSchool -- 1 Physical, 2 Holy, 4 Fire, 8 Nature, 16 Frost, 32 Shadow, 64 Arcane
+-- eventtable[15] == amount if suffix is SPELL_DAMAGE or SPELL_HEAL -- spellHealed
+-- eventtable[16] == spellCount if suffix is _AURA
+
+-- for the SWING prefix, _DAMAGE starts at the 12th parameter. 
+-- for ENVIRONMENTAL prefix, _DAMAGE starts at the 13th.
+
 
 local damageEvents = {
         ["SWING_DAMAGE"] = true,
         ["SPELL_DAMAGE"] = true,
         ["SPELL_PERIODIC_DAMAGE"] = true,
         ["RANGE_DAMAGE"] = true,
+        ["ENVIRONMENTAL_DAMAGE"] = true,
 }
 local healEvents = {
         ["SPELL_HEAL"] = true,
@@ -655,6 +669,16 @@ jps.events.registerCombatLog("UNIT_DIED", function(...)
 	if EnemyDamager[destGUID] then EnemyDamager[destGUID] = nil end
 	if EnemyHealer[destGUID] then EnemyHealer[destGUID] = nil end
 end)
+
+--local prayerOfMendingBuff = jps.toSpellName(41635)
+--jps.events.registerCombatLog("SPELL_AURA_APPLIED_DOSE", function(...)
+--	local spellID = select(12, ...)
+--	local spellName = select(13, ...)
+--	local sourceName = select(5, ...)
+--	if spellName == prayerOfMendingBuff and sourceName == GetUnitName("player") then
+--		local count = select(16, ...)
+--	end
+--end)
 
 local COMBATLOG_OBJECT_TYPE_PLAYER = COMBATLOG_OBJECT_TYPE_PLAYER
 local COMBATLOG_OBJECT_AFFILIATION_MINE = COMBATLOG_OBJECT_AFFILIATION_MINE
@@ -699,7 +723,7 @@ jps.events.registerEvent("COMBAT_LOG_EVENT_UNFILTERED", function(...)
 		local destName = select(9,...)
 
 		-- Enemy Casting SpellControl according to table jps.SpellControl[spellID]
-		if isSourceEnemy and destGUID == UnitGUID("player") then
+		if isSourceEnemy and destName == GetUnitName("player") then
 			local suffix = event:match(".+(_.-)$")
 			local spellID = select(12, ...)
 			if jps.SpellControl[spellID] ~= nil then
@@ -709,7 +733,7 @@ jps.events.registerEvent("COMBAT_LOG_EVENT_UNFILTERED", function(...)
 		end
 
 -- HEAL TABLE -- Average value of player healing spells
---		if sourceGUID == UnitGUID("player") then
+--		if sourceName == GetUnitName("player") then
 --			local healname = select(13, ...)
 --			local healVal = select(15, ...)
 --			
@@ -757,23 +781,31 @@ jps.events.registerEvent("COMBAT_LOG_EVENT_UNFILTERED", function(...)
 --		print("|cFFFF0000destName: |cffffffff",destName,"F:",isDestFriend,"E:",isDestEnemy,
 --				"|cFFFF0000sourceName: |cffffffff",sourceName,"F:",isSourceFriend,"E:",isSourceEnemy)
 			if isDestFriend and UnitCanAssist("player",destName) then
-				-- SPELLSCHOOL -- 1 Physical, 2 Holy, 4 Fire, 8 Nature, 16 Frost, 32 Shadow, 64 Arcane
-				local spellSchool = select(14,...)
-				-- for the SWING prefix, _DAMAGE starts at the 12th parameter. For ENVIRONMENTAL, it starts at the 13th.
-				local dmg = 0
+				-- for the SWING prefix, _DAMAGE starts at the 12th parameter. 
+				-- for ENVIRONMENTAL prefix, _DAMAGE starts at the 13th.
+				local damage = 0
+				local swingdmg = 0
+				local spelldmg = 0
+				local envdmg = 0
 				if event == "SWING_DAMAGE" then
-					local damage = select(12, ...)
-					if damage == nil then damage = 0 end
-					if damage > 0 then dmg = damage end
+					local dmg = select(12, ...)
+					if dmg == nil then dmg = 0 end
+					swingdmg = dmg
 				else
-					local damage = select(15, ...)
-					if damage == nil then damage = 0 end
-					if damage > 0 then dmg = damage end
+					local dmg = select(15, ...)
+					if dmg == nil then dmg = 0 end
+					spelldmg = dmg
 				end
-				
+				if event == "ENVIRONMENTAL_DAMAGE" then
+					local env = select(13, ...)
+					if env == nil then env = 0 end
+					envdmg = env
+				end
+				damage = swingdmg + spelldmg + envdmg
+
 				-- Table of Incoming Damage on Friend
 				if IncomingDamage[destGUID] == nil then IncomingDamage[destGUID] = {} end
-				tinsert(IncomingDamage[destGUID],1,{GetTime(),dmg,destName})
+				tinsert(IncomingDamage[destGUID],1,{GetTime(),damage,destName})
 				-- Table of EnemyGuid doing damage on targeted FriendGuid
 				if EnemyDamager[sourceGUID] == nil then EnemyDamager[sourceGUID] = {} end
 				EnemyDamager[sourceGUID]["friendguid"] = destGUID 
@@ -794,7 +826,7 @@ function jps.IncomingDamage(unit)
 	if unit == nil then unit = "player" end
 	local time = 5
 	local unitguid = UnitGUID(unit)
-	local totalDmg = 0
+	local totalDamage = 0
 	if IncomingDamage[unitguid] ~= nil then
 		local dataset = IncomingDamage[unitguid]
 		if #dataset > 1 then
@@ -803,12 +835,12 @@ function jps.IncomingDamage(unit)
 			if time > totalTime then time = totalTime end
 			for i=1,#dataset do
 				if dataset[1][1] - dataset[i][1] <= time then
-					totalDmg = totalDmg + dataset[i][2]
+					totalDamage = totalDamage + dataset[i][2]
 				end
 			end
 		end
 	end
-	return totalDmg
+	return totalDamage
 end
 
 function jps.IncomingHeal(unit)
@@ -885,9 +917,9 @@ jps.LookupIncomingDamage = function()
 --		print(#index,"|cff1eff00unit:",unit,"destname:",index[1][3],"heal:",index[1][2])
 --	end
 	
--- IncomingDamage[destGUID] = {GetTime(),dmg,destName}
+-- IncomingDamage[destGUID] = {GetTime(),damage,destName}
 --	for unit,index in pairs (IncomingDamage) do
---		print(#index,"|cFFFF0000unit:",unit,"destname:",index[1][3],"dmg:",index[1][2])
+--		print(#index,"|cFFFF0000unit:",unit,"destname:",index[1][3],"damage:",index[1][2])
 --	end
 
 end

@@ -23,7 +23,6 @@ jps.registerRotation("PALADIN","HOLY",function()
 ----------------------------
 
 	local CountInRange, AvgHealthRaid, FriendUnit, FriendLowest = jps.CountInRaidStatus(0.80) -- CountInRange return count raid unit below healpct -- FriendUnit return table with all raid unit in range
-	local POHTarget, POHGroup, HealthGroup = jps.FindSubGroupHeal(0.80) -- Target to heal with POH in RAID with AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
 	local LowestUnit, LowestUnitPrev = jps.LowestImportantUnit()
 
 	local Tank,TankUnit = jps.findRaidTank() -- default "player"
@@ -204,7 +203,7 @@ local spellTable = {
 	
 	-- "Lumière de l’aube" 85222
     -- rend de la vie à un maximum de 5 alliés blessés se trouvant dans un cône frontal de 15 mètres
-    { spells.lightOfDawn, POHTarget ~= nil and HealthGroup < 0.80 and jps.distanceMax(POHTarget) < 20 , POHTarget },
+    { spells.lightOfDawn, CountInRange > 3 and AvgHealthRaid < 0.80 and jps.distanceMax(FriendLowest) < 20 , FriendLowest },
 
 	-- "Eclair lumineux" 19750 -- 
 	{ spells.flashOfLight, not jps.Moving and jps.hp(LowestUnit) < 0.60 , LowestUnit },

@@ -24,7 +24,6 @@ jps.registerRotation("PRIEST","DISCIPLINE", function()
 ----------------------------
 
 	local CountInRange, AvgHealthRaid, FriendUnit, FriendLowest = jps.CountInRaidStatus(0.80) -- CountInRange return count raid unit below healpct -- FriendUnit return table with all raid unit in range
-	local POHTarget, POHGroup, HealthGroup = jps.FindSubGroupHeal(0.80) -- Target to heal with POH in RAID with AT LEAST 3 RAID UNIT of the SAME GROUP IN RANGE
 	local LowestUnit, LowestUnitPrev = jps.LowestImportantUnit()
 
 	local Tank,TankUnit = jps.findRaidTank() -- default "player"

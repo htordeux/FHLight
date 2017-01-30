@@ -230,6 +230,7 @@ local spellTable = {
 	}},
 	-- "Light of T'uure" 208065 it buffs the target to increase your healing done to them by 25% for 10 seconds 
 	{ spells.lightOfTuure, jps.hp(TankThreat) < 0.80 and not jps.buff(208065,TankThreat) , TankThreat , "Tuure_Tank" },
+	{ spells.lightOfTuure, jps.hp("player") < 0.60 , "player" , "Tuure_Player" },
 	{ spells.lightOfTuure, jps.hp(Tank) < 0.80 and not jps.buff(208065,Tank) , Tank , "Tuure_Tank" },
 	{ spells.lightOfTuure, jps.hp(LowestUnit) < 0.60 and not jps.buff(208065,LowestUnit) , LowestUnit, "Tuure_Lowest" },
 	-- "Holy Word: Serenity" 2050
@@ -263,13 +264,13 @@ local spellTable = {
 	{ spells.prayerOfMending, not jps.Moving and jps.hp(LowestUnit) > 0.60 and jps.buffTrackerCharge(41635) < CountInRange and MendingFriend ~= nil , MendingFriend , "POM_CountInRange" },
 
 	-- MOUSEOVER --
-	{ "nested", jps.Interrupts and jps.hp("mouseover") < 0.80 and canHeal("mouseover") , {
+	{ "nested", jps.Interrupts and jps.hp("mouseover") < 0.85 and canHeal("mouseover") , {
 		{ spells.flashHeal, not jps.Moving and jps.hp("mouseover") < 0.60 , "mouseover" },
 		{ spells.renew, not jps.buff(spells.renew,"mouseover") , "mouseover" },
 		{ spells.heal, not jps.Moving and jps.hp("mouseover") < 0.80 , "mouseover" },
 	}},
 	-- DPS --
-	{ "nested", jps.Interrupts and canDPS(rangedTarget) and jps.hp(LowestUnit) > 0.60 and jps.buffTracker(41635) and jps.buffTracker(139) , {
+	{ "nested", jps.Interrupts and canDPS(rangedTarget) and jps.hp(LowestUnit) > 0.60 and jps.buffTracker(41635) , {
 		{ spells.holyWordChastise , canDPS(rangedTarget) , rangedTarget },
 		{ spells.holyFire , canDPS(rangedTarget) , rangedTarget  },
 		{ spells.smite , not jps.Moving and canDPS(rangedTarget) , rangedTarget },
@@ -375,7 +376,7 @@ local spellTable = {
 
 	-- "Nova sacrée" 132157
 	{ spells.holyNova, jps.Moving and CheckInteractDistance("target",2) == true and canDPS("target") , "target" },
-	{ spells.smite, jps.Interrupts and not jps.Moving and canDPS("target") , "target" },
+	{ spells.smite, not jps.Moving and canDPS("target") , "target" },
 
 }
 	spell,target = parseSpellTable(spellTable)

@@ -202,7 +202,7 @@ local spellTable = {
 	-- "Guérison de l’ombre" 186263 -- debuff "Shadow Mend" 187464 10 sec
 	{spells.shadowMend, not jps.Moving and not jps.buff(194249) and jps.hp("player") < 0.80 and not jps.buff(15286) and jps.castEverySeconds(186263,4) , "player" },
 	-- "Power Word: Shield" 17
-	{spells.powerWordShield, jps.Defensive and jps.Moving and jps.hasTalent(2,2) and not jps.buff(spells.powerWordShield,"player") and not isUsableShadowWordDeath() , "player" , "Shield_BodySoul" },
+	{spells.powerWordShield, jps.Moving and jps.hasTalent(2,2) and not jps.buff(spells.powerWordShield,"player") and not isUsableShadowWordDeath() , "player" , "Shield_BodySoul" },
 	{spells.powerWordShield, jps.hp("player") < 0.80 and not jps.buff(194249) and not jps.buff(spells.powerWordShield) , "player" },
 	{spells.powerWordShield, canHeal("mouseover") and jps.hp("mouseover") < 0.50 and not jps.buff(spells.powerWordShield,"mouseover") , "mouseover" , "shield_Mouseover" },
 	-- "Guérison de l’ombre" 186263 -- debuff "Shadow Mend" 187464 10 sec
@@ -258,7 +258,6 @@ local spellTable = {
 	{"nested", jps.MultiTarget and not jps.buff(194249) , {
     	{spells.vampiricTouch, not jps.Moving and fnVampEnemyTarget("target") , "target" , "VT_Target" },		
 		{spells.shadowWordPain, fnPainEnemyTarget("target") , "target" , "Pain_Target" },
-		{spells.shadowWordPain, jps.insanity() < 100 and canAttack("mouseover") and fnPainEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "Pain_Mouseover" },
 		{spells.mindFlay, isTargetElite and jps.insanity() < 70 and not jps.Moving and jps.myDebuff(spells.shadowWordPain,"target") , "target" , "mindFlay_MultiTarget" },
 		{spells.mindFlay, not isTargetElite and jps.insanity() < 100 and not jps.Moving and jps.myDebuff(spells.shadowWordPain,"target") , "target" , "mindFlay_MultiTarget" },
 	}},
@@ -277,22 +276,24 @@ local spellTable = {
 		{spells.voidEruption, jps.myDebuff(spells.vampiricTouch,"mouseover") , "mouseover" , "voidBold_Mouseover"},
 		{spells.voidEruption, true , rangedTarget , "voidBold"},
 		
-       	{spells.voidTorrent , not jps.Moving and jps.myDebuffDuration(spells.vampiricTouch,rangedTarget) > 6 and jps.myDebuffDuration(spells.shadowWordPain,rangedTarget) > 6 , rangedTarget , "voidTorrent"},
+		{spells.vampiricTouch, not jps.Moving and jps.myDebuffDuration(spells.vampiricTouch,rangedTarget) < 4 and not jps.isRecast(spells.vampiricTouch,rangedTarget) , rangedTarget , "Refresh_VT_Target" },
+		{spells.shadowWordPain, jps.myDebuffDuration(spells.shadowWordPain,rangedTarget) < 4 and not jps.isRecast(spells.shadowWordPain,rangedTarget) , rangedTarget , "Refresh_Pain_Target" },
 
-	    -- Mind Flay If the target is afflicted with Shadow Word: Pain you will also deal splash damage to nearby targets.
-		{"nested", jps.MultiTarget , {
-			{spells.shadowWordDeath, DeathEnemyTarget ~= nil , DeathEnemyTarget , "Death_MultiTarget" },
-			{spells.shadowWordDeath, true , "mouseover" , "Death_MultiTarget" },
-			{spells.mindBlast, not jps.Moving , rangedTarget , "mindBlast_MultiTarget"},
-			{spells.shadowWordPain, fnPainEnemyTarget("target") , "target" , "Pain_MultiTarget" },
-			{spells.mindFlay, not jps.Moving and jps.myDebuff(spells.shadowWordPain,"target") , "target" , "mindFlay_MultiTarget" },
-		}},
-		
-		{"macro", jps.canCastshadowWordDeath , "/stopcasting" },
+		{spells.voidTorrent , not jps.Moving and jps.myDebuffDuration(spells.vampiricTouch,rangedTarget) > 6 and jps.myDebuffDuration(spells.shadowWordPain,rangedTarget) > 6 , rangedTarget , "voidTorrent"},
+       	
+       	{"macro", jps.canCastshadowWordDeath , "/stopcasting" },
     	{spells.shadowWordDeath, jps.insanity() < 71 , "target" , "Death_Buff" },
     	{spells.shadowWordDeath, jps.insanity() < 71 , "focus" , "Death_Buff" },
 		{spells.shadowWordDeath, jps.insanity() < 71 , DeathEnemyTarget , "Death_Buff" },
 		{spells.shadowWordDeath, jps.insanity() < 71 , "mouseover" , "Death_Buff" },
+		
+		{spells.mindBlast, not jps.Moving , rangedTarget , "mindBlast" },
+       	
+       	{spells.vampiricTouch, not jps.Moving and canAttack("mouseover") and fnVampEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "VT_MultiTarget" },
+		{spells.shadowWordPain, canAttack("mouseover") and fnPainEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "Pain_MultiTarget" },
+
+	    -- Mind Flay If the target is afflicted with Shadow Word: Pain you will also deal splash damage to nearby targets.
+		{spells.mindFlay, jps.MultiTarget and not jps.Moving and jps.myDebuff(spells.shadowWordPain,"target") , "target" , "mindFlay_MultiTarget" },
 
 	    {"macro", jps.canCastMindBlast , "/stopcasting" },
 		{spells.mindBlast, not jps.Moving , rangedTarget , "mindBlast" },

@@ -236,7 +236,7 @@ function jps.canCastshadowWordDeath()
 	local canCastShadowWordDeath = isUsableShadowWordDeath()
 	if not canCastShadowWordDeath then return false end
 	local Channeling = UnitChannelInfo("player") -- "Mind Flay" is a channeling spell
-	local charges = jps.spellCharges(jps.spells.priest.shadowWordDeath) -- "Shadow Word: Death"
+	--local charges = jps.spellCharges(jps.spells.priest.shadowWordDeath)
 	local insanity = jps.insanity()
 	if Channeling ~= nil then
 		if jps.buff(194249) then

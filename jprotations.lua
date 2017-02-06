@@ -281,7 +281,7 @@ function updateDropdownMenu()
 	UIDropDownMenu_SetButtonWidth(DropDownRotationGUI, 100)
 	UIDropDownMenu_JustifyText(DropDownRotationGUI, "LEFT")
 	
-	rotationDropdownHolder:Show()
+	if jps.FaceTarget then rotationDropdownHolder:Hide() else rotationDropdownHolder:Show() end
 
 end
 

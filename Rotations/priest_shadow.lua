@@ -189,9 +189,6 @@ local spellTable = {
 
 	-- "Dispersion" 47585
 	{spells.dispersion, jps.hp("player") < 0.40 },
-	 -- "Etreinte vampirique" buff 15286 -- Un montant de points de vie égal à 40% des dégâts d’Ombre que vous infligez avec des sorts à cible unique
-	{spells.vampiricEmbrace, jps.hp("player") < 0.60 },
-	{spells.vampiricEmbrace, CountInRange > 2 and AvgHealthLoss < 0.80 },
 	{spells.fade, not ispvp and playerAggro },
 
 	-- HEAL --
@@ -205,7 +202,7 @@ local spellTable = {
 	{spells.powerWordShield, canHeal("mouseover") and jps.hp("mouseover") < 0.50 and not jps.buff(spells.powerWordShield,"mouseover") , "mouseover" , "shield_Mouseover" },
 	-- "Guérison de l’ombre" 186263 -- debuff "Shadow Mend" 187464 10 sec
 	{spells.shadowMend, not jps.Moving and not jps.buff(194249) and jps.hp("player") < 0.80 and not jps.buff(15286) and jps.castEverySeconds(186263,4) , "player" },
-	{spells.shadowMend, not jps.Moving and not jps.buff(194249) and canHeal("mouseover") and jps.hp("mouseover") < 0.50 and jps.castEverySeconds(186263,4) , "mouseover" , "shadowMend_Mouseover" },
+	--{spells.shadowMend, not jps.Moving and not jps.buff(194249) and canHeal("mouseover") and jps.hp("mouseover") < 0.50 and jps.castEverySeconds(186263,4) , "mouseover" , "shadowMend_Mouseover" },
 	
 	-- SNM "Levitate" 1706
 	{ 1706, jps.Defensive and jps.fallingFor() > 1.5 and not jps.buff(111759) , "player" },
@@ -221,6 +218,7 @@ local spellTable = {
 	{spells.mindBomb, jps.Interrupts and jps.IsCasting(rangedTarget) and jps.distanceMax(rangedTarget) < 30 , rangedTarget },
 	{spells.mindBomb, jps.Interrupts and jps.IsCasting("focus") and jps.distanceMax("focus") < 30 , "focus" },
 	{spells.mindBomb, jps.Interrupts and jps.MultiTarget , rangedTarget },
+
 	-- "Purify Disease" 213634
 	{ "nested", jps.UseCDs and DispelFriend ~= nil , {
 		{spells.purifyDisease, jps.canDispel("mouseover","Disease") , "mouseover" },
@@ -265,13 +263,17 @@ local spellTable = {
 	
 	{spells.shadowWordDeath, jps.spellCharges(spells.shadowWordDeath) == 2 and jps.insanity() < 100 , "target" , "Death_Charges" },
 	-- "Power Infusion" 10060
-	{spells.powerInfusion, jps.cooldown(spells.mindBlast) < 1 and jps.buffStacks(194249) > 9 and jps.insanity() > 54 and isTargetElite },
+	{spells.powerInfusion, jps.cooldown(spells.mindBlast) < 4 and jps.buffStacks(194249) > 9 and jps.insanity() > 49 and isTargetElite },
 
 	{"nested", jps.buff(194249) , {
+		-- "Etreinte vampirique" buff 15286 -- pendant 15 sec, vous permet de rendre à un allié proche, un montant de points de vie égal à 40% des dégâts d’Ombre que vous infligez avec des sorts à cible unique
+		{spells.vampiricEmbrace, not IsInRaid() and jps.hp("player") < 0.60 },
+		{spells.vampiricEmbrace, CountInRange > 2 and AvgHealthLoss < 0.80 },
+
 		-- spells.mindbender -- 15 seconds cd 1 min
    		{spells.shadowfiend, jps.buffStacks(194249) > 9 , rangedTarget , "high_shadowfiend_Buff" },
 		{spells.mindbender,  jps.buffStacks(194249) > 9 , rangedTarget , "high_mindbender_Buff" },
-		{spells.mindbender, jps.insanity() < 55 , rangedTarget , "low_mindbender_Buff" },
+		{spells.mindbender, jps.insanity() < 50 , rangedTarget , "low_mindbender_Buff" },
 		
 		{"macro", jps.canCastvoidBolt , "/stopcasting" },
 		{spells.voidEruption, VoidBoltTarget ~= nil , VoidBoltTarget , "voidBold_MultiUnit"},
@@ -279,7 +281,7 @@ local spellTable = {
 		{spells.voidEruption, jps.myDebuff(spells.vampiricTouch,"mouseover") , "mouseover" , "voidBold_Mouseover"},
 		{spells.voidEruption, true , rangedTarget , "voidBold"},
 
-   		-- "Vampiric Touch" heals the Priest for 50% of damage 24 sec
+		-- "Vampiric Touch" heals the Priest for 50% of damage 24 sec
 		{spells.vampiricTouch, not jps.Moving and jps.myDebuffDuration(spells.vampiricTouch,rangedTarget) < 4 and not jps.isRecast(spells.vampiricTouch,rangedTarget) , rangedTarget , "Refresh_VT_Target" },
 		{spells.shadowWordPain, jps.myDebuffDuration(spells.shadowWordPain,rangedTarget) < 4 and not jps.isRecast(spells.shadowWordPain,rangedTarget) , rangedTarget , "Refresh_Pain_Target" },
 

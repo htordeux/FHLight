@@ -280,6 +280,23 @@ end)
 -- EVENT FUNCTIONS
 --------------------------
 
+-- Nameplates
+local nameplate = function ()
+	SetCVar("nameplateMaxDistance", 45)
+	SetCVar("nameplateLargeTopInset", -1)
+	SetCVar("nameplateOtherTopInset", -1)
+	SetCVar("nameplateLargeBottomInset", -1)
+	SetCVar("nameplateOtherBottomInset", -1)
+	--SetCVar("nameplateHorizontalScale", 1.0)
+	--SetCVar("namePlateVerticalScale", 1.0)
+	--SetCVar("nameplateLargerScale", 1.0 )
+	--SetCVar("nameplateSelectedScale", 0.9)
+	--SetCVar("nameplateMinAlpha", 0.8)
+	SetCVar("ShowDispelDebuffs", 0)
+	SetCVar("nameplateMotion", 1)
+	SetCVar("nameplateShowSelf", 0)
+end
+
 -- PLAYER_LOGIN
 jps.events.registerEvent("PLAYER_LOGIN", function()
 	NotifyInspect("player")
@@ -293,6 +310,7 @@ jps.events.registerEvent("PLAYER_ENTERING_WORLD", function()
 	jps.UpdateRaidStatus()
 	jps.UpdateRaidRole()
 	updateDropdownMenu()
+	nameplate()
 end)
 
 -- INSPECT_READY
@@ -482,6 +500,94 @@ end)
 --		print("SPELLCAST_STOP: ",unitID,"spellname:",spellname,"spellID: ",spellID)
 --	end
 --end)
+
+----------------------
+-- NAMEPLATES
+----------------------
+--[[
+
+SetCVar("nameplateMaxDistance", 45)
+The nameplates show up at 45 yards (the old default was 40 I believe, the new one is 60).
+
+SetCVar("nameplateLargeTopInset", -1)
+SetCVar("nameplateOtherTopInset", -1)
+SetCVar("nameplateLargeBottomInset", -1)
+SetCVar("nameplateOtherBottomInset", -1)
+These stop the nameplates from showing up and jumping around when the character isn't in your field of vision anymore.
+
+SetCVar("nameplateHorizontalScale", 1)
+SetCVar("nameplateLargerScale", 1)
+
+SetCVar("nameplateSelectedScale", 0.9)
+Makes the nameplate of your target not as ridiculously big.
+
+SetCVar("nameplateMinAlpha", 0.8)
+Makes the nameplates that you aren't targeting easier to see (less transparent).
+
+SetCVar("NoBuffDebuffFilterOnTarget", 1)
+Doesn't have anything to do with the nameplates, but it once again makes it show all debuffs on the enemy, not just yours.
+
+Mind you, you need to do this for every single character. You can make it into an addon to make it automatic though, here's the code I use:
+
+local Frame = CreateFrame("Frame")
+Frame:RegisterEvent("PLAYER_LOGIN")
+
+Frame:SetScript("OnEvent", function(...)
+SetCVar("nameplateMaxDistance", 45)
+SetCVar("nameplateLargeTopInset", -1)
+SetCVar("nameplateOtherTopInset", -1)
+SetCVar("nameplateLargeBottomInset", -1)
+SetCVar("nameplateOtherBottomInset", -1)
+SetCVar("nameplateHorizontalScale", 1)
+SetCVar("nameplateLargerScale", 1)
+SetCVar("nameplateSelectedScale", 0.9)
+SetCVar("nameplateMinAlpha", 0.8)
+SetCVar("ShowDispelDebuffs", 0)
+SetCVar("NoBuffDebuffFilterOnTarget", 1)
+SetCVar("nameplateMotion", 1) -- 1 doesn't allow nameplates to overlap
+end)
+
+Overlapping vertically
+/script SetCVar("nameplateOverlapV", 0.35)
+Default to this one is 1.1
+Overlapping Horizontally
+/script SetCVar("nameplateOverlapH", 0.35)
+Default is 0.8. Change value with a number.
+
+
+SET spreadnameplates value
+1 Nameplates may not overlap, and will be constantly shuffled around to fit on the screen while remaining as close as possible to their units.
+0 Nameplates may overlap, and will stay more or less directly above the units they represent.
+
+Note: If you stop using this addon the cvars will still stay the same, but you can change them back
+/run for _, v in pairs({"nameplateMaxDistance", "nameplateOtherTopInset", "nameplateOtherBottomInset"}) do SetCVar(v, GetCVarDefault(v)) end
+
+]]
+
+local activeUnitPlates = {}
+
+local function AddNameplate(unitID)
+	local nameplate = C_NamePlate.GetNamePlateForUnit(unitID)
+	if UnitCanAttack("player",unitID) then
+		activeUnitPlates[unitID] = nameplate:GetName()
+	end
+end
+
+local function RemoveNameplate(unitID)
+	activeUnitPlates[unitID] = nil
+end
+
+jps.events.registerEvent("NAME_PLATE_UNIT_ADDED", function(unitID)
+	AddNameplate(unitID)
+end)
+
+jps.events.registerEvent("NAME_PLATE_UNIT_REMOVED", function(unitID)
+	RemoveNameplate(unitID)
+end)
+
+function jps.NamePlate()
+	return activeUnitPlates
+end
 
 ----------------------
 -- LOSS_OF_CONTROL

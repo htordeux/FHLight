@@ -30,7 +30,7 @@ jps.registerRotation("PRIEST","HOLY", function()
 	local CountInRange, AvgHealthRaid, FriendUnit, FriendLowest = jps.CountInRaidStatus(0.80) -- CountInRange return raid count unit below healpct -- FriendUnit return table with all raid unit in range
 	local LowestUnit, LowestUnitPrev = jps.LowestImportantUnit() -- if jps.Defensive then LowestUnit is {"player","mouseover","target","focus","targettarget","focustarget"}
 
-	local Tank,TankUnit = jps.findRaidTank() -- default "player"
+	local Tank,TankUnit = jps.findRaidTank() -- default "focus" "player"
 	local TankTarget = Tank.."target"
 	local TankThreat = jps.findRaidTankThreat()
 
@@ -313,9 +313,11 @@ local spellTable = {
 	{ "nested", not jps.Moving and jps.hasTalent(1,1) and jps.hp(LowestUnit) < 0.70 and jps.LastCastUnit(spells.flashHeal) ~= "none" ,{
 		{ spells.flashHeal, jps.LastCastUnit(spells.flashHeal) ~= LowestUnit and CountInRange < 4 , LowestUnit , "Emergency_LastCast_Lowest" },
 		{ spells.flashHeal, IsInRaid() and jps.LastCastUnit(spells.flashHeal) ~= LowestUnit and CountInRange < 6 , LowestUnit , "Emergency_LastCast_Lowest" },
-		{ spells.flashHeal, jps.LastCastUnit(spells.flashHeal) == TankThreat and jps.hp(TankThreat) > jps.hp(LowestUnit) , LowestUnit , "Emergency_LastCast_Tank" },
+		{ spells.flashHeal, jps.LastCastUnit(spells.flashHeal) == Tank and jps.hp(Tank) > jps.hp(LowestUnit) , LowestUnit , "Emergency_LastCast_Tank" },
+		{ spells.flashHeal, jps.LastCastUnit(spells.flashHeal) == TankThreat and jps.hp(TankThreat) > jps.hp(LowestUnit) , LowestUnit , "Emergency_LastCast_TankThreat" },
 	}},
 	{ spells.flashHeal, jps.hp(TankThreat) < 0.50 , TankThreat , "Emergency_Tank"  },
+	{ spells.flashHeal, jps.hp(Tank) < 0.50 , Tank , "Emergency_Tank"  },
 	{ "nested", not jps.Moving and jps.hp(LowestUnit) < 0.50 and jps.hp(TankThreat) > jps.hp(LowestUnit) and CountInRange < 6 ,{
 		{ spells.flashHeal, not IsInRaid() and CountInRange < 4 , LowestUnit , "Emergency_Lowest_50" },
 		{ spells.flashHeal, IsInRaid() , LowestUnit , "Emergency_Lowest_50" },
@@ -393,7 +395,7 @@ Below, we use the Heal Icon Heal spell to provide you with an example of a mouse
 jps.registerRotation("PRIEST","HOLY",function()
 
 	local LowestUnit,_ = jps.LowestImportantUnit()
-	local Tank,TankUnit = jps.findRaidTank() -- default "player"
+	local Tank,TankUnit = jps.findRaidTank() -- default "focus" "player"
 
 	if IsMounted() then return end
 	

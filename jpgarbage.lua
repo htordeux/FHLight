@@ -70,7 +70,7 @@ local function DkTest()
 
 end
 
-function jps_RaidTest()
+function jps.RaidTest()
 	jps.LookupRaid()
 end
 
@@ -86,16 +86,21 @@ function ChatRandom()
 	SendChatMessage("bonsoir"..str , "GUILD" )
 end
  
-function jps_Test()
+function jps.Test()
 
 Test()
+
+--local table = jps.NamePlate()
+--for unit,id in pairs(table) do
+--	print("unit",unit,"ID",not jps.myDebuff(jps.spells.priest.shadowWordPain,unit))
+--end
 
 --local table = jps.LastCastUnitEval()
 --for spell,unit in pairs(table) do
 --	print("|cff1eff00Spell: |cffffffff",spell,"|cff1eff00Unit: |cffffffff",unit)
 --end
 
-print("|cff1eff00prayerOfMendingBuff: |cffffffff",jps.buffTrackerCharge(41635))
+--print("|cff1eff00prayerOfMendingBuff: |cffffffff",jps.buffTrackerCharge(41635))
 
 --local RaidStatusDebuff = jps.RaidStatusDebuff()
 --write("RaidStatusDebuff: ",jps.tableLength(RaidStatusDebuff))

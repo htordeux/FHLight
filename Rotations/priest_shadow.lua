@@ -43,6 +43,14 @@ local ispvp = UnitIsPVP("player")
 -- TARGET ENEMY
 ----------------------
 
+local NamePlateTable = jps.NamePlate()
+local NamePlateTarget = nil
+for unit,_ in pairs(NamePlateTable) do
+	if not jps.myDebuff(jps.spells.priest.shadowWordPain,unit) and canAttack(unit) then
+		NamePlateTarget = unit 
+	break end
+end
+
 -- rangedTarget returns "target" by default, sometimes could be friend
 local rangedTarget, EnemyUnit, TargetCount = jps.LowestTarget()
 
@@ -52,11 +60,11 @@ if not jps.UnitExists("focus") and canAttack("mouseover") then
 	if UnitIsUnit("mouseovertarget","player") and not UnitIsUnit("target","mouseover") then
 		jps.Macro("/focus mouseover") --print("Enemy DAMAGER|cff1eff00 "..name.." |cffffffffset as FOCUS")
 	-- set focus an enemy in combat
-	elseif canAttack("mouseover") and not UnitIsUnit("target","mouseover") and not jps.myDebuff(spells.vampiricTouch,"mouseover") then
+	elseif not UnitIsUnit("target","mouseover") and not jps.myDebuff(spells.vampiricTouch,"mouseover") then
 		jps.Macro("/focus mouseover") --print("Enemy COMBAT|cff1eff00 "..name.." |cffffffffset as FOCUS not DEBUFF")
-	elseif canAttack("mouseover") and not UnitIsUnit("target","mouseover") and not jps.myDebuff(spells.shadowWordPain,"mouseover") then
+	elseif not UnitIsUnit("target","mouseover") and not jps.myDebuff(spells.shadowWordPain,"mouseover") then 
 		jps.Macro("/focus mouseover") --print("Enemy COMBAT|cff1eff00 "..name.." |cffffffffset as FOCUS not DEBUFF")
-	elseif canAttack("mouseover") and not UnitIsUnit("target","mouseover") then
+	elseif not UnitIsUnit("target","mouseover") then
 		jps.Macro("/focus mouseover")
 	end
 end
@@ -65,6 +73,14 @@ if jps.UnitExists("focus") and UnitIsUnit("target","focus") then
 	jps.Macro("/clearfocus")
 elseif jps.UnitExists("focus") and not canDPS("focus") then
 	jps.Macro("/clearfocus")
+end
+
+if NamePlateTarget ~= nil and UnitIsUnit("mouseover",NamePlateTarget) then
+	if jps.UnitExists("focus") and jps.myDebuffDuration(spells.vampiricTouch,"focus") > 6 and jps.myDebuffDuration(spells.shadowWordPain,"focus") > 6 then
+		jps.Macro("/focus mouseover")
+	elseif not jps.UnitExists("focus") then
+		jps.Macro("/focus mouseover")
+	end
 end
 
 if canDPS("target") then rangedTarget =  "target"
@@ -224,7 +240,7 @@ local spellTable = {
 		{spells.purifyDisease, jps.canDispel("mouseover","Disease") , "mouseover" },
 		{spells.purifyDisease, jps.canDispel("player","Disease") , "player" },
 		{spells.purifyDisease, jps.canDispel(Tank,"Disease") , Tank },
-		{spells.purifyDisease, true , DispelFriend },
+		{spells.purifyDisease, DispelFriend ~= nil , DispelFriend },
 	}},
 	-- OFFENSIVE Dispel -- "Dissipation de la magie" 528
 	{ "nested", ispvp and jps.hp(LowestUnit) > 0.60 , {
@@ -235,75 +251,52 @@ local spellTable = {
 	-- TRINKETS -- jps.useTrinket(0) est "Trinket0Slot" est slotId  13 -- "jps.useTrinket(1) est "Trinket1Slot" est slotId  14
 	-- { "macro", jps.useTrinket(1) , "/use 14"},
 
-	-- "Mind Blast" -- Opening -- "Voidform" buff 194249 -- "Lingering Insanity" buff 19793
-	{"nested", isTargetElite and not jps.buff(194249) and jps.insanity() < 70 , {
-		{spells.mindBlast, not jps.Moving , rangedTarget , "mindBlast_Opening"},
-		{spells.shadowWordDeath, true , "target" , "Death_Buff" },
-		{spells.shadowWordDeath, DeathEnemyTarget ~= nil , DeathEnemyTarget , "Death_Opening" },
-		{spells.shadowWordDeath, true , "mouseover" , "Death_Opening" },
-	}},
-	-- "Mot de l’ombre : Mort" 199911
-	{"nested", not isTargetElite and not jps.buff(194249) , {
-		{spells.mindBlast, not jps.Moving , rangedTarget , "mindBlast_Opening"},
-		{spells.shadowWordDeath, true , "target" , "Death_Buff" },
-		{spells.shadowWordDeath, DeathEnemyTarget ~= nil , DeathEnemyTarget , "Death_Opening" },
-		{spells.shadowWordDeath, true , "mouseover" , "Death_Opening" },
-	}},
-
     -- "Déferlante d’ombre" 205385
     {spells.shadowCrash, jps.hasTalent(7,2) , rangedTarget , "shadowCrash" },
+    
+   	{spells.voidEruption, not jps.buff(194249) and jps.hasTalent(7,1) and jps.insanity() > 69 and not jps.Moving and isTargetElite  , rangedTarget , "voidEruption" },
+	{spells.voidEruption, not jps.buff(194249) and jps.insanity() == 100 and not jps.Moving and isTargetElite , rangedTarget , "voidEruption" },
+    {spells.voidEruption, not jps.buff(194249) and jps.insanity() == 100 and not jps.Moving and jps.EnemyCount() > 2 , rangedTarget , "voidEruption_MultiTarget" },
+    
+   	{spells.shadowWordDeath, jps.spellCharges(spells.shadowWordDeath) == 2 and jps.insanity() < 100 , "target" , "Death_Charges" },
 
-    -- Mind Flay If the target is afflicted with Shadow Word: Pain you will also deal splash damage to nearby targets.	
-	{"nested", jps.MultiTarget and not jps.buff(194249) , {
-    	{spells.vampiricTouch, not jps.Moving and fnVampEnemyTarget("target") , "target" , "VT_Target" },		
-		{spells.shadowWordPain, fnPainEnemyTarget("target") , "target" , "Pain_Target" },
-		{spells.mindFlay, isTargetElite and jps.insanity() < 70 and not jps.Moving and jps.myDebuff(spells.shadowWordPain,"target") , "target" , "mindFlay_MultiTarget" },
-		{spells.mindFlay, not isTargetElite and jps.insanity() < 100 and not jps.Moving and jps.myDebuff(spells.shadowWordPain,"target") , "target" , "mindFlay_MultiTarget" },
-	}},
-	
-	{spells.shadowWordDeath, jps.spellCharges(spells.shadowWordDeath) == 2 and jps.insanity() < 100 , "target" , "Death_Charges" },
-	-- "Power Infusion" 10060
+   	-- "Power Infusion" 10060
 	{spells.powerInfusion, jps.cooldown(spells.mindBlast) < 4 and jps.buffStacks(194249) > 9 and jps.insanity() > 49 and isTargetElite },
-
-	{"nested", jps.buff(194249) , {
-		-- "Etreinte vampirique" buff 15286 -- pendant 15 sec, vous permet de rendre à un allié proche, un montant de points de vie égal à 40% des dégâts d’Ombre que vous infligez avec des sorts à cible unique
-		{spells.vampiricEmbrace, not IsInRaid() and jps.hp("player") < 0.60 },
-		{spells.vampiricEmbrace, CountInRange > 2 and AvgHealthLoss < 0.80 },
-
-		-- spells.mindbender -- 15 seconds cd 1 min
-   		{spells.shadowfiend, jps.buffStacks(194249) > 9 , rangedTarget , "high_shadowfiend_Buff" },
-		{spells.mindbender,  jps.buffStacks(194249) > 9 , rangedTarget , "high_mindbender_Buff" },
-		{spells.mindbender, jps.insanity() < 50 , rangedTarget , "low_mindbender_Buff" },
-		
+	-- spells.mindbender -- 15 seconds cd 1 min
+	{spells.shadowfiend, jps.buffStacks(194249) > 9 , rangedTarget , "high_shadowfiend_Buff" },
+	{spells.mindbender,  jps.buffStacks(194249) > 9 , rangedTarget , "high_mindbender_Buff" },
+    
+   	{"nested", jps.buff(194249) , {
 		{"macro", jps.canCastvoidBolt , "/stopcasting" },
 		{spells.voidEruption, VoidBoltTarget ~= nil , VoidBoltTarget , "voidBold_MultiUnit"},
 		{spells.voidEruption, jps.myDebuff(spells.shadowWordPain,"mouseover") , "mouseover" , "voidBold_Mouseover"},
 		{spells.voidEruption, jps.myDebuff(spells.vampiricTouch,"mouseover") , "mouseover" , "voidBold_Mouseover"},
 		{spells.voidEruption, true , rangedTarget , "voidBold"},
 
+		-- "Etreinte vampirique" buff 15286 -- pendant 15 sec, vous permet de rendre à un allié proche, un montant de points de vie égal à 40% des dégâts d’Ombre que vous infligez avec des sorts à cible unique
+		{spells.vampiricEmbrace, not IsInRaid() and jps.hp("player") < 0.60 },
+		{spells.vampiricEmbrace, CountInRange > 2 and AvgHealthLoss < 0.80 },
+
 		-- "Vampiric Touch" heals the Priest for 50% of damage 24 sec
 		{spells.vampiricTouch, not jps.Moving and jps.myDebuffDuration(spells.vampiricTouch,rangedTarget) < 4 and not jps.isRecast(spells.vampiricTouch,rangedTarget) , rangedTarget , "Refresh_VT_Target" },
 		{spells.shadowWordPain, jps.myDebuffDuration(spells.shadowWordPain,rangedTarget) < 4 and not jps.isRecast(spells.shadowWordPain,rangedTarget) , rangedTarget , "Refresh_Pain_Target" },
 
 		{spells.voidTorrent , not jps.Moving and jps.myDebuffDuration(spells.vampiricTouch,rangedTarget) > 6 and jps.myDebuffDuration(spells.shadowWordPain,rangedTarget) > 6 , rangedTarget , "voidTorrent"},
-
+    	
        	{"macro", jps.canCastshadowWordDeath , "/stopcasting" },
     	{spells.shadowWordDeath, jps.insanity() < 71 , "target" , "Death_Buff" },
 		{spells.shadowWordDeath, jps.insanity() < 71 and DeathEnemyTarget ~= nil , DeathEnemyTarget , "Death_Buff" },
 		{spells.shadowWordDeath, jps.insanity() < 71 , "mouseover" , "Death_Buff" },
 		
+		{spells.vampiricTouch, not jps.Moving and fnVampEnemyTarget("focus") , "focus" , "VT_Focus" },
+    	{spells.shadowWordPain, fnPainEnemyTarget("focus") , "focus" , "Pain_Focus" },
+
 		{"macro", jps.canCastMindBlast , "/stopcasting" },
 		{spells.mindBlast, not jps.Moving , rangedTarget , "mindBlast" },
 
-   		-- "Vampiric Touch" heals the Priest for 50% of damage 24 sec
-    	{spells.vampiricTouch, not jps.Moving and fnVampEnemyTarget("focus") , "focus" , "VT_Focus" },
-    	{spells.shadowWordPain, fnPainEnemyTarget("focus") , "focus" , "Pain_Focus" }, 
-       	{spells.vampiricTouch, not jps.Moving and canAttack("mouseover") and fnVampEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "VT_MultiTarget" },
-		{spells.shadowWordPain, canAttack("mouseover") and fnPainEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "Pain_MultiTarget" },
-
-	    -- Mind Flay If the target is afflicted with Shadow Word: Pain you will also deal splash damage to nearby targets.
+		-- Mind Flay If the target is afflicted with Shadow Word: Pain you will also deal splash damage to nearby targets.
 		{spells.mindFlay, jps.MultiTarget and not jps.Moving and jps.myDebuff(spells.shadowWordPain,"target") , "target" , "mindFlay_MultiTarget" },
-		
+
 		-- "Power Word: Shield" 17	
 		{spells.powerWordShield, jps.hp("player") < 0.60 and not jps.buff(spells.powerWordShield) , "player" },
 
@@ -311,41 +304,28 @@ local spellTable = {
 		--{spells.dispersion, jps.hasTalent(6,3) and jps.insanity() > 21 and jps.insanity() < 71 and jps.cooldown(spells.mindbender) > 51 , "player" , "DISPERSION_Insanity_Mindbender" },
 	}},
 
-	{spells.vampiricTouch, not jps.buff(194249) and not jps.Moving and jps.myDebuffDuration(spells.vampiricTouch,rangedTarget) < 4 and not jps.isRecast(spells.vampiricTouch,rangedTarget) , rangedTarget , "Refresh_VT_Target" },
-	{spells.shadowWordPain, not jps.buff(194249) and jps.myDebuffDuration(spells.shadowWordPain,rangedTarget) < 4 and not jps.isRecast(spells.shadowWordPain,rangedTarget) , rangedTarget , "Refresh_Pain_Target" },
-	
-	{spells.voidEruption, not jps.buff(194249) and jps.hasTalent(7,1) and jps.insanity() > 69 and not jps.Moving and isTargetElite  , rangedTarget , "voidEruption" },
-	{spells.voidEruption, not jps.buff(194249) and jps.insanity() == 100 and not jps.Moving and isTargetElite , rangedTarget , "voidEruption" },
-    {spells.voidEruption, not jps.buff(194249) and jps.insanity() == 100 and not jps.Moving and jps.EnemyCount() > 3 , rangedTarget , "voidEruption_MultiTarget" },
-
 	-- "Mot de l’ombre : Mort" 199911
 	{"macro", jps.canCastshadowWordDeath , "/stopcasting" },
-	{spells.shadowWordDeath, true , "target" , "Death_Buff" },
-	{spells.shadowWordDeath, DeathEnemyTarget ~= nil , DeathEnemyTarget , "Death" },
-	{spells.shadowWordDeath, true , "mouseover" , "Death" },
-	
+	{spells.shadowWordDeath, not jps.buff(194249) , "target" , "Death" },
+	{spells.shadowWordDeath, not jps.buff(194249) and DeathEnemyTarget ~= nil , DeathEnemyTarget , "Death" },
+	{spells.shadowWordDeath, not jps.buff(194249) , "mouseover" , "Death" },
+
+	-- "Mind Blast" -- "Voidform" buff 194249 -- "Lingering Insanity" buff 19793
 	{"macro", jps.canCastMindBlast , "/stopcasting" },
 	{spells.mindBlast, not jps.Moving , rangedTarget , "mindBlast"},
 
-	-- "Misery" -- Vampiric Touch also applies Shadow Word: Pain to the target.
-    {"nested", jps.hasTalent(6,2) and not jps.Moving , {
-        {spells.vampiricTouch, fnVampEnemyTarget("target") , "target" , "VT_Target" },
-        {spells.vampiricTouch, fnVampEnemyTarget("focus") , "focus" , "VT_Focus" },
-        {spells.vampiricTouch, VampEnemyTarget ~= nil and not UnitIsUnit("target",VampEnemyTarget) , VampEnemyTarget , "VT_MultiUnit" },
-        {spells.vampiricTouch, canAttack("mouseover") and fnVampEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "VT_Mouseover" },
-    }},
-   
-   	-- "Vampiric Touch" heals the Priest for 50% of damage 24 sec
-    {spells.vampiricTouch, not jps.Moving and fnVampEnemyTarget("focus") , "focus" , "VT_Focus" },
+	-- "Vampiric Touch" heals the Priest for 50% of damage 24 sec
+	-- "Shadow Word: Pain" 18 sec
+	-- "Misery" -- jps.hasTalent(6,2) -- Vampiric Touch also applies Shadow Word: Pain to the target.
+	{spells.vampiricTouch, not jps.Moving and fnVampEnemyTarget("target") , "target" , "VT_Target" },		
+	{spells.shadowWordPain, fnPainEnemyTarget("target") , "target" , "Pain_Target" },
+	{spells.vampiricTouch, not jps.Moving and fnVampEnemyTarget("focus") , "focus" , "VT_Focus" },
     {spells.shadowWordPain, fnPainEnemyTarget("focus") , "focus" , "Pain_Focus" },
 
-    -- "Shadow Word: Pain" 18 sec
     {spells.vampiricTouch, not jps.Moving and VampEnemyTarget ~= nil and not UnitIsUnit("target",VampEnemyTarget) , VampEnemyTarget , "VT_MultiUnit" },
     {spells.shadowWordPain, PainEnemyTarget ~= nil and not UnitIsUnit("target",PainEnemyTarget) , PainEnemyTarget , "Pain_MultiUnit" },
-
-    -- "Vampiric Touch" heals the Priest for 50% of damage 24 sec
     {spells.vampiricTouch, not jps.Moving and canAttack("mouseover") and fnVampEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "VT_Mouseover" },
-    {spells.shadowWordPain, canAttack("mouseover") and fnPainEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "Pain_Mouseover" },
+    {spells.shadowWordPain, canAttack("mouseover") and fnPainEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "Pain_Mouseover" }, 
 
     -- Mind Flay Insanity generation has been increased
     {spells.mindFlay, not jps.Moving },

@@ -28,12 +28,11 @@ write("***************************")
 --	print("Interrupt:|cff0070dd ", jps.checkTimer("PlayerInterrupt"))
 --	print("|cFFFF0000Aggro:|cff0070dd ", jps.FriendAggro("player"))
 --	print("ControlEvents: ",jps.ControlEvents())
---	print("|cff1eff00EnemyCount: ",jps.EnemyCount())
+--	local TargetGroup, HealthGroup = jps.FindSubGroupHeal()
+--	print("|cff1eff00Target: |cffffffff",TargetGroup,"|cff1eff00HealthGroup: |cffffffff",HealthGroup)
 print("|cFFFF0000IncDamage: ", jps.IncomingDamage("target"))
 print("|cff1eff00IncHeal: ", jps.IncomingHeal("target"))
 print("|cff1eff00TTDTarget: |cffffffff",jps.TimeToDie("target"))
-local TargetGroup, HealthGroup = jps.FindSubGroupHeal()
-print("|cff1eff00Target: |cffffffff",TargetGroup,"|cff1eff00HealthGroup: |cffffffff",HealthGroup)
 local CountInRange, AvgHealthRaid, FriendUnit, FriendLowest = jps.CountInRaidStatus(0.80)
 print("|cff1eff00CountInRange: |cffffffff",CountInRange,"|cff1eff00FriendUnit: |cffffffff",#FriendUnit,"|cff1eff00AvgHealthRaid: |cffffffff",AvgHealthRaid,"|cff1eff00FriendLowest: |cffffffff",GetUnitName(FriendLowest))
 local LowestUnit, LowestUnitPrev = jps.LowestImportantUnit()
@@ -50,7 +49,6 @@ for i=1,#Threats do
 	print("|cFFFF0000TankThreat: |cffffffff",GetUnitName(Threats[i]))
 end
 write("***************************")
-print("jps.EnemyCount",jps.EnemyCount())
 
 end
 
@@ -90,10 +88,7 @@ function jps.Test()
 
 Test()
 
---local table = jps.NamePlate()
---for unit,id in pairs(table) do
---	print("unit",unit,"ID",not jps.myDebuff(jps.spells.priest.shadowWordPain,unit))
---end
+print("EnemyCount:",jps.EnemyCount(),"PlateCount:",jps.NamePlateCount())
 
 --local table = jps.LastCastUnitEval()
 --for spell,unit in pairs(table) do

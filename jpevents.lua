@@ -589,6 +589,14 @@ function jps.NamePlate()
 	return activeUnitPlates
 end
 
+function jps.NamePlateCount()
+	local plateCount = 0
+	for unit,_ in pairs(activeUnitPlates) do
+		if UnitAffectingCombat(unit) then plateCount = plateCount + 1 end
+	end
+	return plateCount
+end
+
 ----------------------
 -- LOSS_OF_CONTROL
 ----------------------
@@ -969,9 +977,6 @@ function jps.IncomingHeal(unit)
 	end
 	return totalHeal
 end
-
--- TABLE OF ENEMY GUID TARGETING FRIEND GUID
--- EnemyDamager[enemyGuid] = { ["friendguid"] = friendGuid , ["friendaggro"] = GetTime() }
 
 jps.EnemyHealer = function(unit)
 	local unitguid = UnitGUID(unit)

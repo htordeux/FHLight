@@ -8,6 +8,8 @@ local UnitChannelInfo = UnitChannelInfo
 local GetSpellInfo = GetSpellInfo
 local UnitAffectingCombat = UnitAffectingCombat
 local UnitIsUnit = UnitIsUnit
+local EnemyCount = jps.EnemyCount
+local NamePlateCount = jps.NamePlateCount
 
 ------------------------------------------------------------------------------------------------------
 ---------------------------------------------- ROTATION ----------------------------------------------
@@ -46,7 +48,7 @@ local ispvp = UnitIsPVP("player")
 local NamePlateTable = jps.NamePlate()
 local NamePlateTarget = nil
 for unit,_ in pairs(NamePlateTable) do
-	if not jps.myDebuff(jps.spells.priest.shadowWordPain,unit) and canAttack(unit) then
+	if canAttack(unit) and not jps.myDebuff(jps.spells.priest.shadowWordPain,unit) then
 		NamePlateTarget = unit 
 	break end
 end
@@ -97,6 +99,7 @@ local isTargetElite = false
 if jps.targetIsBoss("target") then isTargetElite = true
 elseif jps.hp("target") > 0.50 then isTargetElite = true
 elseif string.find(GetUnitName("target"),"Mannequin") ~= nil then isTargetElite = true
+elseif NamePlateCount() > 2 then isTargetElite = true
 end
 
 ------------------------
@@ -153,7 +156,7 @@ for i=1,#EnemyUnit do -- for _,unit in ipairs(EnemyUnit) do
 end
 
 local VoidBoltTarget = nil
-local VoidBoltTargetDuration = 20
+local VoidBoltTargetDuration = 24
 for i=1,#EnemyUnit do -- for _,unit in ipairs(EnemyUnit) do
 	local unit = EnemyUnit[i]
 	if jps.myDebuff(spells.shadowWordPain,unit) then
@@ -256,7 +259,7 @@ local spellTable = {
     
    	{spells.voidEruption, not jps.buff(194249) and jps.hasTalent(7,1) and jps.insanity() > 69 and not jps.Moving and isTargetElite  , rangedTarget , "voidEruption" },
 	{spells.voidEruption, not jps.buff(194249) and jps.insanity() == 100 and not jps.Moving and isTargetElite , rangedTarget , "voidEruption" },
-    {spells.voidEruption, not jps.buff(194249) and jps.insanity() == 100 and not jps.Moving and jps.EnemyCount() > 2 , rangedTarget , "voidEruption_MultiTarget" },
+	{spells.voidEruption, not jps.buff(194249) and jps.insanity() == 100 and not jps.Moving and NamePlateCount() > 2 , rangedTarget , "voidEruption_MultiTarget" },
     
    	{spells.shadowWordDeath, jps.spellCharges(spells.shadowWordDeath) == 2 and jps.insanity() < 100 , "target" , "Death_Charges" },
 
@@ -280,6 +283,8 @@ local spellTable = {
 		-- "Vampiric Touch" heals the Priest for 50% of damage 24 sec
 		{spells.vampiricTouch, not jps.Moving and jps.myDebuffDuration(spells.vampiricTouch,rangedTarget) < 4 and not jps.isRecast(spells.vampiricTouch,rangedTarget) , rangedTarget , "Refresh_VT_Target" },
 		{spells.shadowWordPain, jps.myDebuffDuration(spells.shadowWordPain,rangedTarget) < 4 and not jps.isRecast(spells.shadowWordPain,rangedTarget) , rangedTarget , "Refresh_Pain_Target" },
+		{spells.vampiricTouch, not jps.Moving and fnVampEnemyTarget("focus") , "focus" , "VT_Focus" },
+    	{spells.shadowWordPain, fnPainEnemyTarget("focus") , "focus" , "Pain_Focus" },
 
 		{spells.voidTorrent , not jps.Moving and jps.myDebuffDuration(spells.vampiricTouch,rangedTarget) > 6 and jps.myDebuffDuration(spells.shadowWordPain,rangedTarget) > 6 , rangedTarget , "voidTorrent"},
     	
@@ -287,15 +292,9 @@ local spellTable = {
     	{spells.shadowWordDeath, jps.insanity() < 71 , "target" , "Death_Buff" },
 		{spells.shadowWordDeath, jps.insanity() < 71 and DeathEnemyTarget ~= nil , DeathEnemyTarget , "Death_Buff" },
 		{spells.shadowWordDeath, jps.insanity() < 71 , "mouseover" , "Death_Buff" },
-		
-		{spells.vampiricTouch, not jps.Moving and fnVampEnemyTarget("focus") , "focus" , "VT_Focus" },
-    	{spells.shadowWordPain, fnPainEnemyTarget("focus") , "focus" , "Pain_Focus" },
 
 		{"macro", jps.canCastMindBlast , "/stopcasting" },
 		{spells.mindBlast, not jps.Moving , rangedTarget , "mindBlast" },
-
-		-- Mind Flay If the target is afflicted with Shadow Word: Pain you will also deal splash damage to nearby targets.
-		{spells.mindFlay, jps.MultiTarget and not jps.Moving and jps.myDebuff(spells.shadowWordPain,"target") , "target" , "mindFlay_MultiTarget" },
 
 		-- "Power Word: Shield" 17	
 		{spells.powerWordShield, jps.hp("player") < 0.60 and not jps.buff(spells.powerWordShield) , "player" },
@@ -303,6 +302,10 @@ local spellTable = {
 		-- Low Insanity coming up (Shadow Word: Death , Void Bolt , Mind Blast , AND Void Torrent are all on cooldown and you are in danger of reaching 0 Insanity).
 		--{spells.dispersion, jps.hasTalent(6,3) and jps.insanity() > 21 and jps.insanity() < 71 and jps.cooldown(spells.mindbender) > 51 , "player" , "DISPERSION_Insanity_Mindbender" },
 	}},
+	
+	-- Mind Flay If the target is afflicted with Shadow Word: Pain you will also deal splash damage to nearby targets.
+	{spells.shadowWordPain, jps.MultiTarget and canAttack("mouseover") and fnPainEnemyTarget("mouseover") and not UnitIsUnit("target","mouseover") , "mouseover" , "Pain_Mouseover" },
+	{spells.mindFlay, jps.MultiTarget and not jps.Moving and jps.myDebuff(spells.shadowWordPain,"target") , "target" , "mindFlay_MultiTarget" },
 
 	-- "Mot de l’ombre : Mort" 199911
 	{"macro", jps.canCastshadowWordDeath , "/stopcasting" },
@@ -314,9 +317,8 @@ local spellTable = {
 	{"macro", jps.canCastMindBlast , "/stopcasting" },
 	{spells.mindBlast, not jps.Moving , rangedTarget , "mindBlast"},
 
-	-- "Vampiric Touch" heals the Priest for 50% of damage 24 sec
+	-- "Vampiric Touch" heals the Priest for 50% of damage 24 sec -- "Misery" -- jps.hasTalent(6,2) -- Vampiric Touch also applies Shadow Word: Pain to the target.
 	-- "Shadow Word: Pain" 18 sec
-	-- "Misery" -- jps.hasTalent(6,2) -- Vampiric Touch also applies Shadow Word: Pain to the target.
 	{spells.vampiricTouch, not jps.Moving and fnVampEnemyTarget("target") , "target" , "VT_Target" },		
 	{spells.shadowWordPain, fnPainEnemyTarget("target") , "target" , "Pain_Target" },
 	{spells.vampiricTouch, not jps.Moving and fnVampEnemyTarget("focus") , "focus" , "VT_Focus" },

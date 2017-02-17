@@ -151,35 +151,13 @@ jps.LowestTargetRole = function()
 	return EnemyRole -- table with role "DAMAGER" "TANK" "HEALER"
 end
 
+local isArena, _ = IsActiveBattlefieldArena()
 jps.playerIsTargeted = function()
-	local isArena, _ = IsActiveBattlefieldArena()
-	if isArena then
-		--  "arenaN" Opposing arena member with index N (1,2,3,4 or 5)
-		local arenaEnemy = {}
-		local arenaTarget = {}
-		for n=1,5 do
-			local unit = "arena"..n
-			if jps.UnitExists(unit) then arenaEnemy[#arenaEnemy + 1] = unit end
-		end
-		for i=1,#arenaEnemy do
-			local target = arenaEnemy[i].."target"
-			if jps.UnitExists(target) then
-				if UnitIsUnit(target,"player") then return true end
-			end
-		end
-	else
-		local RaidTarget = {}
-		for unit,_ in pairs(RaidStatus) do
-			if jps.UnitExists(unit.."target") then
-				local unittarget = unit.."target"
-				RaidTarget[#RaidTarget+1] = unittarget -- tinsert(RaidTarget, unittarget)
-			end
-		end
-		for i=1,#RaidTarget do
-			local target = RaidTarget[i].."target"
-			if jps.UnitExists(target) then
-				if UnitIsUnit(target,"player") then return true end
-			end
+	local RaidPlate = jps.NamePlate()
+	for unit,_ in pairs(RaidPlate) do
+		if jps.UnitExists(unit.."target") then
+			local target = unit.."target"
+			if UnitIsUnit(target,"player") then return true end
 		end
 	end
 	return false

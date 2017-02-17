@@ -89,6 +89,8 @@ function jps.Test()
 Test()
 
 print("EnemyCount:",jps.EnemyCount(),"PlateCount:",jps.NamePlateCount())
+local playerIsTargeted = jps.playerIsTargeted()
+write("playerIsTargeted:",playerIsTargeted)
 
 --local table = jps.LastCastUnitEval()
 --for spell,unit in pairs(table) do

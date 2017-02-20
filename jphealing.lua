@@ -538,6 +538,19 @@ jps.buffTrackerCharge = function(buff)
 	return charge
 end
 
+-- CHECKS THE WHOLE RAID FOR DURATION CHARGE BUFF (E.G. PRAYER Of MENDING)
+jps.buffTrackerDuration = function(buff) 
+	local charge = 0
+	for unit,_ in pairs(RaidStatus) do
+		if canHeal(unit) and jps.myBuffDuration(buff,unit) > 0 then
+			local spellname = toSpellName(buff)
+			local duration = select(7,UnitBuff(unit,spellname))
+			charge = duration - GetTime()
+		break end
+	end
+	return charge
+end
+
 -- CHECKS THE WHOLE RAID FOR A MISSING BUFF (E.G. FORTITUDE)
 jps.buffMissing = function(buff)
 	for unit,_ in pairs(RaidStatus) do

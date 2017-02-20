@@ -97,7 +97,7 @@ write("playerIsTargeted:",playerIsTargeted)
 --	print("|cff1eff00Spell: |cffffffff",spell,"|cff1eff00Unit: |cffffffff",unit)
 --end
 
---print("|cff1eff00prayerOfMendingBuff: |cffffffff",jps.buffTrackerCharge(41635))
+--print("|cff1eff00prayerOfMendingBuff: |cffffffff", jps.buffTrackerCharge(41635),":", jps.buffTrackerDuration(41635))
 
 --local RaidStatusDebuff = jps.RaidStatusDebuff()
 --write("RaidStatusDebuff: ",jps.tableLength(RaidStatusDebuff))

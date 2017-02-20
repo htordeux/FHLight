@@ -128,7 +128,7 @@ local spellTable = {
 	-- "Use bottom trinket"
 	{"macro", ispvp and jps.hp("player") < 0.80 and jps.IncomingDamage("player") > jps.IncomingHeal("player") and not jps.buff(642) and not jps.buff(1022) , "/use 14" },
     -- "Healthstone"
-    { "macro", jps.hp("player") < 0.60 and jps.itemCooldown(5512) == 0 ,"/use item:5512" },
+    { "macro", jps.hp("player") < 0.60 and jps.useItem(5512) ,"/use item:5512" },
     
     -- "Light of the Martyr" 183998 -- when blessing of protection
     { spells.lightOfTheMartyr, jps.buff(1022) , LowestUnit },

@@ -19,7 +19,7 @@ local GetInventorySlotInfo = GetInventorySlotInfo
 -- isUsable - true if the item is usable; otherwise false (false if the item is not equipped)
 -- notEnoughMana - true if the player lacks the resources (e.g. mana, energy, runes) to use the item; otherwise false
 
-function jps.itemCooldown(item)
+local itemCooldown = function(item)
 	if item == nil then return 999 end
 	local start,duration,enable = GetItemCooldown(item) -- GetItemCooldown(ItemID) you MUST pass in the itemID.
 	local usable = select(1,IsUsableItem(item))
@@ -30,6 +30,12 @@ function jps.itemCooldown(item)
 	local cd = start+duration-GetTime()
 	if cd < 0 then return 0 end
 	return cd
+end
+
+function jps.useItem(item)
+	local cd = itemCooldown(item)
+	if cd == 0 then return true end
+	return false
 end
 
 function jps.glovesCooldown()
@@ -77,22 +83,13 @@ function jps.useTrinket(trinketNum)
 	local trinketId = GetInventoryItemID("player", slotId)
 	if not trinketId then return false end
 	-- Check if it's on cooldown
-	local trinketCd = jps.itemCooldown(trinketId)
+	local trinketCd = itemCooldown(trinketId)
 	if trinketCd > 0 then return false end
 	-- Check if it's usable
 	local trinketUsable = GetItemSpell(trinketId)
 	if not trinketUsable then return false end
-
 	return true
 end
-
--- Engineers will use synapse springs buff on their gloves
-function jps.useSynapseSprings()
-	-- Get the slot number
-	local slotNum = GetInventorySlotInfo("HandsSlot")
-	return jps.useSlot(slotNum)
-end
-
 
 
 CreateFrame("GameTooltip", "ScanningTooltip", nil, "GameTooltipTemplate") -- Tooltip name cannot be nil

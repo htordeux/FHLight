@@ -18,7 +18,7 @@ jps.registerRotation("PALADIN","RETRIBUTION",function()
 local spell = nil
 local target = nil
 
-local CountInRange, AvgHealthLoss, FriendUnit = jps.CountInRaidStatus(0.80)
+local CountInRange, AvgHealthRaid, FriendUnit = jps.CountInRaidStatus(0.80)
 local LowestUnit = jps.LowestImportantUnit()
 
 local Tank,TankUnit = jps.findRaidTank() -- default "player"
@@ -92,7 +92,7 @@ local spellTable = {
 	-- "Use bottom trinket"
 	{"macro", ispvp and jps.hp("player") < 0.80 and jps.IncomingDamage("player") > jps.IncomingHeal("player") and not jps.buff(642) and not jps.buff(1022) , "/use 14" },
     -- "Healthstone"
-    { "macro", jps.hp("player") < 0.60 and jps.itemCooldown(5512) == 0 ,"/use item:5512" },
+    { "macro", jps.hp("player") < 0.60 and jps.useItem(5512) ,"/use item:5512" },
 
     { spells.flashOfLight, jps.hp("player") < 0.40 and jps.buff(642), "player" }, -- "Bouclier divin" 642
     { spells.flashOfLight, jps.hp("player") < 0.40 and jps.buff(1022), "player" }, -- "Bénédiction de protection" 1022

@@ -98,7 +98,7 @@ local spellTable = {
 	-- Defensives/Self Heals --
 	-- "Healthstone"
 	{ 195710, playerIsStun , "player" , "playerCC" },
-    { "macro", jps.hp("player") < 0.60 and jps.itemCooldown(5512) == 0 ,"/use item:5512" },
+    { "macro", jps.hp("player") < 0.60 and jps.useItem(5512) ,"/use item:5512" },
 	{ spells.defensiveStance, jps.hp("player") < 0.30 and jps.IncomingDamage("player") > jps.IncomingHeal("player") },
 	--{ "macro", jps.hp("player") > 0.30 , "/cast Defensive Stance" , "player" },
 	{ spells.defensiveStance, jps.buff(spells.defensiveStance) and jps.hp("player") > 0.30 , "player" },

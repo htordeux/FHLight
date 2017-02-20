@@ -471,8 +471,8 @@ local function fnMacroEval(macroText,condition)
         -- CASTSEQUENCE WORKS ONLY FOR INSTANT CAST SPELL
 		-- "#showtooltip\n/cast Frappe du colosse\n/cast Sanguinaire"
 		elseif jps.Casting and string.find(macroText,"/stopcasting") ~= nil then
-			if jps.Debug then print("macrostopcasting") end
 			jps.Macro("/stopcasting")
+			if jps.Debug then print("macrostopcasting") end
 		end
 	end
 end

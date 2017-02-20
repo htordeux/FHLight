@@ -224,36 +224,12 @@ local MindSear = tostring(jps.spells.priest.mindSear)
 --local MindFlay = GetSpellInfo(15407)
 --local MindSear = GetSpellInfo(48045)
 
-function isUsableShadowWordDeath()
-	if jps.isUsableSpell(jps.spells.priest.shadowWordDeath)
-	and jps.spellCharges(jps.spells.priest.shadowWordDeath) > 0
-	and jps.cooldown(jps.spells.priest.shadowWordDeath) < 1 then return true end
-	return false
-end
-
---not fully tested
-function jps.canCastshadowWordDeath()
-	local canCastShadowWordDeath = isUsableShadowWordDeath()
-	if not canCastShadowWordDeath then return false end
-	local Channeling = UnitChannelInfo("player") -- "Mind Flay" is a channeling spell
-	--local charges = jps.spellCharges(jps.spells.priest.shadowWordDeath)
-	local insanity = jps.insanity()
-	if Channeling ~= nil then
-		if jps.buff(194249) then
-			if tostring(Channeling) == MindFlay and jps.insanity() < 71 then return true end
-		else
-			if tostring(Channeling) == MindFlay then return true end
-		end
-	end
-	return false
-end
-
 function jps.canCastMindBlast()
 	if jps.MultiTarget then return false end
 	if jps.cooldown(jps.spells.priest.mindBlast) > 0 then return false end
 	local Channeling = UnitChannelInfo("player") -- "Mind Flay" is a channeling spell
 	if Channeling ~= nil then
-		if Channeling == MindFlay then return true end
+		if tostring(Channeling) == MindFlay then return true end
 	end
 	return false
 end

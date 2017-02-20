@@ -553,7 +553,6 @@ end
 -- name, rank, icon, count, debuffType, duration, expirationTime, unitCaster, isStealable, shouldConsolidate, spellId, canApplyAura, isBossDebuff, value1, value2, value3 = UnitDebuff("unit", index or ["name", "rank"][, "filter"])
 -- name, rank, icon, count, debuffType, duration, expirationTime, unitCaster, isStealable, shouldConsolidate, spellId, canApplyAura, isBossDebuff, value1, value2, value3 = UnitBuff("unit", index or "name"[, "rank"[, "filter"]])
 -- name, rank, icon, count, debuffType, duration, expirationTime, unitCaster, canStealOrPurge, shouldConsolidate, spellId, canApplyAura, isBossDebuff, isCastByPlayer, ... = UnitAura("unit", index or "name"[, "rank"[, "filter"]])
--- spellId of the spell or effect that applied the aura
 
 -- Don't Dispel if unit is affected by some debuffs
 local WarningDebuffs = {
@@ -576,14 +575,14 @@ jps.canDispel = function(unit,dispel) -- "Magic", "Poison", "Disease", "Curse"
 	if dispel == nil then dispel = "Magic" end
 	local auraName, debuffType, expirationTime, spellId
 	local i = 1
-	auraName, _, _, _, debuffType, _, expTime, _, _, _, spellId = UnitDebuff(unit, i) 
+	auraName, _, _, _, debuffType, _, expTime, _, _, _, spellId = UnitDebuff(unit,i) 
 	while auraName do
 		if debuffType ~= nil and debuffType == dispel then
 			if expTime ~= nil and expTime - GetTime() > 1 then
 			return true end
 		end
 		i = i + 1
-		auraName, _, _, _, debuffType, _, expTime, _, _, _, spellId = UnitDebuff(unit, i)
+		auraName, _, _, _, debuffType, _, expTime, _, _, _, spellId = UnitDebuff(unit,i)
 	end
 	return false
 end

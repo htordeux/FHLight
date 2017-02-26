@@ -9,6 +9,7 @@
 
 local GetSpellInfo = GetSpellInfo
 local UnitIsUnit = UnitIsUnit
+local toSpellName = jps.toSpellName
 
 jps.spells.priest = {}
 jps.spells.priest.powerWordShield = jps.toSpellName(17)

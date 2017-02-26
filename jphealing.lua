@@ -152,7 +152,7 @@ jps.LowestTargetRole = function()
 end
 
 local isArena, _ = IsActiveBattlefieldArena()
-jps.playerIsTargeted = function()
+jps.PlayerIsTarget = function()
 	local RaidPlate = jps.NamePlate()
 	for unit,_ in pairs(RaidPlate) do
 		if jps.UnitExists(unit.."target") then

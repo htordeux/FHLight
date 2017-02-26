@@ -53,7 +53,7 @@ jps.registerRotation("PRIEST","DISCIPLINE", function()
 	if not canHeal("target") and canAttack(rangedTarget) then jps.Macro("/target "..rangedTarget) end
 
 	local TargetMoving = select(1,GetUnitSpeed(rangedTarget)) > 0
-	local playerIsTargeted = jps.playerIsTargeted()
+	local playerIsTarget = jps.PlayerIsTarget()
 
 ----------------------------
 -- LOCAL FUNCTIONS FRIENDS

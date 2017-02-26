@@ -68,7 +68,7 @@ local spellTable = {
 	{ 204596 },
 
 	-- "Planer"
-	{ 131347, jps.fallingFor() > 1.5 , "player" },
+	{ 131347, jps.IsFallingFor(1) , "player" },
 	-- "Métamorphose" 187827
 	{ spells.metamorphosis , jps.hp("player") < 0.70 , "target" , "Métamorphose" },
 	-- "Pointes démoniaques" 203720 -- Physical dmg
@@ -79,7 +79,7 @@ local spellTable = {
 	{ spells.fieryBrand , jps.IncomingDamage("player") > 0 and jps.hp("player") < 0.70 , "target" , "fieryBrand" },
 	
 	-- "Tourment" 185245
-	{ spells.torment, not jps.playerIsTargeted() },
+	{ spells.torment, not jps.PlayerIsTarget() },
 	
 	-- "Manavore" 183752 -- 15 sec cd
 	{ spells.consumeMagic, jps.ShouldKick(rangedTarget) and jps.canFear(rangedTarget) , rangedTarget , "Manavore" },

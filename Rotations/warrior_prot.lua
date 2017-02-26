@@ -68,7 +68,7 @@ local PlayerBossDebuff = jps.BossDebuff("player")
 if jps.hp("player") < 0.25 then CreateMessage("LOW HEALTH!")
 elseif PlayerBossDebuff then CreateMessage("BOSS DEBUFF!") end
 
-local playerIsTargeted = jps.playerIsTargeted()
+local playerIsTarget = jps.PlayerIsTarget()
 
 ------------------------
 -- SPELL TABLE ---------
@@ -91,7 +91,7 @@ local spellTable = {
 {spells.shockwave, jps.PvP and not jps.LoseControl("target"), "target", "PvP_shockwave"  },
 
 -- Heroic Leap resets the cooldown of Taunt.
-{spells.taunt, jps.Defensive and not playerIsTargeted },
+{spells.taunt, jps.Defensive and not playerIsTarget },
 -- "Berserker Rage" cd 60 sec
 {spells.berserkerRage, playerIsStun },
 {spells.berserkerRage, jps.buff(spells.battleCry) },

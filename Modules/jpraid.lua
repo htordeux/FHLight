@@ -121,12 +121,6 @@ function jps.powerPain()
     return UnitPower("player", 18)
 end
 
-function jps.fallingFor()
-	local falling = IsFalling()
-	if not falling then return 0 end
-	return GetTime() - jps.startedFalling
-end
-
 -- currentCharges, maxCharges, cooldownStart, cooldownDuration = GetSpellCharges(spellId or "spellName")
 function jps.spellCharges(spell)
     return GetSpellCharges(spell) or 0
@@ -135,6 +129,14 @@ end
 ----------------------
 -- ENEMY TARGET
 ----------------------
+
+function jps.IsFallingFor(delay)
+	if IsFalling() then
+		if jps.checkTimer("Falling") == 0 then jps.createTimer("Falling", delay * 2 ) end
+	end
+	if IsFalling() and jps.checkTimer("Falling") > 0 and jps.checkTimer("Falling") < delay then return true end
+	return false
+end
 
 function jps.targetIsBoss(unit)
 	if unit == nil then unit = "target" end

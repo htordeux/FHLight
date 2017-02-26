@@ -65,7 +65,7 @@ local spellTable = {
 	-- 195072
     {spells.felRush , CheckInteractDistance(rangedTarget,2) == false },
 	-- "Planer"
-	{ 131347, jps.fallingFor() > 1.5 , "player" },
+	{ 131347, jps.IsFallingFor(1) , "player" },
 	-- "Torrent arcanique" 202719
 	{ 202719, jps.ShouldKick(rangedTarget) and jps.canFear(rangedTarget) and not jps.LoseControl(rangedTarget) , rangedTarget },
 	-- "Manavore" 183752

@@ -61,7 +61,6 @@ jps.LastTargetGUID = nil
 jps.Latency = 0
 jps.NextSpell = nil
 jps.GCD = 1
-jps.startedFalling = 0
 
 -- Class
 jps.Class = nil
@@ -309,8 +308,6 @@ function jps.Cycle()
 
 	-- Movement
 	jps.Moving = select(1,GetUnitSpeed("player")) > 0
-	if IsFalling() and jps.startedFalling == 0 then jps.startedFalling = GetTime() end
-	if not IsFalling() and jps.startedFalling > 0 then jps.startedFalling = 0 end
 
     if jps.castSequence ~= nil then
         if jps.castSequence[castSequenceIndex] ~= nil then

@@ -66,8 +66,7 @@ if canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
 
 local targetMoving = select(1,GetUnitSpeed(rangedTarget)) > 0
 local targetNotSlow = select(1,GetUnitSpeed(rangedTarget)) > 6
-
-local playerIsTargeted = jps.playerIsTargeted()
+local playerIsTarget = jps.PlayerIsTarget()
 
 ------------------------
 -- SPELL TABLE ---------

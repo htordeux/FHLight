@@ -68,7 +68,7 @@ local PlayerBossDebuff = jps.BossDebuff("player")
 if jps.hp("player") < 0.25 then CreateMessage("LOW HEALTH!")
 elseif PlayerBossDebuff then CreateMessage("BOSS DEBUFF!") end
 
-local playerIsTargeted = jps.playerIsTargeted()
+local playerIsTarget = jps.PlayerIsTarget()
 
 ------------------------
 -- SPELL TABLE ---------

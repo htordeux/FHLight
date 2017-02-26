@@ -784,16 +784,6 @@ jps.events.registerCombatLog("UNIT_DIED", function(...)
 	if EnemyHealer[destGUID] then EnemyHealer[destGUID] = nil end
 end)
 
---local prayerOfMendingBuff = jps.toSpellName(41635)
---jps.events.registerCombatLog("SPELL_AURA_APPLIED_DOSE", function(...)
---	local spellID = select(12, ...)
---	local spellName = select(13, ...)
---	local sourceName = select(5, ...)
---	if spellName == prayerOfMendingBuff and sourceName == GetUnitName("player") then
---		local count = select(16, ...)
---	end
---end)
-
 local COMBATLOG_OBJECT_TYPE_PLAYER = COMBATLOG_OBJECT_TYPE_PLAYER
 local COMBATLOG_OBJECT_AFFILIATION_MINE = COMBATLOG_OBJECT_AFFILIATION_MINE
 local COMBATLOG_OBJECT_AFFILIATION_PARTY = COMBATLOG_OBJECT_AFFILIATION_PARTY

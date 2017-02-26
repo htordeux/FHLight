@@ -82,7 +82,7 @@ local spellTable = {
 
 	-- "Charge" -- distance 8-25 m
 	{ spells.charge, CheckInteractDistance("target",2) == false and CheckInteractDistance("target", 1) == true  },
-	{ spells.charge, jps.fallingFor() > 0.50 , "target" },
+	{ spells.charge, jps.IsFallingFor(1) , "target" },
 	
 	-- Shouts/Buffs --
 	{ spells.battleCry, not jps.buff(spells.battleCry) and jps.debuff(spells.colossusSmash) }, -- if the Colossus Smash  Colossus Smash debuff is active on your target

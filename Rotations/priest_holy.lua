@@ -78,7 +78,6 @@ jps.registerRotation("PRIEST","HOLY", function()
 
 	local CountInRange, AvgHealthRaid, FriendUnit, FriendLowest = jps.CountInRaidStatus(0.80) -- CountInRange return raid count unit below healpct -- FriendUnit return table with all raid unit in range
 	local LowestUnit, LowestUnitPrev = jps.LowestImportantUnit() -- if jps.Defensive then LowestUnit is {"player","mouseover","target","focus","targettarget","focustarget"}
-
 	local Tank,TankUnit = jps.findRaidTank() -- default "focus" "player"
 	local TankTarget = Tank.."target"
 	local TankThreat,_  = jps.findRaidTankThreat()
@@ -121,15 +120,6 @@ jps.registerRotation("PRIEST","HOLY", function()
 ----------------------------
 -- LOCAL FUNCTIONS FRIENDS
 ----------------------------
-
-	-- jps.unitForLeap includes jps.FriendAggro and jps.LoseControl
-	local LeapFriend = nil
-	for i=1,#FriendUnit do -- for _,unit in ipairs(FriendUnit) do
-		local unit = FriendUnit[i]
-		if jps.unitForLeap(unit) and jps.hpInc(unit) < 0.30 then 
-			LeapFriend = unit
-		break end
-	end
 
 	local DispelFriend = jps.DispelMagicTarget() -- "Magic", "Poison", "Disease", "Curse"
 	local DispelFriendRole = nil
@@ -446,15 +436,32 @@ Below, we use the Heal Icon Heal spell to provide you with an example of a mouse
 
 jps.registerRotation("PRIEST","HOLY",function()
 
-	local LowestUnit,_ = jps.LowestImportantUnit()
+	local CountInRange, AvgHealthRaid, FriendUnit, FriendLowest = jps.CountInRaidStatus(0.80) -- CountInRange return raid count unit below healpct -- FriendUnit return table with all raid unit in range
+	local LowestUnit, LowestUnitPrev = jps.LowestImportantUnit() -- if jps.Defensive then LowestUnit is {"player","mouseover","target","focus","targettarget","focustarget"}
 	local Tank,TankUnit = jps.findRaidTank() -- default "focus" "player"
 
 	if IsMounted() then return end
 	
 	local spellTable = {
+	
+		-- "Esprit de rédemption" buff 27827 "Spirit of Redemption"
+	{ "nested", jps.buff(27827) and not UnitIsUnit("player",LowestUnit) , {
+		-- "Holy Word: Serenity" 2050
+		{ spells.holyWordSerenity , jps.hp(LowestUnit) < 0.65 , LowestUnit  },
+		-- "Prière de guérison" 33076
+		{ spells.prayerOfMending, not jps.buffTracker(41635) , LowestUnit },
+		{ spells.divineHymn , true , LowestUnit },
+		-- "Prayer of Healing" 596
+		{ spells.prayerOfHealing, AvgHealthRaid < 0.80 , FriendLowest },
+		-- "Soins rapides" 2061
+		{ spells.flashHeal, jps.hp(LowestUnit) < 0.80 , LowestUnit },
+		-- "Renew" 139
+		{ spells.renew, not jps.buff(spells.renew,LowestUnit) , LowestUnit },
+		{ spells.renew, not jps.buff(spells.renew,LowestUnitPrev) , LowestUnitPrev },
+	}},
 
 	-- "Esprit de rédemption" buff 27827 "Spirit of Redemption"
-	{ "macro", playerHasBuff(27827) , "/cancelaura Esprit de rédemption"  },
+	--{ "macro", playerHasBuff(27827) , "/cancelaura Esprit de rédemption"  },
 	{ "macro", playerHasBuff(111759) and not IsFalling() , "/cancelaura Lévitation"  },
 	
 	{ spells.prayerOfMending, not jps.Moving and not jps.buffTracker(41635) and not UnitIsUnit("player",Tank) , Tank , "Tracker_Mending_Tank" },

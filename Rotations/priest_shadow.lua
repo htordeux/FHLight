@@ -235,6 +235,7 @@ end
 --jps.UseCDs for "Purify Disease"
 --jps.MultiTarget for not stopcasting
 
+
 jps.registerRotation("PRIEST","SHADOW",function()
 
 TargetMouseover()
@@ -251,12 +252,93 @@ end
 if playerCanAttack(rangedTarget) then jps.Macro("/target "..rangedTarget) end
 
 if playerHasBuff(47585) then return end
+if not playerCanDPS(rangedTarget) then return end
 
 local spellTable = {
 
 	-- "Dispersion" 47585
 	{spells.dispersion, playerHealth() < 0.40 },
-	{spells.fade, not UnitIsPVP("player") and jps.PlayerIsTarget() },
+	{spells.fade, jps.PlayerIsTarget() },
+	-- "Power Word: Shield" 17
+	{spells.powerWordShield, playerMoving() and playerHasTalent(2,2) and not playerHasBuff(spells.powerWordShield) , "player" },
+	{spells.powerWordShield, playerHealth() < 0.80 and not playerHasBuff(194249) and not playerHasBuff(spells.powerWordShield) , "player" },
+	-- "Pierre de soins" 5512
+	{ "macro", playerHealth() < 0.70 and jps.useItem(5512) , "/use item:5512" },
+	-- "Don des naaru" 59544
+	{spells.giftNaaru, playerHealth() < 0.60 , "player" },
+	-- "Etreinte vampirique" buff 15286 -- pendant 15 sec, vous permet de rendre à un allié proche, un montant de points de vie égal à 40% des dégâts d’Ombre que vous infligez avec des sorts à cible unique
+	{spells.vampiricEmbrace, playerHasBuff(194249) and playerHealth() < 0.50 },
+	{spells.vampiricEmbrace, playerHasBuff(194249) and fnAvgHealthRaid() < 0.80 },
+
+   	{spells.voidEruption, playerCanDPS("target") and not playerHasBuff(194249) and playerInsanity() > 65 and playerHasTalent(7,1) and TargetElite() },
+	{spells.voidEruption, playerCanDPS("target") and not playerHasBuff(194249) and playerInsanity() == 100 and TargetElite() },
+
+	{spells.powerInfusion, playerBuffStacks(194249) > 9 and playerInsanity() > 65 and TargetElite() },
+	{spells.shadowfiend, playerBuffStacks(194249) > 9 , "target" },
+	{spells.mindbender, playerBuffStacks(194249) > 9 , "target" },
+	
+	{"nested", playerHasBuff(194249) , {
+		--{"macro", jps.canCastvoidBolt , "/stopcasting" },
+		{spells.voidEruption, VoidBoltTarget() ~= nil , VoidBoltTarget },
+		{spells.voidTorrent , not playerMoving() },
+		{spells.shadowWordDeath, playerInsanity() < 85 , "target" },
+		{spells.shadowWordDeath, playerInsanity() < 85 and DeathEnemyTarget() ~= nil , DeathEnemyTarget },
+	}},
+
+	{spells.shadowWordDeath, not playerHasBuff(194249) , "target" },
+	{spells.shadowWordDeath, not playerHasBuff(194249) and DeathEnemyTarget() ~= nil , DeathEnemyTarget },
+
+	{"macro", jps.canCastMindBlast , "/stopcasting" },
+	{spells.mindBlast, not playerMoving() , "target"  },
+
+	{spells.vampiricTouch, not playerMoving() and targetDebuffDuration(spells.vampiricTouch) < 4  and not playerIsRecast(spells.vampiricTouch,"target") , "target"  },
+	{spells.shadowWordPain, targetDebuffDuration(spells.shadowWordPain) < 4 and not playerIsRecast(spells.shadowWordPain,"target") , "target" },
+	
+	{spells.shadowWordPain, playerCanAttack("mouseover") and mouseoverDebuffDuration(spells.shadowWordPain) < 4 and not playerIsRecast(spells.shadowWordPain,"mouseover") , "mouseover" },
+	{spells.shadowWordPain, jps.Defensive and mouseoverDebuffDuration(spells.shadowWordPain) < 4 and not playerIsRecast(spells.shadowWordPain,"mouseover") , "mouseover" },
+		
+	{spells.vampiricTouch, not playerMoving() and focusDebuffDuration(spells.vampiricTouch) < 4 and not playerIsRecast(spells.vampiricTouch,"focus") , "focus"  },
+	{spells.shadowWordPain, focusDebuffDuration(spells.shadowWordPain) < 4 and not playerIsRecast(spells.shadowWordPain,"focus") , "focus" },
+
+	{spells.vampiricTouch, playerCanAttack("mouseover") and not playerMoving() and mouseoverDebuffDuration(spells.vampiricTouch) < 4 and not playerIsRecast(spells.vampiricTouch,"mouseover") , "mouseover"  },
+	{spells.vampiricTouch, jps.Defensive and not playerMoving() and mouseoverDebuffDuration(spells.vampiricTouch) < 4 and not playerIsRecast(spells.vampiricTouch,"mouseover") , "mouseover"  },
+
+	-- Mind Flay If the target is afflicted with Shadow Word: Pain you will also deal splash damage to nearby targets.
+    {spells.mindFlay , not playerMoving() , "target"  },
+
+}
+
+	local spell,target = parseSpellTable(spellTable)
+	return spell,target
+end,"Simple Shadow Priest")
+
+------------------------------------------------------------------------------------------------------
+---------------------------------------------- ROTATION ----------------------------------------------
+------------------------------------------------------------------------------------------------------
+
+jps.registerRotation("PRIEST","SHADOW",function()
+
+TargetMouseover()
+--FocusNamePlate()
+
+local Tank,TankUnit = jps.findRaidTank() -- default "player"
+local TankTarget = Tank.."target"
+local rangedTarget  = "target"
+if playerCanDPS("target") then rangedTarget = "target"
+elseif playerCanAttack(TankTarget) then rangedTarget = TankTarget
+elseif playerCanAttack("targettarget") then rangedTarget = "targettarget"
+elseif playerCanAttack("mouseover") then rangedTarget = "mouseover"
+end
+if playerCanAttack(rangedTarget) then jps.Macro("/target "..rangedTarget) end
+
+if playerHasBuff(47585) then return end
+if not playerCanDPS(rangedTarget) then return end
+
+local spellTable = {
+
+	-- "Dispersion" 47585
+	{spells.dispersion, playerHealth() < 0.40 },
+	{spells.fade, jps.PlayerIsTarget() },
 	-- "Power Word: Shield" 17
 	{spells.powerWordShield, playerMoving() and playerHasTalent(2,2) and not playerHasBuff(spells.powerWordShield) , "player" },
 	{spells.powerWordShield, playerHealth() < 0.80 and not playerHasBuff(194249) and not playerHasBuff(spells.powerWordShield) , "player" },
@@ -266,8 +348,8 @@ local spellTable = {
 	-- "Don des naaru" 59544
 	{spells.giftNaaru, playerHealth() < 0.70 , "player" },
 	-- "Etreinte vampirique" buff 15286 -- pendant 15 sec, vous permet de rendre à un allié proche, un montant de points de vie égal à 40% des dégâts d’Ombre que vous infligez avec des sorts à cible unique
-	{spells.vampiricEmbrace, playerHasBuff(194249) and not IsInRaid() and playerHealth() < 0.60 },
-	{spells.vampiricEmbrace, playerHasBuff(194249) and fnCountInRange(0.80) > 2 and fnAvgHealthRaid() < 0.80 },
+	{spells.vampiricEmbrace, playerHasBuff(194249) and playerHealth() < 0.50 },
+	{spells.vampiricEmbrace, playerHasBuff(194249) and fnAvgHealthRaid() < 0.80 },
 
 	-- "Purify Disease" 213634
 	{"nested", jps.UseCDs , {
@@ -291,7 +373,7 @@ local spellTable = {
 	}},
 	
 	-- "Guérison de l’ombre" 186263 -- debuff "Shadow Mend" 187464 10 sec
-	{spells.shadowMend, not playerMoving() and not playerHasBuff(194249) and playerHealth() < 0.80 and not playerHasBuff(15286) and jps.castEverySeconds(186263,4) , "player" },
+	{spells.shadowMend, not playerMoving() and not playerHasBuff(194249) and playerHealth() < 0.60 and not playerHasBuff(15286) and jps.castEverySeconds(186263,4) , "player" },
 	-- OFFENSIVE Dispel -- "Dissipation de la magie" 528
 	{ spells.dispelMagic, UnitIsPVP("player") and DispelOffensiveTarget() ~= nil and jps.castEverySeconds(528,4) , DispelOffensiveTarget , "|cff1eff00DispelOffensive" },
 
@@ -301,11 +383,10 @@ local spellTable = {
     -- "Déferlante d’ombre" 205385
     {spells.shadowCrash, playerHasTalent(7,2) },
 
-   	{spells.voidEruption, playerCanDPS("target") and not playerHasBuff(194249) and playerInsanity() > 65 and playerHasTalent(7,1) and TargetElite() },
-	{spells.voidEruption, playerCanDPS("target") and not playerHasBuff(194249) and playerInsanity() == 100 and TargetElite() },
+   	{spells.voidEruption, not playerMoving() and playerCanDPS("target") and not playerHasBuff(194249) and playerInsanity() > 65 and playerHasTalent(7,1) },
+	{spells.voidEruption, not playerMoving() and playerCanDPS("target") and not playerHasBuff(194249) and playerInsanity() == 100 },
 
-   	{spells.shadowWordDeath, jps.spellCharges(spells.shadowWordDeath) == 2 and playerInsanity() < 100 , rangedTarget },
-	{spells.powerInfusion, playerBuffStacks(194249) > 9 and playerInsanity() > 65 and TargetElite() },
+	{spells.powerInfusion, playerBuffStacks(194249) > 9 and playerInsanity() > 65 },
 	{spells.shadowfiend, playerBuffStacks(194249) > 9 , "target" },
 	{spells.mindbender, playerBuffStacks(194249) > 9 , "target" },
 	
@@ -313,8 +394,8 @@ local spellTable = {
 		--{"macro", jps.canCastvoidBolt , "/stopcasting" },
 		{spells.voidEruption, VoidBoltTarget() ~= nil , VoidBoltTarget },
 		{spells.voidTorrent , not playerMoving() },
-		{spells.shadowWordDeath, playerInsanity() < 71 , "target" },
-		{spells.shadowWordDeath, playerInsanity() < 71 and DeathEnemyTarget() ~= nil , DeathEnemyTarget },
+		{spells.shadowWordDeath, playerInsanity() < 85 , "target" },
+		{spells.shadowWordDeath, playerInsanity() < 85 and DeathEnemyTarget() ~= nil , DeathEnemyTarget },
 	}},
 
 	{spells.shadowWordDeath, not playerHasBuff(194249) , "target" },
@@ -340,7 +421,7 @@ local spellTable = {
 
 	local spell,target = parseSpellTable(spellTable)
 	return spell,target
-end,"Test Shadow Priest")
+end,"Shadow Priest")
 
 --[[
 
@@ -362,20 +443,6 @@ end,"Test Shadow Priest")
 --	{spells.voidEruption, focusDebuffDuration(spells.vampiricTouch) >  0 and focusDebuffDuration(spells.vampiricTouch) < mouseoverDebuffDuration(spells.vampiricTouch) , "focus" },
 --	{spells.voidEruption, mouseoverDebuffDuration(spells.shadowWordPain) > 0 , "mouseover" },
 --	{spells.voidEruption, mouseoverDebuffDuration(spells.vampiricTouch) > 0 , "mouseover" },
-
-------------------------------------------------------------------------------------------------------
----------------------------------------------- ROTATION ----------------------------------------------
-------------------------------------------------------------------------------------------------------
-
-jps.registerParseRotation("PRIEST","SHADOW", {
-
-	{"macro", jps.canCastMindBlast , "/stopcasting" },
-	{spells.mindBlast, not jps.Moving },
-	{spells.mindSear, not jps.Moving and jps.MultiTarget },
-	{spells.mindFlay},
-}
-
-,"Parse Shadow Priest")
 
 ----------------------------------------------------------------------------------------------------------------
 -------------------------------------------------- ROTATION OOC ------------------------------------------------

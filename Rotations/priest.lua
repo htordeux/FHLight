@@ -257,33 +257,10 @@ jps.canFear = function(rangedTarget)
 	return false
 end
 
-jps.unitForClarity = function(unit)
-	if not jps.UnitExists(unit) then return false end
-	if jps.buff(152118,unit) then return false end
-	if not jps.FriendAggro(unit) then return false end
-	if jps.isRecast(152118,unit) then return false end
-	return true
-end
-
-jps.unitForShield = function(unit)
-	if not jps.UnitExists(unit) then return false end
-	if not jps.FriendAggro(unit) then return false end
-	if jps.buff(17,unit) then return false end
-	if jps.debuff(6788,unit) then return false end
-	return true
-end
-
 jps.unitForBinding = function(unit)
 	if not jps.UnitExists(unit) then return false end
 	if UnitIsUnit("player",unit) then return false end
 	if jps.hp("player") > 0.80 then return false end
 	if jps.hp(unit) > 0.80  then return false end
-	return true
-end
-
-jps.unitForLeap = function(unit)
-	if not jps.UnitExists(unit) then return false end
-	if UnitIsUnit(unit,"player") then return false end
-	if not jps.FriendAggro(unit) then return false end
 	return true
 end

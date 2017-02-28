@@ -1,14 +1,11 @@
---[[[
-@module Shaman Enhancement Rotation
-@author Silk_sn
-@version 7.0.3
-]]--
 local spells = jps.spells.shaman
+
+------------------------------------------------------------------------------------------------------
+---------------------------------------------- ROTATION ----------------------------------------------
+------------------------------------------------------------------------------------------------------
 
 jps.registerRotation("SHAMAN","ENHANCEMENT",function()
 
-local spell = nil
-local target = nil
 
 local spellTable = {
 

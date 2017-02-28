@@ -1,48 +1,37 @@
-
-local spells = jps.spells.priest
-local canDPS = jps.canDPS
-local canHeal = jps.canHeal
-local canAttack = jps.canAttack
-local UnitGetTotalAbsorbs = UnitGetTotalAbsorbs
-local strfind = string.find
-local UnitClass = UnitClass
-local UnitChannelInfo = UnitChannelInfo
-local GetSpellInfo = GetSpellInfo
-local UnitAffectingCombat = UnitAffectingCombat
-local UnitIsUnit = UnitIsUnit
 local spells = jps.spells.shaman
 
+local PlayerCanAttack = function(unit)
+	return jps.canAttack(unit)
+end
+
+local PlayerCanDPS = function(unit)
+	return jps.canDPS(unit)
+end
+
+------------------------------------------------------------------------------------------------------
+---------------------------------------------- ROTATION ----------------------------------------------
+------------------------------------------------------------------------------------------------------
 
 jps.registerRotation("SHAMAN","ELEMENTAL",function()
 
-local spell = nil
-local target = nil
+----------------------
+-- TARGET ENEMY
+----------------------
 
--- Config FOCUS with MOUSEOVER
-if not jps.UnitExists("focus") and canDPS("mouseover") and UnitAffectingCombat("mouseover") then
-	-- set focus an enemy targeting you
-	if UnitIsUnit("mouseovertarget","player") and not UnitIsUnit("target","mouseover") then
-		jps.Macro("/focus mouseover")
-	-- set focus an enemy in combat
-	elseif canDPS("mouseover") and not UnitIsUnit("target","mouseover") and not jps.myDebuff(spells.flameShock,"mouseover") then
-		jps.Macro("/focus mouseover")
-		--print("Enemy COMBAT|cff1eff00 "..name.." |cffffffffset as FOCUS not DEBUFF")
-	elseif canDPS("mouseover") and not UnitIsUnit("target","mouseover") then
-		jps.Macro("/focus mouseover")
-	end
+local Tank,TankUnit = jps.findRaidTank() -- default "player"
+local TankTarget = Tank.."target"
+local rangedTarget  = "target"
+if PlayerCanDPS("target") then rangedTarget = "target"
+elseif PlayerCanAttack(TankTarget) then rangedTarget = TankTarget
+elseif PlayerCanAttack("targettarget") then rangedTarget = "targettarget"
+elseif PlayerCanAttack("mouseover") then rangedTarget = "mouseover"
 end
+if PlayerCanAttack(rangedTarget) then jps.Macro("/target "..rangedTarget) end
+local targetMoving = select(1,GetUnitSpeed(rangedTarget)) > 0
 
-if jps.UnitExists("focus") and UnitIsUnit("target","focus") then
-	jps.Macro("/clearfocus")
-elseif jps.UnitExists("focus") and not canDPS("focus") then
-	jps.Macro("/clearfocus")
-end
-
-if canDPS("target") and jps.canAttack("target") then rangedTarget =  "target"
-elseif canDPS(TankTarget) and jps.canAttack(TankTarget) then rangedTarget = TankTarget
-elseif canDPS("targettarget") and jps.canAttack("targettarget") then rangedTarget = "targettarget"
-end
-if canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
+-----------------------------
+-- SPELLTABLE
+-----------------------------
 
 local spellTable = {
 
@@ -78,11 +67,9 @@ local spellTable = {
 		-- Cast Chain Lightning as a filler on 2 or more targets.
 		{spells.chainLightning },
 	}},
-	
+
 	-- Cast Lightning Bolt as a filler on a single target.
 	{spells.lightningBolt},
-
-
 
 }
 

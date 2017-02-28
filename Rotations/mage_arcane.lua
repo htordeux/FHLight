@@ -1,28 +1,35 @@
---[[[
-@module Mage Arcane Rotation
-@generated_from mage_arcane.simc
-@version 7.0.3
-]]--
 local spells = jps.spells.mage
 
+local PlayerCanAttack = function(unit)
+	return jps.canAttack(unit)
+end
+
+local PlayerCanDPS = function(unit)
+	return jps.canDPS(unit)
+end
+
+----------------------------------------------------------------------------------------------------------------
+-------------------------------------------------- ROTATION ----------------------------------------------------
+----------------------------------------------------------------------------------------------------------------
 -- rating = GetCombatRating(combatRatingIdentifier) -- CR_HASTE_SPELL = 20 for spellpower( number ) 
 -- spellHastePercent = UnitSpellHaste("unit" or "name") -- haste value ( in % )
 
-
 jps.registerRotation("MAGE","ARCANE",function()
-
-local spell = nil
-local target = nil
 
 ----------------------
 -- TARGET ENEMY
 ----------------------
 
-if canDPS("target") and jps.canAttack("target") then rangedTarget =  "target"
-elseif canDPS(TankTarget) and jps.canAttack(TankTarget) then rangedTarget = TankTarget
-elseif canDPS("targettarget") and jps.canAttack("targettarget") then rangedTarget = "targettarget"
+local Tank,TankUnit = jps.findRaidTank() -- default "player"
+local TankTarget = Tank.."target"
+local rangedTarget  = "target"
+if PlayerCanDPS("target") then rangedTarget = "target"
+elseif PlayerCanAttack(TankTarget) then rangedTarget = TankTarget
+elseif PlayerCanAttack("targettarget") then rangedTarget = "targettarget"
+elseif PlayerCanAttack("mouseover") then rangedTarget = "mouseover"
 end
-if canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
+if PlayerCanAttack(rangedTarget) then jps.Macro("/target "..rangedTarget) end
+local targetMoving = select(1,GetUnitSpeed(rangedTarget)) > 0
 
 -----------------------------
 -- SPELLTABLE
@@ -76,7 +83,7 @@ local spellTable = {
 
 }
 
-	spell,target = parseSpellTable(spellTable)
+	local spell,target = parseSpellTable(spellTable)
 	return spell,target
 end, "mage_arcane" )
 

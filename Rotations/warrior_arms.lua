@@ -1,13 +1,13 @@
-
-local canDPS = jps.canDPS
-local canHeal = jps.canHeal
-local canAttack = jps.canAttack
-local strfind = string.find
-local UnitClass = UnitClass
-local UnitAffectingCombat = UnitAffectingCombat
-local GetSpellInfo = GetSpellInfo
-local UnitIsUnit = UnitIsUnit
 local spells = jps.spells.warrior
+local UnitIsUnit = UnitIsUnit
+
+local PlayerCanAttack = function(unit)
+	return jps.canAttack(unit)
+end
+
+local PlayerCanDPS = function(unit)
+	return jps.canDPS(unit)
+end
 
 ----------------------------------------------------------------------------------------------------------------
 -------------------------------------------------- ROTATION ----------------------------------------------------
@@ -15,64 +15,49 @@ local spells = jps.spells.warrior
 
 jps.registerRotation("WARRIOR","ARMS",function()
 
-local spell = nil
-local target = nil
-
 local playerAggro = jps.FriendAggro("player")
 local playerIsStun = jps.StunEvents(2) -- return true/false ONLY FOR PLAYER -- "ROOT" was removed of Stuntype
 -- {"STUN_MECHANIC","STUN","FEAR","CHARM","CONFUSE","PACIFY","SILENCE","PACIFYSILENCE"}
 local playerIsInterrupt = jps.InterruptEvents() -- return true/false ONLY FOR PLAYER
 local playerWasControl = jps.ControlEvents() -- return true/false Player was interrupt or stun 2 sec ago ONLY FOR PLAYER
-
 local Tank,TankUnit = jps.findRaidTank() -- default "player"
 local TankTarget = Tank.."target"
-local playerIsTanking = false
-if UnitIsUnit("player",Tank) then playerIsTanking = true end
+local playerIsTarget = jps.PlayerIsTarget()
 
 local inMelee = jps.IsSpellInRange(163201,"target") -- "Execute" 163201
 local inRanged = jps.IsSpellInRange(57755,"target") -- "Heroic Throw" 57755 "Lancer héroïque"
-
-local rage = jps.rage()
 
 ----------------------
 -- TARGET ENEMY
 ----------------------
 
--- rangedTarget returns "target" by default, sometimes could be friend
-local rangedTarget, EnemyUnit, TargetCount = jps.LowestTarget()
-
 -- Config FOCUS with MOUSEOVER
-if not jps.UnitExists("focus") and canDPS("mouseover") and UnitAffectingCombat("mouseover") then
+if not jps.UnitExists("focus") and PlayerCanAttack("mouseover") then
 	-- set focus an enemy targeting you
 	if UnitIsUnit("mouseovertarget","player") and not UnitIsUnit("target","mouseover") then
-		jps.Macro("/focus mouseover") --print("Enemy DAMAGER|cff1eff00 "..name.." |cffffffffset as FOCUS")
+		jps.Macro("/focus mouseover")
 	-- set focus an enemy in combat
-	elseif canDPS("mouseover") and not UnitIsUnit("target","mouseover") then
-		jps.Macro("/focus mouseover") --print("Enemy COMBAT|cff1eff00 "..name.." |cffffffffset as FOCUS")
+	elseif not UnitIsUnit("target","mouseover") then
+		jps.Macro("/focus mouseover")
 	end
 end
 
 if jps.UnitExists("focus") and UnitIsUnit("target","focus") then
 	jps.Macro("/clearfocus")
-elseif jps.UnitExists("focus") and not canDPS("focus") then
+elseif jps.UnitExists("focus") and not PlayerCanDPS("focus") then
 	jps.Macro("/clearfocus")
 end
 
-if canDPS("target") then rangedTarget =  "target"
-elseif canDPS(TankTarget) then rangedTarget = TankTarget
-elseif canDPS("targettarget") then rangedTarget = "targettarget"
-elseif canAttack("mouseover") then rangedTarget = "mouseover"
+local rangedTarget  = "target"
+if PlayerCanDPS("target") then rangedTarget = "target"
+elseif PlayerCanAttack(TankTarget) then rangedTarget = TankTarget
+elseif PlayerCanAttack("targettarget") then rangedTarget = "targettarget"
+elseif PlayerCanAttack("mouseover") then rangedTarget = "mouseover"
 end
-if canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
-
+if PlayerCanAttack(rangedTarget) then jps.Macro("/target "..rangedTarget) end
 local targetMoving = select(1,GetUnitSpeed(rangedTarget)) > 0
-local targetSlow = select(1,GetUnitSpeed(rangedTarget)) < 7
+local targetNotSlow = select(1,GetUnitSpeed(rangedTarget)) > 6
 local targetClass = UnitClass(rangedTarget)
-
-local isTargetElite = false
-if jps.targetIsBoss("target") then isTargetElite = true
-elseif jps.hp("target") > 0.20 then isTargetElite = true
-end
 
 ------------------------
 -- SPELL TABLE ---------
@@ -89,11 +74,11 @@ local spellTable = {
 	{ spells.commandingShout, jps.hp("player") < 0.30 and not jps.buff(spells.commandingShout) and jps.IncomingDamage("player") > jps.IncomingHeal("player") },
 	{ spells.focusedRage, true , "player" },
 	{ spells.focusedRage, jps.debuff(209574) and jps.myDebuffDuration(209574,rangedTarget) > 9 , rangedTarget }, -- once with each fresh application of Shattered Defenses
-	{ spells.focusedRage, rage >= 0.75 , rangedTarget }, -- if above 75 rage to avoid rage capping
+	{ spells.focusedRage, jps.rage() >= 0.75 , rangedTarget }, -- if above 75 rage to avoid rage capping
 	{ spells.avatar, true , "player" }, -- use on cooldown for burst damage
 	
 	-- "Hamstring" 
-	{ spells.hamstring, not jps.debuff(1715) and not targetSlow and targetClass ~= "Druid" , "target" },
+	{ spells.hamstring, not jps.debuff(1715) and targetNotSlow and targetClass ~= "Druid" , "target" },
 	
 	-- Defensives/Self Heals --
 	-- "Healthstone"
@@ -134,7 +119,7 @@ local spellTable = {
     { spells.slam, jps.hp(rangedTarget) >= 0.20 and jps.rage() >= 32 and jps.cooldown(spells.colossusSmash) > 0 and jps.cooldown(spells.mortalStrike) > 0 and not jps.hasTalent(3,1) , rangedTarget }, -- if above 32 rage and Colossus Smash and Mortal Strike are on cooldown
 }
 
-	spell,target = parseSpellTable(spellTable)
+	local spell,target = parseSpellTable(spellTable)
 	return spell,target
 end, "Warrior Arms")
 

@@ -1,13 +1,13 @@
-
 local spells = jps.spells.warrior
-local canDPS = jps.canDPS
-local canHeal = jps.canHeal
-local canAttack = jps.canAttack
-local strfind = string.find
-local UnitClass = UnitClass
-local UnitAffectingCombat = UnitAffectingCombat
-local GetSpellInfo = GetSpellInfo
 local UnitIsUnit = UnitIsUnit
+
+local PlayerCanAttack = function(unit)
+	return jps.canAttack(unit)
+end
+
+local PlayerCanDPS = function(unit)
+	return jps.canDPS(unit)
+end
 
 ----------------------------------------------------------------------------------------------------------------
 -------------------------------------------------- ROTATION ----------------------------------------------------
@@ -15,19 +15,14 @@ local UnitIsUnit = UnitIsUnit
 
 jps.registerRotation("WARRIOR","FURY",function()
 
-local spell = nil
-local target = nil
-
 local playerAggro = jps.FriendAggro("player")
 local playerIsStun = jps.StunEvents(2) -- return true/false ONLY FOR PLAYER -- "ROOT" was removed of Stuntype
 -- {"STUN_MECHANIC","STUN","FEAR","CHARM","CONFUSE","PACIFY","SILENCE","PACIFYSILENCE"}
 local playerIsInterrupt = jps.InterruptEvents() -- return true/false ONLY FOR PLAYER
 local playerWasControl = jps.ControlEvents() -- return true/false Player was interrupt or stun 2 sec ago ONLY FOR PLAYER
-
 local Tank,TankUnit = jps.findRaidTank() -- default "player"
 local TankTarget = Tank.."target"
-local playerIsTanking = false
-if UnitIsUnit("player",Tank) then playerIsTanking = true end
+local playerIsTarget = jps.PlayerIsTarget()
 
 local inMelee = jps.IsSpellInRange(spells.bloodthirst,"target")
 local inRanged = jps.IsSpellInRange(57755,"target") -- "Heroic Throw" 57755 "Lancer héroïque"
@@ -36,39 +31,35 @@ local inRanged = jps.IsSpellInRange(57755,"target") -- "Heroic Throw" 57755 "Lan
 -- TARGET ENEMY
 ----------------------
 
--- rangedTarget returns "target" by default, sometimes could be friend
-local rangedTarget, EnemyUnit, TargetCount = jps.LowestTarget()
-
 -- Config FOCUS with MOUSEOVER
-if not jps.UnitExists("focus") and canAttack("mouseover") then
+if not jps.UnitExists("focus") and PlayerCanAttack("mouseover") then
 	-- set focus an enemy targeting you
 	if UnitIsUnit("mouseovertarget","player") and not UnitIsUnit("target","mouseover") then
-		jps.Macro("/focus mouseover") --print("Enemy DAMAGER|cff1eff00 "..name.." |cffffffffset as FOCUS")
+		jps.Macro("/focus mouseover")
 	-- set focus an enemy in combat
-	elseif canAttack("mouseover") and not UnitIsUnit("target","mouseover") then
-		jps.Macro("/focus mouseover") --print("Enemy COMBAT|cff1eff00 "..name.." |cffffffffset as FOCUS")
+	elseif not UnitIsUnit("target","mouseover") then
+		jps.Macro("/focus mouseover")
 	end
 end
 
 if jps.UnitExists("focus") and UnitIsUnit("target","focus") then
 	jps.Macro("/clearfocus")
-elseif jps.UnitExists("focus") and not canDPS("focus") then
+elseif jps.UnitExists("focus") and not PlayerCanDPS("focus") then
 	jps.Macro("/clearfocus")
 end
 
-if canDPS("target") then rangedTarget =  "target"
-elseif canDPS(TankTarget) then rangedTarget = TankTarget
-elseif canDPS("targettarget") then rangedTarget = "targettarget"
-elseif canAttack("mouseover") then rangedTarget = "mouseover"
+local rangedTarget  = "target"
+if PlayerCanDPS("target") then rangedTarget = "target"
+elseif PlayerCanAttack(TankTarget) then rangedTarget = TankTarget
+elseif PlayerCanAttack("targettarget") then rangedTarget = "targettarget"
+elseif PlayerCanAttack("mouseover") then rangedTarget = "mouseover"
 end
-if canDPS(rangedTarget) then jps.Macro("/target "..rangedTarget) end
-local TargetMoving = select(1,GetUnitSpeed(rangedTarget)) > 0
+if PlayerCanAttack(rangedTarget) then jps.Macro("/target "..rangedTarget) end
+local targetMoving = select(1,GetUnitSpeed(rangedTarget)) > 0
 
 local PlayerBossDebuff = jps.BossDebuff("player")
 if jps.hp("player") < 0.25 then CreateMessage("LOW HEALTH!")
 elseif PlayerBossDebuff then CreateMessage("BOSS DEBUFF!") end
-
-local playerIsTarget = jps.PlayerIsTarget()
 
 ------------------------
 -- SPELL TABLE ---------
@@ -145,7 +136,7 @@ local spellTable = {
 
 }
 
-	spell,target = parseSpellTable(spellTable)
+	local spell,target = parseSpellTable(spellTable)
 	return spell,target
 end, "Warrior Fury")
 

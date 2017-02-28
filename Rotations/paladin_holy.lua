@@ -1,13 +1,12 @@
 local spells = jps.spells.paladin
-local canDPS = jps.canDPS
-local canHeal = jps.canHeal
-local canAttack = jps.canAttack
-local strfind = string.find
-local UnitClass = UnitClass
-local UnitChannelInfo = UnitChannelInfo
-local GetSpellInfo = GetSpellInfo
-local UnitAffectingCombat = UnitAffectingCombat
-local UnitIsUnit = UnitIsUnit
+
+local PlayerCanAttack = function(unit)
+	return jps.canAttack(unit)
+end
+
+local PlayerCanDPS = function(unit)
+	return jps.canDPS(unit)
+end
 
 ------------------------------------------------------------------------------------------------------
 ---------------------------------------------- ROTATION ----------------------------------------------
@@ -15,62 +14,38 @@ local UnitIsUnit = UnitIsUnit
 
 jps.registerRotation("PALADIN","HOLY",function()
 
-	local spell = nil
-	local target = nil
-
 ----------------------------
 -- LOWEST UNIT
 ----------------------------
 
-	local CountInRange, AvgHealthRaid, FriendUnit, FriendLowest = jps.CountInRaidStatus(0.80) -- CountInRange return count raid unit below healpct -- FriendUnit return table with all raid unit in range
-	local LowestUnit, LowestUnitPrev = jps.LowestImportantUnit()
-
-	local Tank,TankUnit = jps.findRaidTank() -- default "player"
+	local CountInRange, AvgHealthRaid, FriendUnit, FriendLowest = jps.CountInRaidStatus(0.80) -- CountInRange return raid count unit below healpct -- FriendUnit return table with all raid unit in range
+	local LowestUnit, LowestUnitPrev = jps.LowestImportantUnit() -- if jps.Defensive then LowestUnit is {"player","mouseover","target","focus","targettarget","focustarget"}
+	local Tank,TankUnit = jps.findRaidTank() -- default "focus" "player"
 	local TankTarget = Tank.."target"
+	local TankThreat,_  = jps.findRaidTankThreat()
 
 	local playerAggro = jps.FriendAggro("player")
-	local lowestAggro = jps.FriendAggro(LowestUnit)
 	local playerIsStun = jps.StunEvents(2) -- return true/false ONLY FOR PLAYER -- "ROOT" was removed of Stuntype
 	-- {"STUN_MECHANIC","STUN","FEAR","CHARM","CONFUSE","PACIFY","SILENCE","PACIFYSILENCE"}
 	local playerIsInterrupt = jps.InterruptEvents() -- return true/false ONLY FOR PLAYER
 	local playerWasControl = jps.ControlEvents() -- return true/false Player was interrupt or stun 2 sec ago ONLY FOR PLAYER
-	local ispvp = UnitIsPVP("player")
+	local playerIsTarget = jps.PlayerIsTarget()
+	local isPVP= UnitIsPVP("player")
 	local raidCount = #FriendUnit
+	local isInRaid = IsInRaid()
 
 ----------------------
 -- TARGET ENEMY
 ----------------------
 
-	-- rangedTarget returns "target" by default, sometimes could be friend
-	local rangedTarget, EnemyUnit, TargetCount = jps.LowestTarget()
-	
-	-- Config FOCUS with MOUSEOVER
-	if not jps.UnitExists("focus") and canAttack("mouseover") then
-		-- set focus an enemy targeting you
-		if UnitIsUnit("mouseovertarget","player") and not UnitIsUnit("target","mouseover") then
-			jps.Macro("/focus mouseover") --print("Enemy DAMAGER|cff1eff00 "..name.." |cffffffffset as FOCUS")
-		-- set focus an enemy in combat
-		elseif canAttack("mouseover") and not UnitIsUnit("target","mouseover") then
-			jps.Macro("/focus mouseover") --print("Enemy COMBAT|cff1eff00 "..name.." |cffffffffset as FOCUS")
-		end
-	end
-	
-	if jps.UnitExists("focus") and UnitIsUnit("target","focus") then
-		jps.Macro("/clearfocus")
-	elseif jps.UnitExists("focus") and not canDPS("focus") then
-		jps.Macro("/clearfocus")
-	end
-
-	if canDPS("target") then rangedTarget =  "target"
-	elseif canAttack(TankTarget) then rangedTarget = TankTarget
-	elseif canAttack("targettarget") then rangedTarget = "targettarget"
-	elseif canAttack("mouseover") then rangedTarget = "mouseover"
+	local rangedTarget  = "target"
+	if PlayerCanDPS("target") then rangedTarget =  "target"
+	elseif PlayerCanAttack(TankTarget) then rangedTarget = TankTarget
+	elseif PlayerCanAttack("targettarget") then rangedTarget = "targettarget"
+	elseif PlayerCanAttack("mouseover") then rangedTarget = "mouseover"
 	end
 	-- if your target is friendly keep it as target
-	if not canHeal("target") and canAttack(rangedTarget) then jps.Macro("/target "..rangedTarget) end
-
-	local TargetMoving = select(1,GetUnitSpeed(rangedTarget)) > 0
-	local playerIsTarget = jps.PlayerIsTarget()
+	if not canHeal("target") and PlayerCanAttack(rangedTarget) then jps.Macro("/target "..rangedTarget) end
 
 ----------------------------
 -- LOCAL FUNCTIONS FRIENDS
@@ -98,8 +73,8 @@ jps.registerRotation("PALADIN","HOLY",function()
 		end
 	end
 	
+	-- "Cleanse"
 	local parseDispel = {
-		-- "Cleanse"
 		{ spells.cleanse, jps.canDispel("player","Poison") , "player" , "Dispel" },
 		{ spells.cleanse, jps.canDispel("player","Disease") , "player" , "Dispel" },
 		{ spells.cleanse, jps.canDispel("player","Magic") , "player" , "Dispel" },
@@ -126,7 +101,7 @@ local spellTable = {
 	-- "Adaptation" 214027
 	{ 214027, playerIsStun , "player" , "playerCC" },
 	-- "Use bottom trinket"
-	{"macro", ispvp and jps.hp("player") < 0.80 and jps.IncomingDamage("player") > jps.IncomingHeal("player") and not jps.buff(642) and not jps.buff(1022) , "/use 14" },
+	{"macro", isPVP and jps.hp("player") < 0.80 and jps.IncomingDamage("player") > jps.IncomingHeal("player") and not jps.buff(642) and not jps.buff(1022) , "/use 14" },
     -- "Healthstone"
     { "macro", jps.hp("player") < 0.60 and jps.useItem(5512) ,"/use item:5512" },
     
@@ -137,7 +112,7 @@ local spellTable = {
     -- "Bénédiction de protection" 1022
     { spells.blessingOfProtection, jps.hp("player") < 0.60 and not jps.buff(642) , "player" },
     { spells.blessingOfProtection, jps.hp("mouseover") < 0.60 and canHeal("mouseover") , "mouseover" },
-    { spells.blessingOfProtection, ispvp and jps.hp(LowestUnit) < 0.20 and lowestAggro , LowestUnit },
+    { spells.blessingOfProtection, isPVP and jps.hp(LowestUnit) < 0.20 and lowestAggro , LowestUnit },
     -- "Vengeur sacré" 498
     { spells.divineProtection, jps.hp(Tank) < 0.80 and jps.IncomingDamage(Tank) > jps.IncomingHeal(Tank) , Tank },
 	{ spells.divineProtection, jps.hp("player") < 0.80 and jps.IncomingDamage("player") > jps.IncomingHeal("player") , "player" },
@@ -165,7 +140,7 @@ local spellTable = {
 	{ spells.holyShock, true , rangedTarget },
    	-- "Eclair lumineux" 19750
 	{ spells.flashOfLight, not jps.Moving and jps.hp(LowestUnit) < 0.60 and jps.buff(54149) , LowestUnit },
-	{ spells,flashOfLight, ispvp and not jps.Moving and jps.hp("player") < 0.80 , "player" },
+	{ spells,flashOfLight, isPVP and not jps.Moving and jps.hp("player") < 0.80 , "player" },
 	-- "Lumière sacrée" 82326
 	{ spells.holyLight, not jps.Moving and jps.hp(LowestUnit) < 0.80 and jps.buff(54149) , LowestUnit },
 
@@ -181,17 +156,17 @@ local spellTable = {
 		-- 26573
 		{ spells.consecration, CheckInteractDistance(rangedTarget,2) == true , rangedTarget },
 		--"Aura Mastery" 31821
-		{ spells.auraMastery, ispvp and AvgHealthRaid < 0.50 },
+		{ spells.auraMastery, isPVP and AvgHealthRaid < 0.50 },
 	}},
 
     -- "Courroux vengeur" 31842 -- gives buff 31842
     { spells.avengingWrath, CountInRange > 3 and AvgHealthRaid < 0.80 , LowestUnit },
-    { spells.avengingWrath, not ispvp and jps.hp(Tank) < 0.60 and jps.hp(LowestUnit) < 0.60 and not UnitIsUnit(Tank,LowestUnit), LowestUnit },
+    { spells.avengingWrath, not isPVP and jps.hp(Tank) < 0.60 and jps.hp(LowestUnit) < 0.60 and not UnitIsUnit(Tank,LowestUnit), LowestUnit },
     { spells.avengingWrath, jps.hp("player") < 0.80 and jps.IncomingDamage("player") > jps.IncomingHeal("player") , "player" },
     { spells.avengingWrath, jps.hp(rangedTarget) < 0.30 and CheckInteractDistance(rangedTarget,3) == true , "player" },
     -- "Vengeur sacré" 105809 -- Augmente votre hâte de 30% et les soins de votre Horion sacré de 30% pendant 20 sec.
 	{ spells.holyAvenger, jps.hp(Tank) < 0.40 , Tank },
-	{ spells,holyAvenger, ispvp and jps.hp("player") < 0.50 , "player" },
+	{ spells,holyAvenger, isPVP and jps.hp("player") < 0.50 , "player" },
 	
 	
 	-- "Délivrance de Tyr" 200652 -- buff 200654 -- Soins reçus de Lumière sacrée et Éclair lumineux augmentés de 20%. 
@@ -226,7 +201,7 @@ jps.registerRotation("PALADIN","HOLY",function()
 	local LowestUnit = jps.LowestImportantUnit()
 	local areaType = IsInInstance()
 	local isOutdoors = IsOutdoors()
-	local ispvp = UnitIsPVP("player")
+	local isPVP = UnitIsPVP("player")
 
 	if IsMounted() then return end
 	

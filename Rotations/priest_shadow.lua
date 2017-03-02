@@ -2,9 +2,6 @@ local spells = jps.spells.priest
 local UnitIsUnit = UnitIsUnit
 local Enemy = { "target", "focus" ,"mouseover" }
 
-local NamePlateCount = function()
-	return jps.NamePlateCount()
-end
 local CountInRange = function(pct)
 	local Count, _, _ = jps.CountInRaidStatus(pct)
 	return Count
@@ -41,6 +38,10 @@ end
 
 local PlayerCanDPS = function(unit)
 	return jps.canDPS(unit)
+end
+
+local PlayerCanHeal = function(unit)
+	return jps.canHeal(unit)
 end
 
 local PlayerHasBuff = function(spell)
@@ -115,6 +116,35 @@ end
 
 ------------------------------------------------
 
+local FocusNamePlate = function()
+	local NamePlateTable = jps.NamePlate()
+	local NamePlateTarget = nil
+	for unit,_ in pairs(NamePlateTable) do
+		if PlayerCanAttack(unit) and not jps.myDebuff(spells.shadowWordPain,unit) and not jps.myDebuff(spells.vampiricTouch,unit) then
+			NamePlateTarget = unit
+		elseif PlayerCanDPS("mouseover") and jps.Defensive and not jps.myDebuff(spells.shadowWordPain,unit) and not jps.myDebuff(spells.vampiricTouch,unit) then
+			NamePlateTarget = unit
+		break end
+	end
+	if NamePlateTarget ~= nil and UnitIsUnit("mouseover",NamePlateTarget) then
+		if jps.UnitExists("focus") and jps.myDebuffDuration(spells.vampiricTouch,"focus") > 12 and jps.myDebuffDuration(spells.shadowWordPain,"focus") > 9 then
+			jps.Macro("/focus mouseover")
+		elseif not jps.UnitExists("focus") then
+			jps.Macro("/focus mouseover")
+		end
+	end
+end
+
+local NamePlateDebuff = function(debuff)
+	return jps.NamePlateDebuff(debuff)
+end
+
+local NamePlateCount = function()
+	return jps.NamePlateCount()
+end
+
+------------------------------------------------
+
 local TargetMouseover = function()
 	-- Config FOCUS with MOUSEOVER
 	if not jps.UnitExists("focus") and (PlayerCanAttack("mouseover") or (PlayerCanDPS("mouseover") and jps.Defensive)) then
@@ -132,25 +162,6 @@ local TargetMouseover = function()
 		jps.Macro("/clearfocus")
 	elseif jps.UnitExists("focus") and not PlayerCanDPS("focus") then
 		jps.Macro("/clearfocus")
-	end
-end
-
-local FocusNamePlate = function()
-	local NamePlateTable = jps.NamePlate()
-	local NamePlateTarget = nil
-	for unit,_ in pairs(NamePlateTable) do
-		if PlayerCanAttack(unit) and not jps.myDebuff(spells.shadowWordPain,unit) and not jps.myDebuff(spells.vampiricTouch,unit) then
-			NamePlateTarget = unit
-		elseif PlayerCanDPS("mouseover") and jps.Defensive and not jps.myDebuff(spells.shadowWordPain,unit) and not jps.myDebuff(spells.vampiricTouch,unit) then
-			NamePlateTarget = unit
-		break end
-	end
-	if NamePlateTarget ~= nil and UnitIsUnit("mouseover",NamePlateTarget) then
-		if jps.UnitExists("focus") and jps.myDebuffDuration(spells.vampiricTouch,"focus") > 12 and jps.myDebuffDuration(spells.shadowWordPain,"focus") > 9 then
-			jps.Macro("/focus mouseover")
-		elseif not jps.UnitExists("focus") then
-			jps.Macro("/focus mouseover")
-		end
 	end
 end
 
@@ -237,6 +248,10 @@ end
 if PlayerCanAttack(rangedTarget) then jps.Macro("/target "..rangedTarget) end
 local targetMoving = select(1,GetUnitSpeed(rangedTarget)) > 0
 
+------------------------
+-- SPELL TABLE ---------
+------------------------
+
 if PlayerHasBuff(47585) then return end
 if not PlayerCanDPS(rangedTarget) then return end
 
@@ -244,9 +259,10 @@ local spellTable = {
 
 	-- "Dispersion" 47585
 	{spells.dispersion, PlayerHealth() < 0.40 },
+	{ "macro", PlayerHasBuff(47585) and PlayerHealth > 0.90 , "/cancelaura "..spells.dispersion },
 	{spells.fade, playerIsTarget },
 	-- "Power Word: Shield" 17
-	{spells.powerWordShield, PlayerMoving() and PlayerHasTalent(2,2) and not PlayerHasBuff(spells.powerWordShield) , "player" },
+	{spells.powerWordShield, not PlayerHasBuff(65081) and jps.IsMovingFor(1) and PlayerHasTalent(2,2) , "player" },
 	{spells.powerWordShield, PlayerHealth() < 0.80 and not PlayerHasBuff(194249) and not PlayerHasBuff(spells.powerWordShield) , "player" },
 	{spells.powerWordShield, jps.hp("mouseover") < 0.50 and not jps.buff(spells.powerWordShield,"mouseover") , "mouseover" },
 	-- "Pierre de soins" 5512
@@ -275,7 +291,7 @@ local spellTable = {
 		{spells.mindBomb, jps.MultiTarget , "target" },
 		-- "Levitate" 1706
 		{ spells.levitate, jps.Defensive and jps.IsFallingFor(2) and not PlayerHasBuff(111759) , "player" },
-		{ spells.levitate, jps.Defensive and IsSwimming() and not PlayerHasBuff(111759) , "player" },
+		--{ spells.levitate, jps.Defensive and IsSwimming() and not PlayerHasBuff(111759) , "player" },
 	}},
 	
 	-- "Guérison de l’ombre" 186263 -- debuff "Shadow Mend" 187464 10 sec
@@ -289,7 +305,7 @@ local spellTable = {
     -- "Déferlante d’ombre" 205385
     {spells.shadowCrash, PlayerHasTalent(7,2) },
 
-   	{spells.voidEruption, not PlayerMoving() and PlayerCanDPS("target") and not PlayerHasBuff(194249) and PlayerInsanity() > 65 and PlayerHasTalent(7,1) },
+   	{spells.voidEruption, not PlayerMoving() and PlayerCanDPS("target") and not PlayerHasBuff(194249) and PlayerInsanity() > 65 and PlayerHasTalent(7,1) and NamePlateCount() < 5 },
 	{spells.voidEruption, not PlayerMoving() and PlayerCanDPS("target") and not PlayerHasBuff(194249) and PlayerInsanity() == 100 },
 
 	{spells.powerInfusion, PlayerBuffStacks(194249) > 9 and PlayerInsanity() > 65 },
@@ -299,6 +315,7 @@ local spellTable = {
 	{"nested", PlayerHasBuff(194249) , {
 		--{"macro", jps.canCastvoidBolt , "/stopcasting" },
 		{spells.voidEruption, VoidBoltTarget() ~= nil , VoidBoltTarget },
+		{spells.voidEruption, true , "target"},
 		{spells.voidTorrent , not PlayerMoving() },
 		{spells.shadowWordDeath, PlayerInsanity() < 85 , "target" },
 		{spells.shadowWordDeath, PlayerInsanity() < 85 and DeathEnemyTarget() ~= nil , DeathEnemyTarget },
@@ -312,8 +329,13 @@ local spellTable = {
 
 	{spells.vampiricTouch, not PlayerMoving() and TargetDebuffDuration(spells.vampiricTouch) < 4  and not PlayerIsRecast(spells.vampiricTouch,"target") , "target"  },
 	{spells.shadowWordPain, TargetDebuffDuration(spells.shadowWordPain) < 4 and not PlayerIsRecast(spells.shadowWordPain,"target") , "target" },
+	
+	{spells.shadowWordPain, NamePlateCount() > 4 and NamePlateDebuff(spells.shadowWordPain) < math.min(9,NamePlateCount()) and PlayerCanAttack("mouseover") and not MouseoverDebuff(spells.shadowWordPain) and not PlayerIsRecast(spells.shadowWordPain,"mouseover") , "mouseover" , "SwP" },
+
 	{spells.vampiricTouch, not PlayerMoving() and FocusDebuffDuration(spells.vampiricTouch) < 4 and not PlayerIsRecast(spells.vampiricTouch,"focus") , "focus"  },
 	{spells.shadowWordPain, FocusDebuffDuration(spells.shadowWordPain) < 4 and not PlayerIsRecast(spells.shadowWordPain,"focus") , "focus" },
+	
+    {spells.mindFlay , NamePlateCount() > 4 and not PlayerMoving() and TargetDebuffDuration(spells.shadowWordPain) > 3 , "target" , "MF" },
 
 	{spells.vampiricTouch, PlayerCanAttack("mouseover") and not PlayerMoving() and MouseoverDebuffDuration(spells.vampiricTouch) < 4 and not PlayerIsRecast(spells.vampiricTouch,"mouseover") , "mouseover"  },
 	{spells.shadowWordPain, PlayerCanAttack("mouseover") and MouseoverDebuffDuration(spells.shadowWordPain) < 4 and not PlayerIsRecast(spells.shadowWordPain,"mouseover") , "mouseover" },
@@ -355,18 +377,13 @@ end,"Shadow Priest")
 ----------------------------------------------------------------------------------------------------------------
 
 jps.registerRotation("PRIEST","SHADOW",function()
-
-	local spell = nil
-	local target = nil
-	local Shield = jps.spells.priest.powerWordShield
 	
 	if IsMounted() then return end
 	
 	local spellTable = {
 	
 	-- "Shield" 17 "Body and Soul" 64129 "Corps et âme" -- Vitesse de déplacement augmentée de 40% -- buff 65081
-	{ spells.powerWordShield, jps.Moving and not jps.buff(17,"player") and jps.hasTalent(2,2) , "player" , "Shield_BodySoul" },
-	{ "macro", not jps.buff(65081) and jps.Moving and jps.buff(17) and jps.hasTalent(2,2) , "/cancelaura "..Shield },
+	{ spells.powerWordShield, not PlayerHasBuff(65081) and jps.IsMovingFor(1) and PlayerHasTalent(2,2) , "player" , "Shield_BodySoul" },
 
 	-- "Levitate" 1706
 	{ spells.levitate, jps.Defensive and jps.IsFallingFor(2) and not PlayerHasBuff(111759) , "player" },

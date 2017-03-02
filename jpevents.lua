@@ -597,6 +597,14 @@ function jps.NamePlateCount()
 	return plateCount
 end
 
+function jps.NamePlateDebuff(debuff)
+	local plateCount = 0
+	for unit,_ in pairs(activeUnitPlates) do
+		if UnitAffectingCombat(unit) and not jps.myDebuff(debuff,unit) then plateCount = plateCount + 1 end
+	end
+	return plateCount
+end
+
 ----------------------
 -- LOSS_OF_CONTROL
 ----------------------

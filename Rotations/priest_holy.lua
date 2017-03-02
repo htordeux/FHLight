@@ -2,9 +2,6 @@ local spells = jps.spells.priest
 local UnitIsUnit = UnitIsUnit
 local Enemy = { "target", "focus" ,"mouseover" }
 
-local NamePlateCount = function()
-	return jps.NamePlateCount()
-end
 local CountInRange = function(pct)
 	local Count, _, _ = jps.CountInRaidStatus(pct)
 	return Count
@@ -74,6 +71,7 @@ end
 local DispelMagicTarget = function()
 	return jps.DispelMagicTarget()
 end
+
 ------------------------------------------------------------------------------------------------------
 ---------------------------------------------- ROTATION ----------------------------------------------
 ------------------------------------------------------------------------------------------------------
@@ -234,8 +232,8 @@ local spellTable = {
 	}},
 	
 	-- "Levitate" 1706
-	{ spells.levitate, jps.Defensive and jps.IsFallingFor(2) and not playerHasBuff(111759) , "player" },
-	--{ spells.levitate, jps.Defensive and IsSwimming() and not playerHasBuff(111759) , "player" },
+	{ spells.levitate, jps.Defensive and jps.IsFallingFor(2) and not PlayerHasBuff(spells.levitate) , "player" },
+	--{ spells.levitate, jps.Defensive and IsSwimming() and not PlayerHasBuff(spells.levitate) , "player" },
 
 	-- PLAYER AGGRO --
 	-- "Médaillon de gladiateur" 208683
@@ -369,9 +367,9 @@ local spellTable = {
 	
 	-- "Renew" 139
 	{ spells.renew, CountInRange < 4 and RenewFriend ~= nil , RenewFriend },
-	{ spells.renew, CountInRange < 4 and not jps.buff(spells.renew,LowestUnit) and jps.hpInc(LowestUnit) < 0.90 , LowestUnit , "R" },
-	{ spells.renew, CountInRange < 6 and isInRaid and RenewFriend ~= nil , RenewFriend },
-	{ spells.renew, CountInRange < 6 and isInRaid and not jps.buff(spells.renew,LowestUnit) and jps.hpInc(LowestUnit) < 0.90 , LowestUnit , "R" },
+	{ spells.renew, CountInRange < 4 and not jps.buff(spells.renew,LowestUnit) and jps.hpInc(LowestUnit) < 0.85 , LowestUnit , "R" },
+	--{ spells.renew, CountInRange < 6 and isInRaid and RenewFriend ~= nil , RenewFriend },
+	--{ spells.renew, CountInRange < 6 and isInRaid and not jps.buff(spells.renew,LowestUnit) and jps.hpInc(LowestUnit) < 0.85 , LowestUnit , "R" },
 
 	-- "Prayer of Healing" 596 -- A powerful prayer that heals the target and the 4 nearest allies within 40 yards for (250% of Spell power)
 	-- "Holy Word: Sanctify" gives buff  "Divinity" 197030 When you heal with a Holy Word spell, your healing is increased by 15% for 8 sec.	
@@ -466,13 +464,13 @@ jps.registerRotation("PRIEST","HOLY",function()
 
 	-- "Esprit de rédemption" buff 27827 "Spirit of Redemption"
 	--{ "macro", PlayerHasBuff(27827) , "/cancelaura Esprit de rédemption"  },
-	{ "macro", PlayerHasBuff(111759) and not IsFalling() , "/cancelaura Lévitation"  },
+	{ "macro", PlayerHasBuff(spells.levitate) and not IsFalling() , "/cancelaura Lévitation"  },
 	
 	{ spells.prayerOfMending, not jps.Moving and not jps.buffTracker(41635) and not UnitIsUnit("player",Tank) , Tank , "Tracker_Mending_Tank" },
 
 	-- "Levitate" 1706
-	{ spells.levitate, jps.IsFallingFor(2) and not playerHasBuff(111759) , "player" },
-	{ spells.levitate, IsSwimming() and not playerHasBuff(111759) , "player" },
+	{ spells.levitate, jps.IsFallingFor(2) and not PlayerHasBuff(spells.levitate) , "player" },
+	{ spells.levitate, IsSwimming() and not PlayerHasBuff(spells.levitate) , "player" },
 
 	-- "Don des naaru" 59544
 	{ spells.giftNaaru, jps.hp("player") < 0.80 , "player" },

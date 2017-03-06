@@ -455,10 +455,8 @@ local GetTime = GetTime
 local Shield = toSpellName(17)
 jps.events.registerEvent("UNIT_SPELLCAST_SENT", function(unitID,spellname,_,spelltarget,_)
 	if unitID == "player" then
-		jps.SentCast = spellname
 		sendTime = GetTime()
 		jps.CurrentCastInterrupt = nil
-		if spellname == Shield then jps.createTimer("ShieldTimer", 12 ) end
 		--print("SPELLCAST_SENT: ",unitID,"spellname: ",spellname,"spellID: ",spellID)
 	end
 end)
@@ -597,7 +595,7 @@ function jps.NamePlateCount()
 	return plateCount
 end
 
-function jps.NamePlateDebuff(debuff)
+function jps.NamePlateDebuffCount(debuff)
 	local plateCount = 0
 	for unit,_ in pairs(activeUnitPlates) do
 		if UnitAffectingCombat(unit) and not jps.myDebuff(debuff,unit) then plateCount = plateCount + 1 end

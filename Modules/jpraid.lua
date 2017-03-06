@@ -23,13 +23,22 @@ local UnitIsUnit = UnitIsUnit
 
 function jps.hp(unit)
 	if unit == nil then unit = "player" end
-	if not jps.UnitExists(unit) then return 999 end
 	return UnitHealth(unit) / UnitHealthMax(unit)
+end
+
+function jps.hpRange(unit,bot,top)
+	if top == nil then top = 100 end
+	if bot == nil then bot = 0.80 end
+	if unit == nil then unit = "player" end
+	local unitHP = jps.hp(unit)
+	if unitHP >= bot then
+		if unitHP <= top then return true end
+	end
+	return false
 end
 
 function jps.hpInc(unit)
 	if unit == nil then unit = "player" end
-	if not jps.UnitExists(unit) then return 999 end
 	local hpInc = UnitGetIncomingHeals(unit)
 	if not hpInc then hpInc = 0 end
 	return (UnitHealth(unit) + hpInc)/UnitHealthMax(unit)
@@ -37,22 +46,14 @@ end
 
 function jps.hpAbs(unit)
 	if unit == nil then unit = "player" end
-	if not jps.UnitExists(unit) then return 999 end
 	local hpAbs = UnitGetTotalAbsorbs(unit)
 	if not hpAbs then hpAbs = 0 end
 	return (UnitHealth(unit) + hpAbs)/UnitHealthMax(unit)
 end
 
-function jps.hpSum(unit)
-	local absorbHeal = jps.hpAbs(unit)
-	local incomingHeal = jps.hpInc(unit)
-	return (absorbHeal + incomingHeal) / 2
-end
-
 -- Mana SPELL_POWER_MANA 	0
 function jps.mana(unit)
 	if unit == nil then unit = "player" end
-	if not jps.UnitExists(unit) then return 999 end
 	return UnitMana(unit)/UnitManaMax(unit)
 end
 

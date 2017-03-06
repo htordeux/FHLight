@@ -27,7 +27,7 @@ jps = {}
 
 jps.spells = {}
 jps.Version = "1.5"
-jps.UpdateInterval = 0.1
+jps.UpdateInterval = 0.05
 jps.Enabled = false
 jps.Combat = false
 jps.Debug = false
@@ -52,7 +52,6 @@ jps.HarmSpell = ""
 jps.HelpSpell = ""
 jps.CurrentCast = nil
 jps.CurrentCastInterrupt = nil
-jps.SentCast = nil
 jps.LastCast = nil
 jps.LastTarget = nil
 jps.Message = ""
@@ -294,7 +293,7 @@ function jps.Cycle()
 	end
 	
 	-- CASTING
-	if jps.ChannelTimeLeft("player") > 0 then jps.Casting = true
+	if jps.ChannelTimeLeft("player") - jps.Latency > 0 then jps.Casting = true
 	elseif jps.CastTimeLeft("player") - jps.Latency > 0 then jps.Casting = true
 	else jps.Casting = false end
 
@@ -329,7 +328,7 @@ function jps.Cycle()
 		jps.ThisCast,jps.Target = activeRotation.getSpell()
 		if jps.ThisCast ~= nil and not jps.Casting then
 			if jps.NextSpell ~= nil then
-				if jps.NextSpell ~= jps.SentCast and jps.canCast(jps.NextSpell,jps.Target) then
+				if jps.NextSpell ~= jps.CurrentCast and jps.canCast(jps.NextSpell,jps.Target) then
 					jps.Cast(jps.NextSpell)
 					write("|cFFFF0000Next Spell "..jps.NextSpell.. " was casted")
 					jps.NextSpell = nil

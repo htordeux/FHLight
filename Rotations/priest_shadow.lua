@@ -102,7 +102,7 @@ end
 ------------------------------------------------
 
 local PainEnemyTarget = function(unit)
-	if PlayerCanDPS(unit) and not jps.myDebuff(spells.shadowWordPain,unit) and not PlayerIsRecast(spells.shadowWordPain,unit) then
+	if PlayerCanDPS(unit) and not jps.myDebuff(spells.shadowWordPain,unit) then
 		return true end
 	return false
 end
@@ -135,8 +135,8 @@ local FocusNamePlate = function()
 	end
 end
 
-local NamePlateDebuff = function(debuff)
-	return jps.NamePlateDebuff(debuff)
+local NamePlateDebuffCount = function(debuff)
+	return jps.NamePlateDebuffCount(debuff)
 end
 
 local NamePlateCount = function()
@@ -175,7 +175,7 @@ local VoidBoltTarget = function()
 			local vampiricTouchDuration = jps.myDebuffDuration(spells.vampiricTouch,unit)
 			local duration = math.min(shadowWordPainDuration,vampiricTouchDuration)
 			if duration < VoidBoltTargetDuration then
-				VoidBoltTargetDuration = shadowWordPainDuration
+				VoidBoltTargetDuration = duration
 				VoidBoltTarget = unit
 			end
 		end
@@ -290,7 +290,7 @@ local spellTable = {
 		{spells.mindBomb, jps.IsCasting("focus") and PlayerDistance("focus") < 30 , "focus" },
 		{spells.mindBomb, jps.MultiTarget , "target" },
 		-- "Levitate" 1706
-		{ spells.levitate, jps.Defensive and jps.IsFallingFor(2) and not PlayerHasBuff(111759) , "player" },
+		{ spells.levitate, jps.Defensive and jps.IsFallingFor(1) and not PlayerHasBuff(111759) , "player" },
 		--{ spells.levitate, jps.Defensive and IsSwimming() and not PlayerHasBuff(111759) , "player" },
 	}},
 	
@@ -305,7 +305,7 @@ local spellTable = {
     -- "Déferlante d’ombre" 205385
     {spells.shadowCrash, PlayerHasTalent(7,2) },
 
-   	{spells.voidEruption, not PlayerMoving() and PlayerCanDPS("target") and not PlayerHasBuff(194249) and PlayerInsanity() > 65 and PlayerHasTalent(7,1) and NamePlateCount() < 5 },
+   	{spells.voidEruption, not PlayerMoving() and PlayerCanDPS("target") and not PlayerHasBuff(194249) and PlayerInsanity() > 65 and PlayerHasTalent(7,1) },
 	{spells.voidEruption, not PlayerMoving() and PlayerCanDPS("target") and not PlayerHasBuff(194249) and PlayerInsanity() == 100 },
 
 	{spells.powerInfusion, PlayerBuffStacks(194249) > 9 and PlayerInsanity() > 65 },
@@ -317,30 +317,26 @@ local spellTable = {
 		{spells.voidEruption, VoidBoltTarget() ~= nil , VoidBoltTarget },
 		{spells.voidEruption, true , "target"},
 		{spells.voidTorrent , not PlayerMoving() },
-		{spells.shadowWordDeath, PlayerInsanity() < 85 , "target" },
-		{spells.shadowWordDeath, PlayerInsanity() < 85 and DeathEnemyTarget() ~= nil , DeathEnemyTarget },
+		{spells.shadowWordDeath, DeathEnemyTarget() ~= nil and PlayerInsanity() < 85 , DeathEnemyTarget },
 	}},
 
-	{spells.shadowWordDeath, not PlayerHasBuff(194249) , "target" },
-	{spells.shadowWordDeath, not PlayerHasBuff(194249) and DeathEnemyTarget() ~= nil , DeathEnemyTarget },
+	{spells.shadowWordDeath, true , "target" },
+	{spells.shadowWordDeath, true , "focus" },
+	{spells.shadowWordDeath, true , "mouseover" },
 
 	{"macro", jps.canCastMindBlast , "/stopcasting" },
 	{spells.mindBlast, not PlayerMoving() , "target"  },
 
 	{spells.vampiricTouch, not PlayerMoving() and TargetDebuffDuration(spells.vampiricTouch) < 4  and not PlayerIsRecast(spells.vampiricTouch,"target") , "target"  },
-	{spells.shadowWordPain, TargetDebuffDuration(spells.shadowWordPain) < 4 and not PlayerIsRecast(spells.shadowWordPain,"target") , "target" },
-	
-	{spells.shadowWordPain, NamePlateCount() > 4 and NamePlateDebuff(spells.shadowWordPain) < math.min(9,NamePlateCount()) and PlayerCanAttack("mouseover") and not MouseoverDebuff(spells.shadowWordPain) and not PlayerIsRecast(spells.shadowWordPain,"mouseover") , "mouseover" , "SwP" },
+	{spells.shadowWordPain, TargetDebuffDuration(spells.shadowWordPain) < 4 , "target" },
 
 	{spells.vampiricTouch, not PlayerMoving() and FocusDebuffDuration(spells.vampiricTouch) < 4 and not PlayerIsRecast(spells.vampiricTouch,"focus") , "focus"  },
-	{spells.shadowWordPain, FocusDebuffDuration(spells.shadowWordPain) < 4 and not PlayerIsRecast(spells.shadowWordPain,"focus") , "focus" },
-	
-    {spells.mindFlay , NamePlateCount() > 4 and not PlayerMoving() and TargetDebuffDuration(spells.shadowWordPain) > 3 , "target" , "MF" },
+	{spells.shadowWordPain, FocusDebuffDuration(spells.shadowWordPain) < 4 , "focus" },
 
 	{spells.vampiricTouch, PlayerCanAttack("mouseover") and not PlayerMoving() and MouseoverDebuffDuration(spells.vampiricTouch) < 4 and not PlayerIsRecast(spells.vampiricTouch,"mouseover") , "mouseover"  },
-	{spells.shadowWordPain, PlayerCanAttack("mouseover") and MouseoverDebuffDuration(spells.shadowWordPain) < 4 and not PlayerIsRecast(spells.shadowWordPain,"mouseover") , "mouseover" },
+	{spells.shadowWordPain, PlayerCanAttack("mouseover") and MouseoverDebuffDuration(spells.shadowWordPain) < 4 , "mouseover" },
 	{spells.vampiricTouch, jps.Defensive and not PlayerMoving() and MouseoverDebuffDuration(spells.vampiricTouch) < 4 and not PlayerIsRecast(spells.vampiricTouch,"mouseover") , "mouseover"  },
-	{spells.shadowWordPain, jps.Defensive and MouseoverDebuffDuration(spells.shadowWordPain) < 4 and not PlayerIsRecast(spells.shadowWordPain,"mouseover") , "mouseover" },
+	{spells.shadowWordPain, jps.Defensive and MouseoverDebuffDuration(spells.shadowWordPain) < 4 , "mouseover" },
 
 	-- Mind Flay If the target is afflicted with Shadow Word: Pain you will also deal splash damage to nearby targets.
     {spells.mindFlay , not PlayerMoving() , "target"  },
@@ -372,6 +368,22 @@ end,"Shadow Priest")
 --	{spells.voidEruption, MouseoverDebuffDuration(spells.shadowWordPain) > 0 , "mouseover" },
 --	{spells.voidEruption, MouseoverDebuffDuration(spells.vampiricTouch) > 0 , "mouseover" },
 
+
+--jps.registerParseRotation("PRIEST","SHADOW",{
+--
+--	{spells.voidEruption, PlayerHasBuff(194249) , "target"},
+--	{spells.voidTorrent , not PlayerMoving() and PlayerHasBuff(194249) },
+--	{spells.voidEruption, not PlayerMoving() and PlayerCanDPS("target") and not PlayerHasBuff(194249) and PlayerInsanity() == 100 },
+--	{spells.mindBlast, not PlayerMoving() , "target"  },
+--	{spells.vampiricTouch, not PlayerMoving() and TargetDebuffDuration(spells.vampiricTouch) < 4  and not PlayerIsRecast(spells.vampiricTouch,"target") , "target"  },
+--	{spells.shadowWordPain, TargetDebuffDuration(spells.shadowWordPain) < 4  , "target" },
+--    {spells.mindFlay , not PlayerMoving() , "target" ,"MF" },
+--}
+--,"Parse Priest")
+
+
+
+
 ----------------------------------------------------------------------------------------------------------------
 -------------------------------------------------- ROTATION OOC ------------------------------------------------
 ----------------------------------------------------------------------------------------------------------------
@@ -386,7 +398,7 @@ jps.registerRotation("PRIEST","SHADOW",function()
 	{ spells.powerWordShield, not PlayerHasBuff(65081) and jps.IsMovingFor(1) and PlayerHasTalent(2,2) , "player" , "Shield_BodySoul" },
 
 	-- "Levitate" 1706
-	{ spells.levitate, jps.Defensive and jps.IsFallingFor(2) and not PlayerHasBuff(111759) , "player" },
+	{ spells.levitate, jps.Defensive and jps.IsFallingFor(1) and not PlayerHasBuff(111759) , "player" },
 	{ spells.levitate, jps.Defensive and IsSwimming() and not PlayerHasBuff(111759) , "player" },
 
 	-- "Don des naaru" 59544

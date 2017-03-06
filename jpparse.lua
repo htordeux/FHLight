@@ -417,19 +417,20 @@ function jps.Cast(spell) -- "number" "string"
 	jps.Message = ""
 end
 
-function jps.myLastCast(spell)
+function jps.LastSpell(spell)
 	local spellname = toSpellName(spell)
 	if spellname == nil then return false end
 	if jps.CurrentCastInterrupt == spellname then return false end
 	if jps.CurrentCast == spellname then return true end
 	if jps.LastCast == spellname then return true end
-	if jps.SentCast == spellname then return true end
 	return false
 end
 
 function jps.isRecast(spell,unit)
+	local spellname = toSpellName(spell)
 	if unit == nil then unit = "target" end
-	if jps.myLastCast(spell) and (UnitGUID(unit) == jps.LastTargetGUID) then return true end
+	--if CastSpellTable[spellname] == unit then return true end
+	if jps.LastSpell(spell) and (UnitGUID(unit) == jps.LastTargetGUID) then return true end
 	return false
 end
 
@@ -579,7 +580,7 @@ end
 jps.parser = {}
 
 local function fnParseSpell(spell)
-    if type(spell) == "function" then return spell
+    if type(spell) == "function" then return spell()
     else return function () return spell end
     end
 end
@@ -587,18 +588,18 @@ end
 local function alwaysTrue() return true end
 local function alwaysFalse() return false end
 local function fnParseCondition(conditions)
-    if conditions == nil then return alwaysTrue
-    elseif type(conditions) == "function" then return conditions
+    if conditions == nil then return alwaysTrue()
+    elseif type(conditions) == "function" then return function() return conditions() end
     elseif type(conditions) == "boolean" then return function() return conditions end
     elseif type(conditions) == "number" then return function() return conditions ~= 0 end
-    else return alwaysFalse
+    else return alwaysFalse()
     end
 end
 
 local function fnParseTarget(target)
-	if target == nil then return function () return "target" end
-    elseif type(target) == "function" then return target
-    else return function () return target end
+	if target == nil then return function() return "target" end
+    elseif type(target) == "function" then return target()
+    else return function() return target end
     end
 end
 
@@ -620,9 +621,7 @@ local function fnParseDefault(spell, condition, target)
 end
 
 function compileSpellTable(hydraTable)
-
 	local compiledTable = {}
-
 	for i=1,#hydraTable do -- for i, spellTable in ipairs(hydraTable) do
 		local spellTable = hydraTable[i]
         if type(spellTable) == "function" then spellTable = spellTable() end

@@ -17,25 +17,21 @@ local toSpellName = jps.toSpellName
 
 function jps.buffId(spellId,unit)
 	local spellname = toSpellName(spellId)
---	if type(spellId) == "number" then spellname = GetSpellInfo(spellId) end
---	if spellname == nil then return false end
 	if spellname == nil then return false end
 	if unit == nil then unit = "player" end
-	local auraName, _, _, count, _, duration, expirationTime, castBy, _, _, buffId
+	local auraName, _, _, count, _, duration, expirationTime, caster, _, _, buffId
 	local i = 1
-	auraName, _, _, count, _, duration, expirationTime, castBy, _, _, buffId = UnitBuff(unit, i)
+	auraName, _, _, count, _, duration, expirationTime, caster, _, _, buffId = UnitBuff(unit, i)
 	while auraName do
 		if spellId == buffId and auraName == spellname then return true end
 		i = i + 1
-		auraName, _, _, count, _, duration, expirationTime, castBy, _, _, buffId = UnitBuff(unit, i)
+		auraName, _, _, count, _, duration, expirationTime, caster, _, _, buffId = UnitBuff(unit, i)
 	end
 	return false
 end
 
 function jps.buff(spell,unit)
 	local spellname = toSpellName(spell)
---	if type(spell) == "string" then spellname = spell end
---	if type(spell) == "number" then spellname = GetSpellInfo(spell) end
 	if spellname == nil then return false end
 	if unit == nil then unit = "player" end
 	if select(1,UnitBuff(unit,spellname)) then return true end
@@ -44,8 +40,6 @@ end
 
 function jps.debuff(spell,unit)
 	local spellname = toSpellName(spell)
---	if type(spell) == "string" then spellname = spell end
---	if type(spell) == "number" then spellname = GetSpellInfo(spell) end
 	if spellname == nil then return false end
 	if unit == nil then unit = "target" end
 	if select(1,UnitDebuff(unit,spellname)) then return true end
@@ -54,8 +48,6 @@ end
 
 function jps.myDebuff(spell,unit)
 	local spellname = toSpellName(spell)
---	if type(spell) == "string" then spellname = spell end
---	if type(spell) == "number" then spellname = GetSpellInfo(spell) end
 	if spellname == nil then return false end
 	if unit == nil then unit = "target" end
 	if select(1,UnitDebuff(unit,spellname)) and select(8,UnitDebuff(unit,spellname))=="player" then return true end
@@ -64,62 +56,52 @@ end
 
 function jps.myBuffDuration(spell,unit)
 	local spellname = toSpellName(spell)
---	if type(spell) == "string" then spellname = spell end
---	if type(spell) == "number" then spellname = GetSpellInfo(spell) end
 	if spellname == nil then return 0 end
 	if unit == nil then unit = "player" end
-	local _,_,_,_,_,_,duration,caster,_,_,_ = UnitBuff(unit,spellname)
+	local auraName, _, _, count, _, duration, expirationTime, caster, _, _, _ = UnitDebuff(unit,spellname)
 	if caster ~= "player" then return 0 end
-	if duration == nil then return 0 end
-	duration = duration-GetTime() 
-	if duration < 0 then return 0 end
-	return duration
+	if expirationTime == nil then return 0 end
+	local timeLeft = expirationTime - GetTime() 
+	if timeLeft < 0 then return 0 end
+	return timeLeft
 end
 
 function jps.myDebuffDuration(spell,unit) 
 	local spellname = toSpellName(spell)
---	if type(spell) == "string" then spellname = spell end
---	if type(spell) == "number" then spellname = GetSpellInfo(spell) end
 	if spellname == nil then return 0 end
 	if unit == nil then unit = "target" end
-	local _,_,_,_,_,_,duration,caster,_,_ = UnitDebuff(unit,spellname)
-	if caster~="player" then return 0 end
-	if duration==nil then return 0 end
-	duration = duration-GetTime() 
-	if duration < 0 then return 0 end
-	return duration
+	local auraName, _, _, count, _, duration, expirationTime, caster, _, _, _ = UnitDebuff(unit,spellname)
+	if caster ~= "player" then return 0 end
+	if expirationTime == nil then return 0 end
+	local timeLeft = expirationTime - GetTime() 
+	if timeLeft < 0 then return 0 end
+	return timeLeft
 end
 
 function jps.buffDuration(spell,unit)
 	local spellname = toSpellName(spell)
---	if type(spell) == "string" then spellname = spell end
---	if type(spell) == "number" then spellname = GetSpellInfo(spell) end
 	if spellname == nil then return 0 end
 	if unit == nil then unit = "player" end
-	local _,_,_,_,_,_,duration,caster,_,_,_ = UnitBuff(unit,spellname)
-	if duration == nil then return 0 end
-	duration = duration-GetTime() 
-	if duration < 0 then return 0 end
-	return duration
+	local auraName, _, _, count, _, duration, expirationTime, caster, _, _, _ = UnitBuff(unit,spellname)
+	if expirationTime == nil then return 0 end
+	local timeLeft = expirationTime - GetTime() 
+	if timeLeft < 0 then return 0 end
+	return timeLeft
 end
 
 function jps.debuffDuration(spell,unit) 
 	local spellname = toSpellName(spell)
---	if type(spell) == "string" then spellname = spell end
---	if type(spell) == "number" then spellname = GetSpellInfo(spell) end
 	if spellname == nil then return 0 end
 	if unit == nil then unit = "target" end
-	local _,_,_,_,_,_,duration,caster,_,_ = UnitDebuff(unit,spellname)
-	if duration==nil then return 0 end
-	duration = duration-GetTime() 
-	if duration < 0 then return 0 end
-	return duration
+	local auraName, _, _, count, _, duration, expirationTime, caster, _, _, _ = UnitDebuff(unit,spellname)
+	if expirationTime == nil then return 0 end
+	local timeLeft = expirationTime - GetTime() 
+	if timeLeft < 0 then return 0 end
+	return timeLeft
 end
 
 function jps.debuffStacks(spell,unit)
 	local spellname = toSpellName(spell)
---	if type(spell) == "string" then spellname = spell end
---	if type(spell) == "number" then spellname = GetSpellInfo(spell) end
 	if spellname == nil then return 0 end
 	if unit == nil then unit = "target" end
 	local _,_,_,count, _,_,_,_,_,_ = UnitDebuff(unit,spellname)
@@ -129,8 +111,6 @@ end
 
 function jps.buffStacks(spell,unit)
 	local spellname = toSpellName(spell)
---	if type(spell) == "string" then spellname = spell end
---	if type(spell) == "number" then spellname = GetSpellInfo(spell) end
 	if spellname == nil then return 0 end
 	if unit == nil then unit = "player" end
 	local _, _, _, count, _, _, _, _, _ = UnitBuff(unit,spellname)

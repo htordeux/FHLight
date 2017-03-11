@@ -122,8 +122,6 @@ local FocusNamePlate = function()
 	for unit,_ in pairs(NamePlateTable) do
 		if PlayerCanAttack(unit) and not jps.myDebuff(spells.shadowWordPain,unit) and not jps.myDebuff(spells.vampiricTouch,unit) then
 			NamePlateTarget = unit
-		elseif PlayerCanDPS("mouseover") and jps.Defensive and not jps.myDebuff(spells.shadowWordPain,unit) and not jps.myDebuff(spells.vampiricTouch,unit) then
-			NamePlateTarget = unit
 		break end
 	end
 	if NamePlateTarget ~= nil and UnitIsUnit("mouseover",NamePlateTarget) then
@@ -147,7 +145,7 @@ end
 
 local TargetMouseover = function()
 	-- Config FOCUS with MOUSEOVER
-	if not jps.UnitExists("focus") and (PlayerCanAttack("mouseover") or (PlayerCanDPS("mouseover") and jps.Defensive)) then
+	if not jps.UnitExists("focus") and PlayerCanAttack("mouseover") then
 		if UnitIsUnit("mouseovertarget","player") and not UnitIsUnit("target","mouseover") then
 			jps.Macro("/focus mouseover") --print("Enemy DAMAGER|cff1eff00 "..name.." |cffffffffset as FOCUS")
 		elseif not UnitIsUnit("target","mouseover") and not jps.myDebuff(spells.shadowWordPain,"mouseover") then 
@@ -166,33 +164,34 @@ local TargetMouseover = function()
 end
 
 local VoidBoltTarget = function()
-	local VoidBoltTarget = nil
-	local VoidBoltTargetDuration = 24
+	local voidBoltTarget = nil
+	local voidBoltTargetDuration = 24
 	for i=1,#Enemy do -- for _,unit in ipairs(EnemyUnit) do
 		local unit = Enemy[i]
 		if jps.myDebuff(spells.shadowWordPain,unit) and jps.myDebuff(spells.vampiricTouch,unit) then
 			local shadowWordPainDuration = jps.myDebuffDuration(spells.shadowWordPain,unit)
 			local vampiricTouchDuration = jps.myDebuffDuration(spells.vampiricTouch,unit)
 			local duration = math.min(shadowWordPainDuration,vampiricTouchDuration)
-			if duration < VoidBoltTargetDuration then
-				VoidBoltTargetDuration = duration
-				VoidBoltTarget = unit
+			if duration < voidBoltTargetDuration then
+				voidBoltTargetDuration = duration
+				voidBoltTarget = unit
 			end
 		end
 	end
-	return VoidBoltTarget
+	return voidBoltTarget
 end
 
 local DeathEnemyTarget = function()
-	local DeathEnemyTarget = nil
+	local deathEnemyTarget = nil
 	for i=1,#Enemy do -- for _,unit in ipairs(EnemyUnit) do
 		local unit = Enemy[i]
-		if jps.hasTalent(4,2) and  jps.hp(unit) < 0.35 then
-			DeathEnemyTarget = unit
+		if jps.hasTalent(4,2) and jps.hp(unit) < 0.35 then
+			deathEnemyTarget = unit
 		elseif jps.hp(unit) < 0.20 then
-			DeathEnemyTarget = unit
+			deathEnemyTarget = unit
 		break end
 	end
+	return deathEnemyTarget
 end
 
 local TargetElite = function()
@@ -220,7 +219,6 @@ end
 ---------------------------------------------- ROTATION ----------------------------------------------
 ------------------------------------------------------------------------------------------------------
 --jps.Defensive for "Levitate"
---jps.Defensive for DPS any mouseover
 --jps.Interrupts for "Silence" et "Mind Bomb" et "Psychic Scream"
 --jps.UseCDs for "Purify Disease"
 --jps.MultiTarget for not stopcasting
@@ -311,32 +309,26 @@ local spellTable = {
 	{spells.powerInfusion, PlayerBuffStacks(194249) > 9 and PlayerInsanity() > 65 },
 	{spells.shadowfiend, PlayerBuffStacks(194249) > 9 , "target" },
 	{spells.mindbender, PlayerBuffStacks(194249) > 9 , "target" },
-	
+	{spells.shadowWordDeath, DeathEnemyTarget() ~= nil and PlayerInsanity() < 85 , DeathEnemyTarget , "Death1" },
+
+	{spells.vampiricTouch, not jps.MultiTarget and PlayerCanAttack("mouseover") and not PlayerMoving() and MouseoverDebuffDuration(spells.vampiricTouch) < 4 and not PlayerIsRecast(spells.vampiricTouch,"mouseover") , "mouseover"  },
+	{spells.shadowWordPain, not jps.MultiTarget and PlayerCanAttack("mouseover") and MouseoverDebuffDuration(spells.shadowWordPain) < 4 , "mouseover" },
+	{spells.shadowWordPain, jps.MultiTarget and PlayerCanAttack("mouseover") and MouseoverDebuffDuration(spells.shadowWordPain) < 4 , "mouseover" },
+		
 	{"nested", PlayerHasBuff(194249) , {
 		--{"macro", jps.canCastvoidBolt , "/stopcasting" },
-		{spells.voidEruption, VoidBoltTarget() ~= nil , VoidBoltTarget },
+		{spells.voidEruption, VoidBoltTarget() ~= nil , VoidBoltTarget , "VB" },
 		{spells.voidEruption, true , "target"},
 		{spells.voidTorrent , not PlayerMoving() },
-		{spells.shadowWordDeath, DeathEnemyTarget() ~= nil and PlayerInsanity() < 85 , DeathEnemyTarget },
 	}},
-
-	{spells.shadowWordDeath, true , "target" },
-	{spells.shadowWordDeath, true , "focus" },
-	{spells.shadowWordDeath, true , "mouseover" },
 
 	{"macro", jps.canCastMindBlast , "/stopcasting" },
 	{spells.mindBlast, not PlayerMoving() , "target"  },
-
+	
 	{spells.vampiricTouch, not PlayerMoving() and TargetDebuffDuration(spells.vampiricTouch) < 4  and not PlayerIsRecast(spells.vampiricTouch,"target") , "target"  },
 	{spells.shadowWordPain, TargetDebuffDuration(spells.shadowWordPain) < 4 , "target" },
-
 	{spells.vampiricTouch, not PlayerMoving() and FocusDebuffDuration(spells.vampiricTouch) < 4 and not PlayerIsRecast(spells.vampiricTouch,"focus") , "focus"  },
 	{spells.shadowWordPain, FocusDebuffDuration(spells.shadowWordPain) < 4 , "focus" },
-
-	{spells.vampiricTouch, PlayerCanAttack("mouseover") and not PlayerMoving() and MouseoverDebuffDuration(spells.vampiricTouch) < 4 and not PlayerIsRecast(spells.vampiricTouch,"mouseover") , "mouseover"  },
-	{spells.shadowWordPain, PlayerCanAttack("mouseover") and MouseoverDebuffDuration(spells.shadowWordPain) < 4 , "mouseover" },
-	{spells.vampiricTouch, jps.Defensive and not PlayerMoving() and MouseoverDebuffDuration(spells.vampiricTouch) < 4 and not PlayerIsRecast(spells.vampiricTouch,"mouseover") , "mouseover"  },
-	{spells.shadowWordPain, jps.Defensive and MouseoverDebuffDuration(spells.shadowWordPain) < 4 , "mouseover" },
 
 	-- Mind Flay If the target is afflicted with Shadow Word: Pain you will also deal splash damage to nearby targets.
     {spells.mindFlay , not PlayerMoving() , "target"  },
@@ -395,10 +387,10 @@ jps.registerRotation("PRIEST","SHADOW",function()
 	local spellTable = {
 	
 	-- "Shield" 17 "Body and Soul" 64129 "Corps et âme" -- Vitesse de déplacement augmentée de 40% -- buff 65081
-	{ spells.powerWordShield, not PlayerHasBuff(65081) and jps.IsMovingFor(1) and PlayerHasTalent(2,2) , "player" , "Shield_BodySoul" },
+	{ spells.powerWordShield, not PlayerHasBuff(65081) and jps.IsMovingFor(2) and PlayerHasTalent(2,2) , "player" , "Shield_BodySoul" },
 
 	-- "Levitate" 1706
-	{ spells.levitate, jps.Defensive and jps.IsFallingFor(1) and not PlayerHasBuff(111759) , "player" },
+	{ spells.levitate, jps.Defensive and jps.IsFallingFor(2) and not PlayerHasBuff(111759) , "player" },
 	{ spells.levitate, jps.Defensive and IsSwimming() and not PlayerHasBuff(111759) , "player" },
 
 	-- "Don des naaru" 59544

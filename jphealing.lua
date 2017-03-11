@@ -31,6 +31,13 @@ local function HealthPct(unit)
 	return UnitHealth(unit) / UnitHealthMax(unit)
 end
 
+local function HealthPctInc(unit)
+	if not jps.UnitExists(unit) then return 999 end
+	local hpInc = UnitGetIncomingHeals(unit)
+	if not hpInc then hpInc = 0 end
+	return (UnitHealth(unit) + hpInc)/UnitHealthMax(unit)
+end
+
 ----------------------
 -- UPDATE RAIDROSTER
 ----------------------
@@ -280,19 +287,19 @@ end
 -- LOWEST PERCENTAGE in RaidStatus
 jps.LowestInRaidStatus = function()
 	local lowestUnit = "player"
-	local lowestUnitPrev = "player"
+	local lowestUnitInc = "player"
 	local lowestHP = 1
 	for unit,_ in pairs(RaidStatus) do
 		if canHeal(unit) then
 			local unitHP = HealthPct(unit)
 			if unitHP < lowestHP then
 				lowestHP = unitHP
-				lowestUnitPrev = lowestUnit
+				lowestUnitInc = lowestUnit
 				lowestUnit = unit
 			end
 		end
 	end
-	return lowestUnit, lowestUnitPrev
+	return lowestUnit, lowestUnitInc
 end
 
 -- LOWEST HP in RaidStatus
@@ -312,30 +319,42 @@ end
 
 -- WARNING FOCUS RETURN FALSE IF NOT IN GROUP OR RAID BECAUSE OF UNITINRANGE(UNIT)
 -- CANHEAL returns TRUE for "target" and "focus" FRIENDS NOT IN RAID
+local myTanks = {"player","mouseover","target","focus","targettarget","focustarget"}
 jps.LowestImportantUnit = function()
 	local lowestUnit = "player"
-	local lowestUnitPrev = "player"
+	local lowestUnitInc = "player"
 	if jps.Defensive then
-		local myTanks = {"player","mouseover","target","focus","targettarget","focustarget"}
 		local _,Tanks = jps.findRaidTank()
 		for i=1,#Tanks do
 			local unit = Tanks[i]
 			myTanks[#myTanks+1] = unit
 		end
-		local lowestHP = 1 -- in case with Inc & Abs > 1
+		local lowestHP = 100 -- in case with Inc > 1
+		local lowestHPInc = 100 -- in case with Inc > 1
 		for i=1,#myTanks do -- for _,unit in ipairs(myTanks) do
 			local unit = myTanks[i]
 			local unitHP = HealthPct(unit)
+			local unitHPInc = HealthPctInc(unit)
 			if canHeal(unit) and unitHP < lowestHP then 
 				lowestHP = unitHP
-				lowestUnitPrev = lowestUnit
+				lowestUnitInc = lowestUnit
 				lowestUnit = unit
+			end
+			if canHeal(unit) then
+				if unitHP < lowestHP then
+					lowestHP = unitHP
+					lowestUnit = unit 
+				end
+				if unitHPInc < lowestHPInc then
+					lowestHPInc = unitHPInc
+					lowestUnitInc = unit
+				end
 			end
 		end
 	else
-		lowestUnit, lowestUnitPrev = jps.LowestInRaidStatus()
+		lowestUnit, lowestUnitInc = jps.LowestInRaidStatus()
 	end
-	return lowestUnit, lowestUnitPrev
+	return lowestUnit, lowestUnitInc
 end
 
 -- LOWEST TIME TO DIE

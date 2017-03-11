@@ -133,6 +133,7 @@ end
 
 function jps.IsFallingFor(delay)
 	if delay == nil then delay = 1 end
+	if not IsFalling() then jps.resetTimer("Falling") end
 	if IsFalling() then
 		if jps.checkTimer("Falling") == 0 then jps.createTimer("Falling", delay * 2 ) end
 	end
@@ -142,6 +143,7 @@ end
 -- currentSpeed, runSpeed, flightSpeed, swimSpeed = GetUnitSpeed("unit");
 function jps.IsMovingFor(delay)
 	if delay == nil then delay = 1 end
+	if not jps.Moving then jps.resetTimer("Moving") end
 	if jps.Moving then
 		if jps.checkTimer("Moving") == 0 then jps.createTimer("Moving", delay * 2 ) end
 	end

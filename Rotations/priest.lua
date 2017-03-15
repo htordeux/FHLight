@@ -220,10 +220,8 @@ end
 -- FUNCTIONS ENEMY UNIT
 ------------------------------------
 
-local MindFlay = tostring(jps.spells.priest.mindFlay)
-local MindSear = tostring(jps.spells.priest.mindSear)
---local MindFlay = GetSpellInfo(15407)
---local MindSear = GetSpellInfo(48045)
+local MindFlay = tostring(jps.spells.priest.mindFlay) --local MindFlay = GetSpellInfo(15407)
+local MindSear = tostring(jps.spells.priest.mindSear) --local MindSear = GetSpellInfo(48045)
 
 function jps.canCastMindBlast()
 	if jps.MultiTarget then return false end
@@ -236,6 +234,7 @@ function jps.canCastMindBlast()
 end
 
 function jps.canCastvoidBolt()
+	if jps.MultiTarget then return false end
 	if not jps.buff(194249) then return false end
 	if jps.cooldown(jps.spells.priest.voidEruption) > 0 then return false end
 	local Channeling = UnitChannelInfo("player") -- "Mind Flay" is a channeling spell

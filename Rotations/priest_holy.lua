@@ -255,9 +255,9 @@ local spellTable = {
 	-- "Gardiens de la Lumière" -- Esprit gardien invoque un esprit supplémentaire pour veiller sur vous.
 	{ spells.guardianSpirit, jps.hp("player") < 0.30 , LowestUnit },
 	{ "nested", jps.Interrupts ,{
-		{ spells.guardianSpirit, jps.hp(Tank) < 0.40 and not UnitIsUnit("player",Tank) and jps.FriendDamage(Tank) * 2 > UnitHealth(Tank) , Tank },
+		{ spells.guardianSpirit, jps.hp(Tank) < 0.50 and not UnitIsUnit("player",Tank) and jps.FriendDamage(Tank) > UnitHealth(Tank) , Tank },
 		{ spells.guardianSpirit, jps.hp(Tank) < 0.30 and not UnitIsUnit("player",Tank) , Tank },
-		{ spells.guardianSpirit, jps.hp(TankThreat) < 0.40 and not UnitIsUnit("player",TankThreat) and jps.FriendDamage(TankThreat) * 2 > UnitHealth(TankThreat) , TankThreat },
+		{ spells.guardianSpirit, jps.hp(TankThreat) < 0.50 and not UnitIsUnit("player",TankThreat) and jps.FriendDamage(TankThreat) > UnitHealth(TankThreat) , TankThreat },
 		{ spells.guardianSpirit, jps.hp(TankThreat) < 0.30 and not UnitIsUnit("player",TankThreat) , TankThreat },
 		{ spells.guardianSpirit, jps.hp(LowestUnit) < 0.30 , LowestUnit },
 	}},
@@ -318,7 +318,7 @@ local spellTable = {
 	}},
 	
 	-- DPS --
-	{ "nested", jps.MultiTarget and PlayerCanDPS(rangedTarget) and jps.hp(LowestUnit) > 0.60 , {
+	{ "nested", jps.MultiTarget and PlayerCanDPS(rangedTarget) and jps.hp(LowestUnit) > 0.70 , {
 		{ spells.holyWordChastise , PlayerCanDPS(rangedTarget) , rangedTarget },
 		{ spells.holyFire , PlayerCanDPS(rangedTarget) , rangedTarget  },
 		{ spells.smite , not jps.Moving and PlayerCanDPS(rangedTarget) , rangedTarget },
@@ -353,11 +353,12 @@ local spellTable = {
 	}},
 	{ "nested", not jps.Moving and jps.hp(LowestUnit) < 0.70 ,{
 		{ spells.flashHeal, jps.hp(Tank) < 0.60 , Tank , "FHTank" },
+		{ spells.flashHeal,	jps.FriendDamage(LowestUnit) > UnitHealth(LowestUnit) , LowestUnit , "FHDamage" },
 		{ spells.flashHeal, not isInRaid and CountInRange < 4 , LowestUnit , "FHLowest" },
 		{ spells.flashHeal, isInRaid and CountInRange < 6 , LowestUnit , "FHLowest" },
 	}},
 
-	{ "nested", not jps.Moving and jps.hp(Lowest) > 0.40 and jps.cooldown(spells.holyWordSanctify) == 0 and AvgHealthRaid < 0.80 and jps.distanceMax(TankThreat) < 21 ,{
+	{ "nested", not jps.Moving and jps.cooldown(spells.holyWordSanctify) == 0 and AvgHealthRaid < 0.80 and jps.distanceMax(TankThreat) < 21 ,{
 		{ "castsequence", not isInRaid and CountInRange > 3 , { spells.holyWordSanctify , spells.prayerOfHealing } },
 		{ "castsequence", isInRaid and CountInRange > 5 , { spells.holyWordSanctify , spells.prayerOfHealing } },
 	}},

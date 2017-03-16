@@ -524,7 +524,6 @@ local FindSubGroup = function(lowHealth)
 	return groupNumber -- RETURN Group with at least 3 unit in range
 end
 
--- name, rank, icon, count, debuffType, duration, expirationTime, unitCaster, isStealable, shouldConsolidate, spellId, canApplyAura, isBossDebuff, value1, value2, value3 = UnitBuff("unit", index or "name"[, "rank"[, "filter"]])
 -- CHECKS THE WHOLE RAID FOR A BUFF (E.G. PRAYER OF MENDING)
 jps.buffTracker = function(buff)
 	for unit,_ in pairs(RaidStatus) do
@@ -582,9 +581,10 @@ end
 ---------------------------------
 -- DISPEL FUNCTIONS RAID STATUS
 ---------------------------------
--- name, rank, icon, count, debuffType, duration, expirationTime, unitCaster, isStealable, shouldConsolidate, spellId, canApplyAura, isBossDebuff, value1, value2, value3 = UnitDebuff("unit", index or ["name", "rank"][, "filter"])
--- name, rank, icon, count, debuffType, duration, expirationTime, unitCaster, isStealable, shouldConsolidate, spellId, canApplyAura, isBossDebuff, value1, value2, value3 = UnitBuff("unit", index or "name"[, "rank"[, "filter"]])
--- name, rank, icon, count, debuffType, duration, expirationTime, unitCaster, canStealOrPurge, shouldConsolidate, spellId, canApplyAura, isBossDebuff, isCastByPlayer, ... = UnitAura("unit", index or "name"[, "rank"[, "filter"]])
+-- name, rank, icon, count, debuffType, duration, expirationTime, unitCaster, isStealable, nameplateShowPersonal, spellId, canApplyAura, isBossDebuff, nameplateShowAll, timeMod, value1, value2, value3 = UnitDebuff("unit", index or ["name", "rank"][, "filter"])
+-- name, rank, icon, count, debuffType, duration, expirationTime, unitCaster, isStealable, nameplateShowPersonal, spellId, canApplyAura, isBossDebuff, nameplateShowAll, timeMod, value1, value2, value3 = UnitBuff("unit", index or "name"[, "rank"[, "filter"]])
+-- name, rank, icon, count, debuffType, duration, expirationTime, unitCaster, canStealOrPurge, nameplateShowPersonal, spellId, canApplyAura, isBossDebuff, isCastByPlayer, nameplateShowAll, timeMod,value1, value2, value3 = UnitAura("unit", index or "name"[, "rank"[, "filter"]])
+
 
 -- Don't Dispel if unit is affected by some debuffs
 local WarningDebuffs = {
@@ -668,27 +668,6 @@ jps.RaidStatusDebuff = function() -- returns table
 		end
 	end
 	return RaidStatusDebuff
-end
-
-function jps.BossDebuff(unit)
-	local i = 1
-	local auraName,debuffType,expirationTime,spellId,isBossDebuff
-	auraName, _, _, _, debuffType, _, expirationTime, _, _, _, spellId, _, isBossDebuff = UnitDebuff(unit, i)
-	while auraName do
-		local classCaster = UnitClassification(unitCaster)
-		if string.find(classCaster,"boss") ~= nil and debuffType ~= nil then return true end
-		if string.find(classCaster,"elite") ~= nil and debuffType ~= nil then return true end
-		i = i + 1
-		auraName, _, _, _, debuffType, _, expirationTime, _, _, _, spellId, _, isBossDebuff = UnitDebuff(unit, i)
-	end
-	return false
-end
-
-function jps.FindMeBossDebuff()
-	for unit,_ in pairs(RaidStatus) do
-		if canHeal(unit) and jps.BossDebuff(unit) then return unit end
-	end
-	return nil
 end
 
 -----------------------

@@ -10,22 +10,22 @@ local toSpellName = jps.toSpellName
 --------------------------
 -- BUFF DEBUFF
 --------------------------
--- name, rank, icon, count, debuffType, duration, expirationTime, unitCaster, isStealable, shouldConsolidate, spellId, canApplyAura, isBossDebuff, value1, value2, value3 = UnitDebuff("unit", index or ["name", "rank"][, "filter"])
--- name, rank, icon, count, debuffType, duration, expirationTime, unitCaster, isStealable, shouldConsolidate, spellId, canApplyAura, isBossDebuff, value1, value2, value3 = UnitBuff("unit", index or "name"[, "rank"[, "filter"]])
--- name, rank, icon, count, debuffType, duration, expirationTime, unitCaster, canStealOrPurge, shouldConsolidate, spellId, canApplyAura, isBossDebuff, isCastByPlayer, ... = UnitAura("unit", index or "name"[, "rank"[, "filter"]])
--- spellId of the spell or effect that applied the aura
+-- name, rank, icon, count, debuffType, duration, expirationTime, unitCaster, isStealable, nameplateShowPersonal, spellId, canApplyAura, isBossDebuff, nameplateShowAll, timeMod, value1, value2, value3 = UnitDebuff("unit", index or ["name", "rank"][, "filter"])
+-- name, rank, icon, count, debuffType, duration, expirationTime, unitCaster, isStealable, nameplateShowPersonal, spellId, canApplyAura, isBossDebuff, nameplateShowAll, timeMod, value1, value2, value3 = UnitBuff("unit", index or "name"[, "rank"[, "filter"]])
+-- name, rank, icon, count, debuffType, duration, expirationTime, unitCaster, canStealOrPurge, nameplateShowPersonal, spellId, canApplyAura, isBossDebuff, isCastByPlayer, nameplateShowAll, timeMod,value1, value2, value3 = UnitAura("unit", index or "name"[, "rank"[, "filter"]])
 
-function jps.buffId(spellId,unit)
-	local spellname = toSpellName(spellId)
-	if spellname == nil then return false end
+
+function jps.BossDebuff(unit)
 	if unit == nil then unit = "player" end
-	local auraName, _, _, count, _, duration, expirationTime, caster, _, _, buffId
+	local auraName, debuffType, expTime, unitCaster, spellID, isBossDebuff
 	local i = 1
-	auraName, _, _, count, _, duration, expirationTime, caster, _, _, buffId = UnitBuff(unit, i)
+	auraName, _, _, _, debuffType, _, expTime, unitCaster, _, _, spellID, _, isBossDebuff = UnitDebuff(unit, i)
 	while auraName do
-		if spellId == buffId and auraName == spellname then return true end
+		local classCaster = UnitClassification(unitCaster)
+		if string.find(classCaster,"boss") ~= nil then return true end
+		if string.find(classCaster,"elite") ~= nil then return true end
 		i = i + 1
-		auraName, _, _, count, _, duration, expirationTime, caster, _, _, buffId = UnitBuff(unit, i)
+		auraName, _, _, _, debuffType, _, expirationTime, unitCaster, _, _, spellID, _, isBossDebuff = UnitDebuff(unit, i)
 	end
 	return false
 end
@@ -152,7 +152,6 @@ function CreateFlasher()
 			self.TimeSinceLastUpdate = 0
 		end
 	end)
-	
  end
  
 function CreateMessage(message)
@@ -167,5 +166,4 @@ function CreateMessage(message)
 	msg:SetFadeDuration(2)
 	msg:SetFont(STANDARD_TEXT_FONT, 25, "OUTLINE")
 	msg:AddMessage(message,1,0,0,1)
-
 end

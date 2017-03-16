@@ -139,8 +139,6 @@ print("|cFFFF0000playerIsTarget: |cffffffff",jps.PlayerIsTarget())
 --	jps.LookupIncomingDamage()
 --	jps.LookupEnemyDamager()
 --	jps.LookupEnemyHealer()
---	local healerTarget = jps.LowestTargetHealer()
---	if healerTarget ~= nil then print("|cffffffffhealerTarget:|cff1eff00",healerTarget,"|cffffffffUnit:|cff1eff00",GetUnitName(healerTarget)) end
 
 --	local rangedTarget, EnemyUnit, TargetCount = jps.LowestTarget()
 --	if jps.canDPS("focus") then EnemyUnit[#EnemyUnit+1] = "focus" end

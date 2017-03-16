@@ -340,6 +340,7 @@ local spellTable = {
 	{ spells.bindingHeal, jps.hp(LowestUnit) < 0.70 and not jps.Moving and jps.unitForBinding(LowestUnit) , LowestUnit },
 
 	-- "Light of T'uure" 208065 it buffs the target to increase your healing done to them by 25% for 10 seconds
+	{ spells.lightOfTuure, jps.BossDebuff(Tank) and not jps.buff(208065,Tank) , Tank },
 	{ spells.lightOfTuure, jps.hpRange("player",0.60,0.85) and not PlayerHasBuff(208065) , "player" },
 	{ spells.lightOfTuure, jps.hpRange(Tank,0.60,0.85) and not jps.buff(208065,Tank) , Tank },
 	{ spells.lightOfTuure, jps.hpRange(TankThreat,0.60,0.85) and not jps.buff(208065,TankThreat) , TankThreat },
@@ -352,8 +353,10 @@ local spellTable = {
 		{ spells.flashHeal, isInRaid and CountInRange < 6 , LowestUnit , "F2" },
 	}},
 	{ "nested", not jps.Moving and jps.hp(LowestUnit) < 0.70 ,{
+		{ spells.flashHeal,	jps.BossDebuff(Tank) , Tank , "FHTankDebuff" },
+		{ spells.flashHeal,	jps.FriendDamage(Tank) > UnitHealth(Tank) , Tank , "FHTankDamage" },
 		{ spells.flashHeal, jps.hp(Tank) < 0.60 , Tank , "FHTank" },
-		{ spells.flashHeal,	jps.FriendDamage(LowestUnit) > UnitHealth(LowestUnit) , LowestUnit , "FHDamage" },
+		{ spells.flashHeal,	jps.FriendDamage(LowestUnit) > UnitHealth(LowestUnit) , LowestUnit , "FHLowestDamage" },
 		{ spells.flashHeal, not isInRaid and CountInRange < 4 , LowestUnit , "FHLowest" },
 		{ spells.flashHeal, isInRaid and CountInRange < 6 , LowestUnit , "FHLowest" },
 	}},

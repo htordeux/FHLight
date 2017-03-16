@@ -536,6 +536,7 @@ jps.events.registerEvent("UNIT_SPELLCAST_CHANNEL_START", function(unitID,spellna
 			jps.CurrentCast = spellname
 			jps.Latency = GetTime() - sendTime
 			jps.GCD = GlobalCooldown()
+			--print("SPELLCHANNEL_START: ",unitID,"spellname: ",spellname,"spellID: ",spellID)
 		end
 end)
 
@@ -671,9 +672,9 @@ end)
 -- "UNIT_HEALTH_PREDICTION" arg1 unitId receiving the incoming heal
 
 jps.events.registerEvent("UNIT_HEALTH_FREQUENT", function(unitID)
-	if jps.isHealer and canHeal(unitID) then
+	if jps.isHealer then
 		jps.UpdateRaidStatus()
-		if UnitAffectingCombat(unitID) then jps.Combat = true end
+		if UnitAffectingCombat(unitID) and canHeal(unitID) then jps.Combat = true end
 	else
 		jps.UpdateRaidUnit(unitID)
 	end
@@ -692,12 +693,17 @@ jps.events.registerEvent("PARTY_MEMBER_DISABLE", function()
 	jps.UpdateRaidRole()
 end)
 
+
+-- "UNIT_AURA" Fired when a buff, debuff, status, or item bonus was gained by or faded from an entity (player, pet, NPC, or mob.)
+jps.events.registerEvent("UNIT_AURA", function(unitID)
+	jps.RaidStatusDebuff()
+end)
+
 -----------------------
 -- UPDATE ENEMY TABLE
 -----------------------
 -- "UNIT_TARGET" Fired when the target of yourself, raid, and party members change: 'target', 'party1target', 'raid1target', etc.. 
 -- Should also work for 'pet' and 'focus'. This event only fires when the triggering unit is within the player's visual range
-jps.events.registerEvent("UNIT_TARGET", jps.LowestTarget)
 
 -- EnemyDamager[sourceGuid] = { ["friendguid"] = friendGuid , ["friendaggro"] = GetTime() }
 local updateEnemyDamager = function()

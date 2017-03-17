@@ -352,7 +352,6 @@ local spellTable = {
 		{ spells.flashHeal, isInRaid and CountInRange < 6 , LowestUnit , "F2" },
 	}},
 	{ "nested", not jps.Moving and jps.hp(Tank) < 0.80 ,{
-		{ spells.flashHeal,	jps.BossDebuff(Tank) , Tank , "FHTankDebuff" },
 		{ spells.flashHeal,	jps.FriendDamage(Tank) > UnitHealth(Tank) , Tank , "FHTankDamage" },
 		{ spells.flashHeal, SerenityOnCD , Tank , "FHTank" },
 		{ spells.flashHeal, jps.hp(Tank) < 0.70 , Tank , "FHTank" },

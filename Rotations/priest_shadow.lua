@@ -314,7 +314,8 @@ local spellTable = {
 
 	-- "Infusion de puissance"  -- Confère un regain de puissance pendant 20 sec, ce qui augmente la hâte de 25%
 	-- "Mindbender" cd 1 min duration 12 sec -- "Ombrefiel" cd 3 min duration 12sec
-	{spells.powerInfusion, UnitSpellHaste("player") > 50 },
+	{spells.powerInfusion, UnitSpellHaste("player") > 50 and PlayerInsanity() > 64 },
+	{spells.powerInfusion, PlayerBuffStacks(194249) > 14 and PlayerInsanity() > 64 },
 	{spells.shadowfiend, PlayerHasBuff(spells.powerInfusion) , "target" },
 	{spells.mindbender, PlayerBuffStacks(194249) > 9 , "target" },
 

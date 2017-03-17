@@ -299,43 +299,40 @@ local spellTable = {
 	-- "Levitate" 1706 -- buff Levitate 111759
 	{ spells.levitate, jps.Defensive and jps.IsFallingFor(1) and not PlayerHasBuff(111759) , "player" },
 	--{ spells.levitate, jps.Defensive and IsSwimming() and not PlayerHasBuff(111759) , "player" },
+	-- mindblast is highest priority spell out of voidform
+	{spells.mindBlast, not PlayerMoving() and not PlayerHasBuff(194249) , "target"  },
+	
+    {spells.voidEruption, not PlayerMoving() and PlayerCanDPS("target") and not PlayerHasBuff(194249) and PlayerInsanity() > 64 and PlayerHasTalent(7,1) },
+	{spells.voidEruption, not PlayerMoving() and PlayerCanDPS("target") and not PlayerHasBuff(194249) and PlayerInsanity() == 100 },
 
-    -- "Déferlante d’ombre" 205385
-    {spells.shadowCrash, PlayerHasTalent(7,2) },
     -- "Shadow Word: Death" 32379
     {spells.shadowWordDeath, jps.spellCharges(spells.shadowWordDeath) == 2 , "target" },
     {spells.shadowWordDeath, DeathEnemyTarget() ~= nil and PlayerInsanity() < 85 , DeathEnemyTarget },
 
     -- TRINKETS -- jps.useTrinket(0) est "Trinket0Slot" est slotId  13 -- "jps.useTrinket(1) est "Trinket1Slot" est slotId  14
 	-- { "macro", jps.useTrinket(1) , "/use 14"},
+
 	-- "Infusion de puissance"  -- Confère un regain de puissance pendant 20 sec, ce qui augmente la hâte de 25%
-	-- "Mindbender" cd 1 min duration 12 sec
-	-- "Ombrefiel" cd 3 min duration 12sec
+	-- "Mindbender" cd 1 min duration 12 sec -- "Ombrefiel" cd 3 min duration 12sec
 	{spells.powerInfusion, UnitSpellHaste("player") > 50 },
-	{spells.shadowfiend, PlayerHasBuff(spells.powerInfusion) and PlayerBuffDuration(spells.powerInfusion) > 12 , "target" },
+	{spells.shadowfiend, PlayerHasBuff(spells.powerInfusion) , "target" },
 	{spells.mindbender, PlayerBuffStacks(194249) > 9 , "target" },
-	
-    {spells.voidEruption, not PlayerMoving() and PlayerCanDPS("target") and not PlayerHasBuff(194249) and PlayerInsanity() > 64 and PlayerHasTalent(7,1) },
-	{spells.voidEruption, not PlayerMoving() and PlayerCanDPS("target") and not PlayerHasBuff(194249) and PlayerInsanity() == 100 },
-	
-	-- mindblast is highest priority spell out of voidform
-	{spells.mindBlast, not PlayerMoving() and not PlayerHasBuff(194249) , "target"  },
 
 	{spells.vampiricTouch, not PlayerMoving() and TargetDebuffDuration(spells.vampiricTouch) < 4  and not PlayerIsRecast(spells.vampiricTouch,"target") , "target"  },
 	{spells.shadowWordPain, TargetDebuffDuration(spells.shadowWordPain) < 4 , "target" },
+	{spells.vampiricTouch, not PlayerMoving() and FocusDebuffDuration(spells.vampiricTouch) < 4 and not PlayerIsRecast(spells.vampiricTouch,"focus") , "focus"  },
+	{spells.shadowWordPain, FocusDebuffDuration(spells.shadowWordPain) < 4 , "focus" },
    
     {"macro", jps.canCastvoidBolt , "/stopcasting" },
 	{spells.voidEruption, PlayerHasBuff(194249) and VoidBoltTarget() ~= nil , VoidBoltTarget },
 	{spells.voidTorrent , PlayerHasBuff(194249) and not PlayerMoving() },
-
-	{spells.vampiricTouch, not PlayerMoving() and FocusDebuffDuration(spells.vampiricTouch) < 4 and not PlayerIsRecast(spells.vampiricTouch,"focus") , "focus"  },
-	{spells.shadowWordPain, FocusDebuffDuration(spells.shadowWordPain) < 4 , "focus" },
+	
+	{spells.vampiricTouch, jps.MultiTarget and PlayerCanDPS("mouseover") and not PlayerMoving() and MouseoverDebuffDuration(spells.vampiricTouch) < 4 and not PlayerIsRecast(spells.vampiricTouch,"mouseover") , "mouseover"  },
+	{spells.shadowWordPain, jps.MultiTarget and PlayerCanDPS("mouseover") and MouseoverDebuffDuration(spells.shadowWordPain) < 4 , "mouseover" },
 
 	{"macro", jps.canCastMindBlast , "/stopcasting" },
 	{spells.mindBlast, not PlayerMoving() , "target"  },
 
-	{spells.vampiricTouch, jps.MultiTarget and PlayerCanDPS("mouseover") and not PlayerMoving() and MouseoverDebuffDuration(spells.vampiricTouch) < 4 and not PlayerIsRecast(spells.vampiricTouch,"mouseover") , "mouseover"  },
-	{spells.shadowWordPain, jps.MultiTarget and PlayerCanDPS("mouseover") and MouseoverDebuffDuration(spells.shadowWordPain) < 4 , "mouseover" },
 	{spells.vampiricTouch, PlayerCanAttack("mouseover") and not PlayerMoving() and MouseoverDebuffDuration(spells.vampiricTouch) < 4 and not PlayerIsRecast(spells.vampiricTouch,"mouseover") , "mouseover"  },
 	{spells.shadowWordPain, PlayerCanAttack("mouseover") and MouseoverDebuffDuration(spells.shadowWordPain) < 4 , "mouseover" },
 

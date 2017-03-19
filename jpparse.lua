@@ -103,7 +103,7 @@ end
 -- IsHarmfulSpell(spellname) -- IsHelpfulSpell(spellname)) returns 1 or nil -- USELESS SOMES SPELLS RETURNS NIL AS OUBLI, SPIRIT SHELL
 -- IsSpellInRange(spellID, spellType, unit) -- spellType String, "spell" or "pet"
 -- IsSpellInRange(spellName, unit) -- returns 0 if out of range, 1 if in range, or nil if the unit is invalid.
-local jps_IsSpellInRange = function(spell,unit)
+local UnitIsSpellInRange = function(spell,unit)
 	if unit == nil then unit = "target" end
 	local spellname = toSpellName(spell)
 	if spellname == nil then return false end
@@ -143,7 +143,7 @@ end
 
 
 jps.IsSpellInRange = function(spell,unit)
-	local inrange = jps_IsSpellInRange(spell,unit)
+	local inrange = UnitIsSpellInRange(spell,unit)
 	if inrange == 0 then return false end
 	return true
 end
@@ -175,15 +175,6 @@ jps.SpellHasRange = function(spell)
 	return hasRange
 end
 
--- UnitIsDeadOrGhost(unit) Returns false for priests who are currently in [Spirit of Redemption] form, having died once and are about to die again
-function jps.UnitExists(unit)
-	if unit == nil then return false end
-	if not UnitExists(unit) then return false end
-	if not UnitIsVisible(unit) then return false end
-	if UnitIsDeadOrGhost(unit) then return false end
-	return true
-end
-
 local buffImmune = {
 	45438, 	-- ice block mage
 	642, 	-- divine shield paladin
@@ -198,6 +189,15 @@ local UnitHasImmuneBuff = function(unit)
 		if jps.buff(buff,unit) then return true end
 	end
 	return false
+end
+
+-- UnitIsDeadOrGhost(unit) Returns false for priests who are currently in [Spirit of Redemption] form, having died once and are about to die again
+function jps.UnitExists(unit)
+	if unit == nil then return false end
+	if not UnitExists(unit) then return false end
+	if not UnitIsVisible(unit) then return false end
+	if UnitIsDeadOrGhost(unit) then return false end
+	return true
 end
 
 -- UnitInRange(unit) -- returns FALSE if out of range or if the unit is invalid. TRUE if in range

@@ -222,6 +222,10 @@ end
 
 local MindFlay = tostring(jps.spells.priest.mindFlay) --local MindFlay = GetSpellInfo(15407)
 local MindSear = tostring(jps.spells.priest.mindSear) --local MindSear = GetSpellInfo(48045)
+local PlayerMoving = function()
+	if select(1,GetUnitSpeed("player")) > 0 then return true end
+	return false
+end
 
 function jps.canCastMindBlast()
 	if jps.MultiTarget then return false end

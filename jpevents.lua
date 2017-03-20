@@ -282,7 +282,7 @@ end)
 
 --[[
 
-SetCVar("nameplateMaxDistance", 45)
+SetCVar("nameplateMaxDistance", 40)
 The nameplates show up at 45 yards (the old default was 40 I believe, the new one is 60).
 
 SetCVar("nameplateLargeTopInset", -1)
@@ -330,6 +330,8 @@ Overlapping Horizontally
 /script SetCVar("nameplateOverlapH", 0.35)
 Default is 0.8. Change value with a number.
 
+SetCVar("NameplateOtherAtBase",2)
+nameplates at the target's feet
 
 SET spreadnameplates value
 1 Nameplates may not overlap, and will be constantly shuffled around to fit on the screen while remaining as close as possible to their units.
@@ -342,18 +344,18 @@ Note: If you stop using this addon the cvars will still stay the same, but you c
 
 -- Nameplates
 local nameplate = function ()
-	SetCVar("nameplateMaxDistance", 45)
-	SetCVar("nameplateLargeTopInset", -1)
+	SetCVar("nameplateMaxDistance", 40)
 	SetCVar("nameplateOtherTopInset", -1)
-	SetCVar("nameplateLargeBottomInset", -1)
 	SetCVar("nameplateOtherBottomInset", -1)
+	SetCVar("nameplateLargeTopInset", -1)
+	SetCVar("nameplateLargeBottomInset", -1)
 	--SetCVar("nameplateHorizontalScale", 1.0)
 	--SetCVar("namePlateVerticalScale", 1.0)
-	SetCVar("nameplateLargerScale", 1.0 )
-	SetCVar("nameplateSelectedScale", 0.9)
-	SetCVar("nameplateMinAlpha", 0.8)
+	--SetCVar("nameplateLargerScale", 1.0 )
+	SetCVar("nameplateSelectedScale", 1)
+	SetCVar("nameplateMinAlpha", 1)
 	SetCVar("ShowDispelDebuffs", 0)
-	SetCVar("nameplateShowSelf", 0)
+	SetCVar("nameplateShowSelf", 0) -- remove the hp/mana bar that is under your character
 	SetCVar("NoBuffDebuffFilterOnTarget", 1)
 	SetCVar("nameplateMotion", 1)
 end

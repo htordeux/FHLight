@@ -231,7 +231,7 @@ local spellTable = {
 	}},
 	
 	-- "Levitate" 1706
-	{ spells.levitate, jps.Defensive and jps.IsFallingFor(1) and not PlayerHasBuff(spells.levitate) , "player" },
+	{ spells.levitate, jps.Defensive and jps.IsFallingFor(2) and not PlayerHasBuff(spells.levitate) , "player" },
 	--{ spells.levitate, jps.Defensive and IsSwimming() and not PlayerHasBuff(spells.levitate) , "player" },
 
 	-- PLAYER AGGRO --
@@ -267,7 +267,8 @@ local spellTable = {
 	{ "macro", jps.useTrinket(1) and CountInRange > 2 , "/use 14"}, -- jps.useTrinket(1) est "Trinket1Slot" est slotId  14
 
 	-- "Apotheosis" 200183 increasing the effects of Serendipity by 200% and reducing the cost of your Holy Words by 100%.
-	{ spells.apotheosis, jps.hasTalent(7,1) and jps.hp(LowestUnit) < 0.60 },
+	{ spells.apotheosis, jps.hasTalent(7,1) and jps.hp(LowestUnit) < 0.60 and SerenityOnCD },
+	{ spells.apotheosis, jps.hasTalent(7,1) and jps.hp(LowestUnit) < 0.60 and AvgHealthRaid < 0.80 },
 	
 	-- "Soins rapides" 2061 -- "Vague de Lumière" 109186 "Surge of Light" -- gives buff 114255
 	{ "nested", PlayerHasBuff(114255) ,{
@@ -327,6 +328,18 @@ local spellTable = {
 		{ spells.holyNova, jps.Moving and CheckInteractDistance("target",2) == true and PlayerCanDPS("target") , "target" },
 	}},
 	
+	-- "Light of T'uure" 208065 it buffs the target to increase your healing done to them by 25% for 10 seconds
+	{ spells.lightOfTuure, jps.BossDebuff(Tank) and not jps.buff(208065,Tank) , Tank },
+	{ spells.lightOfTuure, jps.hpRange("player",0.60,0.85) and not PlayerHasBuff(208065) , "player" },
+	{ spells.lightOfTuure, jps.hpRange(Tank,0.60,0.85) and not jps.buff(208065,Tank) , Tank },
+	{ spells.lightOfTuure, jps.hpRange(LowestUnit,0.60,0.85) and not jps.buff(208065,LowestUnit) , LowestUnit },
+	
+	-- EMERGENCY HEAL -- "Serendipity" 63733 -- "Benediction" for raid and "Apotheosis" for party
+	-- "Soins de lien" 32546
+	{ spells.bindingHeal, jps.hp(Tank) < 0.70 and not jps.Moving and jps.unitForBinding(Tank) , Tank },
+	{ spells.bindingHeal, jps.hp(TankThreat) < 0.70 and not jps.Moving and jps.unitForBinding(TankThreat) , TankThreat },
+	{ spells.bindingHeal, jps.hp(LowestUnit) < 0.70 and not jps.Moving and jps.unitForBinding(LowestUnit) , LowestUnit },
+	
 	-- "Soins rapides" 2061 -- "Traînée de lumière" 200128 "Trail of Light" -- When you cast Flash Heal, 40% of the healing is replicated to the previous target you healed with Flash Heal.
 	{ "nested", not jps.Moving and jps.hasTalent(1,1) and jps.hp(LowestUnit) < 0.80 and jps.LastCastUnit(spells.flashHeal) ~= LowestUnit ,{
 		{ spells.flashHeal, jps.LastCastUnit(spells.flashHeal) == Tank and jps.hp(Tank) > jps.hp(LowestUnit) , LowestUnit , "F1" },
@@ -334,7 +347,7 @@ local spellTable = {
 		{ spells.flashHeal, isInRaid and CountInRange < 6 , LowestUnit , "F2" },
 	}},
 	{ "nested", not jps.Moving and jps.hp(Tank) < 0.80 ,{
-		{ spells.flashHeal,	jps.FriendDamage(Tank) > UnitHealth(Tank) , Tank , "FHTankDamage" },
+		{ spells.flashHeal,	jps.FriendDamage(Tank)*1.6 > UnitHealth(Tank) , Tank , "FHTankDamage" },
 		{ spells.flashHeal, SerenityOnCD , Tank , "FHTank" },
 		{ spells.flashHeal, jps.hp(Tank) < 0.70 , Tank , "FHTank" },
 	}},
@@ -343,26 +356,15 @@ local spellTable = {
 		{ spells.flashHeal, not isInRaid and CountInRange < 4 , LowestUnit , "FHLowest" },
 		{ spells.flashHeal, isInRaid and CountInRange < 6 , LowestUnit , "FHLowest" },
 	}},
-	
+
 	-- "Renew" 139
 	{ "nested", jps.hp(LowestUnit) > 0.70 ,{
 		{ spells.renew, jps.buffDuration(spells.renew,"player") < 3 and jps.hpInc("player") < 0.90 , "player" },
 		{ spells.renew, jps.buffDuration(spells.renew,Tank) < 3 and not UnitIsUnit("player",Tank) , Tank },
 		{ spells.renew, RenewTank ~= nil and not UnitIsUnit("player",RenewTank) , RenewTank },
 		{ spells.renew, not isInRaid and CountInRange < 4 and not jps.buff(spells.renew,LowestUnit) and jps.hpInc(LowestUnit) < 0.90 , LowestUnit , "RenewParty" },
+		{ spells.renew, isInRaid and CountInRange < 6 and not jps.buff(spells.renew,LowestUnit) and jps.hpInc(LowestUnit) < 0.90 , LowestUnit , "RenewRaid" },
 	}},
-
-	-- EMERGENCY HEAL -- "Serendipity" 63733 -- "Benediction" for raid and "Apotheosis" for party
-	-- "Soins de lien" 32546
-	{ spells.bindingHeal, jps.hp(Tank) < 0.70 and not jps.Moving and jps.unitForBinding(Tank) , Tank },
-	{ spells.bindingHeal, jps.hp(TankThreat) < 0.70 and not jps.Moving and jps.unitForBinding(TankThreat) , TankThreat },
-	{ spells.bindingHeal, jps.hp(LowestUnit) < 0.70 and not jps.Moving and jps.unitForBinding(LowestUnit) , LowestUnit },
-
-	-- "Light of T'uure" 208065 it buffs the target to increase your healing done to them by 25% for 10 seconds
-	{ spells.lightOfTuure, jps.BossDebuff(Tank) and not jps.buff(208065,Tank) , Tank },
-	{ spells.lightOfTuure, jps.hpRange("player",0.60,0.85) and not PlayerHasBuff(208065) , "player" },
-	{ spells.lightOfTuure, jps.hpRange(Tank,0.60,0.85) and not jps.buff(208065,Tank) , Tank },
-	{ spells.lightOfTuure, jps.hpRange(LowestUnit,0.60,0.85) and not jps.buff(208065,LowestUnit) , LowestUnit },
 
 	{ "nested", not jps.Moving and jps.cooldown(spells.holyWordSanctify) == 0 and AvgHealthRaid < 0.80 and jps.distanceMax(TankThreat) < 21 ,{
 		{ "castsequence", not isInRaid and CountInRange > 3 , { spells.holyWordSanctify , spells.prayerOfHealing } },

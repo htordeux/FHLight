@@ -264,7 +264,6 @@ local spellTable = {
 	{ "macro", PlayerHasBuff(47585) and PlayerHealth > 0.90 , "/cancelaura "..spells.dispersion },
 	{spells.fade, playerIsTarget },
 	-- "Power Word: Shield" 17
-	{spells.powerWordShield, not PlayerHasBuff(65081) and jps.IsMovingFor(1.6) and PlayerHasTalent(2,2) , "player" },
 	{spells.powerWordShield, PlayerHealth() < 0.80 and not PlayerHasBuff(194249) and not PlayerHasBuff(spells.powerWordShield) , "player" },
 	{spells.powerWordShield, jps.hp("mouseover") < 0.60 and not jps.buff(spells.powerWordShield,"mouseover") , "mouseover" },
 	-- "Pierre de soins" 5512
@@ -297,18 +296,20 @@ local spellTable = {
 		{spells.dispelMagic, isPVP and DispelOffensiveTarget() ~= nil and jps.castEverySeconds(528,4) , DispelOffensiveTarget , "|cff1eff00DispelOffensive" },
 	}},
 	-- "Levitate" 1706 -- buff Levitate 111759
-	{ spells.levitate, jps.Defensive and jps.IsFallingFor(1.6) and not PlayerHasBuff(111759) , "player" },
+	{ spells.levitate, jps.Defensive and jps.IsFallingFor(2) and not PlayerHasBuff(111759) , "player" },
 	--{ spells.levitate, jps.Defensive and IsSwimming() and not PlayerHasBuff(111759) , "player" },
 
     -- "Shadow Word: Death" 32379
     {spells.shadowWordDeath, jps.spellCharges(spells.shadowWordDeath) == 2 , "target" },
     {spells.shadowWordDeath, PlayerInsanity() < 85 , DeathEnemyTarget }, -- DeathEnemyTarget() ~= nil
-    
-   	{spells.shadowWordPain, jps.MultiTarget and PlayerCanDPS("mouseover") and MouseoverDebuffDuration(spells.shadowWordPain) < 4 , "mouseover" },
+
+   	{spells.vampiricTouch, jps.MultiTarget and PlayerCanDPS("mouseover") and not PlayerMoving() and MouseoverDebuffDuration(spells.vampiricTouch) < 4 and not PlayerIsRecast(spells.vampiricTouch,"mouseover") , "mouseover"  },
+	{spells.shadowWordPain, jps.MultiTarget and PlayerCanDPS("mouseover") and MouseoverDebuffDuration(spells.shadowWordPain) < 4 , "mouseover" },
 
 	-- TRINKETS
 	-- { "macro", jps.useTrinket(0) , "/use 13"}, -- jps.useTrinket(0) est "Trinket0Slot" est slotId  13
 	-- { "macro", jps.useTrinket(1) , "/use 14"}, -- jps.useTrinket(1) est "Trinket1Slot" est slotId  14
+
 	-- "Infusion de puissance"  -- Confère un regain de puissance pendant 20 sec, ce qui augmente la hâte de 25%
 	{spells.powerInfusion, PlayerBuffStacks(194249) > 14 and PlayerBuffStacks(194249) < 22 },
 	-- "Ombrefiel" cd 3 min duration 12sec
@@ -320,13 +321,16 @@ local spellTable = {
 	{spells.voidEruption, PlayerCanDPS("target") and not PlayerHasBuff(194249) and PlayerInsanity() == 100 },
     {"macro", jps.canCastvoidBolt , "/stopcasting" },
 	{spells.voidEruption, PlayerHasBuff(194249) , VoidBoltTarget }, -- VoidBoltTarget() ~= nil
+	
+	-- "Power Word: Shield" 17
+	{spells.powerWordShield, not PlayerHasBuff(65081) and jps.IsMovingFor(1.6) and PlayerHasTalent(2,2) , "player" },
 
 	-- mindblast is highest priority spell out of voidform
 	{spells.mindBlast, not PlayerMoving() and not PlayerHasBuff(194249) , "target"  },
 	
 	{spells.vampiricTouch, not PlayerMoving() and TargetDebuffDuration(spells.vampiricTouch) < 4  and not PlayerIsRecast(spells.vampiricTouch,"target") , "target"  },
 	{spells.shadowWordPain, TargetDebuffDuration(spells.shadowWordPain) < 4 , "target" },
-	{spells.voidTorrent , PlayerHasBuff(194249) and not PlayerMoving() },	
+	{spells.voidTorrent , PlayerHasBuff(194249) and not PlayerMoving() },
 
 	{spells.vampiricTouch, not PlayerMoving() and FocusDebuffDuration(spells.vampiricTouch) < 4 and not PlayerIsRecast(spells.vampiricTouch,"focus") , "focus"  },
 	{spells.shadowWordPain, FocusDebuffDuration(spells.shadowWordPain) < 4 , "focus" },
@@ -334,8 +338,6 @@ local spellTable = {
 	{"macro", jps.canCastMindBlast , "/stopcasting" },
 	{spells.mindBlast, not PlayerMoving() , "target"  },
 
-	{spells.vampiricTouch, jps.MultiTarget and PlayerCanDPS("mouseover") and not PlayerMoving() and MouseoverDebuffDuration(spells.vampiricTouch) < 4 and not PlayerIsRecast(spells.vampiricTouch,"mouseover") , "mouseover"  },
-	{spells.shadowWordPain, jps.MultiTarget and PlayerCanDPS("mouseover") and MouseoverDebuffDuration(spells.shadowWordPain) < 4 , "mouseover" },	
 	{spells.vampiricTouch, PlayerCanAttack("mouseover") and not PlayerMoving() and MouseoverDebuffDuration(spells.vampiricTouch) < 4 and not PlayerIsRecast(spells.vampiricTouch,"mouseover") , "mouseover"  },
 	{spells.shadowWordPain, PlayerCanAttack("mouseover") and MouseoverDebuffDuration(spells.shadowWordPain) < 4 , "mouseover" },
 
@@ -396,7 +398,7 @@ jps.registerRotation("PRIEST","SHADOW",function()
 	local spellTable = {
 	
 	-- "Shield" 17 "Body and Soul" 64129 "Corps et âme" -- Vitesse de déplacement augmentée de 40% -- buff 65081
-	{ spells.powerWordShield, not PlayerHasBuff(65081) and jps.IsMovingFor(2) and PlayerHasTalent(2,2) , "player" , "Shield_BodySoul" },
+	{ spells.powerWordShield, not PlayerHasBuff(65081) and jps.IsMovingFor() and PlayerHasTalent(2,2) , "player" , "Shield_BodySoul" },
 
 	-- "Levitate" 1706
 	{ spells.levitate, jps.Defensive and jps.IsFallingFor(2) and not PlayerHasBuff(111759) , "player" },

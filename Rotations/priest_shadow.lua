@@ -317,8 +317,8 @@ local spellTable = {
 	-- "Mindbender" cd 1 min duration 12 sec
 	{spells.mindbender, UnitSpellHaste("player") > 50 , "target" },
 
-    {spells.voidEruption, PlayerCanDPS("target") and not PlayerHasBuff(194249) and PlayerInsanity() > 64 and PlayerHasTalent(7,1) },
-	{spells.voidEruption, PlayerCanDPS("target") and not PlayerHasBuff(194249) and PlayerInsanity() == 100 },
+    {spells.voidEruption, not PlayerMoving() and PlayerCanDPS("target") and not PlayerHasBuff(194249) and PlayerInsanity() > 64 and PlayerHasTalent(7,1) },
+	{spells.voidEruption, not PlayerMoving() and PlayerCanDPS("target") and not PlayerHasBuff(194249) and PlayerInsanity() == 100 },
     {"macro", jps.canCastvoidBolt , "/stopcasting" },
 	{spells.voidEruption, PlayerHasBuff(194249) , VoidBoltTarget }, -- VoidBoltTarget() ~= nil
 	

@@ -366,7 +366,7 @@ local spellTable = {
 		{ spells.renew, isInRaid and CountInRange < 6 and not jps.buff(spells.renew,LowestUnit) and jps.hpInc(LowestUnit) < 0.90 , LowestUnit , "RenewRaid" },
 	}},
 
-	{ "nested", not jps.Moving and jps.cooldown(spells.holyWordSanctify) == 0 and AvgHealthRaid < 0.80 and jps.distanceMax(TankThreat) < 21 ,{
+	{ "nested", not jps.Moving and jps.cooldown(spells.holyWordSanctify) == 0 and AvgHealthRaid < 0.80 and jps.distanceMax(TankThreat) < 20 and not UnitIsUnit("player",TankThreat) ,{
 		{ "castsequence", not isInRaid and CountInRange > 3 , { spells.holyWordSanctify , spells.prayerOfHealing } },
 		{ "castsequence", isInRaid and CountInRange > 5 , { spells.holyWordSanctify , spells.prayerOfHealing } },
 	}},
@@ -375,13 +375,13 @@ local spellTable = {
 	-- "Holy Word: Sanctify" gives buff  "Divinity" 197030 When you heal with a Holy Word spell, your healing is increased by 15% for 8 sec.	
 	{ "nested", not jps.Moving and CountInRange > 3 and not isInRaid ,{
 		{ spells.prayerOfHealing, PlayerHasBuff(197030) , "player" },
-		{ spells.holyWordSanctify, jps.distanceMax(TankThreat) < 21 , TankThreat },
+		{ spells.holyWordSanctify, jps.distanceMax(TankThreat) < 20 and not UnitIsUnit("player",TankThreat) , TankThreat },
 		{ spells.prayerOfHealing, true , "player" },
 
 	}},
 	{ "nested", not jps.Moving and CountInRange > 5 and isInRaid ,{
 		{ spells.prayerOfHealing, PlayerHasBuff(197030) , "player" },
-		{ spells.holyWordSanctify, jps.distanceMax(TankThreat) < 21 , TankThreat },
+		{ spells.holyWordSanctify, jps.distanceMax(TankThreat) < 20 and not UnitIsUnit("player",TankThreat) , TankThreat },
 		{ spells.prayerOfHealing, true , "player" },
 	}},
 

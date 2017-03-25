@@ -299,17 +299,19 @@ local spellTable = {
 	-- "Levitate" 1706 -- buff Levitate 111759
 	{ spells.levitate, jps.Defensive and jps.IsFallingFor(2) and not PlayerHasBuff(111759) , "player" },
 	--{ spells.levitate, jps.Defensive and IsSwimming() and not PlayerHasBuff(111759) , "player" },
-	
-	-- mindblast is highest priority spell out of voidform
-	{spells.mindBlast, not PlayerMoving() and not PlayerHasBuff(194249) , "target"  },
+
     -- "Shadow Word: Death" 32379
     {spells.shadowWordDeath, jps.spellCharges(spells.shadowWordDeath) == 2 , "target" },
     {spells.shadowWordDeath, PlayerInsanity() < 85 , DeathEnemyTarget }, -- DeathEnemyTarget() ~= nil
 
     {spells.voidEruption, not PlayerMoving() and PlayerCanDPS("target") and not PlayerHasBuff(194249) and PlayerInsanity() > 64 and PlayerHasTalent(7,1) },
 	{spells.voidEruption, not PlayerMoving() and PlayerCanDPS("target") and not PlayerHasBuff(194249) and PlayerInsanity() == 100 },
-    {"macro", jps.canCastvoidBolt , "/stopcasting" },
+    {"macro", jps.canCastvoidBolt(0.5) , "/stopcasting" },
 	{spells.voidEruption, PlayerHasBuff(194249) , VoidBoltTarget }, -- VoidBoltTarget() ~= nil
+
+	-- mindblast is highest priority spell out of voidform
+	{spells.mindBlast, not PlayerMoving() and not PlayerHasBuff(194249) , "target"  },	
+    {spells.mindFlay , jps.MultiTarget and not PlayerMoving() and not PlayerHasBuff(194249) and TargetDebuffDuration(spells.shadowWordPain) > 4 , "target"  },
 
 	-- TRINKETS
 	-- { "macro", jps.useTrinket(0) , "/use 13"}, -- jps.useTrinket(0) est "Trinket0Slot" est slotId  13
@@ -318,7 +320,7 @@ local spellTable = {
 	-- "Infusion de puissance"  -- Confère un regain de puissance pendant 20 sec, ce qui augmente la hâte de 25%
 	{spells.powerInfusion, PlayerBuffStacks(194249) > 14 and PlayerBuffStacks(194249) < 22 },
 	
-	{"macro", jps.canCastMindBlast , "/stopcasting" },
+	{"macro", jps.canCastMindBlast(0.5) , "/stopcasting" },
 	{spells.mindBlast, not PlayerMoving() , "target"  },
 
 	{spells.vampiricTouch, not PlayerMoving() and TargetDebuffDuration(spells.vampiricTouch) < 4  and not PlayerIsRecast(spells.vampiricTouch,"target") , "target"  },
@@ -396,7 +398,7 @@ jps.registerRotation("PRIEST","SHADOW",function()
 	-- "Shield" 17 "Body and Soul" 64129 "Corps et âme" -- Vitesse de déplacement augmentée de 40% -- buff 65081
 	{ spells.powerWordShield, not PlayerHasBuff(65081) and jps.IsMovingFor() and PlayerHasTalent(2,2) , "player" , "Shield_BodySoul" },
 
-	-- "Levitate" 1706
+	-- "Levitate" 1706 -- buff Levitate 111759
 	{ spells.levitate, jps.Defensive and jps.IsFallingFor(2) and not PlayerHasBuff(111759) , "player" },
 	{ spells.levitate, jps.Defensive and IsSwimming() and not PlayerHasBuff(111759) , "player" },
 

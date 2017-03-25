@@ -220,6 +220,7 @@ end
 -- FUNCTIONS ENEMY UNIT
 ------------------------------------
 
+-- "Mind Flay" is a channeling spell
 local MindFlay = tostring(jps.spells.priest.mindFlay) --local MindFlay = GetSpellInfo(15407)
 local MindSear = tostring(jps.spells.priest.mindSear) --local MindSear = GetSpellInfo(48045)
 local PlayerMoving = function()
@@ -227,23 +228,23 @@ local PlayerMoving = function()
 	return false
 end
 
-function jps.canCastMindBlast()
+function jps.canCastMindBlast(duration)
 	if jps.MultiTarget then return false end
 	if jps.cooldown(jps.spells.priest.mindBlast) > 0 then return false end
-	local Channeling = UnitChannelInfo("player") -- "Mind Flay" is a channeling spell
-	if Channeling ~= nil then
-		if tostring(Channeling) == MindFlay then return true end
+	if duration == nil then duration = 0 end
+	if jps.IsChannelingSpell(MindFlay) then
+		if jps.ChannelTimeLeft("player") > duration then return true end
 	end
 	return false
 end
 
-function jps.canCastvoidBolt()
+function jps.canCastvoidBolt(duration)
 	if jps.MultiTarget then return false end
 	if not jps.buff(194249) then return false end
 	if jps.cooldown(jps.spells.priest.voidEruption) > 0 then return false end
-	local Channeling = UnitChannelInfo("player") -- "Mind Flay" is a channeling spell
-	if Channeling ~= nil then
-	  if tostring(Channeling) == MindFlay then return true end
+	if duration == nil then duration = 0 end
+	if jps.IsChannelingSpell(MindFlay) then
+		if jps.ChannelTimeLeft("player") > duration then return true end
 	end
 	return false
 end

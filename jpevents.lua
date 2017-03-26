@@ -551,17 +551,16 @@ end)
 
 --jps.events.registerEvent("UNIT_SPELLCAST_CHANNEL_STOP", function(unitID,spellname,_,_,spellID)
 --	if unitID == "player" and spellID ~= nil then
---		jps.Casting = false
 --		print("CHANNEL_STOP: ",unitID,"spellname:",spellname,"spellID: ",spellID)
 --	end
 --end)
 
---jps.events.registerEvent("UNIT_SPELLCAST_STOP", function(unitID,spellname,_,_,spellID)
---	if unitID == "player" and spellID ~= nil then
---		jps.Casting = false
---		print("SPELLCAST_STOP: ",unitID,"spellname:",spellname,"spellID: ",spellID)
---	end
---end)
+jps.events.registerEvent("UNIT_SPELLCAST_STOP", function(unitID,spellname,_,_,spellID)
+	if unitID == "player" and spellID ~= nil then
+		if not jps.Casting then collectGarbage() end
+		--print("SPELLCAST_STOP: ",unitID,"spellname:",spellname,"spellID: ",spellID)
+	end
+end)
 
 ----------------------
 -- NAMEPLATES

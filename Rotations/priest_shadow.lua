@@ -297,7 +297,7 @@ local spellTable = {
 		{spells.dispelMagic, isPVP and DispelOffensiveTarget() ~= nil and jps.castEverySeconds(528,4) , DispelOffensiveTarget , "|cff1eff00DispelOffensive" },
 	}},
 	-- "Levitate" 1706 -- buff Levitate 111759
-	{ spells.levitate, jps.Defensive and jps.IsFallingFor(2) and not PlayerHasBuff(111759) , "player" },
+	{ spells.levitate, jps.Defensive and jps.IsFallingFor(1) and not PlayerHasBuff(111759) , "player" },
 	--{ spells.levitate, jps.Defensive and IsSwimming() and not PlayerHasBuff(111759) , "player" },
 
     -- "Shadow Word: Death" 32379
@@ -311,7 +311,7 @@ local spellTable = {
 
 	-- mindblast is highest priority spell out of voidform
 	{spells.mindBlast, not PlayerMoving() and not PlayerHasBuff(194249) , "target"  },	
-    {spells.mindFlay , jps.MultiTarget and not PlayerMoving() and not PlayerHasBuff(194249) and TargetDebuffDuration(spells.shadowWordPain) > 4 , "target"  },
+    --{spells.mindFlay , jps.MultiTarget and not PlayerMoving() and not PlayerHasBuff(194249) and TargetDebuffDuration(spells.shadowWordPain) > 4 , "target"  },
 
 	-- TRINKETS
 	-- { "macro", jps.useTrinket(0) , "/use 13"}, -- jps.useTrinket(0) est "Trinket0Slot" est slotId  13
@@ -399,7 +399,8 @@ jps.registerRotation("PRIEST","SHADOW",function()
 	{ spells.powerWordShield, not PlayerHasBuff(65081) and jps.IsMovingFor() and PlayerHasTalent(2,2) , "player" , "Shield_BodySoul" },
 
 	-- "Levitate" 1706 -- buff Levitate 111759
-	{ spells.levitate, jps.Defensive and jps.IsFallingFor(2) and not PlayerHasBuff(111759) , "player" },
+	{ "macro", PlayerHasBuff(spells.levitate) and not IsFalling() , "/cancelaura Lévitation"  },
+	{ spells.levitate, jps.Defensive and jps.IsFallingFor(1) and not PlayerHasBuff(111759) , "player" },
 	{ spells.levitate, jps.Defensive and IsSwimming() and not PlayerHasBuff(111759) , "player" },
 
 	-- "Don des naaru" 59544

@@ -183,6 +183,9 @@ jps.registerRotation("PRIEST","HOLY", function()
 ------------------------------------------------------
 -- OVERHEAL -- OPENING -- CANCELAURA -- STOPCASTING --
 ------------------------------------------------------
+
+	local threasold = 0.70
+	if not IsInRaid then threasold = 0.80
 	local breakpoint = 3
 	if isInRaid then breakpoint = 5 end
 	local SerenityOnCD = true
@@ -338,18 +341,18 @@ local spellTable = {
 	
 	-- EMERGENCY HEAL -- "Serendipity" 63733 -- "Benediction" for raid and "Apotheosis" for party
 	-- "Soins de lien" 32546
-	{ spells.bindingHeal, jps.hp(Tank) < 0.70 and not jps.Moving and jps.unitForBinding(Tank) , Tank },
-	{ spells.bindingHeal, jps.hp(TankThreat) < 0.70 and not jps.Moving and jps.unitForBinding(TankThreat) , TankThreat },
-	{ spells.bindingHeal, jps.hp(LowestUnit) < 0.70 and not jps.Moving and jps.unitForBinding(LowestUnit) , LowestUnit },
+	{ spells.bindingHeal, jps.hp(Tank) < threasold and not jps.Moving and jps.unitForBinding(Tank) , Tank },
+	{ spells.bindingHeal, jps.hp(TankThreat) < threasold and not jps.Moving and jps.unitForBinding(TankThreat) , TankThreat },
+	{ spells.bindingHeal, jps.hp(LowestUnit) < threasold and not jps.Moving and jps.unitForBinding(LowestUnit) , LowestUnit },
 	
 	-- "Soins rapides" 2061 -- "Traînée de lumière" 200128 "Trail of Light" -- When you cast Flash Heal, 40% of the healing is replicated to the previous target you healed with Flash Heal.
-	{ "nested", not jps.Moving and jps.hasTalent(1,1) and jps.hp(LowestUnit) < 0.70 and jps.LastCastUnit(spells.flashHeal) ~= LowestUnit ,{
+	{ "nested", not jps.Moving and jps.hasTalent(1,1) and jps.hp(LowestUnit) < threasold and jps.LastCastUnit(spells.flashHeal) ~= LowestUnit ,{
 		{ spells.flashHeal, jps.LastCastUnit(spells.flashHeal) == Tank and jps.hp(Tank) > jps.hp(LowestUnit) , LowestUnit , "F1" },
 		{ spells.flashHeal, CountInRange < 4 , LowestUnit , "F2" },
 		{ spells.flashHeal, isInRaid and CountInRange < 6 , LowestUnit , "F2" },
 	}},
 	{ "nested", not jps.Moving and jps.hp(Tank) < 0.80 ,{
-		{ spells.flashHeal,	jps.FriendDamage(Tank)*1.6 > UnitHealth(Tank) , Tank , "FHTankDamage" },
+		{ spells.flashHeal,	jps.FriendDamage(Tank)*2 > UnitHealth(Tank) , Tank , "FHTankDamage" },
 		{ spells.flashHeal, SerenityOnCD , Tank , "FHTankSerenity" },
 		{ spells.flashHeal, jps.hp(Tank) < 0.70 , Tank , "FHTank" },
 	}},
@@ -359,8 +362,8 @@ local spellTable = {
 		{ spells.renew, not isInRaid and CountInRange < 4 and not jps.buff(spells.renew,LowestUnit) and jps.hpInc(LowestUnit) < 0.90 , LowestUnit , "RenewParty" },
 		{ spells.renew, isInRaid and CountInRange < 6 and not jps.buff(spells.renew,LowestUnit) and jps.hpInc(LowestUnit) < 0.90 , LowestUnit , "RenewRaid" },
 	-- "Soins rapides" 2061
-	{ "nested", not jps.Moving and jps.hp(LowestUnit) < 0.70 ,{
-		{ spells.flashHeal,	jps.FriendDamage(LowestUnit) > UnitHealth(LowestUnit) , LowestUnit , "FHLowestDamage" },
+	{ "nested", not jps.Moving and jps.hp(LowestUnit) < threasold ,{
+		{ spells.flashHeal,	jps.FriendDamage(LowestUnit)*1.5 > UnitHealth(LowestUnit) , LowestUnit , "FHLowestDamage" },
 		{ spells.flashHeal, not isInRaid and CountInRange < 4 , LowestUnit , "FHLowest" },
 		{ spells.flashHeal, isInRaid and CountInRange < 6 , LowestUnit , "FHLowest" },
 	}},

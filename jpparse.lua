@@ -371,18 +371,22 @@ end
 local CastSpellTable = {}
 -- { ["Rénovation"] = "player", ["Soins"] = "party1", ["Soins rapides"] = "raid4" }
 
-function jps.LastCastUnit(spell)
-	local unit = CastSpellTable[spell]
+function jps.LastCastUnit(spellname)
+	local unit = CastSpellTable[spellname]
 	if unit ~= nil then return unit end
 	return "none"
 end
 
 function jps.LastCastUnitEval()
-	return CastSpellTable
+	for spell,unit in pairs(table) do
+		print("|cff1eff00Spell: |cffffffff",spell,"|cff1eff00Unit: |cffffffff",unit)
+	end
 end
 
 function jps.LastCastUnitWipe()
-	CastSpellTable = {}
+	for k,v in pairs(CastSpellTable) do
+		CastSpellTable[k] = nil
+	end
 end
 
 function jps.Cast(spell) -- "number" "string"
@@ -397,13 +401,11 @@ function jps.Cast(spell) -- "number" "string"
 	end
 
 	if jps.Debug then write(spellname,"|cff1eff00","|",GetUnitName(jps.Target),"|cffffffff","|",jps.Message) end
-	--if jps.Debug then print(jps.LastCast,"|cff1eff00","|",GetUnitName(jps.LastTarget),"|cffffffff","|",jps.LastMessage) end
-		
+
 	jps.TimedCasting[spellname] = math.ceil(GetTime())
 	jps.LastCast = spellname
 	jps.LastTarget = jps.Target
 	jps.LastTargetGUID = UnitGUID(jps.LastTarget)
-	jps.LastMessage = jps.Message
 
 	-- { ["Rénovation"] = "player", ["Soins"] = "party1", ["Soins rapides"] = "raid4" }	
 	CastSpellTable[jps.LastCast] = jps.LastTarget
@@ -537,7 +539,7 @@ end
 --	setmetatable(myListOfObjects, { __mode = 'v' }) -- myListOfObjects is now weak  
 --	myListOfObjects = setmetatable({}, {__mode = 'v' }) -- creation of a weak table
 
-parseSpellTable = function(hydraTable)
+ParseSpellTable = function(hydraTable)
 
 	local spell = nil
 	local condition = nil
@@ -559,7 +561,7 @@ parseSpellTable = function(hydraTable)
 		-- NESTED TABLE { "nested" , condition , { nested spell table } }
 		elseif spell == "nested" and type(target) == "table" then
 			if condition then
-				spell,target = parseSpellTable(target)
+				spell,target = ParseSpellTable(target)
 			end
 		-- CAST SEQUENCE { "castsequence" , condition , {spell_1, spell_2, ...} }
 		elseif spell == "castsequence" and type(target) == "table" then
@@ -637,7 +639,7 @@ function compileSpellTable(hydraTable)
 	return compiledTable
 end
 
-function jps.parser.parseSpellTable(hydraTable)
+function jps.parser.ParseSpellTable(hydraTable)
     local compiledTable = compileSpellTable(hydraTable)
     return function ()
         for _, spellFn in pairs(compiledTable) do

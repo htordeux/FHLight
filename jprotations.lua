@@ -158,7 +158,7 @@ function jps.registerParseRotation(class,spec,table,tooltip,combat,ooc)
     if ooc and not oocRotations[key] then oocRotations[key] = {} end
     local rotation = {tooltip = tooltip }
     rotation["getSpell"] = function ()
-        rotation.getSpell = jps.parser.parseSpellTable(table)
+        rotation.getSpell = jps.parser.ParseSpellTable(table)
         return rotation.getSpell()
     end
     if combat then addRotationToTable(combatRotations[key], rotation) end

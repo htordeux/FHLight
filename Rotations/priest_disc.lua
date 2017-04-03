@@ -70,7 +70,7 @@ local spellTable = {
 
 }
 
-	spell,target = parseSpellTable(spellTable)
+	spell,target = ParseSpellTable(spellTable)
 	return spell,target
 end , "Disc Priest PvE", true,false)
 

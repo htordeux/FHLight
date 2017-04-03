@@ -276,9 +276,9 @@ jps.registerOnUpdate(function()
 	jps.cachedValue(collectGarbage,30)
 end)
 
---------------------------
--- EVENT FUNCTIONS
---------------------------
+----------------------
+-- NAMEPLATES
+----------------------
 
 --[[
 
@@ -290,9 +290,6 @@ SetCVar("nameplateOtherTopInset", -1)
 SetCVar("nameplateLargeBottomInset", -1)
 SetCVar("nameplateOtherBottomInset", -1)
 These stop the nameplates from showing up and jumping around when the character isn't in your field of vision anymore.
-
-SetCVar("nameplateHorizontalScale", 1)
-SetCVar("nameplateLargerScale", 1)
 
 SetCVar("nameplateSelectedScale", 0.9)
 Makes the nameplate of your target not as ridiculously big.
@@ -337,28 +334,81 @@ SET spreadnameplates value
 1 Nameplates may not overlap, and will be constantly shuffled around to fit on the screen while remaining as close as possible to their units.
 0 Nameplates may overlap, and will stay more or less directly above the units they represent.
 
-Note: If you stop using this addon the cvars will still stay the same, but you can change them back
-/run for _, v in pairs({"nameplateMaxDistance", "nameplateOtherTopInset", "nameplateOtherBottomInset"}) do SetCVar(v, GetCVarDefault(v)) end
 
 ]]
 
 -- Nameplates
-local nameplate = function ()
+local SetNamePlate = function ()
 	SetCVar("nameplateMaxDistance", 40)
-	SetCVar("nameplateOtherTopInset", -1)
-	SetCVar("nameplateOtherBottomInset", -1)
+	--SetCVar("nameplateOtherTopInset", -1)
+	--SetCVar("nameplateOtherBottomInset", -1)
+	SetCVar("nameplateOtherTopInset", GetCVarDefault("nameplateOtherTopInset"))
+	SetCVar("nameplateOtherBottomInset", GetCVarDefault("nameplateOtherBottomInset"))
+	
 	SetCVar("nameplateLargeTopInset", -1)
 	SetCVar("nameplateLargeBottomInset", -1)
+
 	--SetCVar("nameplateHorizontalScale", 1.0)
 	--SetCVar("namePlateVerticalScale", 1.0)
-	--SetCVar("nameplateLargerScale", 1.0 )
-	SetCVar("nameplateSelectedScale", 1)
+	SetCVar("NamePlateHorizontalScale", GetCVarDefault("NamePlateHorizontalScale"))
+	SetCVar("NamePlateVerticalScale", GetCVarDefault("NamePlateVerticalScale"))
+	--SetCVar("nameplateMinScale", GetCVarDefault("nameplateMinScale"))
+	--SetCVar("namePlateMaxScale", GetCVarDefault("namePlateMaxScale"))
+	SetCVar("nameplateLargerScale", 1)
+	SetCVar("nameplateSelectedScale", 1) -- Makes the nameplate of your target not as ridiculously big.
 	SetCVar("nameplateMinAlpha", 1)
+	-- SetCVar("nameplateMaxAlpha", GetCVarDefault("nameplateMaxAlpha"))
+
 	SetCVar("ShowDispelDebuffs", 0)
 	SetCVar("nameplateShowSelf", 0) -- remove the hp/mana bar that is under your character
 	SetCVar("NoBuffDebuffFilterOnTarget", 1)
 	SetCVar("nameplateMotion", 1)
 end
+
+local activeUnitPlates = {}
+
+local function AddNameplate(unitID)
+	local nameplate = C_NamePlate.GetNamePlateForUnit(unitID)
+	if UnitCanAttack("player",unitID) then
+		activeUnitPlates[unitID] = nameplate:GetName()
+	end
+end
+
+local function RemoveNameplate(unitID)
+	activeUnitPlates[unitID] = nil
+end
+
+jps.events.registerEvent("NAME_PLATE_UNIT_ADDED", function(unitID)
+	AddNameplate(unitID)
+end)
+
+jps.events.registerEvent("NAME_PLATE_UNIT_REMOVED", function(unitID)
+	RemoveNameplate(unitID)
+end)
+
+function jps.NamePlate()
+	return activeUnitPlates
+end
+
+function jps.NamePlateCount()
+	local plateCount = 0
+	for unit,_ in pairs(activeUnitPlates) do
+		if UnitAffectingCombat(unit) then plateCount = plateCount + 1 end
+	end
+	return plateCount
+end
+
+function jps.NamePlateDebuffCount(debuff)
+	local plateCount = 0
+	for unit,_ in pairs(activeUnitPlates) do
+		if UnitAffectingCombat(unit) and not jps.myDebuff(debuff,unit) then plateCount = plateCount + 1 end
+	end
+	return plateCount
+end
+
+--------------------------
+-- EVENT FUNCTIONS
+--------------------------
 
 -- PLAYER_LOGIN
 jps.events.registerEvent("PLAYER_LOGIN", function()
@@ -373,7 +423,7 @@ jps.events.registerEvent("PLAYER_ENTERING_WORLD", function()
 	jps.UpdateRaidStatus()
 	jps.UpdateRaidRole()
 	updateDropdownMenu()
-	nameplate()
+	SetNamePlate()
 end)
 
 -- INSPECT_READY
@@ -561,51 +611,6 @@ jps.events.registerEvent("UNIT_SPELLCAST_STOP", function(unitID,spellname,_,_,sp
 		--print("SPELLCAST_STOP: ",unitID,"spellname:",spellname,"spellID: ",spellID)
 	end
 end)
-
-----------------------
--- NAMEPLATES
-----------------------
-
-local activeUnitPlates = {}
-
-local function AddNameplate(unitID)
-	local nameplate = C_NamePlate.GetNamePlateForUnit(unitID)
-	if UnitCanAttack("player",unitID) then
-		activeUnitPlates[unitID] = nameplate:GetName()
-	end
-end
-
-local function RemoveNameplate(unitID)
-	activeUnitPlates[unitID] = nil
-end
-
-jps.events.registerEvent("NAME_PLATE_UNIT_ADDED", function(unitID)
-	AddNameplate(unitID)
-end)
-
-jps.events.registerEvent("NAME_PLATE_UNIT_REMOVED", function(unitID)
-	RemoveNameplate(unitID)
-end)
-
-function jps.NamePlate()
-	return activeUnitPlates
-end
-
-function jps.NamePlateCount()
-	local plateCount = 0
-	for unit,_ in pairs(activeUnitPlates) do
-		if UnitAffectingCombat(unit) then plateCount = plateCount + 1 end
-	end
-	return plateCount
-end
-
-function jps.NamePlateDebuffCount(debuff)
-	local plateCount = 0
-	for unit,_ in pairs(activeUnitPlates) do
-		if UnitAffectingCombat(unit) and not jps.myDebuff(debuff,unit) then plateCount = plateCount + 1 end
-	end
-	return plateCount
-end
 
 ----------------------
 -- LOSS_OF_CONTROL
@@ -870,7 +875,7 @@ jps.events.registerEvent("COMBAT_LOG_EVENT_UNFILTERED", function(...)
 --			end
 --		end
 
--- HEAL TABLE -- Incoming Heal on Enemy UnitGUID of Enemy Healers
+-- HEAL TABLE -- Incoming Heal on Enemy from Enemy Healers UnitGUID
 		if healEvents[event] then
 --		print(  "cff1eff00Event: ",event)
 --		print(  "|cff1eff00destName: |cffffffff",destName,"F:",isDestFriend,"E:",isDestEnemy,
@@ -995,10 +1000,6 @@ jps.EnemyDamager = function(unit)
 	return false
 end
 
-jps.EnemyCount = function()
-	return jps.tableLength(EnemyDamager)
-end
-
 -- TABLE OF ENEMY GUID TARGETING FRIEND GUID
 -- EnemyDamager[enemyGuid] = { ["friendguid"] = friendGuid , ["friendaggro"] = GetTime() }
 jps.FriendAggro = function (unit)
@@ -1012,7 +1013,7 @@ end
 
 -- EnemyDamager[enemyGuid] = { ["friendguid"] = friendGuid , ["friendaggro"] = GetTime() }
 jps.LookupEnemyDamager = function()
-	if jps.tableLength(EnemyDamager) == 0 then print("EnemyDamager is Empty") end
+	if EnemyDamager == nil then print("EnemyDamager is Empty") end
 	for unit,index in pairs(EnemyDamager) do
 		print("|cffffffffEnemyGuid_|cFFFF0000: ",unit," |cffffffffFriendGuid_|cff1eff00: ",index.friendguid)
 	end
@@ -1020,24 +1021,21 @@ end
 
 -- EnemyHealer[enemyGuid] = {Class,sourceName}
 jps.LookupEnemyHealer = function()
-	if jps.tableLength(EnemyHealer) == 0 then print("EnemyHealer is Empty") end
+	if EnemyHealer == nil then print("EnemyHealer is Empty") end
 	for _,index in pairs(EnemyHealer) do
 		print("|cffffffffHealerClass:|cFFFF0000: ",index[1]," |cffffffffName:|cFFFF0000: ",index[2])
 	end
 end
 
 jps.LookupIncomingDamage = function()
-
 -- IncomingHeal[destGUID] = {GetTime(),heal,destName}
---	for unit,index in pairs (IncomingHeal) do
---		print(#index,"|cff1eff00unit:",unit,"destname:",index[1][3],"heal:",index[1][2])
---	end
-	
+	for unit,index in pairs (IncomingHeal) do
+		print(#index,"|cff1eff00unit:",unit,"destname:",index[1][3],"heal:",index[1][2])
+	end
 -- IncomingDamage[destGUID] = {GetTime(),damage,destName}
---	for unit,index in pairs (IncomingDamage) do
---		print(#index,"|cFFFF0000unit:",unit,"destname:",index[1][3],"damage:",index[1][2])
---	end
-
+	for unit,index in pairs (IncomingDamage) do
+		print(#index,"|cFFFF0000unit:",unit,"destname:",index[1][3],"damage:",index[1][2])
+	end
 end
 
 

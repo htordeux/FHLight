@@ -116,7 +116,8 @@ end
 -- UPDATE RAIDTARGET
 ----------------------
 
-jps.LowestTarget = function()
+-- Units that are not available to the current player are (where unit is not "player"): unitfocus and unitmouseover.
+jps.LowestEnemyTarget = function()
 	local RaidTarget = {}
 	for unit,_ in pairs(RaidStatus) do
 		if canDPS(unit.."target") then
@@ -141,8 +142,10 @@ jps.LowestTarget = function()
 end
 
 --local locClass, enClass, classID = UnitClass(unit)
-jps.LowestTargetRole = function()
-	local _,EnemyUnit,_ = jps.LowestTarget()
+-- table with role "DAMAGER" "TANK" "HEALER"
+local RoleEnemy = function(roleplay)
+	if roleplay == nil then roleplay = "HEALER" end
+	local _,EnemyUnit,_ = jps.LowestEnemyTarget()
 	local EnemyRole = {}
 	for i=1,#EnemyUnit do
 		local unit = EnemyUnit[i]
@@ -151,23 +154,21 @@ jps.LowestTargetRole = function()
 		for i = 1, numTabs do
 			local id, name, _, icon, _, role = GetSpecializationInfoForClassID(classID, i)
 			if id then
-				if EnemyRole[unit] == nil then EnemyRole[unit] = role end
+				if tostring(role) == tostring(roleplay) then EnemyRole[unit] = role end
 			end
 		end
 	end
-	return EnemyRole -- table with role "DAMAGER" "TANK" "HEALER"
+	return EnemyRole  -- { [playertarget] = "DAMAGER" , [raid5target] = "TANK" , , [party2] = "HEALER"}}
 end
 
-local isArena, _ = IsActiveBattlefieldArena()
-jps.PlayerIsTarget = function()
-	local RaidPlate = jps.NamePlate()
-	for unit,_ in pairs(RaidPlate) do
-		if jps.UnitExists(unit.."target") then
-			local target = unit.."target"
-			if UnitIsUnit(target,"player") then return true end
-		end
+
+jps.HealerEnemyTarget = function()
+	local lowestHealer = nil
+	local EnemyHealer = RoleEnemy("HEALER")
+	for unit,_ in pairs(EnemyHealer) do
+		lowestHealer = unit
 	end
-	return false
+	return lowestHealer
 end
 
 --------------------------
@@ -585,13 +586,11 @@ end
 -- name, rank, icon, count, debuffType, duration, expirationTime, unitCaster, isStealable, nameplateShowPersonal, spellId, canApplyAura, isBossDebuff, nameplateShowAll, timeMod, value1, value2, value3 = UnitBuff("unit", index or "name"[, "rank"[, "filter"]])
 -- name, rank, icon, count, debuffType, duration, expirationTime, unitCaster, canStealOrPurge, nameplateShowPersonal, spellId, canApplyAura, isBossDebuff, isCastByPlayer, nameplateShowAll, timeMod,value1, value2, value3 = UnitAura("unit", index or "name"[, "rank"[, "filter"]])
 
-
 -- Don't Dispel if unit is affected by some debuffs
 local WarningDebuffs = {
 	toSpellName(31117), 	-- "Unstable Affliction"
 	toSpellName(34914), 	-- "Vampiric Touch"
-	}
-
+}
 -- Don't dispel if friend is affected by "Unstable Affliction" or "Vampiric Touch" or "Lifebloom"
 jps.WarningDebuffs = function(unit)
 	for i=1,#WarningDebuffs do
@@ -601,7 +600,7 @@ jps.WarningDebuffs = function(unit)
 	return false
 end
 
-jps.canDispel = function(unit,dispel) -- "Magic", "Poison", "Disease", "Curse"
+jps.CanDispel = function(unit,dispel) -- "Magic", "Poison", "Disease", "Curse"
 	if not canHeal(unit) then return false end
 	if jps.WarningDebuffs(unit) then return false end
 	if dispel == nil then dispel = "Magic" end
@@ -621,26 +620,48 @@ end
 
 function jps.DispelMagicTarget()
 	for unit,_ in pairs(RaidStatus) do
-		if jps.canDispel(unit,"Magic") then return unit end
+		if jps.CanDispel(unit,"Magic") then return unit end
 	end
+	return nil
 end 
 
 function jps.DispelDiseaseTarget()
 	for unit,_ in pairs(RaidStatus) do
-		if jps.canDispel(unit,"Disease") then return unit end
+		if jps.CanDispel(unit,"Disease") then return unit end
 	end
+	return nil
 end 
 
 function jps.DispelPoisonTarget()
 	for unit,_ in pairs(RaidStatus) do
-		if jps.canDispel(unit,"Poison") then return unit end
+		if jps.CanDispel(unit,"Poison") then return unit end
 	end
+	return nil
 end 
 
 function jps.DispelCurseTarget()
 	for unit,_ in pairs(RaidStatus) do
-		if jps.canDispel(unit,"Curse") then return unit end
+		if jps.CanDispel(unit,"Curse") then return unit end
 	end
+	return nil
+end
+
+---------------------------------------
+-- LibDispellable
+---------------------------------------
+
+local libDispellable = LibStub("LibDispellable-1.0")
+
+function jps.CanDispelWith(unit,spellID)
+	if libDispellable:CanDispelWith(unit,spellID) then return true end
+	return false
+end
+
+function jps.DispelRaidTarget(spellID)
+	for unit,_ in pairs(RaidStatus) do
+		if jps.CanDispelWith(unit,spellID) then return unit end
+	end
+	return nil
 end
 
 ---------------------------------------

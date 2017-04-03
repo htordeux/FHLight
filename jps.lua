@@ -55,7 +55,6 @@ jps.CurrentCastInterrupt = nil
 jps.LastCast = nil
 jps.LastTarget = nil
 jps.Message = ""
-jps.LastMessage = ""
 jps.LastTargetGUID = nil
 jps.Latency = 0
 jps.NextSpell = nil
@@ -281,7 +280,6 @@ local GetSpellCooldown = GetSpellCooldown
 
 jps.castSequence = nil
 local castSequenceIndex = 1
-local castSequenceStartTime = 0
 
 function jps.Cycle()
 	-- Check for the Rotation
@@ -340,7 +338,6 @@ function jps.Cycle()
 				jps.Cast(jps.ThisCast)
 			end
 			castSequenceIndex = 1
-			castSequenceStartTime = GetTime()
 		end
 	end
 end

@@ -37,7 +37,7 @@ local spellTable ={
 
 }
 
-	local spell,target = parseSpellTable(spellTable) 
+	local spell,target = ParseSpellTable(spellTable) 
 	return spell,target
 
 end, "Unholy DK")

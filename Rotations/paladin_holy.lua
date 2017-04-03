@@ -52,11 +52,11 @@ jps.registerRotation("PALADIN","HOLY",function()
 ----------------------------
 
 	local DispelFriend = jps.DispelMagicTarget() -- "Magic", "Poison", "Disease", "Curse"
-	local DispelFriendRole = nil
+	local DispelTankRole = nil
 	for i=1,#TankUnit do -- for _,unit in ipairs(TankUnit) do
 		local unit = TankUnit[i]
-		if jps.canDispel(unit,"Magic") then -- jps.canDispel includes jps.WarningDebuffs
-			DispelFriendRole = unit
+		if jps.CanDispel(unit,"Magic") then -- jps.CanDispel includes jps.WarningDebuffs
+			DispelTankRole = unit
 		break end
 	end
 	
@@ -75,10 +75,10 @@ jps.registerRotation("PALADIN","HOLY",function()
 	
 	-- "Cleanse"
 	local parseDispel = {
-		{ spells.cleanse, jps.canDispel("player","Poison") , "player" , "Dispel" },
-		{ spells.cleanse, jps.canDispel("player","Disease") , "player" , "Dispel" },
-		{ spells.cleanse, jps.canDispel("player","Magic") , "player" , "Dispel" },
-		{ spells.cleanse, DispelFriendRole ~= nil , DispelFriendRole , "|cff1eff00DispelFriend_Role" },
+		{ spells.cleanse, jps.CanDispel("player","Poison") , "player" , "Dispel" },
+		{ spells.cleanse, jps.CanDispel("player","Disease") , "player" , "Dispel" },
+		{ spells.cleanse, jps.CanDispel("player","Magic") , "player" , "Dispel" },
+		{ spells.cleanse, DispelTankRole ~= nil , DispelTankRole , "|cff1eff00DispelFriend_Role" },
 		{ spells.cleanse, DispelFriendPvP ~= nil , DispelFriendPvP , "|cff1eff00DispelFriend_PvP" },
 		{ spells.cleanse, DispelFriend ~= nil , DispelFriend , "|cff1eff00DispelFriend_PvE" },
 	}
@@ -188,7 +188,7 @@ local spellTable = {
 
 }
 
-	spell,target = parseSpellTable(spellTable)
+	spell,target = ParseSpellTable(spellTable)
 	return spell,target
 end, "Paladin Holy")
 
@@ -214,7 +214,7 @@ jps.registerRotation("PALADIN","HOLY",function()
 
 }
 
-	local spell,target = parseSpellTable(spellTable)
+	local spell,target = ParseSpellTable(spellTable)
 	return spell,target
 
 end,"OOC Paladin Holy",false,true)

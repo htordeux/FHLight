@@ -160,7 +160,7 @@ function jps.removeTableKey(table, key)
     return element
 end
 
-function jps.tableLength(table)
+function jps.tableCount(table)
 	if table == nil then return 0 end
     local count = 0
     for k,_ in pairs(table) do 
@@ -255,19 +255,6 @@ end
 
 function Ternary(condition, doIt, notDo)
 	if condition then return doIt else return notDo end
-end
-
-function inArray(needle, haystack)
-	if type(haystack) ~= "table" then return false end
-	for key, value in pairs(haystack) do 
-		local valType = type(value)
-		if valType == "string" or valType == "number" or valType == "boolean" then
-			if value == needle then 
-				return true
-			end
-		end
-	end
-	return false
 end
 
 function jps.roundValue(num, idp)

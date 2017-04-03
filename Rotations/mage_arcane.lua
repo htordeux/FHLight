@@ -11,8 +11,6 @@ end
 ----------------------------------------------------------------------------------------------------------------
 -------------------------------------------------- ROTATION ----------------------------------------------------
 ----------------------------------------------------------------------------------------------------------------
--- rating = GetCombatRating(combatRatingIdentifier) -- CR_HASTE_SPELL = 20 for spellpower( number ) 
--- spellHastePercent = UnitSpellHaste("unit" or "name") -- haste value ( in % )
 
 jps.registerRotation("MAGE","ARCANE",function()
 
@@ -83,7 +81,7 @@ local spellTable = {
 
 }
 
-	local spell,target = parseSpellTable(spellTable)
+	local spell,target = ParseSpellTable(spellTable)
 	return spell,target
 end, "mage_arcane" )
 

@@ -28,11 +28,11 @@ end
 
 function jps.hpRange(unit,bot,top)
 	if top == nil then top = 100 end
-	if bot == nil then bot = 0.80 end
+	if bot == nil then bot = 0.50 end
 	if unit == nil then unit = "player" end
 	local unitHP = jps.hp(unit)
-	if unitHP >= bot then
-		if unitHP <= top then return true end
+	if unitHP > bot then
+		if unitHP < top then return true end
 	end
 	return false
 end
@@ -130,6 +130,17 @@ end
 ----------------------
 -- ENEMY TARGET
 ----------------------
+
+jps.PlayerIsTarget = function()
+	local RaidPlate = jps.NamePlate()
+	for unit,_ in pairs(RaidPlate) do
+		if jps.UnitExists(unit.."target") then
+			local target = unit.."target"
+			if UnitIsUnit(target,"player") then return true end
+		end
+	end
+	return false
+end
 
 function jps.IsFallingFor(delay)
 	if delay == nil then delay = 1 end

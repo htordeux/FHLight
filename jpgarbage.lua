@@ -88,18 +88,13 @@ function jps.Test()
 
 Test()
 
-print("|cFFFF0000EnemyCount: |cffffffff",jps.EnemyCount(),"|cFFFF0000PlateCount:|cffffffff",jps.NamePlateCount())
+print("|cFFFF0000PlateCount:|cffffffff",jps.NamePlateCount())
 print("|cFFFF0000playerIsTarget: |cffffffff",jps.PlayerIsTarget())
-
---local table = jps.LastCastUnitEval()
---for spell,unit in pairs(table) do
---	print("|cff1eff00Spell: |cffffffff",spell,"|cff1eff00Unit: |cffffffff",unit)
---end
 
 --print("|cff1eff00prayerOfMendingBuff: |cffffffff", jps.buffTrackerCharge(41635),":", jps.buffTrackerDuration(41635))
 
 --local RaidStatusDebuff = jps.RaidStatusDebuff()
---write("RaidStatusDebuff: ",jps.tableLength(RaidStatusDebuff))
+--write("RaidStatusDebuff: ",jps.tableCount(RaidStatusDebuff))
 --for unit,debuff in pairs(RaidStatusDebuff) do
 --	print("unit:",unit,"debuff:",unpack(debuff))
 --end
@@ -140,12 +135,12 @@ print("|cFFFF0000playerIsTarget: |cffffffff",jps.PlayerIsTarget())
 --	jps.LookupEnemyDamager()
 --	jps.LookupEnemyHealer()
 
---	local rangedTarget, EnemyUnit, TargetCount = jps.LowestTarget()
+--	local rangedTarget, EnemyUnit, EnemyCount = jps.LowestEnemyTarget()
 --	if jps.canDPS("focus") then EnemyUnit[#EnemyUnit+1] = "focus" end
---	print("|cffffffffRangedTarget:|cff1eff00",rangedTarget,"|cffffffffTargetCount:|cff1eff00",TargetCount)
+--	print("|cffffffffRangedTarget:|cff1eff00",rangedTarget,"|cffffffffEnemyCount:|cff1eff00",TargetCount)
 --	print("|cffffffffEnemyUnit:|cff1eff00",unpack(EnemyUnit))
 
---	local enemyTable = jps.LowestTargetRole()
+--	local enemyTable = jps.LowestEnemyRole()
 --	for unit,role in pairs(enemyTable) do
 --		print("|cffffffffRole:|cff1eff00",role,"|cffffffffUnit:|cff1eff00",GetUnitName(unit))
 --	end

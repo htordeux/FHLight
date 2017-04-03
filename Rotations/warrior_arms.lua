@@ -119,7 +119,7 @@ local spellTable = {
     { spells.slam, jps.hp(rangedTarget) >= 0.20 and jps.rage() >= 32 and jps.cooldown(spells.colossusSmash) > 0 and jps.cooldown(spells.mortalStrike) > 0 and not jps.hasTalent(3,1) , rangedTarget }, -- if above 32 rage and Colossus Smash and Mortal Strike are on cooldown
 }
 
-	local spell,target = parseSpellTable(spellTable)
+	local spell,target = ParseSpellTable(spellTable)
 	return spell,target
 end, "Warrior Arms")
 

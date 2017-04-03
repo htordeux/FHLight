@@ -133,8 +133,8 @@ local spellTable = {
     -- "Mot de gloire" Vous rendez (900% of Spell power) points de vie à un maximum de 5 cibles alliées à moins de 15 mètres ainsi qu’à vous-même. 2 charges au maximum.
 
     -- "Purification des toxines" 213644
-    { spells.cleanseToxins, jps.canDispel("player","Poison") , "player" },
-    { spells.cleanseToxins, jps.canDispel("player","Disease") , "player" },
+    { spells.cleanseToxins, jps.CanDispel("player","Poison") , "player" },
+    { spells.cleanseToxins, jps.CanDispel("player","Disease") , "player" },
 
     -- "Eclair lumineux" 19750
     { spells.flashOfLight, jps.hp("player") < 0.60 and jps.castEverySeconds(19750, 4) , "player" , "flashOfLight_Timer" },
@@ -177,7 +177,7 @@ local spellTable = {
 
 }
 
-    local spell,target = parseSpellTable(spellTable)
+    local spell,target = ParseSpellTable(spellTable)
     return spell,target
 end, "Paladin Retribution")
 
@@ -195,14 +195,14 @@ local spellTable = {
     -- "Eclair lumineux" 19750
     { spells.flashOfLight, jps.hp("player") < 0.60 , "player" },
     -- "Purification des toxines" 213644
-    { spells.cleanseToxins, jps.canDispel("player","Poison") , "player" },
+    { spells.cleanseToxins, jps.CanDispel("player","Poison") , "player" },
     -- Buff
     { 203538, not jps.buff(203538) , "player" },
     { 203539, not jps.buff(203539) , "player" },
 
 }
 
-	local spell,target = parseSpellTable(spellTable)
+	local spell,target = ParseSpellTable(spellTable)
 	return spell,target
 
 end,"OOC Paladin retribution",false,true)

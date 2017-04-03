@@ -227,26 +227,75 @@ local PlayerMoving = function()
 	if select(1,GetUnitSpeed("player")) > 0 then return true end
 	return false
 end
-
-function jps.canCastMindBlast(duration)
-	if jps.MultiTarget then return false end
-	if jps.cooldown(jps.spells.priest.mindBlast) > 0 then return false end
-	if duration == nil then duration = 0 end
-	if jps.IsChannelingSpell(MindFlay) then
-		if jps.ChannelTimeLeft("player") > duration then return true end
-	end
-	return false
+local PlayerHasBuff = function(spell)
+	return jps.buff(spell,"player")
+end
+local SpellCooldown = function(spell)
+	return jps.cooldown(spell)
+end
+local PlayerIsChanneling = function(spell)
+	return jps.IsChannelingSpell(spell,"player")
+end
+local ChannelTimeLeft = function(unit)
+	return jps.ChannelTimeLeft(unit)
 end
 
-function jps.canCastvoidBolt(duration)
-	if jps.MultiTarget then return false end
-	if not jps.buff(194249) then return false end
-	if jps.cooldown(jps.spells.priest.voidEruption) > 0 then return false end
-	if duration == nil then duration = 0 end
-	if jps.IsChannelingSpell(MindFlay) then
-		if jps.ChannelTimeLeft("player") > duration then return true end
-	end
-	return false
+--function jps.CanCastMindBlast(duration)
+--	if jps.MultiTarget then return false end
+--	if SpellCooldown(jps.spells.priest.mindBlast) > 0 then return false end
+--	if duration == nil then duration = 0 end
+--	if PlayerIsChanneling(MindFlay) then
+--		if ChannelTimeLeft("player") > duration then return true end
+--	end
+--	return false
+--end
+
+local CanCastMindBlast = setmetatable({}, {
+    __index = function(t, self)
+        local val = function(duration)
+        	--if jps.MultiTarget then return false end
+			if SpellCooldown(jps.spells.priest.mindBlast) > 0 then return false end
+			if duration == nil then duration = 0 end
+			if PlayerIsChanneling(MindFlay) then
+				if ChannelTimeLeft("player") > duration then return true end
+			end
+			return false
+        end
+        t[self] = val
+        return val
+    end})
+function jps.CanCastMindBlast(self)
+	return CanCastMindBlast[self]
+end
+
+--function jps.CanCastvoidBolt(duration)
+--	if jps.MultiTarget then return false end
+--	if not PlayerHasBuff(194249) then return false end
+--	if SpellCooldown(jps.spells.priest.voidEruption) > 0 then return false end
+--	if duration == nil then duration = 0 end
+--	if PlayerIsChanneling(MindFlay) then
+--		if ChannelTimeLeft("player") > duration then return true end
+--	end
+--	return false
+--end
+
+local canCastvoidBolt = setmetatable({}, {
+    __index = function(t, self)
+        local val = function(duration)
+            --if jps.MultiTarget then return false end
+			if not PlayerHasBuff(194249) then return false end
+			if SpellCooldown(jps.spells.priest.voidEruption) > 0 then return false end
+			if duration == nil then duration = 0 end
+			if PlayerIsChanneling(MindFlay) then
+				if ChannelTimeLeft("player") > duration then return true end
+			end
+			return false
+        end
+        t[self] = val
+        return val
+    end})
+function jps.CanCastvoidBolt(self)
+    return canCastvoidBolt[self]
 end
 
 ------------------------------------

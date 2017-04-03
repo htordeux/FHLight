@@ -1,4 +1,4 @@
-## Interface: 70100
+## Interface: 70200
 ## Title: |cffff8000JPS Addon
 ## Notes: Protect your LUA.
 ## SavedVariables: jpsDB
@@ -7,6 +7,7 @@
 Lib\LibStub-1.0\LibStub.lua
 Lib\CallbackHandler-1.0\CallbackHandler-1.0.xml
 Lib\LibRangeCheck-2.0\LibRangeCheck-2.0.lua
+Lib\LibDispellable-1.0\LibDispellable-1.0.lua
 
 jplocal.lua
 jps.lua

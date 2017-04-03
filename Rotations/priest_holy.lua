@@ -57,7 +57,11 @@ local PlayerHasTalent = function(row,talent)
 end
 
 local PlayerCanDispel = function(unit,dispel)
-	return jps.canDispel(unit,dispel)
+	return jps.CanDispel(unit,dispel)
+end
+
+local PlayerCanDispelWith = function(unit,spellID) 
+	return jps.CanDispelWith(unit,spellID) 
 end
 
 local PlayerOffensiveDispel = function(unit)
@@ -93,7 +97,7 @@ jps.registerRotation("PRIEST","HOLY", function()
 	local TankTarget = Tank.."target"
 	local TankThreat,_  = jps.findRaidTankThreat()
 
-	local playerAggro = jps.FriendAggro("player")
+	local playerIsTarget = jps.PlayerIsTarget()
 	local playerIsStun = jps.StunEvents(2) -- return true/false ONLY FOR PLAYER -- "ROOT" was removed of Stuntype
 	-- {"STUN_MECHANIC","STUN","FEAR","CHARM","CONFUSE","PACIFY","SILENCE","PACIFYSILENCE"}
 	local playerIsInterrupt = jps.InterruptEvents() -- return true/false ONLY FOR PLAYER
@@ -129,12 +133,11 @@ jps.registerRotation("PRIEST","HOLY", function()
 -- LOCAL FUNCTIONS FRIENDS
 ----------------------------
 
-	local DispelFriend = jps.DispelMagicTarget() -- "Magic", "Poison", "Disease", "Curse"
-	local DispelFriendRole = nil
+	local DispelTankRole = nil
 	for i=1,#TankUnit do -- for _,unit in ipairs(TankUnit) do
 		local unit = TankUnit[i]
-		if jps.canDispel(unit,"Magic") then -- jps.canDispel includes jps.WarningDebuffs
-			DispelFriendRole = unit
+		if jps.CanDispel(unit,"Magic") then -- jps.CanDispel includes jps.WarningDebuffs
+			DispelTankRole = unit
 		break end
 	end
 
@@ -185,7 +188,7 @@ jps.registerRotation("PRIEST","HOLY", function()
 ------------------------------------------------------
 
 	local threasold = 0.70
-	if not IsInRaid then threasold = 0.80
+	if not IsInRaid then threasold = 0.80 end
 	local breakpoint = 3
 	if isInRaid then breakpoint = 5 end
 	local SerenityOnCD = true
@@ -233,10 +236,9 @@ local spellTable = {
 		{ spells.renew, not jps.buff(spells.renew,LowestUnit) , LowestUnit },
 	}},
 	
-	-- "Levitate" 1706
+	-- "Levitate" 1706 -- buff Levitate 111759
 	{ spells.levitate, jps.Defensive and jps.IsFallingFor(2) and not PlayerHasBuff(spells.levitate) , "player" },
-	--{ spells.levitate, jps.Defensive and IsSwimming() and not PlayerHasBuff(spells.levitate) , "player" },
-
+	{ spells.levitate, jps.Defensive and IsSwimming() and not PlayerHasBuff(spells.levitate) , "player" },
 	-- PLAYER AGGRO --
 	-- "Médaillon de gladiateur" 208683
 	{ 208683, isPVP and playerIsStun , "player" , "playerCC" },
@@ -246,7 +248,7 @@ local spellTable = {
 	-- "Corps et esprit" 214121
 	{ spells.bodyAndMind, jps.Moving , "player" },
 	-- "Fade" 586 "Disparition"
-	{ spells.fade, not isPVP and playerAggro },
+	{ spells.fade, not isPVP and playerIsTarget },
 	-- "Don des naaru" 59544
 	{ spells.giftNaaru, jps.hp("player") < 0.70 , "player" , "Naaru" },
 	-- "Pierre de soins" 5512
@@ -290,11 +292,11 @@ local spellTable = {
 	{ spells.holyWordSerenity, jps.hp(LowestUnit) < 0.40 , LowestUnit },
 
 	-- "Dispel" "Purifier" 527
-	{ spells.purify, jps.canDispel("mouseover","Magic") , "mouseover" },
-	{ "nested", jps.UseCDs and DispelFriend ~= nil , {
-		{ spells.purify, jps.canDispel("player","Magic") , "player" },
-		{ spells.purify, DispelFriendRole ~= nil , DispelFriendRole },
-		{ spells.purify, DispelFriend ~= nil , DispelFriend },
+	{ spells.purify, PlayerCanDispelWith("mouseover",527) , "mouseover" },
+	{ "nested", jps.UseCDs , {
+		{ spells.purify, PlayerCanDispelWith("player",527) , "player" },
+		{ spells.purify, DispelTankRole ~= nil , DispelTankRole },
+		{ spells.purify, DispelMagicTarget() ~= nil , DispelMagicTarget },
 	}},
 	-- OFFENSIVE Dispel -- "Dissipation de la magie" 528
 	{ "nested", isPVP, {
@@ -320,6 +322,7 @@ local spellTable = {
 	{ "nested", jps.Defensive and jps.hp("mouseover") < 0.90 and PlayerCanHeal("mouseover") , {
 		{ spells.holyWordSerenity, jps.hp("mouseover") < 0.40 , "mouseover" },
 		{ spells.guardianSpirit, jps.hp("mouseover") < 0.30 , "mouseover" },
+		{ spells.prayerOfHealing, CountInRange > 3 , "mouseover" },
 		{ spells.flashHeal, not jps.Moving and jps.hp("mouseover") < 0.70 , "mouseover" },
 		{ spells.renew, not jps.buff(spells.renew,"mouseover") and jps.hpInc("mouseover") < 0.90 , "mouseover" },
 		{ spells.heal, not jps.Moving and jps.hp("mouseover") < 0.90 , "mouseover" },
@@ -359,8 +362,8 @@ local spellTable = {
 	-- "Renew" 139
 		{ spells.renew, jps.buffDuration(spells.renew,Tank) < 3 and not UnitIsUnit("player",Tank) , Tank },
 		{ spells.renew, RenewTank ~= nil and not UnitIsUnit("player",RenewTank) , RenewTank },
-		{ spells.renew, not isInRaid and CountInRange < 4 and not jps.buff(spells.renew,LowestUnit) and jps.hpInc(LowestUnit) < 0.90 , LowestUnit , "RenewParty" },
-		{ spells.renew, isInRaid and CountInRange < 6 and not jps.buff(spells.renew,LowestUnit) and jps.hpInc(LowestUnit) < 0.90 , LowestUnit , "RenewRaid" },
+		{ spells.renew, not isInRaid and CountInRange < 4 and not jps.buff(spells.renew,LowestUnit) and jps.hpRange(LowestUnit,0.55,0.95) , LowestUnit , "RenewParty" },
+		{ spells.renew, isInRaid and CountInRange < 6 and not jps.buff(spells.renew,LowestUnit) and jps.hpRange(LowestUnit,0.55,0.95) , LowestUnit , "RenewRaid" },
 	-- "Soins rapides" 2061
 	{ "nested", not jps.Moving and jps.hp(LowestUnit) < threasold ,{
 		{ spells.flashHeal,	jps.FriendDamage(LowestUnit)*1.5 > UnitHealth(LowestUnit) , LowestUnit , "FHLowestDamage" },
@@ -368,7 +371,7 @@ local spellTable = {
 		{ spells.flashHeal, isInRaid and CountInRange < 6 , LowestUnit , "FHLowest" },
 	}},
 
-	{ "nested", not jps.Moving and jps.cooldown(spells.holyWordSanctify) == 0 and AvgHealthRaid < 0.80 and jps.distanceMax(TankThreat) < 20 and not UnitIsUnit("player",TankThreat) ,{
+	{ "nested", not jps.Moving and jps.cooldown(spells.holyWordSanctify) == 0 and AvgHealthRaid < 0.80 and jps.distanceMax(Tank) < 20 and not UnitIsUnit("player",Tank) ,{
 		{ "castsequence", not isInRaid and CountInRange > 3 , { spells.holyWordSanctify , spells.prayerOfHealing } },
 		{ "castsequence", isInRaid and CountInRange > 5 , { spells.holyWordSanctify , spells.prayerOfHealing } },
 	}},
@@ -396,7 +399,7 @@ local spellTable = {
 	-- Serendipity is a passive ability that causes Heal and Flash Heal to reduce the remaining cooldown of Holy Word: Serenity by 6 seconds
 	-- Serendipity causes Prayer of Healing Icon Prayer of Healing to reduce the remaining cooldown of Holy Word: Sanctify Icon Holy Word: Sanctify by 6 seconds.
 	{ "nested", not jps.Moving and jps.hp(LowestUnit) < 0.95 ,{
-		{ spells.heal, jps.hp(Tank) < 0.90 , Tank },
+		{ spells.heal, jps.hpInc(Tank) < 0.90 , Tank },
 		{ spells.heal, jps.hp(LowestUnit) < 0.85 , LowestUnit },
 		{ spells.heal, SerenityOnCD , LowestUnit },
 	}},
@@ -407,7 +410,7 @@ local spellTable = {
 	{ spells.smite, not jps.Moving and not PlayerHasBuff(114255) and PlayerCanDPS("target") , "target" },
 
 }
-	local spell,target = parseSpellTable(spellTable)
+	local spell,target = ParseSpellTable(spellTable)
 	return spell,target
 end , "Holy Priest Default" )
 
@@ -462,10 +465,10 @@ jps.registerRotation("PRIEST","HOLY",function()
 	
 	{ spells.prayerOfMending, not jps.Moving and not jps.buffTracker(41635) and not UnitIsUnit("player",Tank) , Tank , "Tracker_Mending_Tank" },
 
-	-- "Levitate" 1706
-	{ "macro", PlayerHasBuff(spells.levitate) and not IsFalling() , "/cancelaura Lévitation"  },
-	{ spells.levitate, jps.IsFallingFor(2) and not PlayerHasBuff(spells.levitate) , "player" },
-	{ spells.levitate, IsSwimming() and not PlayerHasBuff(spells.levitate) , "player" },
+	-- "Levitate" 1706 -- buff Levitate 111759
+	--{ "macro", PlayerHasBuff(spells.levitate) and not IsFalling() , "/cancelaura Lévitation"  },
+	{ spells.levitate, jps.Defensive and jps.IsFallingFor(2) and not PlayerHasBuff(spells.levitate) , "player" },
+	{ spells.levitate, jps.Defensive and IsSwimming() and not PlayerHasBuff(spells.levitate) , "player" },
 
 	-- "Don des naaru" 59544
 	{ spells.giftNaaru, jps.hp("player") < 0.80 , "player" },
@@ -482,7 +485,7 @@ jps.registerRotation("PRIEST","HOLY",function()
 
 }
 
-	local spell,target = parseSpellTable(spellTable)
+	local spell,target = ParseSpellTable(spellTable)
 	return spell,target
 
 end,"OOC Holy Priest",false,true)

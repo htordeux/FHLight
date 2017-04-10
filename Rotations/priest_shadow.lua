@@ -349,7 +349,6 @@ local spellTable = {
    	-- TRINKETS
 	-- { "macro", jps.useTrinket(0) , "/use 13"}, -- jps.useTrinket(0) est "Trinket0Slot" est slotId  13
 	-- { "macro", jps.useTrinket(1) , "/use 14"}, -- jps.useTrinket(1) est "Trinket1Slot" est slotId  14
-
 	-- "Infusion de puissance"  -- Confère un regain de puissance pendant 20 sec, ce qui augmente la hâte de 25%
 	{spells.powerInfusion, PlayerBuffStacks(194249) > 14 and PlayerBuffStacks(194249) < 22 },
 
@@ -357,7 +356,7 @@ local spellTable = {
 	{spells.voidEruption, not PlayerMoving() and PlayerCanDPS("target") and not PlayerHasBuff(194249) and PlayerInsanity() == 100 },
     {"macro", jps.CanCastvoidBolt(0.5) , "/stopcasting" },
 	{spells.voidEruption, PlayerHasBuff(194249) , VoidBoltTarget },
-	{spells.voidTorrent , not jps.MultiTarget and PlayerHasBuff(194249) and not PlayerMoving() and TargetDebuffDuration(spells.vampiricTouch) > 4 and TargetDebuffDuration(spells.shadowWordPain) > 4 },
+	{spells.voidTorrent , PlayerHasBuff(194249) and not PlayerMoving() and TargetDebuffDuration(spells.vampiricTouch) > 4 and TargetDebuffDuration(spells.shadowWordPain) > 4 },
 
 	{"macro", jps.CanCastMindBlast(0.5) , "/stopcasting" },
 	{spells.mindBlast, not PlayerMoving() , "target"  },

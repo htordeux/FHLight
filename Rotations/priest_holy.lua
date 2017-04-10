@@ -244,19 +244,21 @@ local spellTable = {
 	{ 208683, isPVP and playerIsStun , "player" , "playerCC" },
 	{ 214027, isPVP and playerIsStun , "player" , "playerCC" },
 	-- "Prière du désespoir" 19236 "Desperate Prayer" -- Vous rend 30% de vos points de vie maximum et augmente vos points de vie maximum de 30%, avant de diminuer de 2% chaque seconde.
-	{ spells.desperatePrayer, jps.hp("player") < 0.65 , "player" },
+	{ spells.desperatePrayer, jps.hp("player") < 0.60 , "player" },
 	-- "Corps et esprit" 214121
-	{ spells.bodyAndMind, jps.Moving , "player" },
+	{ spells.bodyAndMind, jps.Moving and not jps.buff(spells.bodyAndMind,"player") , "player" },
 	-- "Fade" 586 "Disparition"
 	{ spells.fade, not isPVP and playerIsTarget },
 	-- "Don des naaru" 59544
 	{ spells.giftNaaru, jps.hp("player") < 0.70 , "player" , "Naaru" },
 	-- "Pierre de soins" 5512
-	{ "macro", jps.hp("player") < 0.65 and jps.useItem(5512) ,"/use item:5512" },
+	{ "macro", jps.hp("player") < 0.60 and jps.useItem(5512) ,"/use item:5512" },
 	-- "Renew" 139
 	{ spells.renew, jps.buffDuration(spells.renew,"player") < 3 and jps.hpInc("player") < 0.90 , "player" },
 	-- "Mot sacré : Châtier" 88625
 	{ spells.holyWordChastise , isPVP and PlayerCanDPS(rangedTarget) , rangedTarget },
+	-- "Light of T'uure" 208065
+	{ spells.lightOfTuure, jps.hpRange("player",0.60,0.85) and not PlayerHasBuff(208065) , "player" },
 
 	-- "Guardian Spirit" 47788
 	-- "Gardiens de la Lumière" -- Esprit gardien invoque un esprit supplémentaire pour veiller sur vous.
@@ -271,7 +273,7 @@ local spellTable = {
 
 	-- TRINKETS
 	-- { "macro", jps.useTrinket(0) , "/use 13"}, -- jps.useTrinket(0) est "Trinket0Slot" est slotId  13
-	{ "macro", jps.useTrinket(1) and CountInRange > 2 , "/use 14"}, -- jps.useTrinket(1) est "Trinket1Slot" est slotId  14
+	{ "macro", jps.useTrinket(1) and CountInRange > breakpoint , "/use 14"}, -- jps.useTrinket(1) est "Trinket1Slot" est slotId  14
 
 	-- "Apotheosis" 200183 increasing the effects of Serendipity by 200% and reducing the cost of your Holy Words by 100%.
 	{ spells.apotheosis, jps.hasTalent(7,1) and jps.hp(LowestUnit) < 0.60 and SerenityOnCD },
@@ -283,13 +285,13 @@ local spellTable = {
 		{ spells.flashHeal, jps.hp(Tank) < 0.80 and not UnitIsUnit("player",Tank) , Tank },
 		{ spells.flashHeal, jps.hp(TankThreat) < 0.80 and not UnitIsUnit("player",TankThreat) , TankThreat },
 		{ spells.flashHeal, jps.hp(LowestUnit) < 0.80 , LowestUnit },
-		{ spells.flashHeal, jps.buffDuration(114255) < 4 , LowestUnit },
+		{ spells.flashHeal, jps.buffDuration(114255) < 3 , LowestUnit },
 	}},
 	-- "Holy Word: Serenity" 2050
 	{ spells.holyWordSerenity, jps.hp(Tank) < 0.50 and not UnitIsUnit("player",Tank) , Tank },
 	{ spells.holyWordSerenity, jps.hp(TankThreat) < 0.50 and not UnitIsUnit("player",TankThreat) , TankThreat },
-	{ spells.holyWordSerenity, jps.hp("player") < 0.50 , "player" },
-	{ spells.holyWordSerenity, jps.hp(LowestUnit) < 0.40 , LowestUnit },
+	{ spells.holyWordSerenity, jps.hp("player") < 0.40 , "player" },
+	{ spells.holyWordSerenity, jps.hp(LowestUnit) < 0.30 , LowestUnit },
 
 	-- "Dispel" "Purifier" 527
 	{ spells.purify, PlayerCanDispelWith("mouseover",527) , "mouseover" },
@@ -303,10 +305,15 @@ local spellTable = {
 		{ spells.dispelMagic, jps.castEverySeconds(528,4) and jps.DispelOffensive(rangedTarget) , rangedTarget },
 		{ spells.dispelMagic, jps.castEverySeconds(528,4) and jps.DispelOffensive("mouseover") , "mouseover" },
 	}},
+	
+	-- "Light of T'uure" 208065 it buffs the target to increase your healing done to them by 25% for 10 seconds
+	{ spells.lightOfTuure, jps.BossDebuff(Tank) and not jps.buff(208065,Tank) , Tank },
+	{ spells.lightOfTuure, jps.hpRange(Tank,0.60,0.85) and not jps.buff(208065,Tank) , Tank },
+	{ spells.lightOfTuure, jps.hpRange(LowestUnit,0.60,0.85) and not jps.buff(208065,LowestUnit) , LowestUnit },
 
 	-- "Prière de guérison" 33076 -- Buff POM 41635 -- Change de cible un maximum de 5 fois et dure 30 sec après chaque changement.
 	-- "Guérison sacrée" -- Prière de guérison se propage à une cible affectée par votre Rénovation, elle lui rend instantanément (150% of Spell power) points de vie.
-	{ "nested", not jps.Moving and jps.hp(LowestUnit) > 0.60 and jps.buffTrackerCharge(41635) < 5 and jps.buffTrackerDuration(41635) < 15 , {
+	{ "nested", not jps.Moving and jps.hp(Tank) > 0.60 and jps.buffTrackerCharge(41635) < 5 and jps.buffTrackerDuration(41635) < 15 , {
 		{ spells.prayerOfMending, not jps.Moving and not UnitIsUnit("player",Tank) and not jps.buff(41635,Tank) , Tank , "M1" },
 		{ spells.prayerOfMending, not jps.Moving and not UnitIsUnit("player",TankThreat) and not jps.buff(41635,TankThreat) , TankThreat , "M2" },
 		{ spells.prayerOfMending, not jps.Moving and MendingFriend ~= nil , MendingFriend , "M3" },
@@ -335,13 +342,7 @@ local spellTable = {
 		{ spells.smite , not jps.Moving and PlayerCanDPS(rangedTarget) , rangedTarget },
 		{ spells.holyNova, jps.Moving and CheckInteractDistance("target",2) == true and PlayerCanDPS("target") , "target" },
 	}},
-	
-	-- "Light of T'uure" 208065 it buffs the target to increase your healing done to them by 25% for 10 seconds
-	{ spells.lightOfTuure, jps.BossDebuff(Tank) and not jps.buff(208065,Tank) , Tank },
-	{ spells.lightOfTuure, jps.hpRange("player",0.60,0.85) and not PlayerHasBuff(208065) , "player" },
-	{ spells.lightOfTuure, jps.hpRange(Tank,0.60,0.85) and not jps.buff(208065,Tank) , Tank },
-	{ spells.lightOfTuure, jps.hpRange(LowestUnit,0.60,0.85) and not jps.buff(208065,LowestUnit) , LowestUnit },
-	
+
 	-- EMERGENCY HEAL -- "Serendipity" 63733 -- "Benediction" for raid and "Apotheosis" for party
 	-- "Soins de lien" 32546
 	{ spells.bindingHeal, jps.hp(Tank) < threasold and not jps.Moving and jps.unitForBinding(Tank) , Tank },
@@ -350,7 +351,6 @@ local spellTable = {
 	
 	-- "Soins rapides" 2061 -- "Traînée de lumière" 200128 "Trail of Light" -- When you cast Flash Heal, 40% of the healing is replicated to the previous target you healed with Flash Heal.
 	{ "nested", not jps.Moving and jps.hasTalent(1,1) and jps.hp(LowestUnit) < threasold and jps.LastCastUnit(spells.flashHeal) ~= LowestUnit ,{
-		{ spells.flashHeal, jps.LastCastUnit(spells.flashHeal) == Tank and jps.hp(Tank) > jps.hp(LowestUnit) , LowestUnit , "F1" },
 		{ spells.flashHeal, CountInRange < 4 , LowestUnit , "F2" },
 		{ spells.flashHeal, isInRaid and CountInRange < 6 , LowestUnit , "F2" },
 	}},
@@ -472,13 +472,13 @@ jps.registerRotation("PRIEST","HOLY",function()
 
 	-- "Don des naaru" 59544
 	{ spells.giftNaaru, jps.hp("player") < 0.80 , "player" },
-	{ spells.bodyAndMind, jps.Moving , "player" },
+	{ spells.bodyAndMind, jps.Moving and not jps.buff(spells.bodyAndMind,"player") , "player" },
 	{ spells.flashHeal, not jps.Moving and jps.hp("player") < 0.80 , "player" , "Emergency_Player" },
 	
 	-- "Renew" 139 -- heals because group never want's to stop
-	{ spells.renew, not jps.buff(spells.renew,LowestUnit) and jps.hp(LowestUnit) < 0.80 , LowestUnit , "Renew_Topoff" },
+	{ spells.renew, not jps.buff(spells.renew,LowestUnit) and jps.hp(LowestUnit) < 0.85 , LowestUnit , "Renew_Topoff" },
 	-- "Soins" 2060
-	{ spells.heal, jps.hp(LowestUnit) < 0.60 and jps.buff(spells.renew,LowestUnit) , LowestUnit , "Soins_Topoff" },
+	{ spells.heal, jps.hp(LowestUnit) < 0.70 and jps.buff(spells.renew,LowestUnit) , LowestUnit , "Soins_Topoff" },
 
 	-- "Oralius' Whispering Crystal" 118922 "Cristal murmurant d’Oralius" -- buff 176151
 	{ "macro", not PlayerHasBuff(156079) and not PlayerHasBuff(188031) and jps.useItem(118922) , "/use item:118922" , "Item_Oralius"},

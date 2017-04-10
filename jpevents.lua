@@ -717,7 +717,7 @@ local updateEnemyDamager = function()
 		local dataset = index.friendaggro
 		if dataset then 
 			local timeDelta = GetTime() - dataset
-			if timeDelta > 5 then EnemyDamager[unit] = nil end
+			if timeDelta > 6 then EnemyDamager[unit] = nil end
 		end
 	end
 end
@@ -727,16 +727,16 @@ local updateIncomingDamage = function()
 	for unit,index in pairs(IncomingDamage) do
 		local data = #index
 		local delta = GetTime() - index[1][1]
-		if delta > 5 then IncomingDamage[unit] = nil end
+		if delta > 6 then IncomingDamage[unit] = nil end
 	end
 end
 
--- IncomingHeal[destGUID] = ({1,{GetTime(),heal,destName}, ... )
+-- IncomingHeal[destGUID] = ( {GetTime(),heal,destName}, ... )
 local updateIncomingHeal = function()
 	for unit,index in pairs(IncomingHeal) do
 		local data = #index
 		local delta = GetTime() - index[1][1]
-		if delta > 5 then IncomingHeal[unit] = nil end
+		if delta > 6 then IncomingHeal[unit] = nil end
 	end
 end
 
@@ -744,21 +744,17 @@ end
 -- UPDATE HEALERBLACKLIST
 -----------------------
 
-local scoreLastUpdate = GetTime()
-local scoreFrequency  = 1 -- sec
 local UpdateIntervalRaidStatus = function()
-	local curTime = GetTime()
-	local diff = curTime - scoreLastUpdate
-	if diff < scoreFrequency then return end
-	scoreLastUpdate = curTime
 	jps.UpdateHealerBlacklist()
 	updateEnemyDamager()
 	updateIncomingDamage()
 	updateIncomingHeal()
 end
 
--- HealerBlacklist Update
-jps.registerOnUpdate(UpdateIntervalRaidStatus)
+
+jps.registerOnUpdate(function()
+	jps.cachedValue(UpdateIntervalRaidStatus,1)
+end)
 
 
 --------------------------
@@ -885,7 +881,7 @@ jps.events.registerEvent("COMBAT_LOG_EVENT_UNFILTERED", function(...)
 				local spellID = select(12, ...)
 				local addEnemyHealer = false
 				local classHealer = jps.HealerSpellID[spellID]
-				if classHealer then
+				if classHealer and UnitCanAttack("player",destName) then
 					if EnemyHealer[sourceGUID] == nil then addEnemyHealer = true end
 					if addEnemyHealer then EnemyHealer[sourceGUID] = {classHealer,sourceName} end
 				end
@@ -948,7 +944,7 @@ end)
 
 function jps.IncomingDamage(unit)
 	if unit == nil then unit = "player" end
-	local time = 5
+	local time = 4
 	local unitguid = UnitGUID(unit)
 	local totalDamage = 0
 	if IncomingDamage[unitguid] ~= nil then
@@ -969,7 +965,7 @@ end
 
 function jps.IncomingHeal(unit)
 	if unit == nil then unit = "player" end
-	local time = 5
+	local time = 4
 	local unitguid = UnitGUID(unit)
 	local totalHeal = 0
 	if IncomingHeal[unitguid] ~= nil then

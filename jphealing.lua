@@ -161,7 +161,6 @@ local RoleEnemy = function(roleplay)
 	return EnemyRole  -- { [playertarget] = "DAMAGER" , [raid5target] = "TANK" , , [party2] = "HEALER"}}
 end
 
-
 jps.HealerEnemyTarget = function()
 	local lowestHealer = nil
 	local EnemyHealer = RoleEnemy("HEALER")
@@ -231,7 +230,7 @@ function jps.findRaidTankThreat()
 	end
 	tsort(TankUnit, function(a,b) return HealthPct(a) < HealthPct(b) end)
 	local myTank = TankUnit[1]
-	if canHeal(myTank) then myTank = TankUnit[1] else myTank = "player" end
+	if myTank == nil then myTank = "player" end
 	return myTank, TankUnit
 end
 

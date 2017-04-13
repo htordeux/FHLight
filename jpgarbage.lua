@@ -90,6 +90,8 @@ Test()
 
 print("|cFFFF0000PlateCount:|cffffffff",jps.NamePlateCount())
 print("|cFFFF0000playerIsTarget: |cffffffff",jps.PlayerIsTarget())
+print("|cFFFF0000playerIsTarget: |cffffffff",jps.LowestFriendTargetNameplate())
+
 
 --print("|cff1eff00prayerOfMendingBuff: |cffffffff", jps.buffTrackerCharge(41635),":", jps.buffTrackerDuration(41635))
 

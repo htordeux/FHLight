@@ -12,8 +12,6 @@ This module also contains profiling support for the events. If enabled you will 
 
 jps.events = {}
 local eventLoop = {}
---jps.listener = {}
---local listener = jps.listener
 
 -- Logger
 local LOG = jps.Logger(jps.LogLevel.ERROR)
@@ -405,6 +403,27 @@ function jps.NamePlateDebuffCount(debuff)
 	end
 	return plateCount
 end
+
+jps.PlayerIsTarget = function()
+	for unit,_ in pairs(activeUnitPlates) do
+		if jps.UnitExists(unit.."target") then
+			local target = unit.."target"
+			if UnitIsUnit(target,"player") then return true end
+		end
+	end
+	return false
+end
+
+jps.UnitIsTarget = function(unit)
+	for unit,_ in pairs(activeUnitPlates) do
+		if jps.UnitExists(unit.."target") then
+			local target = unit.."target"
+			if UnitIsUnit(target,unit) then return true end
+		end
+	end
+	return false
+end
+
 
 --------------------------
 -- EVENT FUNCTIONS

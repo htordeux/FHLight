@@ -131,17 +131,6 @@ end
 -- ENEMY TARGET
 ----------------------
 
-jps.PlayerIsTarget = function()
-	local RaidPlate = jps.NamePlate()
-	for unit,_ in pairs(RaidPlate) do
-		if jps.UnitExists(unit.."target") then
-			local target = unit.."target"
-			if UnitIsUnit(target,"player") then return true end
-		end
-	end
-	return false
-end
-
 function jps.IsFallingFor(delay)
 	if delay == nil then delay = 1 end
 	if not IsFalling() then jps.resetTimer("Falling") end

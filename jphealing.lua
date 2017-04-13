@@ -116,9 +116,34 @@ end
 -- UPDATE RAIDTARGET
 ----------------------
 
+local FriendTable = {}
+jps.LowestFriendTargetCombatLog = function()
+	table.wipe(FriendTable)
+	for unit,_ in pairs(RaidStatus) do
+		if jps.FriendAggro(unit) then
+			FriendTable[#FriendTable+1] = unit
+		end
+	end
+	tsort(FriendTable, function(a,b) return HealthPct(a) < HealthPct(b) end)
+	return FriendTable[1] or "player", FriendTable, #FriendTable
+end
+
+jps.LowestFriendTargetNameplate = function()
+	table.wipe(FriendTable)
+	for unit,_ in pairs(RaidStatus) do
+		if jps.UnitIsTarget(unit) then
+			FriendTable[#FriendTable+1] = unit
+		end
+	end
+	tsort(FriendTable, function(a,b) return HealthPct(a) < HealthPct(b) end)
+	return FriendTable[1] or "player", FriendTable, #FriendTable
+end
+
+
 -- Units that are not available to the current player are (where unit is not "player"): unitfocus and unitmouseover.
+local RaidTarget = {}
 jps.LowestEnemyTarget = function()
-	local RaidTarget = {}
+	table.wipe(RaidTarget)
 	for unit,_ in pairs(RaidStatus) do
 		if canDPS(unit.."target") then
 			local unittarget = unit.."target"

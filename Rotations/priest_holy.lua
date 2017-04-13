@@ -224,7 +224,7 @@ local spellTable = {
 	-- "Esprit de rédemption" buff 27827 "Spirit of Redemption"
 	{ "nested", PlayerHasBuff(27827) and not UnitIsUnit("player",LowestUnit) , {
 		-- "Holy Word: Serenity" 2050
-		{ spells.holyWordSerenity , jps.hp(LowestUnit) < 0.65 , LowestUnit  },
+		{ spells.holyWordSerenity , jps.hp(LowestUnit) < 0.60 , LowestUnit  },
 		-- "Prière de guérison" 33076
 		{ spells.prayerOfMending, not jps.buffTracker(41635) , LowestUnit },
 		{ spells.divineHymn ,  AvgHealthRaid < 0.80 , LowestUnit },

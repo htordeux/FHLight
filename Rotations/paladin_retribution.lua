@@ -20,7 +20,7 @@ jps.registerRotation("PALADIN","RETRIBUTION",function()
 ----------------------------
 
 	local CountInRange, AvgHealthRaid, FriendUnit, FriendLowest = jps.CountInRaidStatus(0.80) -- CountInRange return raid count unit below healpct -- FriendUnit return table with all raid unit in range
-	local LowestUnit, lowestUnitInc = jps.LowestImportantUnit() -- if jps.Defensive then LowestUnit is {"player","mouseover","target","focus","targettarget","focustarget"}
+	local LowestUnit = jps.LowestImportantUnit() -- if jps.Defensive then LowestUnit is {"player","mouseover","target","focus","targettarget","focustarget"}
 	local Tank,TankUnit = jps.findRaidTank() -- default "focus" "player"
 	local TankTarget = Tank.."target"
 	local TankThreat,_  = jps.findRaidTankThreat()

@@ -192,11 +192,11 @@ jps.spells.priest.lingeringInsanity = jps.toSpellName(197937)
 --	{jps.spells.priest.prayerOfHealing , 3 , jps.buff(64901) or jps.buff(27827) }, -- "Symbol of Hope" 64901
 --}
 
-jps.ShouldInterruptCasting = function ( InterruptTable, CountInRange, LowestUnitHealth )
-	if jps.LastTarget == nil then return end
+jps.ShouldInterruptCasting = function (InterruptTable, CountInRange, LowestUnitHealth)
+	if jps.LastTarget == nil then return false end
 	local spellCasting, _, _, _, _, endTime, _ = UnitCastingInfo("player")
 	if spellCasting == nil then return false end
-	local TargetHpct = jps.hp(jps.LastTarget) -- pendant le spellcast jps.LastTarget = jps.Target
+	local TargetHealth = jps.hp(jps.LastTarget) -- pendant le spellcast jps.LastTarget = jps.Target
 	
 	for key, healSpellTable in pairs(InterruptTable) do
 		local breakpoint = healSpellTable[2]
@@ -204,13 +204,13 @@ jps.ShouldInterruptCasting = function ( InterruptTable, CountInRange, LowestUnit
 		if spellName == spellCasting and healSpellTable[3] == false then
 			if healSpellTable[1] == jps.spells.priest.prayerOfHealing and CountInRange < breakpoint then
 				SpellStopCasting()
-				DEFAULT_CHAT_FRAME:AddMessage("STOPCASTING avgHP "..spellName.." , raid has enough hp!",0, 0.5, 0.8)
-			elseif healSpellTable[1] == jps.spells.priest.heal and TargetHpct > breakpoint then
+				DEFAULT_CHAT_FRAME:AddMessage("STOPCASTING avgHP "..spellName..", raid has enough hp!",0, 0.5, 0.8)
+			elseif healSpellTable[1] == jps.spells.priest.heal and TargetHealth > breakpoint then
 				SpellStopCasting()
-				DEFAULT_CHAT_FRAME:AddMessage("STOPCASTING OverHeal "..spellName.." , unit "..jps.LastTarget.." has enough hp!",0, 0.5, 0.8)
-			elseif healSpellTable[1] == jps.spells.priest.flashHeal and TargetHpct > breakpoint then
+				DEFAULT_CHAT_FRAME:AddMessage("STOPCASTING OverHeal "..spellName..","..jps.LastTarget.." has enough hp!",0, 0.5, 0.8)
+			elseif healSpellTable[1] == jps.spells.priest.flashHeal and TargetHealth > breakpoint then
 				SpellStopCasting()
-				DEFAULT_CHAT_FRAME:AddMessage("STOPCASTING OverHeal "..spellName.." , unit "..jps.LastTarget.." has enough hp!",0, 0.5, 0.8)
+				DEFAULT_CHAT_FRAME:AddMessage("STOPCASTING OverHeal "..spellName..","..jps.LastTarget.." has enough hp!",0, 0.5, 0.8)
 			end
 		end
 	end

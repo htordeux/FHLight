@@ -35,9 +35,9 @@ print("|cFFFF0000IncDamage: ", jps.IncomingDamage("target"))
 print("|cff1eff00IncHeal: ", jps.IncomingHeal("target"))
 local CountInRange, AvgHealth, FriendUnit, FriendLowest = jps.CountInRaidStatus(0.80)
 print("|cff1eff00CountInRange: |cffffffff",CountInRange,"|cff1eff00FriendUnit: |cffffffff",#FriendUnit,"|cff1eff00AvgHealth: |cffffffff",AvgHealth,"|cff1eff00FriendLowest: |cffffffff",GetUnitName(FriendLowest))
-local LowestUnit, lowestUnitInc = jps.LowestImportantUnit()
+local LowestUnit = jps.LowestImportantUnit()
 print("|cff1eff00LowestUnit: |cffffffff",GetUnitName(LowestUnit))
-print("|cff1eff00lowestUnitInc: |cffffffff",GetUnitName(lowestUnitInc))
+print("|cFFFF0000LastCast: |cffffffff", jps.LastCastUnit(LowestUnit) )
 write("***************************")
 local Tank,Tanks = jps.findRaidTank()
 local Threat,Threats = jps.findRaidTankThreat()
@@ -49,6 +49,7 @@ for i=1,#Threats do
 	print("|cFFFF0000TankThreat: |cffffffff",GetUnitName(Threats[i]))
 end
 write("***************************")
+
 
 end
 
@@ -88,9 +89,14 @@ function jps.Test()
 
 Test()
 
+local lowestFriendTargetNameplate,_,_ = jps.LowestFriendTargetNameplate()
+local lowestFriendTargetCombatLog,_,_ = jps.LowestFriendTargetCombatLog()
+
 print("|cFFFF0000PlateCount:|cffffffff",jps.NamePlateCount())
 print("|cFFFF0000playerIsTarget: |cffffffff",jps.PlayerIsTarget())
-print("|cFFFF0000playerIsTarget: |cffffffff",jps.LowestFriendTargetNameplate())
+print("|cFFFF0000TargetNameplate: |cffffffff", lowestFriendTargetNameplate )
+print("|cFFFF0000TargetCombatLog: |cffffffff", lowestFriendTargetCombatLog )
+
 
 
 --print("|cff1eff00prayerOfMendingBuff: |cffffffff", jps.buffTrackerCharge(41635),":", jps.buffTrackerDuration(41635))

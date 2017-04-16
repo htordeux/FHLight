@@ -312,19 +312,17 @@ end
 -- LOWEST PERCENTAGE in RaidStatus
 jps.LowestInRaidStatus = function()
 	local lowestUnit = "player"
-	local lowestUnitInc = "player"
 	local lowestHP = 1
 	for unit,_ in pairs(RaidStatus) do
+		local unitHP = HealthPct(unit)
 		if canHeal(unit) then
-			local unitHP = HealthPct(unit)
 			if unitHP < lowestHP then
 				lowestHP = unitHP
-				lowestUnitInc = lowestUnit
 				lowestUnit = unit
 			end
 		end
 	end
-	return lowestUnit, lowestUnitInc
+	return lowestUnit
 end
 
 -- LOWEST HP in RaidStatus
@@ -347,39 +345,27 @@ end
 local myTanks = {"player","mouseover","target","focus","targettarget","focustarget"}
 jps.LowestImportantUnit = function()
 	local lowestUnit = "player"
-	local lowestUnitInc = "player"
 	if jps.Defensive then
 		local _,Tanks = jps.findRaidTank()
 		for i=1,#Tanks do
 			local unit = Tanks[i]
 			myTanks[#myTanks+1] = unit
 		end
-		local lowestHP = 100 -- in case with Inc > 1
-		local lowestHPInc = 100 -- in case with Inc > 1
+		local lowestHP = 1
 		for i=1,#myTanks do -- for _,unit in ipairs(myTanks) do
 			local unit = myTanks[i]
 			local unitHP = HealthPct(unit)
-			local unitHPInc = HealthPctInc(unit)
-			if canHeal(unit) and unitHP < lowestHP then 
-				lowestHP = unitHP
-				lowestUnitInc = lowestUnit
-				lowestUnit = unit
-			end
 			if canHeal(unit) then
 				if unitHP < lowestHP then
 					lowestHP = unitHP
 					lowestUnit = unit 
 				end
-				if unitHPInc < lowestHPInc then
-					lowestHPInc = unitHPInc
-					lowestUnitInc = unit
-				end
 			end
 		end
 	else
-		lowestUnit, lowestUnitInc = jps.LowestInRaidStatus()
+		lowestUnit = jps.LowestInRaidStatus()
 	end
-	return lowestUnit, lowestUnitInc
+	return lowestUnit
 end
 
 -- LOWEST TIME TO DIE

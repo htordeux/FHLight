@@ -53,6 +53,14 @@ local tremove = table.remove
 local toSpellName = jps.toSpellName
 local GetUnitName = GetUnitName
 
+
+local favoriteSpell = 2061 -- usefull for holy priest with hasTalent(1,1) kps.spells.priest.trailOfLight
+local lastCastedUnit = "player"
+function jps.LastCastUnit(unit)
+	if lastCastedUnit == GetUnitName(unit) then return true end
+	return false
+end
+
 --------------------------
 -- (UN)REGISTER FUNCTIONS 
 --------------------------
@@ -404,26 +412,19 @@ function jps.NamePlateDebuffCount(debuff)
 	return plateCount
 end
 
-jps.PlayerIsTarget = function()
-	for unit,_ in pairs(activeUnitPlates) do
-		if jps.UnitExists(unit.."target") then
-			local target = unit.."target"
-			if UnitIsUnit(target,"player") then return true end
-		end
-	end
-	return false
-end
-
 jps.UnitIsTarget = function(unit)
-	for unit,_ in pairs(activeUnitPlates) do
-		if jps.UnitExists(unit.."target") then
-			local target = unit.."target"
+	for nameplate,_ in pairs(activeUnitPlates) do
+		if jps.UnitExists(nameplate.."target") then
+			local target = nameplate.."target"
 			if UnitIsUnit(target,unit) then return true end
 		end
 	end
 	return false
 end
 
+jps.PlayerIsTarget = function()
+	return jps.UnitIsTarget("player")
+end
 
 --------------------------
 -- EVENT FUNCTIONS
@@ -505,7 +506,6 @@ local leaveCombat = function()
 	jps.UpdateRaidStatus()
 	jps.UpdateRaidRole()
 	jps.castSequence = {}
-	jps.LastCastUnitWipe()
 
 	-- Garbage
 	collectGarbage()
@@ -892,12 +892,9 @@ jps.events.registerEvent("COMBAT_LOG_EVENT_UNFILTERED", function(...)
 
 -- HEAL TABLE -- Incoming Heal on Enemy from Enemy Healers UnitGUID
 		if healEvents[event] then
---		print(  "cff1eff00Event: ",event)
---		print(  "|cff1eff00destName: |cffffffff",destName,"F:",isDestFriend,"E:",isDestEnemy,
---				"|cff1eff00sourceName: |cffffffff",sourceName,"F:",isSourceFriend,"E:",isSourceEnemy)
-		
+    		local spellID = select(12, ...)
+    		local spellName = select(13, ...)
 			if isDestEnemy and isSourceEnemy then
-				local spellID = select(12, ...)
 				local addEnemyHealer = false
 				local classHealer = jps.HealerSpellID[spellID]
 				if classHealer and UnitCanAttack("player",destName) then
@@ -912,13 +909,14 @@ jps.events.registerEvent("COMBAT_LOG_EVENT_UNFILTERED", function(...)
 				if IncomingHeal[destGUID] == nil then IncomingHeal[destGUID] = {} end
 				tinsert(IncomingHeal[destGUID],1,{GetTime(),heal,destName})
 			end
+-- HEAL TABLE -- lastCasted Player Spell on Unit
+        	if sourceName == GetUnitName("player") and spellID == favoriteSpell then
+        		lastCastedUnit = destName
+        	end
 		end
 
 -- DAMAGE TABLE Note that for the SWING prefix, _DAMAGE starts at the 12th parameter
 		if damageEvents[event] then
---		print("|cFFFF0000Event: ",event)
---		print("|cFFFF0000destName: |cffffffff",destName,"F:",isDestFriend,"E:",isDestEnemy,
---				"|cFFFF0000sourceName: |cffffffff",sourceName,"F:",isSourceFriend,"E:",isSourceEnemy)
 			if isDestFriend and UnitCanAssist("player",destName) then
 				-- for the SWING prefix, _DAMAGE starts at the 12th parameter. 
 				-- for ENVIRONMENTAL prefix, _DAMAGE starts at the 13th.

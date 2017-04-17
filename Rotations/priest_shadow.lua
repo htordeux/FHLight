@@ -336,7 +336,7 @@ local spellTable = {
 
     -- "Shadow Word: Death" 32379
     {spells.shadowWordDeath, jps.spellCharges(spells.shadowWordDeath) == 2 , "target" },
-    {spells.shadowWordDeath, PlayerInsanity() < 85 , DeathEnemyTarget , "DeathEnemyTarget" },
+    {spells.shadowWordDeath, jps.spellCharges(spells.shadowWordDeath) > 0 and PlayerInsanity() < 85 , DeathEnemyTarget , "DeathEnemyTarget" },
     
    	-- mindblast is highest priority spell out of voidform
 	{spells.mindBlast, not PlayerMoving() and not PlayerHasBuff(194249) , "target"  },

@@ -89,15 +89,18 @@ function jps.Test()
 
 Test()
 
-local lowestFriendTargetNameplate,_,_ = jps.LowestFriendTargetNameplate()
-local lowestFriendTargetCombatLog,_,_ = jps.LowestFriendTargetCombatLog()
+--local lowestFriendTargetNameplate,_,_ = jps.LowestFriendTargetNameplate()
+--local lowestFriendTargetCombatLog,_,_ = jps.LowestFriendTargetCombatLog()
+--print("|cFFFF0000PlateCount:|cffffffff",jps.NamePlateCount())
+--print("|cFFFF0000playerIsTarget: |cffffffff",jps.PlayerIsTarget())
+--print("|cFFFF0000TargetNameplate: |cffffffff", lowestFriendTargetNameplate )
+--print("|cFFFF0000TargetCombatLog: |cffffffff", lowestFriendTargetCombatLog )
 
-print("|cFFFF0000PlateCount:|cffffffff",jps.NamePlateCount())
-print("|cFFFF0000playerIsTarget: |cffffffff",jps.PlayerIsTarget())
-print("|cFFFF0000TargetNameplate: |cffffffff", lowestFriendTargetNameplate )
-print("|cFFFF0000TargetCombatLog: |cffffffff", lowestFriendTargetCombatLog )
 
-
+--local value = select(17,UnitBuff("player",jps.spells.priest.echoOfLight))
+--local duration = select(6,UnitBuff("player",jps.spells.priest.echoOfLight))
+--print(name,spellId,"|cFFFF0000value1: |cffffffff", value , duration)
+--print("|cFFFF0000Test:", jps.buffValue(77489) )
 
 --print("|cff1eff00prayerOfMendingBuff: |cffffffff", jps.buffTrackerCharge(41635),":", jps.buffTrackerDuration(41635))
 

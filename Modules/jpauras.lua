@@ -118,6 +118,20 @@ function jps.buffStacks(spell,unit)
 	return count
 end
 
+function jps.buffValue(spell,unit)
+	if unit == nil then unit = "player" end
+	local value = 0
+	if jps.buffDuration(spell) > 0 then
+		local buffname = jps.toSpellName(spell)
+		value = select(17,UnitBuff(unit,buffname))
+	end
+	return value
+end
+
+---------------------------------------------
+-- BOSS DEBUFF
+---------------------------------------------
+
 -- check if a unit has at least one buff from a buff table (first param)
 function jps.buffLooper(tableName, unit)
 	for _, buffName in pairs(tableName) do
@@ -127,10 +141,6 @@ function jps.buffLooper(tableName, unit)
 	end
 	return false
 end
-
----------------------------------------------
--- BOSS DEBUFF
----------------------------------------------
 
 function CreateFlasher()
 	local flasher = CreateFrame("Frame", "WarningFrame", UIParent)

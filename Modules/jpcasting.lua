@@ -134,25 +134,11 @@ end
 -- When a given unit has no valid returns:
 -- UnitDistanceSquared returns 0
 -- UnitPosition returns nil
-
+-- Patch 7.1.0 : RETURNS NIL WHILE INSIDE A RESTRICTED AREA (INSTANCE/BATTLEGROUND/ARENA)
 function jps.Distance(unit)
 	local dist,_ = math.sqrt(UnitDistanceSquared(unit))
 	if dist == 0 and UnitPosition(unit) == nil then dist = 100 end
 	return dist
-end
-
--- Patch 7.1.0 : RETURNS NIL WHILE INSIDE A RESTRICTED AREA (INSTANCE/BATTLEGROUND/ARENA).
-
--- jps.Distance(unit) Works with "player", "partyN" or "raidN" as unit type.
-jps.FriendNearby = function(distance)
-	if distance == nil then distance = 8 end
-	local count = 0
-	for unit,_ in pairs(RaidStatus) do
-		if jps.Distance(unit) < distance and HealthPct(unit) < 0.95 then
-			count = count + 1
-		end
-	end
-	return count
 end
 
 ----------------------

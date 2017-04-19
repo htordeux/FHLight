@@ -300,7 +300,7 @@ local spellTable = {
 	-- "Power Word: Shield" 17
 	{spells.powerWordShield, not PlayerHasBuff(65081) and jps.IsMovingFor(1.6) and PlayerHasTalent(2,2) , "player" },
 	{spells.powerWordShield, PlayerHealth() < 0.80 and not PlayerHasBuff(194249) and not PlayerHasBuff(spells.powerWordShield) , "player" },
-	{spells.powerWordShield, jps.hp("mouseover") < 0.60 and not jps.buff(spells.powerWordShield,"mouseover") , "mouseover" },
+	{spells.powerWordShield, PlayerCanHeal("mouseover") and jps.hp("mouseover") < 0.60 and not jps.buff(spells.powerWordShield,"mouseover") , "mouseover" },
 	-- "Pierre de soins" 5512
 	{ "macro", PlayerHealth() < 0.60 and jps.useItem(5512) , "/use item:5512" },
 	-- "Don des naaru" 59544

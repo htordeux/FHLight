@@ -267,8 +267,8 @@ local spellTable = {
 	-- { "macro", jps.useTrinket(0) , "/use 13"}, -- jps.useTrinket(0) est "Trinket0Slot" est slotId  13
 	{ "macro", jps.useTrinket(1) and CountInRange > breakpoint , "/use 14"}, -- jps.useTrinket(1) est "Trinket1Slot" est slotId  14
 	-- "Apotheosis" 200183 increasing the effects of Serendipity by 200% and reducing the cost of your Holy Words by 100%.
-	{ spells.apotheosis, jps.hasTalent(7,1) and jps.hp(LowestUnit) < 0.60 and SerenityOnCD },
-	{ spells.apotheosis, jps.hasTalent(7,1) and jps.hp(LowestUnit) < 0.60 and CountInRange > 3 },
+	{ spells.apotheosis, PlayerHasTalent(7,1) and jps.hp(LowestUnit) < 0.60 and SerenityOnCD },
+	{ spells.apotheosis, PlayerHasTalent(7,1) and jps.hp(LowestUnit) < 0.60 and CountInRange > 3 },
 	
 	-- "Soins rapides" 2061 -- "Vague de Lumière" 109186 "Surge of Light" -- gives buff 114255
 	{ "nested", PlayerHasBuff(114255) ,{
@@ -342,7 +342,7 @@ local spellTable = {
 
 	-- EMERGENCY HEAL -- "Serendipity" 63733 -- "Benediction" for raid and "Apotheosis" for party
 	-- "Soins rapides" 2061 -- "Traînée de lumière" 200128 "Trail of Light" -- When you cast Flash Heal, 40% of the healing is replicated to the previous target you healed with Flash Heal.
-	{ spells.flashHeal, not jps.Moving and jps.hasTalent(1,1) and CountInRange < 4 and jps.hp(LowestUnit) < threasold and not jps.LastCastUnit(LowestUnit) , LowestUnit, "Trail" },
+	{ spells.flashHeal, not jps.Moving and PlayerHasTalent(1,1) and CountInRange < 4 and jps.hp(LowestUnit) < threasold and not jps.LastCastUnit(LowestUnit) , LowestUnit, "Trail" },
 	{ "nested", not jps.Moving and jps.hp(LowestTargeted) < 0.80 ,{
 		{ spells.flashHeal,	jps.FriendDamage(LowestTargeted)*2 > UnitHealth(LowestTargeted) , LowestTargeted },
 		{ spells.flashHeal, SerenityOnCD , LowestTargeted },

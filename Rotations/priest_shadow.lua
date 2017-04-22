@@ -223,11 +223,13 @@ end
 
 local DeathEnemyTarget = function()
 	local deathEnemyTarget = "target"
-	for i=1,#Enemy do -- for _,unit in ipairs(Enemy) do
+	local healthEnemyTarget = 1
+	for i=1,#Enemy do
 		local unit = Enemy[i]
-		if jps.hasTalent(4,2) and jps.hp(unit) < 0.35 then
+		if UnitExists(unit) then healthEnemyTarget = jps.hp(unit) end
+		if PlayerHasTalent(4,2) and healthEnemyTarget < 0.35 and PlayerCanDPS(unit) then
 			deathEnemyTarget = unit
-		elseif jps.hp(unit) < 0.20 then
+		elseif healthEnemyTarget < 0.20 then
 			deathEnemyTarget = unit
 		break end
 	end
@@ -392,7 +394,7 @@ end,"Shadow Priest")
 --	Les dégâts de votre prochain Éclair de Vide sont augmentés de 2%, ce effet se cumulant jusqu’à 50 fois
 
 --	Low Insanity coming up (Shadow Word: Death , Void Bolt , Mind Blast , AND Void Torrent are all on cooldown and you are in danger of reaching 0 Insanity).
---	{spells.dispersion, jps.hasTalent(6,3) and PlayerInsanity() > 21 and PlayerInsanity() < 71 and jps.cooldown(spells.mindbender) > 51 , "player" },
+--	{spells.dispersion, PlayerHasTalent(6,3) and PlayerInsanity() > 21 and PlayerInsanity() < 71 and jps.cooldown(spells.mindbender) > 51 , "player" },
 
 --	{spells.voidEruption, TargetDebuffDuration(spells.shadowWordPain) > 0 and TargetDebuffDuration(spells.shadowWordPain) < FocusDebuffDuration(spells.shadowWordPain) and TargetDebuffDuration(spells.shadowWordPain) < MouseoverDebuffDuration(spells.shadowWordPain) , "target" },
 --	{spells.voidEruption, TargetDebuffDuration(spells.vampiricTouch) > 0 and TargetDebuffDuration(spells.vampiricTouch) < FocusDebuffDuration(spells.vampiricTouch) and TargetDebuffDuration(spells.vampiricTouch) < MouseoverDebuffDuration(spells.vampiricTouch) , "target" },

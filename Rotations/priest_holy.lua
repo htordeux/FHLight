@@ -320,7 +320,7 @@ local spellTable = {
 		{ spells.purify, PlayerCanDispelWith("mouseover",527) , "mouseover" },
 		{ spells.holyWordSerenity, jps.hp("mouseover") < 0.40 , "mouseover" },
 		{ spells.guardianSpirit, jps.hp("mouseover") < 0.30 , "mouseover" },
-		{ spells.prayerOfHealing, CountInRange > 3 , "mouseover" },
+		{ spells.prayerOfHealing, not jps.Moving and CountInRange > 3 , "mouseover" },
 		{ spells.lightOfTuure, jps.hp("mouseover") < 0.70 , "mouseover" },
 		{ spells.flashHeal, not jps.Moving and jps.hp("mouseover") < 0.70 , "mouseover" },
 		{ spells.renew, not jps.buff(spells.renew,"mouseover") and jps.hpInc("mouseover") < 0.90 , "mouseover" },

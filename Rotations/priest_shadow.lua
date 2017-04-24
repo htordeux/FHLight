@@ -229,7 +229,7 @@ local DeathEnemyTarget = function()
 		if UnitExists(unit) then healthEnemyTarget = jps.hp(unit) end
 		if PlayerHasTalent(4,2) and healthEnemyTarget < 0.35 and PlayerCanDPS(unit) then
 			deathEnemyTarget = unit
-		elseif healthEnemyTarget < 0.20 then
+		elseif healthEnemyTarget < 0.20 and PlayerCanDPS(unit) then
 			deathEnemyTarget = unit
 		break end
 	end

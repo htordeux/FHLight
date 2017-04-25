@@ -188,7 +188,7 @@ jps.registerRotation("PRIEST","HOLY", function()
 	local InterruptTable = {
 		{jps.spells.priest.flashHeal, 0.85 , PlayerHasBuff(27827) or SerenityOnCD}, -- "Esprit de rédemption" 27827
 		{jps.spells.priest.heal, 0.95 , PlayerHasBuff(27827) or SerenityOnCD },
-		{jps.spells.priest.prayerOfHealing , breakpoint , true },
+		{jps.spells.priest.prayerOfHealing , breakpoint , false },
 	}
 
 	-- AVOID OVERHEALING

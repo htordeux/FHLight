@@ -194,11 +194,14 @@ end
 local PrayerOfHealing = tostring(jps.spells.priest.prayerOfHealing)
 local SpiritOfRedemption = tostring(jps.spells.priest.spiritOfRedemption)
 local holyWordSerenity = tostring(jps.spells.priest.holyWordSerenity)
-local holyWordSerenityOnCD = jps.cooldown(holyWordSerenity) > 0
+local holyWordSerenityOnCD = function()
+	if jps.cooldown(holyWordSerenity) > 0 then return true end
+	return false
+end
 
 local InterruptTable = {
-	{jps.spells.priest.flashHeal, 0.90 , PlayerHasBuff(27827) or holyWordSerenityOnCD}, -- "Esprit de rédemption" 27827
-	{jps.spells.priest.heal, 0.95 , PlayerHasBuff(27827) or holyWordSerenityOnCD },
+	{jps.spells.priest.flashHeal, 0.90 , PlayerHasBuff(27827) or holyWordSerenityOnCD()}, -- "Esprit de rédemption" 27827
+	{jps.spells.priest.heal, 0.95 , PlayerHasBuff(27827) or holyWordSerenityOnCD()},
 	{jps.spells.priest.prayerOfHealing , 2 , false },
 }
 

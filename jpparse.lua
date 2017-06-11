@@ -30,12 +30,12 @@ local toSpellName = jps.toSpellName
 -- These functions will blacklist a target for a set time.
 ----------------------------
 
-jps.BlacklistTimer = 1
+local CHECK_INTERVAL = 1
 
 jps.UpdateHealerBlacklist = function(self)
 	if #jps.HealerBlacklist > 0 then
 		for i = #jps.HealerBlacklist, 1, -1 do
-			if GetTime() - jps.HealerBlacklist[i][2] > jps.BlacklistTimer then
+			if GetTime() - jps.HealerBlacklist[i][2] > CHECK_INTERVAL then
 				if jps.Debug then print("Releasing ", jps.HealerBlacklist[i][1]) end
 				tremove(jps.HealerBlacklist,i)
 			end
@@ -398,7 +398,7 @@ end
 function jps.LastSpell(spell)
 	local spellname = toSpellName(spell)
 	if spellname == nil then return false end
-	if jps.CurrentCastInterrupt == spellname then return false end
+	if jps.CurrentCast == "Interrupt" then return false end
 	if jps.CurrentCast == spellname then return true end
 	if jps.LastCast == spellname then return true end
 	return false
@@ -407,7 +407,6 @@ end
 function jps.isRecast(spell,unit)
 	local spellname = toSpellName(spell)
 	if unit == nil then unit = "target" end
-	--if CastSpellTable[spellname] == unit then return true end
 	if jps.LastSpell(spell) and (UnitGUID(unit) == jps.LastTargetGUID) then return true end
 	return false
 end

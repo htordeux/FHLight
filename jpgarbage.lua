@@ -37,7 +37,8 @@ local CountInRange, AvgHealth, FriendUnit, FriendLowest = jps.CountInRaidStatus(
 print("|cff1eff00CountInRange: |cffffffff",CountInRange,"|cff1eff00FriendUnit: |cffffffff",#FriendUnit,"|cff1eff00AvgHealth: |cffffffff",AvgHealth,"|cff1eff00FriendLowest: |cffffffff",GetUnitName(FriendLowest))
 local LowestUnit = jps.LowestImportantUnit()
 print("|cff1eff00LowestUnit: |cffffffff",GetUnitName(LowestUnit))
-print("|cFFFF0000LastCast: |cffffffff", jps.LastCastUnit(LowestUnit) )
+local LowestTarget = jps.findLowestTargetInRaid()
+print("|cff1eff00LowestTarget: |cffffffff",GetUnitName(LowestTarget))
 write("***************************")
 local Tank,Tanks = jps.findRaidTank()
 local Threat,Threats = jps.findRaidTankThreat()
@@ -85,17 +86,9 @@ function ChatRandom()
 	SendChatMessage("bonsoir"..str , "GUILD" )
 end
  
-function jps.Test()
+function jpsTest()
 
 Test()
-
---local lowestFriendTargetNameplate,_,_ = jps.LowestFriendTargetNameplate()
---local lowestFriendTargetCombatLog,_,_ = jps.LowestFriendTargetCombatLog()
---print("|cFFFF0000PlateCount:|cffffffff",jps.NamePlateCount())
---print("|cFFFF0000playerIsTarget: |cffffffff",jps.PlayerIsTarget())
---print("|cFFFF0000TargetNameplate: |cffffffff", lowestFriendTargetNameplate )
---print("|cFFFF0000TargetCombatLog: |cffffffff", lowestFriendTargetCombatLog )
-
 
 --local value = select(17,UnitBuff("player",jps.spells.priest.echoOfLight))
 --local duration = select(6,UnitBuff("player",jps.spells.priest.echoOfLight))
@@ -146,7 +139,7 @@ Test()
 --	jps.LookupEnemyDamager()
 --	jps.LookupEnemyHealer()
 
---	local rangedTarget, EnemyUnit, EnemyCount = jps.LowestEnemyTarget()
+--	local rangedTarget, EnemyUnit, EnemyCount = jps.LowestEnemy()
 --	if jps.canDPS("focus") then EnemyUnit[#EnemyUnit+1] = "focus" end
 --	print("|cffffffffRangedTarget:|cff1eff00",rangedTarget,"|cffffffffEnemyCount:|cff1eff00",TargetCount)
 --	print("|cffffffffEnemyUnit:|cff1eff00",unpack(EnemyUnit))

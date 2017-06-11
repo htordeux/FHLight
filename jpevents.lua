@@ -53,14 +53,6 @@ local tremove = table.remove
 local toSpellName = jps.toSpellName
 local GetUnitName = GetUnitName
 
-
-local favoriteSpell = 2061 -- usefull for holy priest with hasTalent(1,1) kps.spells.priest.trailOfLight
-local lastCastedUnit = "player"
-function jps.LastCastUnit(unit)
-	if lastCastedUnit == GetUnitName(unit) then return true end
-	return false
-end
-
 --------------------------
 -- (UN)REGISTER FUNCTIONS 
 --------------------------
@@ -276,9 +268,6 @@ jps.registerOnUpdate(function()
     	elseif jps.hasOOCRotation() > 0 then jps.Cycle()
     	end
 	end
-end)
-
-jps.registerOnUpdate(function()
 	jps.cachedValue(collectGarbage,30)
 end)
 
@@ -404,14 +393,6 @@ function jps.NamePlateCount()
 	return plateCount
 end
 
-function jps.NamePlateDebuffCount(debuff)
-	local plateCount = 0
-	for unit,_ in pairs(activeUnitPlates) do
-		if UnitAffectingCombat(unit) and not jps.myDebuff(debuff,unit) then plateCount = plateCount + 1 end
-	end
-	return plateCount
-end
-
 jps.UnitIsTarget = function(unit)
 	for nameplate,_ in pairs(activeUnitPlates) do
 		if jps.UnitExists(nameplate.."target") then
@@ -499,7 +480,7 @@ local leaveCombat = function()
 	EnemyDamager = {}
 	IncomingDamage = {}
 	IncomingHeal = {}
-	Healtable = {}
+
 	jps.TimeToDieData = {}
 	jps.TimedCasting = {}
 	jps.HealerBlacklist = {} 
@@ -530,7 +511,6 @@ end
 -- EVENT FUNCTIONS SPELL
 --------------------------
 
-local classNames = { "WARRIOR", "PALADIN", "HUNTER", "ROGUE", "PRIEST", "DEATHKNIGHT", "SHAMAN", "MAGE", "WARLOCK", "MONK", "DRUID" }
 local _,classPlayer,_ = UnitClass("player")
 
 -- UI_ERROR_MESSAGE
@@ -544,11 +524,9 @@ local _,classPlayer,_ = UnitClass("player")
 --220 You have no target.
 
 jps.events.registerEvent("UI_ERROR_MESSAGE", function(number_error,event_error)
-	--if jps.FaceTarget then print("event_error:",number_error,"-",event_error) end
 	if (event_error == SPELL_FAILED_NOT_BEHIND) then
 		jps.isNotBehind = true
 		jps.isBehind = false
-	--elseif jps.FaceTarget and not jps.Moving and event_error == ERR_BADATTACKFACING then
 	elseif jps.FaceTarget and not jps.Moving and event_error == SPELL_FAILED_UNIT_NOT_INFRONT then
 		if jps.checkTimer("Facing") == 0 then
 			jps.createTimer("Facing",1)
@@ -556,25 +534,21 @@ jps.events.registerEvent("UI_ERROR_MESSAGE", function(number_error,event_error)
 			C_Timer.After(1,function() TurnLeftStop() end)
 		end
 	elseif (event_error == SPELL_FAILED_LINE_OF_SIGHT) or (event_error == SPELL_FAILED_VISION_OBSCURED) then
+		-- 50 / Cible hors du champ de vision
 		jps.BlacklistPlayer(jps.LastTarget)
 	elseif jps.FaceTarget and not jps.Moving and event_error == ERR_BADATTACKPOS then
-		if classPlayer == "WARRIOR" and jps.canDPS("target") then
+		if classPlayer == "WARRIOR" and canDPS("target") then
 			MoveForwardStart()
 			C_Timer.After(0.6,function() MoveForwardStop() end)
 		end
 	end
 end)
 
--- UNIT_SPELLCAST_SUCCEEDED
-jps.events.registerEvent("UNIT_SPELLCAST_SUCCEEDED", function(unitID,spellname,_,_,spellID)
-	if (unitID == "player") and spellID then
-		jps.CurrentCastInterrupt = nil
-		if jps.FaceTarget and jps.checkTimer("Facing") > 0 then
-			TurnLeftStop()
-			CameraOrSelectOrMoveStop()
-		end
-	end
-end)
+--[[
+"UNIT_SPELLCAST_SENT" Fired when an event is sent to the server
+"UNIT_SPELLCAST_START" Fired when a unit begins casting
+"UNIT_SPELLCAST_SUCCEEDED" Fired when a spell is cast successfully
+]]--
 
 --casting failed = FAILED ( bad target, out of range)
 --casting success = SENT - START - SUCCEEDED - SPELLCAST_STOP
@@ -583,27 +557,36 @@ end)
 --channel interrupt = SENT - CHANNEL_START - SUCCEEDED - CHANNEL_STOP
 
 local sendTime = 0
-local GetTime = GetTime
-local Shield = toSpellName(17)
+
+jps.events.registerEvent("UNIT_SPELLCAST_SUCCEEDED", function(unitID,spellname,_,_,spellID)
+	if (unitID == "player") and spellID then
+		jps.CurrentCast = spellname
+	end
+end)
+
 jps.events.registerEvent("UNIT_SPELLCAST_SENT", function(unitID,spellname,_,spelltarget,_)
-	if unitID == "player" then
+	if unitID == "player" and spellID ~= nil then
 		sendTime = GetTime()
-		jps.CurrentCastInterrupt = nil
 		--print("SPELLCAST_SENT: ",unitID,"spellname: ",spellname,"spellID: ",spellID)
 	end
 end)
 
 jps.events.registerEvent("UNIT_SPELLCAST_START", function(unitID,spellname,_,_,spellID)
-		if unitID == "player" then
-			jps.CurrentCast = spellname
-			jps.Latency = GetTime() - sendTime
-			jps.GCD = GlobalCooldown()
-			--print("SPELLCAST_START: ",unitID,"spellname: ",spellname,"spellID: ",spellID)
+	if unitID == "player" and spellID ~= nil then 
+		jps.CurrentCast = spellname
+		jps.Latency = GetTime() - sendTime
+		jps.GCD = GlobalCooldown()
+		if jps.checkTimer("Facing") > 0 then
+			TurnLeftStop()
+			TurnRightStop()
+			CameraOrSelectOrMoveStop()
 		end
+		--print("SPELLCAST_START: ",unitID,"spellname: ",spellname,"spellID: ",spellID)
+	end
 end)
 
 jps.events.registerEvent("UNIT_SPELLCAST_CHANNEL_START", function(unitID,spellname,_,_,spellID)
-		if unitID == "player" and type(spellname) == "string" then
+		if unitID == "player" and spellID ~= nil then
 			jps.CurrentCast = spellname
 			jps.Latency = GetTime() - sendTime
 			jps.GCD = GlobalCooldown()
@@ -612,17 +595,18 @@ jps.events.registerEvent("UNIT_SPELLCAST_CHANNEL_START", function(unitID,spellna
 end)
 
 jps.events.registerEvent("UNIT_SPELLCAST_INTERRUPTED", function(unitID,spellname,_,_,spellID)
-	if unitID == "player" and type(spellname) == "string" then
-		jps.CurrentCastInterrupt = spellname
+	if unitID == "player" and spellID ~= nil then
+		jps.CurrentCast = "Interrupt"
 		--print("INTERRUPTED: ",unitID,"spellname:",spellname,": ",spellID)
 	end
 end)
 
---jps.events.registerEvent("UNIT_SPELLCAST_CHANNEL_STOP", function(unitID,spellname,_,_,spellID)
---	if unitID == "player" and spellID ~= nil then
---		print("CHANNEL_STOP: ",unitID,"spellname:",spellname,"spellID: ",spellID)
---	end
---end)
+jps.events.registerEvent("UNIT_SPELLCAST_CHANNEL_STOP", function(unitID,spellname,_,_,spellID)
+	if unitID == "player" and spellID ~= nil then
+		if not jps.Casting then collectGarbage() end
+		--print("CHANNEL_STOP: ",unitID,"spellname:",spellname,"spellID: ",spellID)
+	end
+end)
 
 jps.events.registerEvent("UNIT_SPELLCAST_STOP", function(unitID,spellname,_,_,spellID)
 	if unitID == "player" and spellID ~= nil then
@@ -636,6 +620,7 @@ end)
 ----------------------
 
 -- LossOfControlType, _, LossOfControlText, _, LossOfControlStartTime, LossOfControlTimeRemaining, duration, _, _, _ = C_LossOfControl.GetEventInfo(eventIndex)
+-- locType, spellID, text, iconTexture, startTime, timeRemaining, duration, lockoutSchool, priority, displayType = C_LossOfControl.GetEventInfo(eventIndex)
 -- eventIndex Number - index of the loss-of-control effect currently affecting your character to return information about, ascending from 1. 
 -- LossOfControlType : --STUN_MECHANIC --STUN --PACIFYSILENCE --SILENCE --FEAR --CHARM --PACIFY --CONFUSE --POSSESS --SCHOOL_INTERRUPT --DISARM --ROOT
 -- name, rank, icon, castTime, minRange, maxRange, spellId = GetSpellInfo(spellId or spellName)
@@ -645,14 +630,17 @@ end)
 -- if spell has cd then duration is the global cooldown
 
 local stunTypeTable = {"STUN_MECHANIC","STUN","FEAR","CHARM","CONFUSE","PACIFY","SILENCE","PACIFYSILENCE"}
+jps.SchoolInterrupt = nil
 jps.events.registerEvent("LOSS_OF_CONTROL_ADDED", function ()
 	local i = C_LossOfControl.GetNumEvents()
-    local locType, spellID, text, _, _, _, duration = C_LossOfControl.GetEventInfo(i)
+    local locType, spellID, text, _, _, _, duration,lockoutSchool = C_LossOfControl.GetEventInfo(i)
     --print("CONTROL:", locType,"/",text,"/",duration)
     if spellID and duration then
-		if jps.SpellControl[spellID] == nil then jps.SpellControl[spellID] = locType end
     	if locType == "SCHOOL_INTERRUPT" then
-    		if jps.checkTimer("PlayerInterrupt") == 0 then jps.createTimer("PlayerInterrupt",duration) end
+    		if lockoutSchool and lockoutSchool ~= 0 then
+    			jps.SchoolInterrupt = GetSchoolString(lockoutSchool)
+    			if jps.checkTimer("PlayerInterrupt") == 0 then jps.createTimer("PlayerInterrupt",duration) end
+    		end
     	else
 			for i=1,#stunTypeTable do -- for _,stuntype in ipairs(stunTypeTable) do
 				local stunType = stunTypeTable[i]
@@ -687,6 +675,12 @@ jps.events.registerEvent("LOSS_OF_CONTROL_UPDATE", function()
 	end
 end)
 
+jps.registerOnUpdate(function()
+	if jps.SchoolInterrupt ~= nil then
+		if jps.checkTimer("PlayerInterrupt") == 0 then  jps.SchoolInterrupt = nil end
+	end
+end)
+
 ----------------------
 -- UPDATE RAID STATUS
 ----------------------
@@ -697,12 +691,7 @@ end)
 -- "UNIT_HEALTH_PREDICTION" arg1 unitId receiving the incoming heal
 
 jps.events.registerEvent("UNIT_HEALTH_FREQUENT", function(unitID)
-	if jps.isHealer then
-		jps.UpdateRaidStatus()
-		if UnitAffectingCombat(unitID) and canHeal(unitID) then jps.Combat = true end
-	else
-		jps.UpdateRaidUnit(unitID)
-	end
+	if UnitAffectingCombat(unitID) and canHeal(unitID) then jps.Combat = true end
 end)
 
 -- Group/Raid Update
@@ -729,6 +718,7 @@ end)
 -----------------------
 -- "UNIT_TARGET" Fired when the target of yourself, raid, and party members change: 'target', 'party1target', 'raid1target', etc.. 
 -- Should also work for 'pet' and 'focus'. This event only fires when the triggering unit is within the player's visual range
+local CHECK_INTERVAL = 4
 
 -- EnemyDamager[sourceGuid] = { ["friendguid"] = friendGuid , ["friendaggro"] = GetTime() }
 local updateEnemyDamager = function()
@@ -736,7 +726,7 @@ local updateEnemyDamager = function()
 		local dataset = index.friendaggro
 		if dataset then 
 			local timeDelta = GetTime() - dataset
-			if timeDelta > 6 then EnemyDamager[unit] = nil end
+			if timeDelta > CHECK_INTERVAL + 1 then EnemyDamager[unit] = nil end
 		end
 	end
 end
@@ -744,18 +734,16 @@ end
 -- IncomingDamage[destGUID] = { {GetTime(),damage,destName}, ... }
 local updateIncomingDamage = function()
 	for unit,index in pairs(IncomingDamage) do
-		local data = #index
 		local delta = GetTime() - index[1][1]
-		if delta > 6 then IncomingDamage[unit] = nil end
+		if delta > CHECK_INTERVAL + 1 then IncomingDamage[unit] = nil end
 	end
 end
 
 -- IncomingHeal[destGUID] = ( {GetTime(),heal,destName}, ... )
 local updateIncomingHeal = function()
 	for unit,index in pairs(IncomingHeal) do
-		local data = #index
 		local delta = GetTime() - index[1][1]
-		if delta > 6 then IncomingHeal[unit] = nil end
+		if delta > CHECK_INTERVAL + 1 then IncomingHeal[unit] = nil end
 	end
 end
 
@@ -766,15 +754,13 @@ end
 local UpdateIntervalRaidStatus = function()
 	jps.UpdateHealerBlacklist()
 	updateEnemyDamager()
-	updateIncomingDamage()
-	updateIncomingHeal()
+	--updateIncomingDamage()
+	--updateIncomingHeal()
 end
-
 
 jps.registerOnUpdate(function()
 	jps.cachedValue(UpdateIntervalRaidStatus,1)
 end)
-
 
 --------------------------
 -- COMBAT_LOG_EVENT_UNFILTERED FUNCTIONS
@@ -861,16 +847,6 @@ jps.events.registerEvent("COMBAT_LOG_EVENT_UNFILTERED", function(...)
 		local sourceName = select(5,...) 
 		local destName = select(9,...)
 
-		-- Enemy Casting SpellControl according to table jps.SpellControl[spellID]
-		if isSourceEnemy and destName == GetUnitName("player") then
-			local suffix = event:match(".+(_.-)$")
-			local spellID = select(12, ...)
-			if jps.SpellControl[spellID] ~= nil then
-				if jps.SpellControl[spellID] == "cc" and jps.checkTimer("SpellControl") < 2 then jps.createTimer("SpellControl",2)
-				elseif jps.SpellControl[spellID] == "silence" and jps.checkTimer("SpellControl") < 2 then jps.createTimer("SpellControl",2) end
-			end
-		end
-
 -- HEAL TABLE -- Average value of player healing spells
 --		if sourceName == GetUnitName("player") then
 --			local healname = select(13, ...)
@@ -903,16 +879,13 @@ jps.events.registerEvent("COMBAT_LOG_EVENT_UNFILTERED", function(...)
 				end
 			end
 
--- HEAL TABLE -- Incoming Heal on Friend
+-- HEAL TABLE -- Incoming Heal on Friend from Friend Healers UnitGUID
 			if isDestFriend and UnitCanAssist("player",destName) then
 				local heal = select(15,...)
+				-- Table of Incoming Heal on Friend IncomingHeal[destGUID] = ( {GetTime(),heal,destName}, ... )
 				if IncomingHeal[destGUID] == nil then IncomingHeal[destGUID] = {} end
 				tinsert(IncomingHeal[destGUID],1,{GetTime(),heal,destName})
 			end
--- HEAL TABLE -- lastCasted Player Spell on Unit
-        	if sourceName == GetUnitName("player") and spellID == favoriteSpell then
-        		lastCastedUnit = destName
-        	end
 		end
 
 -- DAMAGE TABLE Note that for the SWING prefix, _DAMAGE starts at the 12th parameter
@@ -940,7 +913,7 @@ jps.events.registerEvent("COMBAT_LOG_EVENT_UNFILTERED", function(...)
 				end
 				damage = swingdmg + spelldmg + envdmg
 
-				-- Table of Incoming Damage on Friend
+				-- Table of Incoming Damage on Friend IncomingDamage[destGUID] = { {GetTime(),damage,destName}, ... }
 				if IncomingDamage[destGUID] == nil then IncomingDamage[destGUID] = {} end
 				tinsert(IncomingDamage[destGUID],1,{GetTime(),damage,destName})
 				-- Table of EnemyGuid doing damage on targeted FriendGuid
@@ -960,8 +933,6 @@ end)
 -- table.remove called without a position, it removes the last element of the array.
 
 function jps.IncomingDamage(unit)
-	if unit == nil then unit = "player" end
-	local time = 4
 	local unitguid = UnitGUID(unit)
 	local totalDamage = 0
 	if IncomingDamage[unitguid] ~= nil then
@@ -969,9 +940,9 @@ function jps.IncomingDamage(unit)
 		if #dataset > 1 then
 			local timeDelta = dataset[1][1] - dataset[#dataset][1] -- (lasttime - firsttime)
 			local totalTime = math.max(timeDelta, 1)
-			if time > totalTime then time = totalTime end
+			if CHECK_INTERVAL > totalTime then CHECK_INTERVAL = totalTime end
 			for i=1,#dataset do
-				if dataset[1][1] - dataset[i][1] <= time then
+				if dataset[1][1] - dataset[i][1] <= CHECK_INTERVAL then
 					totalDamage = totalDamage + dataset[i][2]
 				end
 			end
@@ -981,8 +952,6 @@ function jps.IncomingDamage(unit)
 end
 
 function jps.IncomingHeal(unit)
-	if unit == nil then unit = "player" end
-	local time = 4
 	local unitguid = UnitGUID(unit)
 	local totalHeal = 0
 	if IncomingHeal[unitguid] ~= nil then
@@ -990,9 +959,9 @@ function jps.IncomingHeal(unit)
 		if #dataset > 1 then
 			local timeDelta = dataset[1][1] - dataset[#dataset][1] -- (lasttime - firsttime)
 			local totalTime = math.max(timeDelta, 1)
-			if time > totalTime then time = totalTime end
+			if CHECK_INTERVAL > totalTime then CHECK_INTERVAL = totalTime end
 				for i=1,#dataset do
-					if dataset[1][1] - dataset[i][1] <= time then
+					if dataset[1][1] - dataset[i][1] <= CHECK_INTERVAL then
 					totalHeal = totalHeal + dataset[i][2]
 				end
 			end
@@ -1098,13 +1067,6 @@ function deleteItem()
 		end
 	end
 end
-
---local function antiAFK()
---	if not jps.Combat then
---		TurnLeftStart()
---		C_Timer.After(1,function() TurnLeftStop() end)
---	end
---end
 
 --jps.registerOnUpdate(function()
 --	local value = math.random(10,30)

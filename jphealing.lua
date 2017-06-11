@@ -72,17 +72,10 @@ jps.UpdateRaidStatus = function ()
 		else
 			unit = grouptype..i
 		end
-		
 		if RaidStatus[unit] == nil then RaidStatus[unit] = {} end
-		RaidStatus[unit]["hpct"] = HealthPct(unit)
-		RaidStatus[unit]["inrange"] = canHeal(unit)
+--		RaidStatus[unit]["hpct"] = HealthPct(unit)
+--		RaidStatus[unit]["inrange"] = canHeal(unit)
 	end
-end
-
-jps.UpdateRaidUnit = function (unit)
-	if RaidStatus[unit] == nil then return end
-	RaidStatus[unit]["hpct"] = HealthPct(unit)
-	RaidStatus[unit]["inrange"] = canHeal(unit)
 end
 
 --------------------------
@@ -116,33 +109,9 @@ end
 -- UPDATE RAIDTARGET
 ----------------------
 
-local FriendTable = {}
-jps.LowestFriendTargetCombatLog = function()
-	table.wipe(FriendTable)
-	for unit,_ in pairs(RaidStatus) do
-		if jps.FriendAggro(unit) then
-			FriendTable[#FriendTable+1] = unit
-		end
-	end
-	tsort(FriendTable, function(a,b) return HealthPct(a) < HealthPct(b) end)
-	return FriendTable[1] or "player", FriendTable, #FriendTable
-end
-
-jps.LowestFriendTargetNameplate = function()
-	table.wipe(FriendTable)
-	for unit,_ in pairs(RaidStatus) do
-		if jps.UnitIsTarget(unit) then
-			FriendTable[#FriendTable+1] = unit
-		end
-	end
-	tsort(FriendTable, function(a,b) return HealthPct(a) < HealthPct(b) end)
-	return FriendTable[1] or "player", FriendTable, #FriendTable
-end
-
-
 -- Units that are not available to the current player are (where unit is not "player"): unitfocus and unitmouseover.
 local RaidTarget = {}
-jps.LowestEnemyTarget = function()
+jps.LowestEnemy = function()
 	table.wipe(RaidTarget)
 	for unit,_ in pairs(RaidStatus) do
 		if canDPS(unit.."target") then
@@ -170,7 +139,7 @@ end
 -- table with role "DAMAGER" "TANK" "HEALER"
 local RoleEnemy = function(roleplay)
 	if roleplay == nil then roleplay = "HEALER" end
-	local _,EnemyUnit,_ = jps.LowestEnemyTarget()
+	local _,EnemyUnit,_ = jps.LowestEnemy()
 	local EnemyRole = {}
 	for i=1,#EnemyUnit do
 		local unit = EnemyUnit[i]
@@ -186,7 +155,7 @@ local RoleEnemy = function(roleplay)
 	return EnemyRole  -- { [playertarget] = "DAMAGER" , [raid5target] = "TANK" , , [party2] = "HEALER"}}
 end
 
-jps.HealerEnemyTarget = function()
+jps.HealerEnemy = function()
 	local lowestHealer = nil
 	local EnemyHealer = RoleEnemy("HEALER")
 	for unit,_ in pairs(EnemyHealer) do
@@ -279,6 +248,18 @@ end
 --	return myTank, TankUnit
 --end
 
+jps.findLowestTargetInRaid = function()
+    local lowestUnit = "player"
+    local lowestHP = 2
+	for unit,_ in pairs(RaidStatus) do
+		if canHeal(unit) and jps.UnitIsTarget(unit) and HealthPct(unit) < lowestHP then
+		    lowestUnit = unit
+            lowestHP = HealthPct(lowestUnit)
+		end
+	end
+	return lowestUnit
+end
+
 ---------------------------
 -- HEALTH UNIT RAID
 ---------------------------
@@ -312,7 +293,7 @@ end
 -- LOWEST PERCENTAGE in RaidStatus
 jps.LowestInRaidStatus = function()
 	local lowestUnit = "player"
-	local lowestHP = 1
+	local lowestHP = 2
 	for unit,_ in pairs(RaidStatus) do
 		local unitHP = HealthPct(unit)
 		if canHeal(unit) then
@@ -351,7 +332,7 @@ jps.LowestImportantUnit = function()
 			local unit = Tanks[i]
 			myTanks[#myTanks+1] = unit
 		end
-		local lowestHP = 1
+		local lowestHP = 2
 		for i=1,#myTanks do -- for _,unit in ipairs(myTanks) do
 			local unit = myTanks[i]
 			local unitHP = HealthPct(unit)
@@ -714,7 +695,7 @@ function jps.LookupRaid ()
 	
 -- RaidStatus
 	for unit,index in pairs(RaidStatus) do 
-		print("|cffa335ee",unit,"Hpct: ",index.hpct,"/",HealthPct(unit),"Range: ",index.inrange,"/",canHeal(unit)) -- color violet 
+		print("|cffa335ee",unit,"Health: ",HealthPct(unit),"inRange: ",canHeal(unit)) -- color violet 
 	end
 
 end

@@ -187,13 +187,22 @@ jps.spells.priest.searingInsanity = jps.toSpellName(179337)
 jps.spells.priest.giftNaaru = jps.toSpellName(59544)
 jps.spells.priest.lingeringInsanity = jps.toSpellName(197937)
 
---local InterruptTable = {
---	{jps.spells.priest.flashHeal, 0.80 , jps.buff(27827) or jps.PvP }, -- "Esprit de rédemption" 27827
---	{jps.spells.priest.heal, 0.95 , jps.buff(27827) },
---	{jps.spells.priest.prayerOfHealing , 3 , jps.buff(64901) or jps.buff(27827) }, -- "Symbol of Hope" 64901
---}
+local PlayerHasBuff = function(spell)
+	return jps.buff(spell,"player")
+end
 
-jps.ShouldInterruptCasting = function (InterruptTable, CountInRange, LowestUnitHealth)
+local PrayerOfHealing = tostring(jps.spells.priest.prayerOfHealing)
+local SpiritOfRedemption = tostring(jps.spells.priest.spiritOfRedemption)
+local holyWordSerenity = tostring(jps.spells.priest.holyWordSerenity)
+local holyWordSerenityOnCD = jps.cooldown(holyWordSerenity) > 0
+
+local InterruptTable = {
+	{jps.spells.priest.flashHeal, 0.90 , PlayerHasBuff(27827) or holyWordSerenityOnCD}, -- "Esprit de rédemption" 27827
+	{jps.spells.priest.heal, 0.95 , PlayerHasBuff(27827) or holyWordSerenityOnCD },
+	{jps.spells.priest.prayerOfHealing , 2 , false },
+}
+
+local ShouldInterruptCasting = function (InterruptTable, CountInRange, LowestUnitHealth)
 	if jps.LastTarget == nil then return false end
 	local spellCasting, _, _, _, _, endTime, _ = UnitCastingInfo("player")
 	if spellCasting == nil then return false end
@@ -205,16 +214,26 @@ jps.ShouldInterruptCasting = function (InterruptTable, CountInRange, LowestUnitH
 		if spellName == spellCasting and healSpellTable[3] == false then
 			if healSpellTable[1] == jps.spells.priest.prayerOfHealing and CountInRange < breakpoint then
 				SpellStopCasting()
-				DEFAULT_CHAT_FRAME:AddMessage("STOPCASTING avgHP "..spellName..", raid has enough hp!",0, 0.5, 0.8)
+				DEFAULT_CHAT_FRAME:AddMessage("STOPCASTING OverHeal "..spellName..", raid has enough hp: "..CountInRange,0, 0.5, 0.8)
+			elseif healSpellTable[1] == jps.spells.priest.heal and LowestUnitHealth < 0.40 and UnitPower("player",0) / UnitPowerMax("player",0) > 0.10 then
+				-- SPELL_POWER_MANA value 0
+                SpellStopCasting()
+                DEFAULT_CHAT_FRAME:AddMessage("STOPCASTING "..spellName.." Lowest has critical hp: "..LowestHealth,0, 0.5, 0.8)
 			elseif healSpellTable[1] == jps.spells.priest.heal and TargetHealth > breakpoint then
 				SpellStopCasting()
-				DEFAULT_CHAT_FRAME:AddMessage("STOPCASTING OverHeal "..spellName..","..jps.LastTarget.." has enough hp!",0, 0.5, 0.8)
+				DEFAULT_CHAT_FRAME:AddMessage("STOPCASTING OverHeal "..spellName..","..jps.lastTarget.." has enough hp: "..TargetHealth,0, 0.5, 0.8)
 			elseif healSpellTable[1] == jps.spells.priest.flashHeal and TargetHealth > breakpoint then
 				SpellStopCasting()
-				DEFAULT_CHAT_FRAME:AddMessage("STOPCASTING OverHeal "..spellName..","..jps.LastTarget.." has enough hp!",0, 0.5, 0.8)
+				DEFAULT_CHAT_FRAME:AddMessage("STOPCASTING OverHeal "..spellName..","..jps.lastTarget.." has enough hp: "..TargetHealth,0, 0.5, 0.8)
 			end
 		end
 	end
+end
+
+function jps.ShouldInterruptCasting()
+	local CountInRange, _, _, FriendLowest = jps.CountInRaidStatus(0.80)
+	local LowestUnitHealth = jps.hp(FriendLowest)
+	return ShouldInterruptCasting(InterruptTable, CountInRange, LowestUnitHealth)
 end
 
 ------------------------------------
@@ -241,16 +260,6 @@ local ChannelTimeLeft = function(unit)
 	return jps.ChannelTimeLeft(unit)
 end
 
---function jps.CanCastMindBlast(duration)
---	if jps.MultiTarget then return false end
---	if SpellCooldown(jps.spells.priest.mindBlast) > 0 then return false end
---	if duration == nil then duration = 0 end
---	if PlayerIsChanneling(MindFlay) then
---		if ChannelTimeLeft("player") > duration then return true end
---	end
---	return false
---end
-
 local CanCastMindBlast = setmetatable({}, {
     __index = function(t, self)
         local val = function(duration)
@@ -269,16 +278,6 @@ function jps.CanCastMindBlast(self)
 	return CanCastMindBlast[self]
 end
 
---function jps.CanCastvoidBolt(duration)
---	if jps.MultiTarget then return false end
---	if not PlayerHasBuff(194249) then return false end
---	if SpellCooldown(jps.spells.priest.voidEruption) > 0 then return false end
---	if duration == nil then duration = 0 end
---	if PlayerIsChanneling(MindFlay) then
---		if ChannelTimeLeft("player") > duration then return true end
---	end
---	return false
---end
 
 local canCastvoidBolt = setmetatable({}, {
     __index = function(t, self)
@@ -316,4 +315,35 @@ jps.unitForBinding = function(unit)
 	if UnitIsUnit("player",unit) then return false end
 	if jps.hp("player") > 0.90 then return false end
 	return true
+end
+
+--------------------------------------------------------------------------------------------
+------------------------------- MESSAGE ON SCREEN
+--------------------------------------------------------------------------------------------
+
+function CreateMessage(message)
+    local msg = CreateFrame("MessageFrame", nil, UIParent)
+    msg:SetPoint("LEFT", UIParent)
+    msg:SetPoint("RIGHT", UIParent)
+    msg:SetPoint("TOP", 0, -700) -- set vertical position here
+    msg:SetWidth(128)
+    msg:SetHeight(64)
+    msg:SetInsertMode("TOP")
+    msg:SetFrameStrata("HIGH")
+    msg:SetTimeVisible(1)
+    msg:SetFadeDuration(2)
+    msg:SetFont(STANDARD_TEXT_FONT, 25, "OUTLINE")
+    msg:AddMessage(message,1,0,0,1)
+end
+
+local buffdivinity = tostring(jps.spells.priest.divinity)
+local function holyWordSanctifyOnScreen()
+    if jps.cooldown(buffdivinity) == 0 and jps.checkTimer("holyWordSanctify") == 0 and not PlayerHasBuff(buffdivinity) then
+        jps.createTimer("holyWordSanctify", 10 )
+        CreateMessage("holyWordSanctify Ready")
+    end
+end
+
+jps.ScreenMessage = function()
+   return holyWordSanctifyOnScreen()
 end

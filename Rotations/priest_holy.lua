@@ -1,6 +1,7 @@
 local spells = jps.spells.priest
 local UnitIsUnit = UnitIsUnit
 local Enemy = { "target", "focus" ,"mouseover" }
+local canDPS = jps.canDPS
 
 local CountInRange = function(pct)
 	local Count, _, _ = jps.CountInRaidStatus(pct)
@@ -37,7 +38,7 @@ local PlayerCanAttack = function(unit)
 end
 
 local PlayerCanDPS = function(unit)
-	return jps.canDPS(unit)
+	return canDPS(unit)
 end
 
 local PlayerCanHeal = function(unit)
@@ -46,6 +47,10 @@ end
 
 local PlayerHasBuff = function(spell)
 	return jps.buff(spell,"player")
+end
+
+local PlayerBuffDuration = function(spell)
+	return jps.buffDuration(spell,"player")
 end
 
 local PlayerBuffStacks = function(spell)
@@ -106,7 +111,7 @@ jps.registerRotation("PRIEST","HOLY", function()
 	local isPVP= UnitIsPVP("player")
 	local raidCount = #FriendUnit
 	local isInRaid = IsInRaid()
-	local LowestTargeted,TargetedTable,_ = jps.LowestFriendTargetNameplate()
+	local LowestTarget = jps.findLowestTargetInRaid()
 
 ----------------------
 -- TARGET ENEMY
@@ -183,16 +188,9 @@ jps.registerRotation("PRIEST","HOLY", function()
 	if not IsInRaid then threasold = 0.80 end
 	local breakpoint = 3
 	if isInRaid then breakpoint = 5 end
-	local SerenityOnCD = true
-	if jps.cooldown(spells.holyWordSerenity) == 0 then SerenityOnCD = false end 
-	local InterruptTable = {
-		{jps.spells.priest.flashHeal, 0.85 , PlayerHasBuff(27827) or SerenityOnCD}, -- "Esprit de rédemption" 27827
-		{jps.spells.priest.heal, 0.95 , PlayerHasBuff(27827) or SerenityOnCD },
-		{jps.spells.priest.prayerOfHealing , breakpoint , false },
-	}
-
-	-- AVOID OVERHEALING
-	jps.ShouldInterruptCasting(InterruptTable, CountInRange, AvgHealthRaid)
+	
+	-- OVERHEALING
+	jps.ShouldInterruptCasting()
 
 ------------------------
 -- SPELL TABLE ---------
@@ -342,11 +340,10 @@ local spellTable = {
 
 	-- EMERGENCY HEAL -- "Serendipity" 63733 -- "Benediction" for raid and "Apotheosis" for party
 	-- "Soins rapides" 2061 -- "Traînée de lumière" 200128 "Trail of Light" -- When you cast Flash Heal, 40% of the healing is replicated to the previous target you healed with Flash Heal.
-	{ spells.flashHeal, not jps.Moving and PlayerHasTalent(1,1) and CountInRange < 4 and jps.hp(LowestUnit) < threasold and not jps.LastCastUnit(LowestUnit) , LowestUnit, "Trail" },
-	{ "nested", not jps.Moving and jps.hp(LowestTargeted) < 0.80 ,{
-		{ spells.flashHeal,	jps.FriendDamage(LowestTargeted)*2 > UnitHealth(LowestTargeted) , LowestTargeted },
-		{ spells.flashHeal, SerenityOnCD , LowestTargeted },
-		{ spells.flashHeal, jps.hp(LowestTargeted) < 0.70 , LowestTargeted },
+	{ "nested", not jps.Moving and jps.hp(LowestTarget) < 0.80 ,{
+		{ spells.flashHeal,	jps.FriendDamage(LowestTarget)*2 > UnitHealth(LowestTarget) , LowestTarget },
+		{ spells.flashHeal, SerenityOnCD , LowestTarget },
+		{ spells.flashHeal, jps.hp(LowestTarget) < 0.70 , LowestTarget },
 	}},
 	{ "nested", not jps.Moving and jps.hp(Tank) < 0.80 ,{
 		{ spells.flashHeal,	jps.FriendDamage(Tank)*2 > UnitHealth(Tank) , Tank },
@@ -355,7 +352,7 @@ local spellTable = {
 	}},
 	-- "Renew" 139
 		{ spells.renew, jps.buffDuration(spells.renew,Tank) < 3 and not UnitIsUnit("player",Tank) , Tank },
-		{ spells.renew, jps.buffDuration(spells.renew,LowestTargeted) < 3 and not UnitIsUnit("player",LowestTargeted) , LowestTargeted },
+		{ spells.renew, jps.buffDuration(spells.renew,LowestTarget) < 3 and not UnitIsUnit("player",LowestTarget) , LowestTarget },
 		{ spells.renew, CountInRange < 4 and jps.buffDuration(spells.renew,LowestUnit) < 3 and jps.hpRange(LowestUnit,0.55,0.95) , LowestUnit , "RenewParty" },
 	-- "Soins rapides" 2061
 	{ "nested", not jps.Moving and jps.hp(LowestUnit) < threasold ,{

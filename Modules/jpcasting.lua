@@ -20,7 +20,6 @@ local UnitIsUnit = UnitIsUnit
 --------------------------
 -- spell currently being cast by unit
 -- name, nameSubtext, text, texture, startTime, endTime, isTradeSkill, castID, notInterruptible = UnitCastingInfo("unit")
---  spell currently being channeled by unit
 -- name, nameSubtext, text, texture, startTime, endTime, isTradeSkill, notInterruptible = UnitCastingInfo("unit")
 
 function jps.CastTimeLeft(unit)

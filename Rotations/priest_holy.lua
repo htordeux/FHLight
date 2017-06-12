@@ -381,11 +381,9 @@ local spellTable = {
 	-- "Soins" 2060 -- "Renouveau constant" 200153 -- Vos sorts de soins à cible unique réinitialisent la durée de votre Rénovation sur la cible
 	-- Serendipity is a passive ability that causes Heal and Flash Heal to reduce the remaining cooldown of Holy Word: Serenity by 6 seconds
 	-- Serendipity causes Prayer of Healing Icon Prayer of Healing to reduce the remaining cooldown of Holy Word: Sanctify Icon Holy Word: Sanctify by 6 seconds.
-	{ "nested", not jps.Moving and jps.hp(LowestUnit) < 0.95 ,{
-		{ spells.heal, jps.hpInc(Tank) < 0.90 , Tank },
-		{ spells.heal, jps.hp(LowestUnit) < 0.85 , LowestUnit },
-		{ spells.heal, SerenityOnCD , LowestUnit },
-	}},
+	{ spells.heal, not jps.Moving and jps.hpInc(Tank) < 0.90 , Tank },
+	{ spells.heal, not jps.Moving and jps.hpInc(LowestUnit) < 0.90 , LowestUnit },
+	{ spells.heal, not jps.Moving and holyWordSerenityOnCD() , LowestUnit },
 
 	-- "Nova sacrée" 132157
 	{ spells.holyNova, jps.Moving and CheckInteractDistance(rangedTarget,2) == true and PlayerCanDPS(rangedTarget) , rangedTarget },

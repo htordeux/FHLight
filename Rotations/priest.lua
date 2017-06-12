@@ -191,52 +191,58 @@ local PlayerHasBuff = function(spell)
 	return jps.buff(spell,"player")
 end
 
+local Heal = tostring(jps.spells.priest.heal)
+local FlashHeal = tostring(jps.spells.priest.flashHeal)
 local PrayerOfHealing = tostring(jps.spells.priest.prayerOfHealing)
 local SpiritOfRedemption = tostring(jps.spells.priest.spiritOfRedemption)
 local holyWordSerenity = tostring(jps.spells.priest.holyWordSerenity)
-local holyWordSerenityOnCD = function()
+
+function holyWordSerenityOnCD()
 	if jps.cooldown(holyWordSerenity) > 0 then return true end
+	if PlayerHasBuff(27827) then return true end
 	return false
 end
 
-local InterruptTable = {
-	{jps.spells.priest.flashHeal, 0.90 , PlayerHasBuff(27827) or holyWordSerenityOnCD()}, -- "Esprit de rédemption" 27827
-	{jps.spells.priest.heal, 0.95 , PlayerHasBuff(27827) or holyWordSerenityOnCD()},
-	{jps.spells.priest.prayerOfHealing , 2 , false },
-}
+local interruptTableUpdate = function()
+	return { {jps.spells.priest.flashHeal, 0.90 , holyWordSerenityOnCD()}, {jps.spells.priest.heal, 0.95 , holyWordSerenityOnCD()}, {jps.spells.priest.prayerOfHealing , 2 , PlayerHasBuff(27827)} }
+end
 
-local ShouldInterruptCasting = function (InterruptTable, CountInRange, LowestUnitHealth)
+local ShouldInterruptCasting = function (interruptTable, countInRange, lowestHealth)
 	if jps.LastTarget == nil then return false end
 	local spellCasting, _, _, _, _, endTime, _ = UnitCastingInfo("player")
 	if spellCasting == nil then return false end
-	local TargetHealth = jps.hp(jps.LastTarget) -- pendant le spellcast jps.LastTarget = jps.Target
+	local targetHealth = jps.hp(jps.LastTarget)
 	
-	for key, healSpellTable in pairs(InterruptTable) do
+	for key, healSpellTable in pairs(interruptTable) do
 		local breakpoint = healSpellTable[2]
-		local spellName = GetSpellInfo(healSpellTable[1])
+		local spellName = tostring(healSpellTable[1])
 		if spellName == spellCasting and healSpellTable[3] == false then
-			if healSpellTable[1] == jps.spells.priest.prayerOfHealing and CountInRange < breakpoint then
+			if spellName == PrayerOfHealing and countInRange < breakpoint then
 				SpellStopCasting()
-				DEFAULT_CHAT_FRAME:AddMessage("STOPCASTING OverHeal "..spellName..", raid has enough hp: "..CountInRange,0, 0.5, 0.8)
-			elseif healSpellTable[1] == jps.spells.priest.heal and LowestUnitHealth < 0.40 and UnitPower("player",0) / UnitPowerMax("player",0) > 0.10 then
+				DEFAULT_CHAT_FRAME:AddMessage("STOPCASTING OverHeal "..spellName..", raid has enough hp: "..countInRange, 0, 0.5, 0.8)
+
+			elseif spellName == Heal and lowestHealth < 0.40 and UnitPower("player",0)/UnitPowerMax("player",0) > 0.10 then
 				-- SPELL_POWER_MANA value 0
                 SpellStopCasting()
-                DEFAULT_CHAT_FRAME:AddMessage("STOPCASTING "..spellName.." Lowest has critical hp: "..LowestHealth,0, 0.5, 0.8)
-			elseif healSpellTable[1] == jps.spells.priest.heal and TargetHealth > breakpoint then
+                DEFAULT_CHAT_FRAME:AddMessage("STOPCASTING "..spellName.." Lowest has critical hp: "..lowestHealth, 0, 0.5, 0.8)
+
+			elseif spellName == Heal and targetHealth > breakpoint then
 				SpellStopCasting()
-				DEFAULT_CHAT_FRAME:AddMessage("STOPCASTING OverHeal "..spellName..","..jps.lastTarget.." has enough hp: "..TargetHealth,0, 0.5, 0.8)
-			elseif healSpellTable[1] == jps.spells.priest.flashHeal and TargetHealth > breakpoint then
+				DEFAULT_CHAT_FRAME:AddMessage("STOPCASTING OverHeal "..spellName..","..jps.LastTarget.." has enough hp: "..targetHealth, 0, 0.5, 0.8)
+
+			elseif spellName == FlashHeal and targetHealth > breakpoint then
 				SpellStopCasting()
-				DEFAULT_CHAT_FRAME:AddMessage("STOPCASTING OverHeal "..spellName..","..jps.lastTarget.." has enough hp: "..TargetHealth,0, 0.5, 0.8)
+				DEFAULT_CHAT_FRAME:AddMessage("STOPCASTING OverHeal "..spellName..","..jps.LastTarget.." has enough hp: "..targetHealth, 0, 0.5, 0.8)
 			end
 		end
 	end
 end
 
 function jps.ShouldInterruptCasting()
-	local CountInRange, _, _, FriendLowest = jps.CountInRaidStatus(0.80)
-	local LowestUnitHealth = jps.hp(FriendLowest)
-	return ShouldInterruptCasting(InterruptTable, CountInRange, LowestUnitHealth)
+	local countInRange, _, _, friendLowest = jps.CountInRaidStatus(0.80)
+	local lowestHealth = jps.hp(friendLowest)
+	local interruptTable = interruptTableUpdate()
+	return ShouldInterruptCasting(interruptTable, countInRange, lowestHealth)
 end
 
 ------------------------------------

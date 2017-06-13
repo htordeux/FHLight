@@ -450,7 +450,7 @@ local function fnMacroEval(macroText,condition)
 		-- "#showtooltip\n/cast Frappe du colosse\n/cast Sanguinaire"
 		elseif jps.Casting and string.find(macroText,"/stopcasting") ~= nil then
 			jps.Macro("/stopcasting")
-			if jps.Debug then print("macrostopcasting") end
+			if jps.Debug then print("|cffa335eestopcasting") end
 		end
 	end
 end

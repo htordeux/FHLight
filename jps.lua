@@ -290,8 +290,8 @@ function jps.Cycle()
 	end
 	
 	-- CASTING
-	if jps.ChannelTimeLeft("player") - jps.Latency > 0 then jps.Casting = true
-	elseif jps.CastTimeLeft("player") - jps.Latency > 0 then jps.Casting = true
+	if jps.ChannelTimeLeft("player") > 0 then jps.Casting = true
+	elseif jps.CastTimeLeft("player") > 0 then jps.Casting = true
 	else jps.Casting = false end
 
 	-- STOP Combat

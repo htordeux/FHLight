@@ -198,8 +198,8 @@ local SpiritOfRedemption = tostring(jps.spells.priest.spiritOfRedemption)
 local holyWordSerenity = tostring(jps.spells.priest.holyWordSerenity)
 
 function holyWordSerenityOnCD()
-	if jps.cooldown(holyWordSerenity) > 0 then return true end
-	if PlayerHasBuff(27827) then return true end
+	if jps.cooldown(holyWordSerenity) > jps.GCD then return true end
+	if PlayerHasBuff(SpiritOfRedemption) then return true end
 	return false
 end
 
@@ -249,9 +249,6 @@ end
 -- FUNCTIONS ENEMY UNIT
 ------------------------------------
 
--- "Mind Flay" is a channeling spell
-local MindFlay = tostring(jps.spells.priest.mindFlay) --local MindFlay = GetSpellInfo(15407)
-local MindSear = tostring(jps.spells.priest.mindSear) --local MindSear = GetSpellInfo(48045)
 local PlayerMoving = function()
 	if select(1,GetUnitSpeed("player")) > 0 then return true end
 	return false
@@ -259,52 +256,31 @@ end
 local PlayerHasBuff = function(spell)
 	return jps.buff(spell,"player")
 end
-local SpellCooldown = function(spell)
-	return jps.cooldown(spell)
-end
-local PlayerIsChanneling = function(spell)
-	return jps.IsChannelingSpell(spell,"player")
-end
-local ChannelTimeLeft = function(unit)
-	return jps.ChannelTimeLeft(unit)
+
+local MindFlay = tostring(jps.spells.priest.mindFlay)
+local MindBlast = tostring(jps.spells.priest.mindBlast)
+local VoidEruption = tostring(jps.spells.priest.voidEruption)
+local VoidForm = tostring(jps.spells.priest.voidForm)
+
+function jps.CanCastvoidBolt()
+	if jps.MultiTarget then return false end
+	if not PlayerHasBuff(VoidForm) then return false end
+	if jps.cooldown(VoidEruption) > 0 then return false end
+	local Channeling = UnitChannelInfo("player") -- "Mind Flay" is a channeling spell
+    if Channeling ~= nil then
+      if tostring(Channeling) == MindFlay then return true end
+    end
+	return true
 end
 
-local CanCastMindBlast = setmetatable({}, {
-    __index = function(t, self)
-        local val = function(duration)
-        	--if jps.MultiTarget then return false end
-			if SpellCooldown(jps.spells.priest.mindBlast) > 0 then return false end
-			if duration == nil then duration = 0 end
-			if PlayerIsChanneling(MindFlay) then
-				if ChannelTimeLeft("player") > duration then return true end
-			end
-			return false
-        end
-        t[self] = val
-        return val
-    end})
-function jps.CanCastMindBlast(self)
-	return CanCastMindBlast[self]
-end
-
-
-local canCastvoidBolt = setmetatable({}, {
-    __index = function(t, self)
-        local val = function(duration)
-            --if jps.MultiTarget then return false end
-			if not PlayerHasBuff(194249) then return false end
-			if SpellCooldown(jps.spells.priest.voidEruption) > 0 then return false end
-			if duration == nil then duration = 0 end
-			if PlayerIsChanneling(MindFlay) then
-				if ChannelTimeLeft("player") > duration then return true end
-			end
-			return false
-        end
-        t[self] = val
-        return val
-    end})
-function jps.CanCastvoidBolt(self)
-    return canCastvoidBolt[self]
+function jps.CanCastMindBlast()
+	if jps.MultiTarget then return false end
+	if jps.cooldown(MindBlast) > 0 then return false end
+	local Channeling = UnitChannelInfo("player") -- "Mind Flay" is a channeling spell
+    if Channeling ~= nil then
+      if tostring(Channeling) == MindFlay then return true end
+    end
+	return false
 end
 
 ------------------------------------
@@ -346,8 +322,9 @@ function CreateMessage(message)
 end
 
 local buffdivinity = tostring(jps.spells.priest.divinity)
+local buffholyWordSanctify = tostring(jps.spells.priest.holyWordSanctify)
 local function holyWordSanctifyOnScreen()
-    if jps.cooldown(buffdivinity) == 0 and jps.checkTimer("holyWordSanctify") == 0 and not PlayerHasBuff(buffdivinity) then
+    if jps.cooldown(buffholyWordSanctify) < jps.GCD and jps.checkTimer("holyWordSanctify") == 0 and not PlayerHasBuff(buffdivinity) then
         jps.createTimer("holyWordSanctify", 10 )
         CreateMessage("holyWordSanctify Ready")
     end

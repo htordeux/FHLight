@@ -37,7 +37,7 @@ end
 -- usable, nomana = IsUsableSpell("spellName" or spellID or spellIndex[, "bookType"]);
 function jps.isUsableSpell(spell)
 	if not jps.IsSpellKnown(spell) then return false end
-	local usable = IsUsableSpell(spell)
+	local usable,_ = IsUsableSpell(spell)
 	if usable then return true end
 	return false
 end

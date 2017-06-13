@@ -121,13 +121,6 @@ Test()
 --print("find",string.find(target,"Mannequin") ~= nil )
 --print("match",string.match(target,"Mannequin") ~= nil )
 
---local voidFormBuff = jps.buff(jps.spells.priest.voidForm)
---print("voidFormBuff:",voidFormBuff)
---local voidEruptionUsable = jps.isUsableSpell(jps.spells.priest.voidEruption)
---print("voidEruptionUsable: ",voidEruptionUsable)
---local voidEruptionCooldown = jps.cooldown(jps.spells.priest.voidEruption)
---print("voidEruptionCooldown: ",voidEruptionCooldown)
-
 --local _,_,classId = UnitClass("player")
 --local specId = GetSpecialization()
 --local id, name, description, icon, background, role, primaryStat = GetSpecializationInfo(specId)

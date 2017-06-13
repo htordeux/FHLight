@@ -191,6 +191,7 @@ jps.registerRotation("PRIEST","HOLY", function()
 	
 	-- OVERHEALING
 	jps.ShouldInterruptCasting()
+	jps.ScreenMessage()
 
 ------------------------
 -- SPELL TABLE ---------
@@ -226,8 +227,8 @@ local spellTable = {
 	}},
 	
 	-- "Levitate" 1706 -- buff Levitate 111759
-	{ spells.levitate, jps.Defensive and jps.IsFallingFor(2) and not PlayerHasBuff(spells.levitate) , "player" },
-	{ spells.levitate, jps.Defensive and IsSwimming() and not PlayerHasBuff(spells.levitate) , "player" },
+	{ spells.levitate, jps.IsFallingFor(2) and not PlayerHasBuff(spells.levitate) , "player" },
+	{ spells.levitate, IsSwimming() and not PlayerHasBuff(spells.levitate) , "player" },
 	-- "Médaillon de gladiateur" 208683
 	{ 208683, isPVP and playerIsStun , "player" , "playerCC" },
 	{ 214027, isPVP and playerIsStun , "player" , "playerCC" },
@@ -243,8 +244,6 @@ local spellTable = {
 	{ "macro", jps.hp("player") < 0.60 and jps.useItem(5512) ,"/use item:5512" },
 	-- "Renew" 139
 	{ spells.renew, jps.buffDuration(spells.renew,"player") < 3 and jps.hpInc("player") < 0.90 , "player" },
-	-- "Mot sacré : Châtier" 88625
-	{ spells.holyWordChastise , isPVP and PlayerCanDPS(rangedTarget) , rangedTarget },
 	-- "Light of T'uure" 208065
 	{ spells.lightOfTuure, jps.hpRange("player",0.60,0.85) and not PlayerHasBuff(208065) , "player" },
 	-- "Soins de lien" 32546
@@ -280,10 +279,11 @@ local spellTable = {
 	{ spells.holyWordSerenity, jps.hp(Tank) < 0.50 and not UnitIsUnit("player",Tank) , Tank },
 	{ spells.holyWordSerenity, jps.hp(TankThreat) < 0.50 and not UnitIsUnit("player",TankThreat) , TankThreat },
 	{ spells.holyWordSerenity, jps.hp("player") < 0.40 , "player" },
-	{ spells.holyWordSerenity, jps.hp(LowestUnit) < 0.30 , LowestUnit },
+	{ spells.holyWordSerenity, jps.hp(LowestUnit) < 0.40 , LowestUnit },
 
 	-- "Dispel" "Purifier" 527
 	{ "nested", jps.UseCDs , {
+		{ spells.purify, PlayerCanDispelWith("mouseover",527) , "mouseover" },
 		{ spells.purify, PlayerCanDispelWith("player",527) , "player" },
 		{ spells.purify, DispelTankRole ~= nil , DispelTankRole },
 		{ spells.purify, DispelMagicTarget() ~= nil , DispelMagicTarget },
@@ -315,59 +315,38 @@ local spellTable = {
 
 	-- MOUSEOVER --
 	{ "nested", jps.Defensive and PlayerCanHeal("mouseover") , {
-		{ spells.purify, PlayerCanDispelWith("mouseover",527) , "mouseover" },
 		{ spells.holyWordSerenity, jps.hp("mouseover") < 0.40 , "mouseover" },
 		{ spells.guardianSpirit, jps.hp("mouseover") < 0.30 , "mouseover" },
-		{ spells.prayerOfHealing, not jps.Moving and CountInRange > 3 , "mouseover" },
+		{ spells.prayerOfHealing, not jps.Moving and CountInRange > breakpoint, "mouseover" },
 		{ spells.lightOfTuure, jps.hp("mouseover") < 0.70 , "mouseover" },
 		{ spells.flashHeal, not jps.Moving and jps.hp("mouseover") < 0.70 , "mouseover" },
 		{ spells.renew, not jps.buff(spells.renew,"mouseover") and jps.hpInc("mouseover") < 0.90 , "mouseover" },
 		{ spells.heal, not jps.Moving and jps.hp("mouseover") < 0.90 , "mouseover" },
 	}},
 	
-	-- DPS --
-	{ "nested", jps.MultiTarget and PlayerCanDPS(rangedTarget) and jps.hp(LowestUnit) > 0.70 , {
-		{ spells.holyWordChastise , PlayerCanDPS(rangedTarget) , rangedTarget },
-		{ spells.holyFire , PlayerCanDPS(rangedTarget) , rangedTarget  },
-		{ spells.smite , not jps.Moving and PlayerCanDPS(rangedTarget) , rangedTarget },
-		{ spells.holyNova, jps.Moving and CheckInteractDistance(rangedTarget,2) == true and PlayerCanDPS(rangedTarget) , rangedTarget },
+	-- DPS -- "Mot sacré : Châtier" 88625
+	{ "nested", jps.MultiTarget and PlayerCanDPS(rangedTarget) and jps.hp(LowestUnit) > jps.hp("target") and jps.hp(LowestUnit) > 0.60 , {
+		{ spells.holyWordChastise , true , rangedTarget },
+		{ spells.holyFire , true , rangedTarget  },
+		{ spells.smite , not jps.Moving , rangedTarget },
+		{ spells.holyNova, jps.Moving and CheckInteractDistance(rangedTarget,2) == true , rangedTarget },
 	}},
-	
-	{ "nested", not jps.Moving and jps.cooldown(spells.holyWordSanctify) == 0 and AvgHealthRaid < 0.80 and jps.distanceMax(Tank) < 20 and not UnitIsUnit("player",Tank) ,{
-		{ "castsequence", not isInRaid and CountInRange > 3 , { spells.holyWordSanctify , spells.prayerOfHealing } },
-		{ "castsequence", isInRaid and CountInRange > 5 , { spells.holyWordSanctify , spells.prayerOfHealing } },
-	}},
+
+	{ "castsequence", not jps.Moving and AvgHealthRaid < 0.80 and CountInRange > breakpoint , { spells.holyWordSanctify , spells.prayerOfHealing } },
+	-- "Renew" 139
+	{ spells.renew, jps.buffDuration(spells.renew,Tank) < 3 and not UnitIsUnit("player",Tank) , Tank },
+	{ spells.renew, jps.buffDuration(spells.renew,LowestTarget) < 3 and not UnitIsUnit("player",LowestTarget) , LowestTarget },
+	{ spells.renew, CountInRange < breakpoint and jps.buffDuration(spells.renew,LowestUnit) < 3 and jps.hpRange(LowestUnit,0.70,0.95) , LowestUnit , "RenewParty" },
 
 	-- EMERGENCY HEAL -- "Serendipity" 63733 -- "Benediction" for raid and "Apotheosis" for party
 	-- "Soins rapides" 2061 -- "Traînée de lumière" 200128 "Trail of Light" -- When you cast Flash Heal, 40% of the healing is replicated to the previous target you healed with Flash Heal.
-	{ "nested", not jps.Moving and jps.hp(LowestTarget) < 0.80 ,{
-		{ spells.flashHeal,	jps.FriendDamage(LowestTarget)*2 > UnitHealth(LowestTarget) , LowestTarget },
-		{ spells.flashHeal, SerenityOnCD , LowestTarget },
-		{ spells.flashHeal, jps.hp(LowestTarget) < 0.70 , LowestTarget },
-	}},
-	{ "nested", not jps.Moving and jps.hp(Tank) < 0.80 ,{
-		{ spells.flashHeal,	jps.FriendDamage(Tank)*2 > UnitHealth(Tank) , Tank },
-		{ spells.flashHeal, SerenityOnCD , Tank },
-		{ spells.flashHeal, jps.hp(Tank) < 0.70 , Tank },
-	}},
-	-- "Renew" 139
-		{ spells.renew, jps.buffDuration(spells.renew,Tank) < 3 and not UnitIsUnit("player",Tank) , Tank },
-		{ spells.renew, jps.buffDuration(spells.renew,LowestTarget) < 3 and not UnitIsUnit("player",LowestTarget) , LowestTarget },
-		{ spells.renew, CountInRange < 4 and jps.buffDuration(spells.renew,LowestUnit) < 3 and jps.hpRange(LowestUnit,0.55,0.95) , LowestUnit , "RenewParty" },
-	-- "Soins rapides" 2061
-	{ "nested", not jps.Moving and jps.hp(LowestUnit) < threasold ,{
-		{ spells.flashHeal,	jps.FriendDamage(LowestUnit)*2 > UnitHealth(LowestUnit) , LowestUnit , "FHLowestDamage" },
-		{ spells.flashHeal, CountInRange < 4 , LowestUnit , "FHLowest" },
-	}},
+	{ spells.flashHeal, not jps.Moving and jps.hp(LowestTarget) < 0.80 and jps.FriendDamage(LowestTarget)*2 > UnitHealth(LowestTarget) , LowestTarget },
+	{ spells.flashHeal, not jps.Moving and jps.hp(Tank) < 0.80 and jps.FriendDamage(Tank)*2 > UnitHealth(Tank) , Tank },
+	{ spells.flashHeal, not jps.Moving and jps.hp(LowestUnit) < threasold and CountInRange < breakpoint , LowestTarget },
 
 	-- "Prayer of Healing" 596 -- A powerful prayer that heals the target and the 4 nearest allies within 40 yards for (250% of Spell power)
 	-- "Holy Word: Sanctify" gives buff  "Divinity" 197030 When you heal with a Holy Word spell, your healing is increased by 15% for 8 sec.	
-	{ "nested", not jps.Moving and CountInRange > 3 and not isInRaid ,{
-		{ spells.prayerOfHealing, PlayerHasBuff(197030) , "player" },
-		{ spells.holyWordSanctify, jps.distanceMax(Tank) < 20 and not UnitIsUnit("player",Tank) , Tank },
-		{ spells.prayerOfHealing, true , "player" },
-	}},
-	{ "nested", not jps.Moving and CountInRange > 5 and isInRaid ,{
+	{ "nested", not jps.Moving and CountInRange > breakpoint ,{
 		{ spells.prayerOfHealing, PlayerHasBuff(197030) , "player" },
 		{ spells.holyWordSanctify, jps.distanceMax(Tank) < 20 and not UnitIsUnit("player",Tank) , Tank },
 		{ spells.prayerOfHealing, true , "player" },

@@ -278,7 +278,7 @@ local spellTable = {
 	{spells.voidEruption, PlayerHasBuff(194249) , VoidBoltTarget },
    	{spells.voidTorrent , PlayerHasBuff(194249) and not PlayerMoving() and TargetDebuffDuration(spells.vampiricTouch) > 4 and TargetDebuffDuration(spells.shadowWordPain) > 4 },
 	{spells.voidEruption, not PlayerMoving() and not PlayerHasBuff(194249) and PlayerInsanity() == 100 },
-	{spells.voidEruption, not PlayerMoving() and not PlayerHasBuff(194249) and PlayerInsanity() > 65 and PlayerHasTalent(7,1) and TargetDebuffDuration(spells.vampiricTouch) > 4 and TargetDebuffDuration(spells.shadowWordPain) > 4},
+	{spells.voidEruption, not PlayerMoving() and not PlayerHasBuff(194249) and PlayerHasTalent(7,1) and PlayerInsanity() > 65 and TargetDebuffDuration(spells.vampiricTouch) > 4 and TargetDebuffDuration(spells.shadowWordPain) > 4},
 
    	-- Mindblast is highest priority spell out of VoidForm
 	{spells.mindBlast, not PlayerMoving() and not PlayerHasBuff(194249) , "target" },

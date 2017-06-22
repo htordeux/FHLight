@@ -204,16 +204,26 @@ end
 -- information is ONLY AVAILABLE FOR MEMBERS OF THE PLAYER'S GROUP
 -- when not in a party/raid, the new version of UnitInRange returns FALSE for "player" and "pet". The old function returned true.
 -- UnitInRange return FALSE when not in a party/raid
+
+local SpiritOfRedemption = jps.toSpellName(20711)
+local UnitHasBuff = function(spell,unit)
+    local spellname = tostring(spell)
+    if spellname == nil then return false end
+    if select(1,UnitBuff(unit,spellname)) ~= nil then return true end
+    return false
+end
 function jps.canHeal(unit)
-	if unit == "player" then return true end
+	if unit == "player" and UnitHasBuff(SpiritOfRedemption,"player") then return false end -- UnitIsDeadOrGhost(unit) Returns false for priests who are currently in [Spirit of Redemption] form
+	if unit == "player" and not UnitIsDeadOrGhost("player") then return true end
 	if unit == "target" and UnitCanAssist("player","target") and UnitIsFriend("player","target") then return true end
 	if unit == "focus" and UnitCanAssist("player","focus") and UnitIsFriend("player","focus") then return true end
-	if not jps.UnitExists(unit) then return false end
+    if not jps.UnitExists(unit) then return false end
 	if UnitInVehicle(unit) then return false end
 	if jps.PlayerIsBlacklisted(unit) then return false end
 	if not UnitCanAssist("player",unit) then return false end
 	if not UnitIsFriend("player",unit) then return false end
-	if not select(1,UnitInRange(unit)) then return false end
+	local inRange,_ = UnitInRange(unit)
+	if not inRange then return false end
 	return true
 end
 
@@ -224,6 +234,7 @@ function jps.canDPS(unit)
 	if not jps.UnitExists(unit) then return false end
 	if UnitHasImmuneBuff(unit) then return false end
 	if not UnitCanAttack("player", unit) then return false end
+	if UnitIsFriend("player", unit) then return false end
 	if jps.PlayerIsBlacklisted(unit) then return false end
 	if not jps.IsSpellInRange(jps.HarmSpell,unit) then return false end
 	return true

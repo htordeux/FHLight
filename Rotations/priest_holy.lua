@@ -330,8 +330,8 @@ local spellTable = {
    	-- "Prayer of Healing" 596 -- A powerful prayer that heals the target and the 4 nearest allies within 40 yards for (250% of Spell power)
 	-- "Holy Word: Sanctify" gives buff  "Divinity" 197030 When you heal with a Holy Word spell, your healing is increased by 15% for 8 sec
 	-- "Mot sacré : Sanctification" augmente les soins de Prière de soins de 6% pendant 15 sec. Buff "Puissance des naaru" 196490
-    {spells.prayerOfHealing, not jps.Moving and PlayerHasBuff(196490) and CountInRange * 2 >= raidCount , "player" },
-    {spells.holyWordSanctify, not jps.Moving and CountInRange * 2 >= raidCount and AvgHealthRaid < 0.80 },
+    {spells.prayerOfHealing, not jps.Moving and PlayerHasBuff(196490) and CountInRange * 2 >= raidCount and CountInRange > breakpoint , "player" },
+    {spells.holyWordSanctify, not jps.Moving and CountInRange * 2 >= raidCount and AvgHealthRaid < 0.80 and CountInRange > breakpoint },
 	-- "Divine Hymn" 64843 should be used during periods of very intense raid damage.
 	{ spells.divineHymn , not jps.Moving and CountInRange * 2 >= raidCount and AvgHealthRaid < 0.70 and raidCount > breakpoint, LowestUnit },
 	-- "Prayer of Healing" 596
